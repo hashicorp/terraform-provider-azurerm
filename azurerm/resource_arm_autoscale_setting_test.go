@@ -14,9 +14,8 @@ import (
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
-	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
+	config := testAccAzureRMAutoScaleSetting_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -77,9 +76,8 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
-	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
+	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -103,7 +101,6 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -112,18 +109,18 @@ func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 1, 3, 2),
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, location, 1, 3, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "profile.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "1"),
-					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "2"),
-					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "4"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "3"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "2"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 2, 4, 3),
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, location, 2, 4, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -134,7 +131,7 @@ func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 2, 45, 3),
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, location, 2, 45, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -151,7 +148,6 @@ func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -160,7 +156,7 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutoScaleSetting_basic(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -172,7 +168,7 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_multipleRules(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_multipleRules(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -191,7 +187,6 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -200,7 +195,7 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutoScaleSetting_email(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_email(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
@@ -210,7 +205,7 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_emailUpdated(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_emailUpdated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
@@ -227,9 +222,8 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
-	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
+	config := testAccAzureRMAutoScaleSetting_recurrence(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -259,7 +253,6 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -268,7 +261,7 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_recurrence(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
@@ -281,7 +274,7 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_recurrenceUpdated(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_recurrenceUpdated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "profile.0.recurrence.#", "1"),
@@ -300,9 +293,8 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
-	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
+	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -384,8 +376,8 @@ func testCheckAzureRMAutoScaleSettingDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMAutoScaleSetting_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_basic(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -472,8 +464,8 @@ resource "azurerm_autoscale_setting" "import" {
 `, template)
 }
 
-func testAccAzureRMAutoScaleSetting_multipleProfiles(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_multipleProfiles(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -559,8 +551,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_multipleRules(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_multipleRules(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -624,8 +616,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_capacity(rInt int, rString string, location string, min int, max int, defaultVal int) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_capacity(rInt int, location string, min int, max int, defaultVal int) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -669,8 +661,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt, defaultVal, min, max)
 }
 
-func testAccAzureRMAutoScaleSetting_email(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_email(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -721,8 +713,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_emailUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_emailUpdated(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -773,8 +765,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt, rInt, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_recurrence(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_recurrence(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -817,8 +809,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_recurrenceUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_recurrenceUpdated(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -861,8 +853,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -891,7 +883,7 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_template(rInt int, rString string, location string) string {
+func testAccAzureRMAutoScaleSetting_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -912,35 +904,17 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctvmss-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  upgrade_policy_mode = "Manual"
+  name                   = "acctvmss-%d"
+  location               = "${azurerm_resource_group.test.location}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode    = "Automatic"
+  single_placement_group = "false"
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_DS1_v2"
     tier     = "Standard"
-    capacity = 2
+    capacity = 30
   }
 
   os_profile {
@@ -961,10 +935,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    name              = ""
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "StandardSSD_LRS"
   }
 
   storage_profile_image_reference {
@@ -974,5 +948,5 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, rInt, location, rInt, rString, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
