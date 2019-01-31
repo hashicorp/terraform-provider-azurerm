@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -12,55 +11,71 @@ const (
 	MaxSizeGB ErrorType = 1
 )
 
-var getDTUErrorMsg = map[string]string{
-	"basicpool_capacity":     "service tier 'Basic' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs",
-	"basicpool_maxSizeGB":    "service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB",
-	"standardpool_capacity":  "service tier 'Standard' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs",
-	"standardpool_maxSizeGB": "service tier 'Standard' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB",
-	"premiumpool_capacity":   "service tier 'Premium' must have a 'capacity'(%d) of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs",
-	"premiumpool_maxSizeGB":  "service tier 'Premium' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB",
+var getDTUErrorMsg = map[string]map[ErrorType]string{
+	"basicpool": {
+		Capacity:  "service tier 'Basic' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs",
+		MaxSizeGB: "service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB",
+	},
+	"standardpool": {
+		Capacity:  "service tier 'Standard' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs",
+		MaxSizeGB: "service tier 'Standard' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB",
+	},
+	"premiumpool": {
+		Capacity:  "service tier 'Premium' must have a 'capacity'(%d) of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs",
+		MaxSizeGB: "service tier 'Premium' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB",
+	},
 }
 
-var getvCoreErrorMsg = map[string]string{
-	"generalpurpose_gen4_capacity":   "service tier 'GeneralPurpose' Gen4 must have a 'capacity'(%d) of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores",
-	"generalpurpose_gen5_capacity":   "service tier 'GeneralPurpose' Gen5 must have a 'capacity'(%d) of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores",
-	"businesscritical_gen4_capacity": "service tier 'BusinessCritical' Gen4 must have a 'capacity'(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores",
-	"businesscritical_gen5_capacity": "service tier 'BusinessCritical' Gen5 must have a 'capacity'(%d) of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores",
+var getvCoreErrorMsg = map[string]map[string]string{
+	"generalpurpose": {
+		"gen4": "service tier 'GeneralPurpose' Gen4 must have a 'capacity'(%d) of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores",
+		"gen5": "service tier 'GeneralPurpose' Gen5 must have a 'capacity'(%d) of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores",
+	},
+	"businesscritical": {
+		"gen4": "service tier 'BusinessCritical' Gen4 must have a 'capacity'(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores",
+		"gen5": "service tier 'BusinessCritical' Gen5 must have a 'capacity'(%d) of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores",
+	},
 }
 
-var getDTUMaxGB = map[string]float64{
-	"basicpool_50":      4.8828125,
-	"basicpool_100":     9.765625,
-	"basicpool_200":     19.53125,
-	"basicpool_300":     29.296875,
-	"basicpool_400":     39.0625,
-	"basicpool_800":     78.125,
-	"basicpool_1200":    117.1875,
-	"basicpool_1600":    156.25,
-	"standardpool_50":   500,
-	"standardpool_100":  750,
-	"standardpool_200":  1024,
-	"standardpool_300":  1280,
-	"standardpool_400":  1536,
-	"standardpool_800":  2048,
-	"standardpool_1200": 2560,
-	"standardpool_1600": 3072,
-	"standardpool_2000": 3584,
-	"standardpool_2500": 4096,
-	"standardpool_3000": 4096,
-	"premiumpool_125":   1024,
-	"premiumpool_250":   1024,
-	"premiumpool_500":   1024,
-	"premiumpool_1000":  1024,
-	"premiumpool_1500":  1536,
-	"premiumpool_2000":  2048,
-	"premiumpool_2500":  2560,
-	"premiumpool_3000":  3072,
-	"premiumpool_3500":  3584,
-	"premiumpool_4000":  4096,
+var getDTUMaxGB = map[string]map[int]float64{
+	"basicpool": {
+		50:   4.8828125,
+		100:  9.765625,
+		200:  19.53125,
+		300:  29.296875,
+		400:  39.0625,
+		800:  78.125,
+		1200: 117.1875,
+		1600: 156.25,
+	},
+	"standardpool": {
+		50:   500,
+		100:  750,
+		200:  1024,
+		300:  1280,
+		400:  1536,
+		800:  2048,
+		1200: 2560,
+		1600: 3072,
+		2000: 3584,
+		2500: 4096,
+		3000: 4096,
+	},
+	"premiumpool": {
+		125:  1024,
+		250:  1024,
+		500:  1024,
+		1000: 1024,
+		1500: 1536,
+		2000: 2048,
+		2500: 2560,
+		3000: 3072,
+		3500: 3584,
+		4000: 4096,
+	},
 }
 
-var supportedMaxGBValues = map[float64]bool{
+var supportedDTUMaxGBValues = map[float64]bool{
 	50:   true,
 	100:  true,
 	150:  true,
@@ -91,57 +106,69 @@ var supportedMaxGBValues = map[float64]bool{
 	4096: true,
 }
 
-var getvCoreMaxGB = map[string]float64{
-	"generalpurpose_gen4_1":    512,
-	"generalpurpose_gen4_2":    756,
-	"generalpurpose_gen4_3":    1536,
-	"generalpurpose_gen4_4":    1536,
-	"generalpurpose_gen4_5":    1536,
-	"generalpurpose_gen4_6":    2048,
-	"generalpurpose_gen4_7":    2048,
-	"generalpurpose_gen4_8":    2048,
-	"generalpurpose_gen4_9":    2048,
-	"generalpurpose_gen4_10":   2048,
-	"generalpurpose_gen4_16":   3584,
-	"generalpurpose_gen4_24":   4096,
-	"generalpurpose_gen5_2":    512,
-	"generalpurpose_gen5_4":    756,
-	"generalpurpose_gen5_6":    1536,
-	"generalpurpose_gen5_8":    1536,
-	"generalpurpose_gen5_10":   1536,
-	"generalpurpose_gen5_12":   2048,
-	"generalpurpose_gen5_14":   2048,
-	"generalpurpose_gen5_16":   2048,
-	"generalpurpose_gen5_18":   3072,
-	"generalpurpose_gen5_20":   3072,
-	"generalpurpose_gen5_24":   3072,
-	"generalpurpose_gen5_32":   4096,
-	"generalpurpose_gen5_40":   4096,
-	"generalpurpose_gen5_80":   4096,
-	"businesscritical_gen4_2":  1024,
-	"businesscritical_gen4_3":  1024,
-	"businesscritical_gen4_4":  1024,
-	"businesscritical_gen4_5":  1024,
-	"businesscritical_gen4_6":  1024,
-	"businesscritical_gen4_7":  1024,
-	"businesscritical_gen4_8":  1024,
-	"businesscritical_gen4_9":  1024,
-	"businesscritical_gen4_10": 1024,
-	"businesscritical_gen4_16": 1024,
-	"businesscritical_gen4_24": 1024,
-	"businesscritical_gen5_4":  1024,
-	"businesscritical_gen5_6":  1536,
-	"businesscritical_gen5_8":  1536,
-	"businesscritical_gen5_10": 1536,
-	"businesscritical_gen5_12": 3072,
-	"businesscritical_gen5_14": 3072,
-	"businesscritical_gen5_16": 3072,
-	"businesscritical_gen5_18": 3072,
-	"businesscritical_gen5_20": 3072,
-	"businesscritical_gen5_24": 4096,
-	"businesscritical_gen5_32": 4096,
-	"businesscritical_gen5_40": 4096,
-	"businesscritical_gen5_80": 4096,
+var getvCoreMaxGB = map[string]map[string]map[int]float64{
+	"generalpurpose": {
+		"gen4": {
+			1:  512,
+			2:  756,
+			3:  1536,
+			4:  1536,
+			5:  1536,
+			6:  2048,
+			7:  2048,
+			8:  2048,
+			9:  2048,
+			10: 2048,
+			16: 3584,
+			24: 4096,
+		},
+		"gen5": {
+			2:  512,
+			4:  756,
+			6:  1536,
+			8:  1536,
+			10: 1536,
+			12: 2048,
+			14: 2048,
+			16: 2048,
+			18: 3072,
+			20: 3072,
+			24: 3072,
+			32: 4096,
+			40: 4096,
+			80: 4096,
+		},
+	},
+	"businesscritical": {
+		"gen4": {
+			2:  1024,
+			3:  1024,
+			4:  1024,
+			5:  1024,
+			6:  1024,
+			7:  1024,
+			8:  1024,
+			9:  1024,
+			10: 1024,
+			16: 1024,
+			24: 1024,
+		},
+		"gen5": {
+			4:  1024,
+			6:  1536,
+			8:  1536,
+			10: 1536,
+			12: 3072,
+			14: 3072,
+			16: 3072,
+			18: 3072,
+			20: 3072,
+			24: 4096,
+			32: 4096,
+			40: 4096,
+			80: 4096,
+		},
+	},
 }
 
 var getTierFromName = map[string]string{
@@ -155,29 +182,23 @@ var getTierFromName = map[string]string{
 }
 
 func MSSQLElasticPoolGetDTUBasedErrorMsg(name string, errorType ErrorType) string {
-	errType := "capacity"
-
-	if errorType == MaxSizeGB {
-		errType = "maxSizeGB"
-	}
-
-	return getDTUErrorMsg[fmt.Sprintf("%s_%s", strings.ToLower(name), errType)]
+	return getDTUErrorMsg[strings.ToLower(name)][errorType]
 }
 
 func MSSQLElasticPoolGetvCoreBasedErrorMsg(tier string, family string) string {
-	return getvCoreErrorMsg[fmt.Sprintf("%s_%s_capacity", strings.ToLower(tier), strings.ToLower(family))]
+	return getvCoreErrorMsg[strings.ToLower(tier)][strings.ToLower(family)]
 }
 
 func MSSQLElasticPoolGetDTUMaxSizeGB(name string, capacity int) float64 {
-	return getDTUMaxGB[fmt.Sprintf("%s_%d", strings.ToLower(name), capacity)]
+	return getDTUMaxGB[strings.ToLower(name)][capacity]
 }
 
-func MSSQLElasticPoolIsValidMaxGBSizeForSKU(gb float64) bool {
-	return supportedMaxGBValues[gb]
+func MSSQLElasticPoolIsValidDTUMaxGBSize(gigabytes float64) bool {
+	return supportedDTUMaxGBValues[gigabytes]
 }
 
 func MSSQLElasticPoolGetvCoreMaxSizeGB(tier string, family string, vCores int) float64 {
-	return getvCoreMaxGB[fmt.Sprintf("%s_%s_%d", strings.ToLower(tier), strings.ToLower(family), vCores)]
+	return getvCoreMaxGB[strings.ToLower(tier)][strings.ToLower(family)][vCores]
 }
 
 func MSSQLElasticPoolNameContainsFamily(name string, family string) bool {
