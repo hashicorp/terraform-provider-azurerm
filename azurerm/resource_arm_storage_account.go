@@ -990,7 +990,7 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.Blob; v != nil {
 		blobEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			blobHost = u.Host
 		} else {
 			return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
@@ -1006,7 +1006,7 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.Queue; v != nil {
 		queueEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			queueHost = u.Host
 		} else {
 			return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
@@ -1019,7 +1019,7 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.Table; v != nil {
 		tableEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			tableHost = u.Host
 		} else {
 			return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
@@ -1032,7 +1032,7 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.File; v != nil {
 		fileEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			fileHost = u.Host
 		} else {
 			return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
@@ -1046,14 +1046,14 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 
 func flattenAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints, acctName *string, acctKey *string) error {
 	if secondary == nil {
-		return fmt.Errorf("secondary Endpoints should not be empty")
+		return nil
 	}
 
 	var blobEndpoint, blobHost, blobConnectionStr string
 	if v := secondary.Blob; v != nil {
 		blobEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			blobHost = u.Host
 		} else {
 			return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
@@ -1069,7 +1069,7 @@ func flattenAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, seco
 	if v := secondary.Queue; v != nil {
 		queueEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			queueHost = u.Host
 		} else {
 			return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
@@ -1082,7 +1082,7 @@ func flattenAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, seco
 	if v := secondary.Table; v != nil {
 		tableEndpoint = *v
 
-		if u, err := url.Parse(*v); err != nil {
+		if u, err := url.Parse(*v); err == nil {
 			tableHost = u.Host
 		} else {
 			return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
