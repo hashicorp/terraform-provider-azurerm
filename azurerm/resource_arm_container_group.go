@@ -998,26 +998,3 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 
 	return hashcode.String(buf.String())
 }
-
-func containerGroupLogAnalyticsHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["workspace_id"].(string)))
-
-		if v, ok := m["log_type"].(containerinstance.LogAnalyticsLogType); ok {
-			buf.WriteString(fmt.Sprintf("%s-", string(v)))
-		}
-		if v, ok := m["log_type"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-
-		metadata := m["metadata"].(map[string]interface{})
-		for k, v := range metadata {
-			buf.WriteString(fmt.Sprintf("%s-", k))
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-	}
-
-	return hashcode.String(buf.String())
-}
