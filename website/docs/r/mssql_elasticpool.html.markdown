@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `per_database_settings` - (Required) A `per_database_settings` block as defined below.
 
-* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes.
+* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes. Conflicts with `max_size_bytes`. 
 
-* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes.
+* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

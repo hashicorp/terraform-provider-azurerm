@@ -194,139 +194,39 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
-			// Convert Bytes to Gigabytes
-			if maxSizeBytes != 0 {
+			// Convert Bytes to Gigabytes only if max_size_gb
+			// has not changed else use max_size_gb
+			if maxSizeBytes != 0 && !diff.HasChange("max_size_gb") {
 				maxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
 			}
 
-			// Basic Checks
-			if strings.EqualFold(name.(string), "BasicPool") {
-				maxAllowedGB := azure.BasicGetMaxSizeGB(capacity.(int))
+			if !strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+				// DTU Based Checks
+
+				maxAllowedGB := azure.MSSQLElasticPoolGetDTUMaxSizeGB(name.(string), capacity.(int))
 
 				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Basic' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs", capacity.(int))
+					return fmt.Errorf(azure.MSSQLElasticPoolGetDTUBasedErrorMsg(name.(string), azure.Capacity), capacity.(int))
 				}
 
-				// Basic SKU does not let you pick your max_size_GB they are fixed values
-				if maxSizeGb.(float64) != maxAllowedGB {
-					return fmt.Errorf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", capacity.(int), maxAllowedGB, maxSizeGb.(float64))
-				}
-			}
-
-			// Standard Checks
-			if strings.EqualFold(name.(string), "StandardPool") {
-				maxAllowedGB := azure.StandardGetMaxSizeGB(capacity.(int))
-
-				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Standard' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs", capacity.(int))
-				}
-
-				if maxSizeGb.(float64) > maxAllowedGB {
-					return fmt.Errorf("service tier 'Standard' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
-				}
-			}
-
-			// Premium Checks
-			if strings.EqualFold(name.(string), "PremiumPool") {
-				maxAllowedGB := azure.PremiumGetMaxSizeGB(capacity.(int))
-
-				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Premium' must have a 'capacity'(%d) of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs", capacity.(int))
-				}
-
-				if maxSizeGb.(float64) > maxAllowedGB {
-					return fmt.Errorf("service tier 'Premium' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
-				}
-			}
-
-			// GeneralPurpose Checks
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
-				// Gen4 Checks
-				if strings.EqualFold(family.(string), "Gen4") {
-					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), family.(string))
-
-					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 must have a 'capacity'(%d) of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
+				if strings.EqualFold(name.(string), "BasicPool") {
+					// Basic SKU does not let you pick your max_size_GB they are fixed values
+					if maxSizeGb.(float64) != maxAllowedGB {
+						return fmt.Errorf(azure.MSSQLElasticPoolGetDTUBasedErrorMsg(name.(string), azure.MaxSizeGB), capacity.(int), maxAllowedGB, maxSizeGb.(float64))
 					}
-
+				} else {
+					// All other DTU based SKUs
 					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+						return fmt.Errorf(azure.MSSQLElasticPoolGetDTUBasedErrorMsg(name.(string), azure.MaxSizeGB), capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 					}
 				}
 
-				// Gen5 Checks
-				if strings.EqualFold(family.(string), "Gen5") {
-					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), family.(string))
-
-					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 must have a 'capacity'(%d) of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
-					}
-
-					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
-					}
-				}
-			}
-
-			// BusinessCritical Checks
-			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				// Gen4 Checks
-				if strings.EqualFold(family.(string), "Gen4") {
-					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), family.(string))
-
-					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen4 must have a 'capacity'(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
-					}
-
-					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen4 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
-					}
-				}
-
-				// Gen5 Checks
-				if strings.EqualFold(family.(string), "Gen5") {
-					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), family.(string))
-
-					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen5 must have a 'capacity'(%d) of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
-					}
-
-					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen5 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
-					}
-				}
-			}
-
-			// General Checks based off SKU type...
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				// vCore Based
-				if int(maxSizeGb.(float64)) < 5 {
-					return fmt.Errorf("service tier 'GeneralPurpose' and 'BusinessCritical' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", int(maxSizeGb.(float64)))
-				}
-
-				if maxSizeGb.(float64) != math.Trunc(maxSizeGb.(float64)) {
-					return fmt.Errorf("'max_size_gb' must be a whole number, got %f GB", maxSizeGb.(float64))
-				}
-
-				if !azure.NameFamilyValid(name.(string), family.(string)) {
-					return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", name.(string), family.(string), azure.GetFamily(name.(string)))
-				}
-
-				if maxCapacity.(float64) > float64(capacity.(int)) {
-					return fmt.Errorf("service tiers 'GeneralPurpose' and 'BusinessCritical' perDatabaseSettings maxCapacity must not be higher than the SKUs 'capacity'(%d) value", capacity.(int))
-				}
-
-				if minCapacity.(float64) > maxCapacity.(float64) {
-					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings 'minCapacity' value")
-				}
-			} else {
-				// DTU Based
 				if !strings.EqualFold(name.(string), "BasicPool") {
 					if int(maxSizeGb.(float64)) < 50 {
-						return fmt.Errorf("service tiers 'Standard', and 'Premium' must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
+						return fmt.Errorf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), int(maxSizeGb.(float64)))
 					}
 
-					if !azure.StandardPremiumMaxGBValid(maxSizeGb.(float64)) {
+					if !azure.MSSQLElasticPoolIsValidMaxGBSizeForSKU(maxSizeGb.(float64)) {
 						return fmt.Errorf("'max_size_gb'(%d) is not a valid value, valid values are 50, 100, 150, 200, 250, 300, 400, 500, 750, 800, 1024, 1200, 1280, 1536, 1600, 1792, 2000, 2048, 2304, 2500, 2560, 2816, 3000, 3072, 3328, 3584, 3840 or 4096", int(maxSizeGb.(float64)))
 					}
 				}
@@ -335,37 +235,55 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					return fmt.Errorf("Invalid attribute 'family' (%s) for service tiers 'Basic', 'Standard', and 'Premium', remove the 'family' attribute from the configuration file", family.(string))
 				}
 
-				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
-					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
-				}
-
 				if minCapacity.(float64) != math.Trunc(minCapacity.(float64)) {
 					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'minCapacity'")
+				}
+
+				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
+					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
 				}
 
 				if minCapacity.(float64) < 0.0 {
 					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings 'min_capacity' must be equal to or greater than zero")
 				}
+
+			} else {
+				// vCore Based Checks
+
+				maxAllowedGB := azure.MSSQLElasticPoolGetvCoreMaxSizeGB(azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), family.(string), capacity.(int))
+
+				if maxAllowedGB == 0 {
+					return fmt.Errorf(azure.MSSQLElasticPoolGetvCoreBasedErrorMsg(azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), family.(string)), capacity.(int))
+				}
+
+				if maxSizeGb.(float64) > maxAllowedGB {
+					return fmt.Errorf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), family.(string), capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+				}
+
+				if int(maxSizeGb.(float64)) < 5 {
+					return fmt.Errorf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), int(maxSizeGb.(float64)))
+				}
+
+				if maxSizeGb.(float64) != math.Trunc(maxSizeGb.(float64)) {
+					return fmt.Errorf("'max_size_gb' must be a whole number, got %f GB", maxSizeGb.(float64))
+				}
+
+				if !azure.MSSQLElasticPoolNameContainsFamily(name.(string), family.(string)) {
+					return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", name.(string), family.(string), azure.MSSQLElasticPoolGetFamilyFromSKUName(name.(string)))
+				}
+
+				if maxCapacity.(float64) > float64(capacity.(int)) {
+					return fmt.Errorf("service tier '%s' perDatabaseSettings 'maxCapacity' must not be higher than the SKUs 'capacity'(%d) value", azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)), capacity.(int))
+				}
+
+				if minCapacity.(float64) > maxCapacity.(float64) {
+					return fmt.Errorf("perDatabaseSettings 'maxCapacity' must be greater than or equal to the perDatabaseSettings 'minCapacity' value")
+				}
 			}
 
-			if strings.EqualFold(name.(string), "BasicPool") && !strings.EqualFold(tier.(string), "Basic") {
-				return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Basic'", name.(string), tier.(string))
-			}
-
-			if strings.EqualFold(name.(string), "StandardPool") && !strings.EqualFold(tier.(string), "Standard") {
-				return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Standard'", name.(string), tier.(string))
-			}
-
-			if strings.EqualFold(name.(string), "PremiumPool") && !strings.EqualFold(tier.(string), "Premium") {
-				return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Premium'", name.(string), tier.(string))
-			}
-
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.EqualFold(tier.(string), "GeneralPurpose") {
-				return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
-			}
-
-			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") && !strings.EqualFold(tier.(string), "BusinessCritical") {
-				return fmt.Errorf("Mismatch between SKU name '%s' tier '%s', expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
+			// Universal check for all SKUs
+			if !azure.MSSQLElasticPoolNameTierIsValid(name.(string), tier.(string)) {
+				return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", name.(string), tier.(string), azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)))
 			}
 
 			return nil
