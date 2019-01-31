@@ -104,7 +104,6 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 
-	// TODO: support for Timeouts/Requiring Import
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
