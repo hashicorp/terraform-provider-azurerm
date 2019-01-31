@@ -114,9 +114,9 @@ func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interf
 	reference := blobClient.GetContainerReference(name)
 	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
 	if requireResourcesToBeImported && d.IsNewResource() {
-		exists, err := reference.Exists()
-		if err != nil {
-			return fmt.Errorf("Error checking if Storage Container %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, err)
+		exists, e := reference.Exists()
+		if e != nil {
+			return fmt.Errorf("Error checking if Storage Container %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, e)
 		}
 
 		if exists {
