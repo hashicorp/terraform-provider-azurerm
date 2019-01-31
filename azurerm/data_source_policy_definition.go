@@ -5,6 +5,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func dataSourceArmPolicyDefinition() *schema.Resource {
@@ -12,24 +14,42 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 		Read: dataSourceArmPolicyDefinitionRead,
 		Schema: map[string]*schema.Schema{
 			"display_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"management_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"type": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
+			},
+			"policy_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"policy_rule": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"parameters": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"metadata": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -59,11 +79,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 
 	for policyDefinitions.NotDone() {
 		def := policyDefinitions.Value()
-		if *def.DisplayName == name {
+		if def.DisplayName != nil && *def.DisplayName == name {
 			policyDefinition = def
 			break
 		}
-		if err = policyDefinitions.NextWithContext(ctx); err != nil {
+
+		err = policyDefinitions.NextWithContext(ctx)
+		if err != nil {
 			return fmt.Errorf("Error loading Policy Definition List: %s", err)
 		}
 	}
@@ -76,7 +98,20 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", policyDefinition.Name)
 	d.Set("display_name", policyDefinition.DisplayName)
 	d.Set("description", policyDefinition.Description)
-	d.Set("type", string(policyDefinition.PolicyType))
+	d.Set("type", policyDefinition.Type)
+	d.Set("policy_type", policyDefinition.PolicyType)
+
+	if policyRuleStr, _ := flattenJSON(policyDefinition.PolicyRule, "policy_rule"); policyRuleStr != "" {
+		d.Set("policy_rule", policyRuleStr)
+	}
+
+	if metadataStr, _ := flattenJSON(policyDefinition.Metadata, "metadata"); metadataStr != "" {
+		d.Set("metadata", metadataStr)
+	}
+
+	if parametersStr, _ := flattenJSON(policyDefinition.Parameters, "parameters"); parametersStr != "" {
+		d.Set("parameters", parametersStr)
+	}
 
 	return nil
 }

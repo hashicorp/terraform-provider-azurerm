@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 					testAzureRMClientConfigAttr(dataSourceName, "name", "a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 					testAzureRMClientConfigAttr(dataSourceName, "display_name", "Allowed resource types"),
-					testAzureRMClientConfigAttr(dataSourceName, "type", "BuiltIn"),
+					testAzureRMClientConfigAttr(dataSourceName, "type", "Microsoft.Authorization/policyDefinitions"),
 					testAzureRMClientConfigAttr(dataSourceName, "description", "This policy enables you to specify the resource types that your organization can deploy."),
 				),
 			},
@@ -58,7 +58,11 @@ func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
 					testAzureRMAttrExists(dataSourceName, "id"),
 					testAzureRMClientConfigAttr(dataSourceName, "name", fmt.Sprintf("acctestpol-%d", ri)),
 					testAzureRMClientConfigAttr(dataSourceName, "display_name", fmt.Sprintf("acctestpol-%d", ri)),
-					testAzureRMClientConfigAttr(dataSourceName, "type", "Custom"),
+					testAzureRMClientConfigAttr(dataSourceName, "type", "Microsoft.Authorization/policyDefinitions"),
+					testAzureRMClientConfigAttr(dataSourceName, "policy_type", "Custom"),
+					testAzureRMClientConfigAttr(dataSourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
+					testAzureRMClientConfigAttr(dataSourceName, "parameters", "{\"allowedLocations\":{\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"},\"type\":\"Array\"}}"),
+					testAzureRMClientConfigAttr(dataSourceName, "metadata", "{\"note\":\"azurerm acceptance test\"}"),
 				),
 			},
 		},
@@ -79,7 +83,7 @@ func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) stri
 data "azurerm_client_config" "current" {}
 
 data "azurerm_policy_definition" "test" {
-  display_name = "%s"
+  display_name        = "%s"
   management_group_id = "${data.azurerm_client_config.current.tenant_id}"
 }
 `, name)
@@ -93,12 +97,12 @@ resource "azurerm_policy_definition" "test_policy" {
   mode         = "All"
   display_name = "acctestpol-%d"
 
-  policy_rule = <<POLICY_RULE
+  policy_rule  = <<POLICY_RULE
   {
     "if": {
       "not": {
         "field": "location",
-        "equals": "East US"
+        "in": "[parameters('allowedLocations')]"
       }
     },
     "then": {
@@ -106,6 +110,25 @@ resource "azurerm_policy_definition" "test_policy" {
     }
   }
 POLICY_RULE
+
+  parameters = <<PARAMETERS
+  {
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+    	"description": "The list of allowed locations for resources.",
+    	"displayName": "Allowed locations",
+    	"strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+
+  metadata = <<METADATA
+  {
+	"note":"azurerm acceptance test"
+  }
+METADATA
 }
 
 data "azurerm_policy_definition" "test" {
