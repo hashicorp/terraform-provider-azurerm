@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -51,7 +50,6 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,13 +58,13 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutoScaleSetting_basic(ri, rs, location),
+				Config: testAccAzureRMAutoScaleSetting_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMAutoScaleSetting_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMAutoScaleSetting_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_autoscale_setting"),
 			},
 		},
@@ -420,8 +418,8 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMAutoScaleSetting_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMAutoScaleSetting_basic(rInt, rString, location)
+func testAccAzureRMAutoScaleSetting_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutoScaleSetting_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 

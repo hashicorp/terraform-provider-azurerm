@@ -51,7 +51,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,13 +59,13 @@ func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_basic(ri, rs, location),
+				Config: testAccAzureRMMonitorAutoScaleSetting_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorAutoScaleSettingExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorAutoScaleSetting_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMMonitorAutoScaleSetting_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_monitor_autoscale_setting"),
 			},
 		},
@@ -421,8 +420,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_basic(rInt, rString, location)
+func testAccAzureRMMonitorAutoScaleSetting_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorAutoScaleSetting_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -602,7 +601,7 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleRules(rInt int, location stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
