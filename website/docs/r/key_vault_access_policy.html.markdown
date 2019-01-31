@@ -79,8 +79,8 @@ The following arguments are supported:
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
-    the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
-    `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
+    the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
+    `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
 * `key_permissions` - (Required) List of key permissions, must be one or more from
     the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, 

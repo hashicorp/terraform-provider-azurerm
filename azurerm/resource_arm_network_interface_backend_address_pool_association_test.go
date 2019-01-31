@@ -30,6 +30,30 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(t *testin
 	})
 }
 
+func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface_backend_address_pool_association"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
 	ri := tf.AccRandTimeInt()
@@ -222,4 +246,17 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
   backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface_backend_address_pool_association" "import" {
+  network_interface_id    = "${azurerm_network_interface_backend_address_pool_association.test.network_interface_id}"
+  ip_configuration_name   = "${azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name}"
+  backend_address_pool_id = "${azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id}"
+}
+`, template)
 }

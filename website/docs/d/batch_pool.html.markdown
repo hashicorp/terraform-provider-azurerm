@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `start_task` - A `start_task` block that describes the start task settings for the Batch pool.
 
+* `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
+
 ---
 
 A `fixed_scale` block exports the following:

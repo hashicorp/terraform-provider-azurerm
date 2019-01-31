@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
 
-* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enforced` and `Disabled`.
+* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

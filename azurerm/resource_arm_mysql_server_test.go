@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
@@ -38,7 +37,35 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLServer_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_mysql_server"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
@@ -326,6 +353,36 @@ resource "azurerm_mysql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_server" "import" {
+  name                = "${azurerm_mysql_server.test.name}"
+  location            = "${azurerm_mysql_server.test.location}"
+  resource_group_name = "${azurerm_mysql_server.test.name}"
+
+  sku {
+    name     = "B_Gen5_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt, location))
 }
 
 func testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt int, location string) string {

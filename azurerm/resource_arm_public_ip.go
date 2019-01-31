@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -164,6 +166,19 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if strings.EqualFold(sku, "standard") {
 		if !strings.EqualFold(ipAllocationMethod, "static") {
 			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
+		}
+	}
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Public IP %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_public_ip", *existing.ID)
 		}
 	}
 

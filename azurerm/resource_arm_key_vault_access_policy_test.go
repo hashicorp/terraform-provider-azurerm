@@ -39,6 +39,11 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_key_vault_access_policy.test"
 	rs := acctest.RandString(6)
 	location := testLocation()

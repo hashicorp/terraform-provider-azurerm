@@ -1,19 +1,46 @@
 ## 1.22.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* The v1.22 release includes a few new resources which are duplicates of existing resources, the purpose of this is to correct some invalid naming so that we can remove the mis-named resources in the next major version of the Provider. Please see [the upgrade guide](https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html) for more information on how to migrate between these resources.
+* The `azurerm_builtin_role_definition` Data Source has been deprecated in favour of the `azurerm_role_definition` Data Source, which now provides the same functionality and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2798]
+* The `azurerm_log_analytics_workspace_linked_service` resource has been deprecated in favour of the (new) `azurerm_log_analytics_linked_service` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
+* The `azurerm_autoscale_setting` resource has been deprecated in favour of the (new) `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
+* The `azurerm_metric_alertrule` resource has been deprecated in favour of the (new) `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2762]
+
 FEATURES:
 
-* **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_log_analytics_linked_service ` [GH-2768]
+* **New Resource:** `azurerm_monitor_autoscale_setting` [GH-2768]
+* **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
+* **New Resource:** `azurerm_network_interface_application_security_group_association` [GH-2789]
+
+DEPRECATIONS:
+
+* `azurerm_application_gateway` - deprecating the `fqdn_list` field in favour of `fqdns` [GH-2768]
+* `azurerm_application_gateway` - deprecating the `ip_address_list` field in favour of `ip_addresses` [GH-2768]
+* `azurerm_builtin_role_definition` - deprecating in favour of the `azurerm_role_definition` data source, which now provides the same functionality [GH-2798]
+* `azurerm_log_analytics_workspace_linked_service` - deprecating in favour of the (renamed) `azurerm_log_analytics_linked_service` resource [GH-2768]
+* `azurerm_monitor_autoscale_setting` - deprecating in favour of the (renamed) `azurerm_autoscale_setting` resource [GH-2768]
+* `azurerm_network_interface ` - deprecating the `application_security_group_ids` field in favour of the new `azurerm_network_interface_application_security_group_association` resource [GH-2789]
 
 IMPROVEMENTS:
 
 * dependencies: switching to Go Modules [GH-2705]
 * dependencies: upgrading to v11.3.2 of github.com/Azure/go-autorest [GH-2744]
+* Data Source: `azurerm_role_definition` - support for finding roles by name [GH-2798]
 * `azurerm_application_gateway` - support for the `http2` property [GH-2735]
 * `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
+* `azurerm_application_gateway` - support for the `custom_error_configuration` property [GH-2783]
 * `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
+* `azurerm_app_service` - support for the `client_cert_enabled` property [GH-2765]
+* `azurerm_batch_pool` - support for the `max_tasks_per_node` property [GH-2805]
 * `azurerm_cosmosdb_account` - support for the `EnableAggregationPipeline`, `MongoDBv3.4` and ` mongoEnableDocLevelTTL` capabilities [GH-2715]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
+* `azurerm_postgresql_server` - support for version `10` and `10.2` [GH-2768]
+* `azurerm_kubernetes_cluster` - add addtional validation [GH-2772]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
 * `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
 
@@ -29,7 +56,9 @@ BUG FIXES:
 * `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 * `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
+* `azurerm_service_fabric_cluster` - no longer pass `reverse_proxy_endpoint_port` to the API when not specified [GH-2747]
 * `azurerm_subnet` - fixing a crash when service endpoints was nil [GH-2742]
+* `azurerm_subnet` - will no longer lose service endpoints during a virtual network update [GH-2738]
 
 ## 1.21.0 (January 11, 2019)
 

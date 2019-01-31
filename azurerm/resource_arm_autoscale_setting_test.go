@@ -44,6 +44,36 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_autoscale_setting.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutoScaleSetting_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutoScaleSettingExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutoScaleSetting_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_autoscale_setting"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
@@ -348,6 +378,50 @@ resource "azurerm_autoscale_setting" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMAutoScaleSetting_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMAutoScaleSetting_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_autoscale_setting" "import" {
+  name                = "${azurerm_autoscale_setting.test.name}"
+  resource_group_name = "${azurerm_autoscale_setting.test.resource_group_name}"
+  location            = "${azurerm_autoscale_setting.test.location}"
+  target_resource_id  = "${azurerm_autoscale_setting.test.target_resource_id}"
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template)
 }
 
 func testAccAzureRMAutoScaleSetting_multipleProfiles(rInt int, rString string, location string) string {

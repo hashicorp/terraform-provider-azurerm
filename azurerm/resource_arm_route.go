@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -77,6 +79,19 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, rtName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_route", *existing.ID)
+		}
+	}
 
 	azureRMLockByName(rtName, routeTableResourceName)
 	defer azureRMUnlockByName(rtName, routeTableResourceName)

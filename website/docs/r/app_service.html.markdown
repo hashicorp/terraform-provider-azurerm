@@ -127,6 +127,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
+* `client_cert_enabled` - (Optional) Does the App Service require client certificates for incoming requests? Defaults to `false`.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

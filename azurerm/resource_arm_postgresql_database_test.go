@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -32,10 +31,14 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
+func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_postgresql_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,7 +46,32 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_postgresql_database"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -57,7 +85,6 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -65,7 +92,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -174,6 +201,20 @@ resource "azurerm_postgresql_database" "test" {
   collation           = "English_United States.1252"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_database" "import" {
+  name                = "${azurerm_postgresql_database.test.name}"
+  resource_group_name = "${azurerm_postgresql_database.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_database.test.server_name}"
+  charset             = "${azurerm_postgresql_database.test.charset}"
+  collation           = "${azurerm_postgresql_database.test.collation}"
+}
+`, testAccAzureRMPostgreSQLDatabase_basic(rInt, location))
 }
 
 func testAccAzureRMPostgreSQLDatabase_charsetLowercase(rInt int, location string) string {

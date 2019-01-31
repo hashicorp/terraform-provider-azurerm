@@ -47,6 +47,35 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_machine_extension.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineExtension_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExtensionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachineExtension_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine_extension"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_extension.test"
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
@@ -249,6 +278,26 @@ SETTINGS
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineExtension_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineExtension_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+
+resource "azurerm_virtual_machine_extension" "import" {
+  name                 = "${azurerm_virtual_machine_extension.test.name}"
+  resource_group_name  = "${azurerm_virtual_machine_extension.test.resource_group_name}"
+  virtual_machine_name = "${azurerm_virtual_machine_extension.test.virtual_machine_name}"
+  location             = "${azurerm_virtual_machine_extension.test.location}"
+  publisher            = "${azurerm_virtual_machine_extension.test.publisher}"
+  type                 = "${azurerm_virtual_machine_extension.test.type}"
+  type_handler_version = "${azurerm_virtual_machine_extension.test.type_handler_version}"
+  settings             = "${azurerm_virtual_machine_extension.test.settings}"
+  tags                 = "${azurerm_virtual_machine_extension.test.tags}"
+}
+`, template)
 }
 
 func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {

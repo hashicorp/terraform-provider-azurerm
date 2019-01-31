@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
@@ -100,6 +102,19 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		name = uuid
+	}
+
+	if requireResourcesToBeImported {
+		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q)", name, scope)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
+		}
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{

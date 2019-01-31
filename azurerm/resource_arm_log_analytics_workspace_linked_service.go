@@ -22,6 +22,13 @@ TODO: refactor this:
 */
 func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The 'azurerm_log_analytics_workspace_linked_service' resource is deprecated in favour of the renamed version 'azurerm_log_analytics_linked_service'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_log_analytics_workspace_linked_service' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
+
 		Create: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
 		Read:   resourceArmLogAnalyticsWorkspaceLinkedServiceRead,
 		Update: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
@@ -52,9 +59,18 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 				}, false),
 			},
 
+			"resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"linked_service_properties": {
 				Type:     schema.TypeMap,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -63,6 +79,10 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
+							ConflictsWith: []string{
+								// this is the top-level field, not this one
+								"resource_id",
+							},
 						},
 					},
 				},
@@ -102,16 +122,21 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 		}
 	}
 
-	props := d.Get("linked_service_properties").(map[string]interface{})
-	resourceID := props["resource_id"].(string)
-
+	resourceId := d.Get("resource_id").(string)
+	if resourceId == "" {
+		props := d.Get("linked_service_properties").(map[string]interface{})
+		resourceId = props["resource_id"].(string)
+		if resourceId == "" {
+			return fmt.Errorf("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block")
+		}
+	}
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.LinkedService{
-		Tags: expandTags(tags),
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{
-			ResourceID: &resourceID,
+			ResourceID: utils.String(resourceId),
 		},
+		Tags: expandTags(tags),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
@@ -161,6 +186,10 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 	d.Set("resource_group_name", resGroup)
 	d.Set("workspace_name", workspaceName)
 	d.Set("linked_service_name", lsName)
+
+	if props := resp.LinkedServiceProperties; props != nil {
+		d.Set("resource_id", props.ResourceID)
+	}
 
 	linkedServiceProperties := flattenLogAnalyticsWorkspaceLinkedServiceProperties(resp.LinkedServiceProperties)
 	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
