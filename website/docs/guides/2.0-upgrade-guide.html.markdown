@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Active Directory: 2.0 Upgrade Guide"
+page_title: "Azure Resource Manager: 2.0 Upgrade Guide"
 sidebar_current: "docs-azurerm-guide-2.0-upgrade"
 description: | -
     This page documents how to migrate between two resources in the Azure Provider which have been renamed.
