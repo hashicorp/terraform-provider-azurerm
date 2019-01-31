@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -186,7 +185,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
 	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
