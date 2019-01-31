@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -100,12 +101,12 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 	pools := make([]network.BackendAddressPool, 0)
 
 	// first double-check it doesn't exist
+	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, backendAddressPoolId)
 	if p.LoadBalancerBackendAddressPools != nil {
 		for _, existingPool := range *p.LoadBalancerBackendAddressPools {
 			if id := existingPool.ID; id != nil {
 				if *id == backendAddressPoolId {
-					// TODO: switch to using the common error once https://github.com/terraform-providers/terraform-provider-azurerm/pull/1746 is merged
-					return fmt.Errorf("A Network Interface <-> Load Balancer Backend Address Pool association exists between %q and %q - please import it!", networkInterfaceId, backendAddressPoolId)
+					return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", resourceId)
 				}
 
 				pools = append(pools, existingPool)
@@ -130,7 +131,6 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 		return fmt.Errorf("Error waiting for completion of Backend Address Pool Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
-	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, backendAddressPoolId)
 	d.SetId(resourceId)
 
 	return resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)

@@ -44,6 +44,34 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineScaleSet_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachineScaleSet_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine_scale_set"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
@@ -1346,6 +1374,57 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, rInt, location)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineScaleSet_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_scale_set" "import" {
+  name                = "${azurerm_virtual_machine_scale_set.test.name}"
+  location            = "${azurerm_virtual_machine_scale_set.test.location}"
+  resource_group_name = "${azurerm_virtual_machine_scale_set.test.resource_group_name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name     = "Standard_D1_v2"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile-%d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "osDiskProfile"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(rInt int, location string) string {
