@@ -63,7 +63,9 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 			policyDefinition = def
 			break
 		}
-		policyDefinitions.NextWithContext(ctx)
+		if err = policyDefinitions.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("Error loading Policy Definition List: %s", err)
+		}
 	}
 
 	if policyDefinition.ID == nil {
