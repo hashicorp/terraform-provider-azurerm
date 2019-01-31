@@ -634,6 +634,11 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 
 func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRouteProperties {
 	fallbackRouteList := d.Get("fallback_route").([]interface{})
+	if len(fallbackRouteList) == 0
+	{
+		return nil;
+	}
+
 	fallbackRouteMap := fallbackRouteList[0].(map[string]interface{})
 
 	name := fallbackRouteMap["name"].(string)
