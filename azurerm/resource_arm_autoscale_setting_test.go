@@ -100,6 +100,54 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
+	resourceName := "azurerm_autoscale_setting.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 1, 3, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutoScaleSettingExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "profile.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "1"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "2"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "4"),
+				),
+			},
+			{
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 2, 4, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutoScaleSettingExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "profile.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "2"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "4"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "3"),
+				),
+			},
+			{
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, rs, location, 2, 45, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutoScaleSettingExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "profile.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "2"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "45"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
@@ -574,6 +622,51 @@ resource "azurerm_autoscale_setting" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMAutoScaleSetting_capacity(rInt int, rString string, location string, min int, max int, defaultVal int) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  enabled             = false
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = %d
+      minimum = %d
+      maximum = %d
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, rInt, defaultVal, min, max)
 }
 
 func testAccAzureRMAutoScaleSetting_email(rInt int, rString string, location string) string {
