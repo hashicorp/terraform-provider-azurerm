@@ -310,7 +310,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerinstance.ContainerInsights),
 								string(containerinstance.ContainerInstanceLogs),
-							}, true),
+							}, false),
 						},
 						"metadata": {
 							Type:     schema.TypeMap,
