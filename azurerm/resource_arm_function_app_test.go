@@ -979,14 +979,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	kind								= "Linux"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "Linux"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
     tier = "Standard"
     size = "S1"
-	}
+  }
 	
   properties {
     reserved = true
@@ -994,12 +994,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "acctest-%[1]d-func"
-	location									= "${azurerm_resource_group.test.location}"
-	version										= "~2"
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	
   site_config {
     linux_fx_version = "DOCKER|(golang:latest)"
@@ -1111,14 +1111,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	kind								= "Linux"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "Linux"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
     tier = "Standard"
     size = "S1"
-	}
+  }
 	
 	properties {
     reserved = true
@@ -1127,19 +1127,19 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_function_app" "test" {
   name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	version										= "~2"
+  location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	
   app_settings {
     "hello" = "world"
   }
 
   site_config {
-		always_on = true
-		linux_fx_version = "DOCKER|(golang:latest)"
+	always_on        = true
+	linux_fx_version = "DOCKER|(golang:latest)"
   }
 }
 `, rInt, location, rString)
@@ -1155,31 +1155,31 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
+  name                = "acctestASP-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
-	kind								= "Linux"
+  kind                = "Linux"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
     tier = "Standard"
     size = "S1"
-	}
+  }
 
-	properties {
+  properties {
     reserved = true
   }
 }
 
 resource "azurerm_function_app" "test" {
   name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	version										= "~2"
+  location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
@@ -1189,8 +1189,8 @@ resource "azurerm_function_app" "test" {
   }
 
   site_config {
-		always_on = true
-		linux_fx_version = "DOCKER|(golang:latest)"
+	always_on        = true
+	linux_fx_version = "DOCKER|(golang:latest)"
   }
 
   connection_string {
