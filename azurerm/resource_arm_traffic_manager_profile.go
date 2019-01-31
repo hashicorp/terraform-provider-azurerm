@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerProfileCreate,
+		Create: resourceArmTrafficManagerProfileCreateUpdate,
 		Read:   resourceArmTrafficManagerProfileRead,
-		Update: resourceArmTrafficManagerProfileCreate,
+		Update: resourceArmTrafficManagerProfileCreateUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -114,8 +115,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
@@ -125,6 +127,19 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *existing.ID)
+		}
+	}
+
 	profile := trafficmanager.Profile{
 		Name:              &name,
 		Location:          &location,
@@ -132,9 +147,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags:              expandTags(tags),
 	}
 
-	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, profile)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
 		return err
 	}
 

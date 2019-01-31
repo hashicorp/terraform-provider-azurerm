@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -102,6 +104,19 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_relay_namespace", *existing.ID)
+		}
+	}
+
 	parameters := relay.Namespace{
 		Location:            utils.String(location),
 		Sku:                 sku,
@@ -111,17 +126,16 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on future for Relay Namespace %q (Resource Group %q) creation: %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Relay Namespace %q (resource group %s) ID", name, resourceGroup)
@@ -161,7 +175,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 
 	if sku := resp.Sku; sku != nil {
 		flattenedSku := flattenRelayNamespaceSku(sku)
-		if err := d.Set("sku", flattenedSku); err != nil {
+		if err = d.Set("sku", flattenedSku); err != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
@@ -253,7 +267,7 @@ func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if name := input.Name; name != nil {
 		output["name"] = *name
 	}

@@ -19,19 +19,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "mysqlserver"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "West US"
-  version = "12.0"
-  administrator_login = "4dm1n157r470r"
+  name                         = "mysqlserver"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "West US"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_sql_database" "test" {
   name                = "mysqldatabase"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "West US"
-  server_name = "${azurerm_sql_server.test.name}"
+  location            = "West US"
+  server_name         = "${azurerm_sql_server.test.name}"
 
   tags {
     environment = "production"
@@ -65,9 +65,9 @@ The following arguments are supported:
 * `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
 * `requested_service_objective_id` - (Optional) Use `requested_service_objective_id` or `requested_service_objective_name` to set the performance level for the database.
- Valid values are: `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+ Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
-* `requested_service_objective_name` - (Optional) Use `requested_service_objective_name` or `requested_service_objective_id` to set the performance level for the database.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+* `requested_service_objective_name` - (Optional) Use `requested_service_objective_name` or `requested_service_objective_id` to set the performance level for the database. Valid values are: `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
 * `source_database_deletion_date` - (Optional) The deletion date time of the source database. Only applies to deleted databases where `create_mode` is `PointInTimeRestore`.
 

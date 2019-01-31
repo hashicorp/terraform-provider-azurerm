@@ -186,8 +186,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
 			}
 
-			_, hasMonthlyOccurances := diff.GetOk("monthly_occurrence")
-			if hasMonthlyOccurances && frequency != "month" {
+			_, hasMonthlyOccurrences := diff.GetOk("monthly_occurrence")
+			if hasMonthlyOccurrences && frequency != "month" {
 				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
@@ -277,8 +277,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		properties.AdvancedSchedule = advancedRef
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
 		return err
 	}
 

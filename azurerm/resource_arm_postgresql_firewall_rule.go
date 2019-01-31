@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -61,6 +63,19 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_firewall_rule", *existing.ID)
+		}
+	}
+
 	properties := postgresql.FirewallRule{
 		FirewallRuleProperties: &postgresql.FirewallRuleProperties{
 			StartIPAddress: utils.String(startIPAddress),
@@ -73,8 +88,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -143,8 +157,7 @@ func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

@@ -41,7 +41,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -80,27 +80,31 @@ The `ip_configuration` block supports:
 
 * `name` - (Required) User-defined name of the IP.
 
-* `subnet_id` - (Required) Reference to a subnet in which this NIC has been created.
+* `subnet_id` - (Optional) Reference to a subnet in which this NIC has been created. Required when `private_ip_address_version` is IPv4.
 
 * `private_ip_address` - (Optional) Static IP Address.
 
 * `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
 
+* `private_ip_address_version` - (Optional) The IP Version to use. Possible values are `IPv4` or `IPv6`. Defaults to `IPv4`.
+
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
 * `application_gateway_backend_address_pools_ids` - (Optional / **Deprecated**) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
 
--> **NOTE:** At this time Network Interface <-> Application Gateway Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+-> **NOTE:** At this time Network Interface <-> Application Gateway Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `load_balancer_backend_address_pools_ids` - (Optional / **Deprecated**) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
 
--> **NOTE:** At this time Network Interface <-> Load Balancer Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+-> **NOTE:** At this time Network Interface <-> Load Balancer Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional / **Deprecated**) List of Load Balancer Inbound Nat Rules IDs involving this NIC
 
--> **NOTE:** At this time Network Interface <-> Load Balancer Inbound NAT Rule associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_nat_rule_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+-> **NOTE:** At this time Network Interface <-> Load Balancer Inbound NAT Rule associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_nat_rule_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
-* `application_security_group_ids` - (Optional) List of Application Security Group IDs which should be attached to this NIC
+* `application_security_group_ids` - (Optional / **Deprecated**) List of Application Security Group IDs which should be attached to this NIC
+
+-> **NOTE:** At this time Network Interface <-> Application Security Group associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
 
@@ -110,10 +114,10 @@ The following attributes are exported:
 
 * `id` - The Virtual Network Interface ID.
 * `mac_address` - The media access control (MAC) address of the network interface.
-* `private_ip_address` - The private ip address of the network interface.
+* `private_ip_address` - The first private IP address of the network interface.
+* `private_ip_addresses` - The private IP addresses of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
-* `internal_fqdn` - Fully qualified DNS name supporting internal communications between VMs in the same VNet
 
 ## Import
 

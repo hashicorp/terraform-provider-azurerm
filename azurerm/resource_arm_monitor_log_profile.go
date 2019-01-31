@@ -9,16 +9,17 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogProfileCreateOrUpdate,
+		Create: resourceArmLogProfileCreateUpdate,
 		Read:   resourceArmLogProfileRead,
-		Update: resourceArmLogProfileCreateOrUpdate,
+		Update: resourceArmLogProfileCreateUpdate,
 		Delete: resourceArmLogProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -29,7 +30,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
@@ -84,14 +85,26 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 	}
 }
 
-func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorLogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Log Profile %q: %s", name, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_log_profile", *existing.ID)
+		}
+	}
+
 	storageAccountID := d.Get("storage_account_id").(string)
 	serviceBusRuleID := d.Get("servicebus_rule_id").(string)
-
 	categories := expandLogProfileCategories(d)
 	locations := expandLogProfileLocations(d)
 	retentionPolicy := expandAzureRmLogProfileRetentionPolicy(d)
@@ -160,11 +173,11 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("categories", props.Categories)
 
 		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
-			return fmt.Errorf("Error flattening `locations`: %+v", err)
+			return fmt.Errorf("Error setting `locations`: %+v", err)
 		}
 
 		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
 		}
 	}
 
@@ -190,7 +203,7 @@ func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error
 
 func expandLogProfileCategories(d *schema.ResourceData) []string {
 	logProfileCategories := d.Get("categories").(*schema.Set).List()
-	categories := []string{}
+	categories := make([]string, 0)
 
 	for _, category := range logProfileCategories {
 		categories = append(categories, category.(string))
@@ -201,7 +214,7 @@ func expandLogProfileCategories(d *schema.ResourceData) []string {
 
 func expandLogProfileLocations(d *schema.ResourceData) []string {
 	logProfileLocations := d.Get("locations").(*schema.Set).List()
-	locations := []string{}
+	locations := make([]string, 0)
 
 	for _, location := range logProfileLocations {
 		locations = append(locations, azureRMNormalizeLocation(location.(string)))
@@ -259,8 +272,7 @@ func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.R
 		client := meta.(*ArmClient).monitorLogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := client.Get(ctx, name)
-		if err != nil {
+		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}
 

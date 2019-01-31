@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -25,6 +25,41 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultKey_basicEC(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultKey_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_key"),
 			},
 		},
 	})
@@ -35,7 +70,7 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -45,6 +80,12 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
 			},
 		},
 	})
@@ -55,7 +96,7 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicRSAHSM(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -66,6 +107,12 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -75,7 +122,7 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_complete(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -88,6 +135,12 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -98,7 +151,7 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
 	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -128,7 +181,7 @@ func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -149,7 +202,7 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -193,12 +246,12 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMKeyVaultKeyExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
@@ -219,12 +272,12 @@ func testCheckAzureRMKeyVaultKeyExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMKeyVaultKeyDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -299,6 +352,25 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 `, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultKey_basicEC(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "import" {
+  name      = "${azurerm_key_vault_key.test.name}"
+  vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
+  key_type  = "EC"
+  key_size  = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, template)
 }
 
 func testAccAzureRMKeyVaultKey_basicRSA(rString string, location string) string {

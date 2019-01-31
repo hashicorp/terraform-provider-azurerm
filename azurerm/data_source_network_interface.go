@@ -59,6 +59,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						//TODO: should this be renamed to private_ip_address_allocation_method or private_ip_allocation_method ?
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -84,6 +90,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"application_security_group_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -118,8 +131,9 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"internal_fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Deprecated: "This field has been removed by Azure",
+				Computed:   true,
 			},
 
 			/**
@@ -211,24 +225,17 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if iface.DNSSettings != nil {
-		if iface.DNSSettings.AppliedDNSServers != nil && len(*iface.DNSSettings.AppliedDNSServers) > 0 {
-			for _, applied := range *iface.DNSSettings.AppliedDNSServers {
-				appliedDNSServers = append(appliedDNSServers, applied)
-			}
+	if dnsSettings := iface.DNSSettings; dnsSettings != nil {
+		if s := dnsSettings.AppliedDNSServers; s != nil {
+			appliedDNSServers = *s
 		}
 
-		if iface.DNSSettings.DNSServers != nil && len(*iface.DNSSettings.DNSServers) > 0 {
-			for _, dns := range *iface.DNSSettings.DNSServers {
-				dnsServers = append(dnsServers, dns)
-			}
+		if s := dnsSettings.DNSServers; s != nil {
+			dnsServers = *s
 		}
 
-		if iface.DNSSettings.InternalFqdn != nil && *iface.DNSSettings.InternalFqdn != "" {
-			d.Set("internal_fqdn", iface.DNSSettings.InternalFqdn)
-		}
-
-		d.Set("internal_dns_name_label", iface.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", dnsSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
 	}
 
 	if iface.NetworkSecurityGroup != nil {

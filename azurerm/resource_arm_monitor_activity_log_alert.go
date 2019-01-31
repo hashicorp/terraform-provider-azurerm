@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Create: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Read:   resourceArmMonitorActivityLogAlertRead,
-		Update: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Update: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Delete: resourceArmMonitorActivityLogAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -31,7 +33,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -42,7 +44,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				Set: schema.HashString,
 			},
@@ -66,9 +68,8 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 							}, false),
 						},
 						"operation_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"caller": {
 							Type:     schema.TypeString,
@@ -84,6 +85,18 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 								"Error",
 								"Critical",
 							}, false),
+						},
+						"resource_provider": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"resource_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"resource_group": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"resource_id": {
 							Type:         schema.TypeString,
@@ -140,12 +153,25 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Activity Log Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_activity_log_alert", *existing.ID)
+		}
+	}
 
 	enabled := d.Get("enabled").(bool)
 	description := d.Get("description").(string)
@@ -273,6 +299,24 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.Activi
 			Equals: utils.String(level),
 		})
 	}
+	if resourceProvider := v["resource_provider"].(string); resourceProvider != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceProvider"),
+			Equals: utils.String(resourceProvider),
+		})
+	}
+	if resourceType := v["resource_type"].(string); resourceType != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceType"),
+			Equals: utils.String(resourceType),
+		})
+	}
+	if resourceGroup := v["resource_group"].(string); resourceGroup != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceGroup"),
+			Equals: utils.String(resourceGroup),
+		})
+	}
 	if id := v["resource_id"].(string); id != "" {
 		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
 			Field:  utils.String("resourceId"),
@@ -330,6 +374,12 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 			switch strings.ToLower(*condition.Field) {
 			case "operationname":
 				result["operation_name"] = *condition.Equals
+			case "resourceprovider":
+				result["resource_provider"] = *condition.Equals
+			case "resourcetype":
+				result["resource_type"] = *condition.Equals
+			case "resourcegroup":
+				result["resource_group"] = *condition.Equals
 			case "resourceid":
 				result["resource_id"] = *condition.Equals
 			case "substatus":
@@ -348,7 +398,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 		return
 	}
 	for _, action := range *input.ActionGroups {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -364,7 +414,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 
 		result = append(result, v)
 	}
-	return
+	return result
 }
 
 func resourceArmMonitorActivityLogAlertActionHash(input interface{}) int {

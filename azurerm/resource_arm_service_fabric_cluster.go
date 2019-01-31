@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -78,7 +81,55 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"azure_active_directory": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"cluster_application_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"client_application_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"thumbprint": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"thumbprint_secondary": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"x509_store_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"reverse_proxy_certificate": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -200,6 +251,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						"reverse_proxy_endpoint_port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
+						},
 						"durability_level": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -285,11 +341,30 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
+
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
+	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]interface{})
+	azureActiveDirectory := expandServiceFabricClusterAzureActiveDirectory(azureActiveDirectoryRaw)
+
 	certificateRaw := d.Get("certificate").([]interface{})
 	certificate := expandServiceFabricClusterCertificate(certificateRaw)
+
+	reverseProxyCertificateRaw := d.Get("reverse_proxy_certificate").([]interface{})
+	reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw)
 
 	clientCertificateThumbprintRaw := d.Get("client_certificate_thumbprint").([]interface{})
 	clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw)
@@ -308,7 +383,9 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		Tags:     expandTags(tags),
 		ClusterProperties: &servicefabric.ClusterProperties{
 			AddOnFeatures:                   addOnFeatures,
+			AzureActiveDirectory:            azureActiveDirectory,
 			Certificate:                     certificate,
+			ReverseProxyCertificate:         reverseProxyCertificate,
 			ClientCertificateThumbprints:    clientCertificateThumbprints,
 			DiagnosticsStorageAccountConfig: diagnostics,
 			FabricSettings:                  fabricSettings,
@@ -329,8 +406,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -366,6 +442,9 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	certificateRaw := d.Get("certificate").([]interface{})
 	certificate := expandServiceFabricClusterCertificate(certificateRaw)
 
+	reverseProxyCertificateRaw := d.Get("reverse_proxy_certificate").([]interface{})
+	reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw)
+
 	clientCertificateThumbprintsRaw := d.Get("client_certificate_thumbprint").([]interface{})
 	clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintsRaw)
 
@@ -379,6 +458,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 		ClusterPropertiesUpdateParameters: &servicefabric.ClusterPropertiesUpdateParameters{
 			AddOnFeatures:                addOnFeatures,
 			Certificate:                  certificate,
+			ReverseProxyCertificate:      reverseProxyCertificate,
 			ClientCertificateThumbprints: clientCertificateThumbprints,
 			FabricSettings:               fabricSettings,
 			NodeTypes:                    nodeTypes,
@@ -397,8 +477,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error updating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for update of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -447,9 +526,19 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `add_on_features`: %+v", err)
 		}
 
+		azureActiveDirectory := flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)
+		if err := d.Set("azure_active_directory", azureActiveDirectory); err != nil {
+			return fmt.Errorf("Error setting `azure_active_directory`: %+v", err)
+		}
+
 		certificate := flattenServiceFabricClusterCertificate(props.Certificate)
 		if err := d.Set("certificate", certificate); err != nil {
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
+		}
+
+		reverseProxyCertificate := flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)
+		if err := d.Set("reverse_proxy_certificate", reverseProxyCertificate); err != nil {
+			return fmt.Errorf("Error setting `reverse_proxy_certificate`: %+v", err)
 		}
 
 		clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
@@ -511,6 +600,49 @@ func expandServiceFabricClusterAddOnFeatures(input []interface{}) *[]string {
 	return &output
 }
 
+func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *servicefabric.AzureActiveDirectory {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	tenantId := v["tenant_id"].(string)
+	clusterApplication := v["cluster_application_id"].(string)
+	clientApplication := v["client_application_id"].(string)
+
+	config := servicefabric.AzureActiveDirectory{
+		TenantID:           utils.String(tenantId),
+		ClusterApplication: utils.String(clusterApplication),
+		ClientApplication:  utils.String(clientApplication),
+	}
+	return &config
+}
+
+func flattenServiceFabricClusterAzureActiveDirectory(input *servicefabric.AzureActiveDirectory) []interface{} {
+	results := make([]interface{}, 0)
+
+	if v := input; v != nil {
+		output := make(map[string]interface{})
+
+		if name := v.TenantID; name != nil {
+			output["tenant_id"] = *name
+		}
+
+		if name := v.ClusterApplication; name != nil {
+			output["cluster_application_id"] = *name
+		}
+
+		if endpoint := v.ClientApplication; endpoint != nil {
+			output["client_application_id"] = *endpoint
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
 func flattenServiceFabricClusterAddOnFeatures(input *[]string) []interface{} {
 	output := make([]interface{}, 0)
 
@@ -549,7 +681,50 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
+
+		if thumbprint := input.Thumbprint; thumbprint != nil {
+			output["thumbprint"] = *thumbprint
+		}
+
+		if thumbprint := input.ThumbprintSecondary; thumbprint != nil {
+			output["thumbprint_secondary"] = *thumbprint
+		}
+
+		output["x509_store_name"] = string(input.X509StoreName)
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *servicefabric.CertificateDescription {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	thumbprint := v["thumbprint"].(string)
+	x509StoreName := v["x509_store_name"].(string)
+
+	result := servicefabric.CertificateDescription{
+		Thumbprint:    utils.String(thumbprint),
+		X509StoreName: servicefabric.X509StoreName(x509StoreName),
+	}
+
+	if thumb, ok := v["thumbprint_secondary"]; ok {
+		result.ThumbprintSecondary = utils.String(thumb.(string))
+	}
+
+	return &result
+}
+
+func flattenServiceFabricClusterReverseProxyCertificate(input *servicefabric.CertificateDescription) []interface{} {
+	results := make([]interface{}, 0)
+
+	if v := input; v != nil {
+		output := make(map[string]interface{})
 
 		if thumbprint := input.Thumbprint; thumbprint != nil {
 			output["thumbprint"] = *thumbprint
@@ -593,7 +768,7 @@ func flattenServiceFabricClusterClientCertificateThumbprints(input *[]servicefab
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if thumbprint := v.CertificateThumbprint; thumbprint != nil {
 			result["thumbprint"] = *thumbprint
@@ -636,7 +811,7 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *servicefabric.Diagnosti
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.StorageAccountName; name != nil {
 			output["storage_account_name"] = *name
@@ -699,13 +874,13 @@ func flattenServiceFabricClusterFabricSettings(input *[]servicefabric.SettingsSe
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
 
-		parameters := make(map[string]interface{}, 0)
+		parameters := make(map[string]interface{})
 		if paramsRaw := v.Parameters; paramsRaw != nil {
 			for _, p := range *paramsRaw {
 				if p.Name == nil || p.Value == nil {
@@ -742,6 +917,9 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			ClientConnectionEndpointPort: utils.Int32(int32(clientEndpointPort)),
 			HTTPGatewayEndpointPort:      utils.Int32(int32(httpEndpointPort)),
 			DurabilityLevel:              servicefabric.DurabilityLevel(durabilityLevel),
+		}
+		if v := int32(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
+			result.ReverseProxyEndpointPort = utils.Int32(v)
 		}
 
 		applicationPortsRaw := node["application_ports"].([]interface{})
@@ -784,7 +962,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			output["name"] = *name
@@ -806,11 +984,15 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 			output["http_endpoint_port"] = *port
 		}
 
+		if port := v.ReverseProxyEndpointPort; port != nil {
+			output["reverse_proxy_endpoint_port"] = *port
+		}
+
 		output["durability_level"] = string(v.DurabilityLevel)
 
 		applicationPorts := make([]interface{}, 0)
 		if ports := v.ApplicationPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}
@@ -823,7 +1005,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		ephermeralPorts := make([]interface{}, 0)
 		if ports := v.EphemeralPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}

@@ -27,7 +27,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_recovery_services_protection_policy_vm" "simple" {
   name                = "tfex-policy-simple"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -42,19 +42,17 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
   }
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_recovery_services_protection_policy_vm" "advanced" {
   name                = "tfex-policy-advanced"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
+  timezone = "UTC"
+
   backup = {
-    frequency = "Daily"
+    frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Monday", "Wednesday"]
-  }
-
-  retention_daily = {
-    count = 10
   }
 
   retention_weekly = {
@@ -63,7 +61,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
   }
 
   retention_monthly = {
-    weeks    = ["First","Second"]
+    weeks    = ["First", "Second"]
     weekdays = ["Monday", "Wednesday"]
     count    = 100
   }
@@ -79,6 +77,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
 resource "azurerm_recovery_services_protected_vm" "example" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
-  source_vm_name      = "${module.vm.vm-name}"
   source_vm_id        = "${module.vm.vm-id}"
+  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.simple.id}"
 }

@@ -14,40 +14,40 @@ Manages a CosmosDB (formally DocumentDB) Account.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
-    name     = "${var.resource_group_name}"
-    location = "${var.resource_group_location}"
+  name     = "${var.resource_group_name}"
+  location = "${var.resource_group_location}"
 }
 
 resource "random_integer" "ri" {
-    min = 10000
-    max = 99999
+  min = 10000
+  max = 99999
 }
 
 resource "azurerm_cosmosdb_account" "db" {
-    name                = "tfex-cosmos-db-${random_integer.ri.result}"
-    location            = "${azurerm_resource_group.rg.location}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    offer_type          = "Standard"
-    kind                = "GlobalDocumentDB"
+  name                = "tfex-cosmos-db-${random_integer.ri.result}"
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
 
-    enable_automatic_failover = true
+  enable_automatic_failover = true
 
-    consistency_policy {
-        consistency_level       = "BoundedStaleness"
-        max_interval_in_seconds = 10
-        max_staleness_prefix    = 200
-    }
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 10
+    max_staleness_prefix    = 200
+  }
 
-    geo_location {
-        location          = "${var.failover_location}"
-        failover_priority = 1
-    }
+  geo_location {
+    location          = "${var.failover_location}"
+    failover_priority = 1
+  }
 
-    geo_location {
-        prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
-        location          = "${azurerm_resource_group.rg.location}"
-        failover_priority = 0
-    }
+  geo_location {
+    prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
+    location          = "${azurerm_resource_group.rg.location}"
+    failover_priority = 0
+  }
 }
 ```
 
@@ -75,11 +75,13 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
-* `capabilities` - (Optional) Enable capabilities for this Cosmos DB account. Possible values are `EnableTable` and `EnableGremlin`.
+* `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableTable`, `MongoDBv3.4`, and `mongoEnableDocLevelTTL`.
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
+
+* `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
 
 `consistency_policy` Configures the database consistency and supports the following:
 
@@ -94,6 +96,10 @@ The following arguments are supported:
 * `prefix` - (Optional) The string used to generate the document endpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority `0`.
 * `location` - (Required) The name of the Azure region to host replicated data.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
+
+`capabilities` Configures the capabilities to enable for this Cosmos DB account:
+
+* `name` - (Required) The capability to enable - Possible values are `EnableTable`, `EnableCassandra`, and `EnableGremlin`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

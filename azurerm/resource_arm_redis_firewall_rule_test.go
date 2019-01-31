@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,19 +53,51 @@ func TestAzureRMRedisFirewallRuleName_validation(t *testing.T) {
 
 func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_redis_firewall_rule.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMRedisFirewallRule_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRedisFirewallRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisFirewallRuleExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_redis_firewall_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRedisFirewallRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisFirewallRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRedisFirewallRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_redis_firewall_rule"),
 			},
 		},
 	})
@@ -73,11 +105,11 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 
 func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_redis_firewall_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisFirewallRule_basic(ri, testLocation())
 	updatedConfig := testAccAzureRMRedisFirewallRule_update(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
@@ -98,12 +130,12 @@ func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRedisFirewallRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -151,23 +183,24 @@ func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
 func testAccAzureRMRedisFirewallRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_redis_cache" "test" {
-    name                = "acctestRedis-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    capacity            = 1
-    family              = "P"
-    sku_name            = "Premium"
-    enable_non_ssl_port = false
-    redis_configuration {
-      maxmemory_reserved = 2,
-      maxmemory_delta    = 2
-      maxmemory_policy   = "allkeys-lru"
-    }
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+
+  redis_configuration {
+    maxmemory_reserved = 2
+    maxmemory_delta    = 2
+    maxmemory_policy   = "allkeys-lru"
+  }
 }
 
 resource "azurerm_redis_firewall_rule" "test" {
@@ -180,26 +213,41 @@ resource "azurerm_redis_firewall_rule" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMRedisFirewallRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_firewall_rule" "import" {
+  name                = "${azurerm_redis_firewall_rule.test.name}"
+  redis_cache_name    = "${azurerm_redis_firewall_rule.test.redis_cache_name}"
+  resource_group_name = "${azurerm_redis_firewall_rule.test.resource_group_name}"
+  start_ip            = "${azurerm_redis_firewall_rule.test.start_ip}"
+  end_ip              = "${azurerm_redis_firewall_rule.test.end_ip}"
+}
+`, testAccAzureRMRedisFirewallRule_basic(rInt, location))
+}
+
 func testAccAzureRMRedisFirewallRule_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_redis_cache" "test" {
-    name                = "acctestRedis-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    capacity            = 1
-    family              = "P"
-    sku_name            = "Premium"
-    enable_non_ssl_port = false
-    redis_configuration {
-      maxmemory_reserved = 2,
-      maxmemory_delta    = 2
-      maxmemory_policy   = "allkeys-lru"
-    }
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+
+  redis_configuration {
+    maxmemory_reserved = 2
+    maxmemory_delta    = 2
+    maxmemory_policy   = "allkeys-lru"
+  }
 }
 
 resource "azurerm_redis_firewall_rule" "test" {

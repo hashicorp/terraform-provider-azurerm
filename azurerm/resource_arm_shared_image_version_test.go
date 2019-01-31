@@ -5,40 +5,38 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image_version.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
-	altLocation := testAltLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(ri, location, userName, password, hostName),
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, location, userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, testLocation(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -46,17 +44,61 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, location, altLocation, userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, testLocation(), testAltLocation(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(resourceName, "target_region.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", "1234567890.1234567890.1234567890"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_shared_image_version.test"
+
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				// need to create a vm and then reference it in the image creation
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+				),
+			},
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, testLocation(), userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSharedImageVersion_requiresImport(ri, testLocation(), userName, password, hostName),
+				ExpectError: testRequiresImportError("azurerm_shared_image_version"),
 			},
 		},
 	})
@@ -91,12 +133,12 @@ func testCheckAzureRMSharedImageVersionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSharedImageVersionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		imageVersion := rs.Primary.Attributes["name"]
@@ -174,6 +216,25 @@ resource "azurerm_shared_image_version" "test" {
 }
 `, template)
 }
+func testAccAzureRMSharedImageVersion_requiresImport(rInt int, location, username, password, hostname string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "import" {
+  name                = "${azurerm_shared_image_version.test.name}"
+  gallery_name        = "${azurerm_shared_image_version.test.gallery_name}"
+  image_name          = "${azurerm_shared_image_version.test.image_name}"
+  resource_group_name = "${azurerm_shared_image_version.test.resource_group_name}"
+  location            = "${azurerm_shared_image_version.test.location}"
+  managed_image_id    = "${azurerm_shared_image_version.test.managed_image_id}"
+
+  target_region {
+    name                   = "${azurerm_resource_group.test.location}"
+    regional_replica_count = 1
+  }
+}
+`, testAccAzureRMSharedImageVersion_imageVersion(rInt, location, username, password, hostname))
+}
 
 func testAccAzureRMSharedImageVersion_imageVersionUpdated(rInt int, location, altLocation, username, password, hostname string) string {
 	template := testAccAzureRMSharedImageVersion_provision(rInt, location, username, password, hostname)
@@ -181,7 +242,7 @@ func testAccAzureRMSharedImageVersion_imageVersionUpdated(rInt int, location, al
 %s
 
 resource "azurerm_shared_image_version" "test" {
-  name                = "0.0.1"
+  name                = "1234567890.1234567890.1234567890"
   gallery_name        = "${azurerm_shared_image_gallery.test.name}"
   image_name          = "${azurerm_shared_image.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

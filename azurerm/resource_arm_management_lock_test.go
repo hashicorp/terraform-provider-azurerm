@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,11 +42,11 @@ func TestValidateManagementLockName(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -55,6 +56,40 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_management_lock.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementLockExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMManagementLock_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_management_lock"),
 			},
 		},
 	})
@@ -62,11 +97,11 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -76,6 +111,11 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -83,11 +123,11 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -97,6 +137,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -104,11 +149,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -118,6 +163,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -125,11 +175,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 
 func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_publicIPReadOnlyBasic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -140,17 +190,22 @@ func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -160,6 +215,11 @@ func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -172,10 +232,10 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 	}
 
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMManagementLock_subscriptionReadOnlyBasic(ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -185,6 +245,11 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -197,10 +262,10 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 	}
 
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -210,6 +275,11 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -283,6 +353,19 @@ resource "azurerm_management_lock" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMManagementLock_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_lock" "import" {
+  name       = "${azurerm_management_lock.test.name}"
+  scope      = "${azurerm_management_lock.test.scope}"
+  lock_level = "${azurerm_management_lock.test.lock_level}"
+}
+`, template)
+}
+
 func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -338,10 +421,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "acctestpublicip-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                    = "acctestpublicip-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
@@ -361,10 +444,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "acctestpublicip-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                    = "acctestpublicip-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 

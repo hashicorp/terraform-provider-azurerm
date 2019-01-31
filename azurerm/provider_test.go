@@ -3,14 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -30,7 +30,7 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -70,19 +70,7 @@ func testArmEnvironmentName() string {
 
 func testArmEnvironment() (*azure.Environment, error) {
 	envName := testArmEnvironmentName()
-
-	// detect cloud from environment
-	env, envErr := azure.EnvironmentFromName(envName)
-	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
-		wrapped := fmt.Sprintf("AZURE%sCLOUD", envName)
-		var innerErr error
-		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
-			return nil, envErr
-		}
-	}
-
-	return &env, nil
+	return authentication.DetermineEnvironment(envName)
 }
 
 func testGetAzureConfig(t *testing.T) *authentication.Config {
@@ -93,45 +81,26 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 
 	environment := testArmEnvironmentName()
 
-	// we deliberately don't use the main config - since we care about
-	config := authentication.Config{
-		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
-		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
-		TenantID:                 os.Getenv("ARM_TENANT_ID"),
-		ClientSecret:             os.Getenv("ARM_CLIENT_SECRET"),
-		Environment:              environment,
-		SkipProviderRegistration: false,
-	}
-	return &config
-}
+	builder := authentication.Builder{
+		SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
+		ClientID:       os.Getenv("ARM_CLIENT_ID"),
+		TenantID:       os.Getenv("ARM_TENANT_ID"),
+		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
+		Environment:    environment,
 
-func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
-	config := testGetAzureConfig(t)
-	if config == nil {
-		return
+		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
+		SupportsClientSecretAuth: true,
 	}
-
-	armClient, err := getArmClient(config)
+	config, err := builder.Build()
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
+		return nil
 	}
 
-	client := armClient.providersClient
-	ctx := testAccProvider.StopContext()
-	providerList, err := client.List(ctx, nil, "")
-	if err != nil {
-		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
-			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-			"error: %s", err)
-	}
+	return config
+}
 
-	err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client)
-	if err != nil {
-		t.Fatalf("Error registering Resource Providers: %+v", err)
-	}
-
-	needingRegistration := determineAzureResourceProvidersToRegister(providerList.Values())
-	if len(needingRegistration) > 0 {
-		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(needingRegistration), spew.Sprint(needingRegistration))
-	}
+func testRequiresImportError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }

@@ -79,11 +79,11 @@ func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("categories", props.Categories)
 
 		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
-			return fmt.Errorf("Error flattening `locations`: %+v", err)
+			return fmt.Errorf("Error setting `locations`: %+v", err)
 		}
 
 		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
 		}
 	}
 

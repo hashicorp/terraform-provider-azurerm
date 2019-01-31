@@ -8,18 +8,26 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMetricAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMetricAlertRuleCreateOrUpdate,
+		Create: resourceArmMetricAlertRuleCreateUpdate,
 		Read:   resourceArmMetricAlertRuleRead,
-		Update: resourceArmMetricAlertRuleCreateOrUpdate,
+		Update: resourceArmMetricAlertRuleCreateUpdate,
 		Delete: resourceArmMetricAlertRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_metric_alertrule' resource is deprecated in favour of the renamed version 'azurerm_monitor_metric_alertrule'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_metric_alertrule' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -149,7 +157,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 	}
 }
 
-func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -157,6 +165,20 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Alert Rule %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_metric_alertrule", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -172,8 +194,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		AlertRule: alertRule,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource); err != nil {
 		return err
 	}
 
@@ -251,11 +272,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 					email_action["send_to_service_owners"] = *sendToOwners
 				}
 
-				custom_emails := []string{}
-				for _, custom_email := range *emailAction.CustomEmails {
-					custom_emails = append(custom_emails, custom_email)
+				custom_emails := make([]string, 0)
+				if s := emailAction.CustomEmails; s != nil {
+					custom_emails = *s
 				}
-
 				email_action["custom_emails"] = custom_emails
 
 				email_actions = append(email_actions, email_action)
@@ -264,10 +284,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				webhook_action["service_uri"] = *webhookAction.ServiceURI
 
-				properties := make(map[string]string, 0)
-				if props := webhookAction.Properties; props != nil {
-					for k, v := range props {
-						if k != "$type" {
+				properties := make(map[string]string)
+				for k, v := range webhookAction.Properties {
+					if k != "$type" {
+						if v != nil {
 							properties[k] = *v
 						}
 					}
@@ -410,6 +430,21 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 	return &alertRule, nil
 }
 
+func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
+	// Normal validation required by any AzureRM resource.
+	warnings, errors = validateAzureRMTags(v, f)
+
+	tagsMap := v.(map[string]interface{})
+
+	for k := range tagsMap {
+		if strings.EqualFold(k, "$type") {
+			errors = append(errors, fmt.Errorf("the %q is not allowed as tag name", k))
+		}
+	}
+
+	return warnings, errors
+}
+
 func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
 	id, err := parseAzureResourceID(alertRuleId)
 	if err != nil {
@@ -419,19 +454,4 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 	resourceGroup := id.ResourceGroup
 
 	return resourceGroup, name, nil
-}
-
-func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
-	// Normal validation required by any AzureRM resource.
-	ws, es = validateAzureRMTags(v, f)
-
-	tagsMap := v.(map[string]interface{})
-
-	for k := range tagsMap {
-		if strings.EqualFold(k, "$type") {
-			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
-		}
-	}
-
-	return ws, es
 }

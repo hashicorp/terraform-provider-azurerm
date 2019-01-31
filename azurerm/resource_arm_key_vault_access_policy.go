@@ -3,13 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -76,7 +76,60 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error parsing Tenant ID %q as a UUID: %+v", tenantIdRaw, err)
 	}
 
+	applicationIdRaw := d.Get("application_id").(string)
 	objectId := d.Get("object_id").(string)
+
+	keyVault, err := client.Get(ctx, resGroup, vaultName)
+	if err != nil {
+		if utils.ResponseWasNotFound(keyVault.Response) {
+			log.Printf("[DEBUG] Parent Key Vault %q was not found in Resource Group %q - removing from state!", vaultName, resGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", vaultName, resGroup, err)
+	}
+
+	// This is because azure doesn't have an 'id' for a keyvault access policy
+	// In order to compensate for this and allow importing of this resource we are artificially
+	// creating an identity for a key vault policy object
+	resourceId := fmt.Sprintf("%s/objectId/%s", *keyVault.ID, objectId)
+	if applicationIdRaw != "" {
+		resourceId = fmt.Sprintf("%s/applicationId/%s", resourceId, applicationIdRaw)
+	}
+
+	// Locking to prevent parallel changes causing issues
+	azureRMLockByName(vaultName, keyVaultResourceName)
+	defer azureRMUnlockByName(vaultName, keyVaultResourceName)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		props := keyVault.Properties
+		if props == nil {
+			return fmt.Errorf("Error parsing Key Vault: `properties` was nil")
+		}
+
+		if props.AccessPolicies == nil {
+			return fmt.Errorf("Error parsing Key Vault: `properties.AccessPolicy` was nil")
+		}
+
+		for _, policy := range *props.AccessPolicies {
+			if policy.TenantID == nil || policy.ObjectID == nil {
+				continue
+			}
+
+			tenantIdMatches := policy.TenantID.String() == tenantIdRaw
+			objectIdMatches := *policy.ObjectID == objectId
+
+			appId := ""
+			if a := policy.ApplicationID; a != nil {
+				appId = a.String()
+			}
+			applicationIdMatches := appId == applicationIdRaw
+			if tenantIdMatches && objectIdMatches && applicationIdMatches {
+				return tf.ImportAsExistsError("azurerm_key_vault_access_policy", resourceId)
+			}
+		}
+	}
 
 	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
 	certPermissions := azure.ExpandCertificatePermissions(certPermissionsRaw)
@@ -97,11 +150,10 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 		},
 	}
 
-	applicationIdRaw := d.Get("application_id").(string)
 	if applicationIdRaw != "" {
-		applicationId, err := uuid.FromString(applicationIdRaw)
-		if err != nil {
-			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err)
+		applicationId, err2 := uuid.FromString(applicationIdRaw)
+		if err2 != nil {
+			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err2)
 		}
 
 		accessPolicy.ApplicationID = &applicationId
@@ -115,10 +167,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 			AccessPolicies: &accessPolicies,
 		},
 	}
-
-	// Locking to prevent parallel changes causing issues
-	azureRMLockByName(vaultName, keyVaultResourceName)
-	defer azureRMUnlockByName(vaultName, keyVaultResourceName)
 
 	_, err = client.UpdateAccessPolicy(ctx, resGroup, vaultName, action, parameters)
 	if err != nil {
@@ -135,13 +183,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	}
 
 	if d.IsNewResource() {
-		// This is because azure doesn't have an 'id' for a keyvault access policy
-		// In order to compensate for this and allow importing of this resource we are artificially
-		// creating an identity for a key vault policy object
-		resourceId := fmt.Sprintf("%s/objectId/%s", *read.ID, objectId)
-		if applicationIdRaw != "" {
-			resourceId = fmt.Sprintf("%s/applicationId/%s", resourceId, applicationIdRaw)
-		}
 		d.SetId(resourceId)
 	}
 
@@ -211,17 +252,17 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	if permissions := policy.Permissions; permissions != nil {
 		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
-			return fmt.Errorf("Error flattening `certificate_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `certificate_permissions`: %+v", err)
 		}
 
 		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
-			return fmt.Errorf("Error flattening `key_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `key_permissions`: %+v", err)
 		}
 
 		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
-			return fmt.Errorf("Error flattening `secret_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
 		}
 	}
 

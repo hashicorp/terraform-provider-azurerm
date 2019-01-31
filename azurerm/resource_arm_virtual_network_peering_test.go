@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -31,6 +31,11 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				),
 			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -39,10 +44,10 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -66,11 +71,11 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -102,12 +107,12 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -134,12 +139,12 @@ func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheck
 	}
 }
 
-func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -158,8 +163,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestC
 			return fmt.Errorf("Error deleting Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
@@ -215,19 +219,19 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-    name = "acctestpeer-1-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test1.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-1-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-    name = "acctestpeer-2-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test2.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-2-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  allow_virtual_network_access = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -254,21 +258,21 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-    name = "acctestpeer-1-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test1.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
-    allow_forwarded_traffic = true
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-1-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-    name = "acctestpeer-2-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test2.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
-    allow_forwarded_traffic = true
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-2-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

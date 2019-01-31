@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -11,9 +11,9 @@ import (
 
 func resourceArmNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreate,
+		Create: resourceArmNetworkSecurityRuleCreateUpdate,
 		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreate,
+		Update: resourceArmNetworkSecurityRuleCreateUpdate,
 		Delete: resourceArmNetworkSecurityRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -152,7 +152,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -258,8 +258,7 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
@@ -315,6 +314,14 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("access", string(props.Access))
 		d.Set("priority", int(*props.Priority))
 		d.Set("direction", string(props.Direction))
+
+		if err := d.Set("source_application_security_group_ids", flattenApplicationSecurityGroupIds(props.SourceApplicationSecurityGroups)); err != nil {
+			return fmt.Errorf("Error setting `source_application_security_group_ids`: %+v", err)
+		}
+
+		if err := d.Set("destination_application_security_group_ids", flattenApplicationSecurityGroupIds(props.DestinationApplicationSecurityGroups)); err != nil {
+			return fmt.Errorf("Error setting `source_application_security_group_ids`: %+v", err)
+		}
 	}
 
 	return nil
@@ -340,10 +347,21 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
 	return nil
+}
+
+func flattenApplicationSecurityGroupIds(groups *[]network.ApplicationSecurityGroup) []string {
+	ids := make([]string, 0)
+
+	if groups != nil {
+		for _, v := range *groups {
+			ids = append(ids, *v.ID)
+		}
+	}
+
+	return ids
 }

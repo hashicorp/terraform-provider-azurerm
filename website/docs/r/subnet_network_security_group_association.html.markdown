@@ -11,7 +11,7 @@ description: |-
 
 Associates a [Network Security Group](network_security_group.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 
--> **NOTE:** Subnet <-> Network Security Group associations currently need to be configured on both this resource and using the `network_security_group_id` field on the `azurerm_subnet` resource. The next major version of the AzureRM Provider (2.0) will remove the `network_security_group_id` field from the `azurerm_subnet` resource such that this resource is used to link resources in future.
+-> **NOTE:** Subnet `<->` Network Security Group associations currently need to be configured on both this resource and using the `network_security_group_id` field on the `azurerm_subnet` resource. The next major version of the AzureRM Provider (2.0) will remove the `network_security_group_id` field from the `azurerm_subnet` resource such that this resource is used to link resources in future.
 
 ## Example Usage
 
@@ -29,11 +29,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                       = "frontend"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  virtual_network_name       = "${azurerm_virtual_network.test.name}"
-  address_prefix             = "10.0.2.0/24"
-  network_security_group_id  = "${azurerm_network_security_group.test.id}"
+  name                      = "frontend"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  address_prefix            = "10.0.2.0/24"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -64,7 +64,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 
 The following arguments are supported:
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group which should be associated with the Subnet. Changing this forces a new resource to be created.
+* `network_security_group_id` - (Required) The ID of the Network Security Group which should be associated with the Subnet. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
 
@@ -76,7 +76,7 @@ The following attributes are exported:
 
 ## Import
 
-Subnet <-> Network Security Group Associations can be imported using the `resource id` of the Subnet, e.g.
+Subnet `<->` Network Security Group Associations can be imported using the `resource id` of the Subnet, e.g.
 
 ```shell
 terraform import azurerm_subnet_network_security_group_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1

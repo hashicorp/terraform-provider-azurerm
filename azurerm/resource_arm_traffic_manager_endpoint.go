@@ -8,14 +8,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerEndpointCreate,
+		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
-		Update: resourceArmTrafficManagerEndpointCreate,
+		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -112,8 +113,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
 
@@ -123,15 +125,26 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", *existing.ID)
+		}
+	}
+
 	params := trafficmanager.Endpoint{
 		Name:               &name,
 		Type:               &fullEndpointType,
 		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
 	}
 
-	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
 		return err
 	}
 
@@ -235,7 +248,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
 		endpointProps.TargetResourceID = utils.String(resourceId)
-		//TODO? Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error. Remove if/when no longer necessary
+		//NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
 		}

@@ -13,6 +13,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
@@ -38,111 +42,79 @@ func resourceArmStorageBlob() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"storage_container_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobType,
+				ValidateFunc: validation.StringInSlice([]string{"block", "page"}, true),
 			},
+
 			"size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				ValidateFunc: validateArmStorageBlobSize,
+				ValidateFunc: validate.IntDivisibleBy(512),
 			},
+
 			"content_type": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "application/octet-stream",
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source"},
 			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parallelism": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      8,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobParallelism,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
+
 			"attempts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobAttempts,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 		},
 	}
-}
-
-func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value%512 != 0 {
-		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	validTypes := map[string]struct{}{
-		"block": {},
-		"page":  {},
-	}
-
-	if _, ok := validTypes[value]; !ok {
-		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
-	}
-	return
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
@@ -173,16 +145,14 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if sourceUri != "" {
 		options := &storage.CopyOptions{}
-		err := blob.Copy(sourceUri, options)
-		if err != nil {
+		if err := blob.Copy(sourceUri, options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
 	} else {
 		switch strings.ToLower(blobType) {
 		case "block":
 			options := &storage.PutBlobOptions{}
-			err := blob.CreateBlockBlob(options)
-			if err != nil {
+			if err := blob.CreateBlockBlob(options); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
 
@@ -210,8 +180,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 				blob.Properties.ContentLength = size
 				blob.Properties.ContentType = contentType
-				err := blob.PutPageBlob(options)
-				if err != nil {
+				if err := blob.PutPageBlob(options); err != nil {
 					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 				}
 			}
@@ -530,8 +499,7 @@ func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUplo
 			container := ctx.client.GetContainerReference(ctx.container)
 			blob := container.GetBlobReference(ctx.name)
 			options := &storage.PutBlockOptions{}
-			err = blob.PutBlock(block.id, buffer, options)
-			if err == nil {
+			if err = blob.PutBlock(block.id, buffer, options); err == nil {
 				break
 			}
 		}
@@ -647,11 +615,11 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	blobType := strings.ToLower(strings.Replace(string(blob.Properties.BlobType), "Blob", "", 1))
 	d.Set("type", blobType)
 
-	url := blob.GetURL()
-	if url == "" {
+	u := blob.GetURL()
+	if u == "" {
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
-	d.Set("url", url)
+	d.Set("url", u)
 
 	return nil
 }

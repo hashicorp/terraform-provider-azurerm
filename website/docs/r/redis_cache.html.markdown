@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
-sidebar_current: "docs-azurerm-resource-redis-cache"
+sidebar_current: "docs-azurerm-redis-cache"
 description: |-
   Manages a Redis Cache
 
@@ -103,6 +103,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
+
   redis_configuration {
     rdb_backup_enabled            = true
     rdb_backup_frequency          = 60
@@ -144,6 +145,11 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `subnet_id` - (Optional) The ID of the Subnet within which the Redis Cache should be deployed. Changing this forces a new resource to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
+
+ -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 ---
 
 * `redis_configuration` supports the following:

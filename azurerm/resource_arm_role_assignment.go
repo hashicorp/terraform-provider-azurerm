@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -42,12 +46,13 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Computed:         true,
 				ForceNew:         true,
 				ConflictsWith:    []string{"role_definition_name"},
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"role_definition_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"role_definition_id"},
 				ValidateFunc:  validateRoleDefinitionName,
@@ -74,14 +79,13 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
-		value := v.(string)
-		filter := fmt.Sprintf("roleName eq '%s'", value)
-		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", filter)
+		roleName := v.(string)
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", fmt.Sprintf("roleName eq '%s'", roleName))
 		if err != nil {
 			return fmt.Errorf("Error loading Role Definition List: %+v", err)
 		}
 		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", value)
+			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", roleName)
 		}
 		roleDefinitionId = *roleDefinitions.Values()[0].ID
 	} else {
@@ -100,6 +104,19 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
+	if requireResourcesToBeImported {
+		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q)", name, scope)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
+		}
+	}
+
 	properties := authorization.RoleAssignmentCreateParameters{
 		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: utils.String(roleDefinitionId),
@@ -107,8 +124,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta))
-	if err != nil {
+	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta)); err != nil {
 		return err
 	}
 
@@ -126,6 +142,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).roleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetByID(ctx, d.Id())
@@ -145,6 +162,18 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
+
+		//allows for import when role name is used (also if the role name changes a plan will show a diff)
+		if roleId := props.RoleDefinitionID; roleId != nil {
+			roleResp, err := roleDefinitionsClient.GetByID(ctx, *roleId)
+			if err != nil {
+				return fmt.Errorf("Error loading Role Definition %q: %+v", *roleId, err)
+			}
+
+			if roleProps := roleResp.RoleDefinitionProperties; props != nil {
+				d.Set("role_definition_name", roleProps.RoleName)
+			}
+		}
 	}
 
 	return nil
@@ -186,17 +215,19 @@ func retryRoleAssignmentsClient(scope string, name string, properties authorizat
 		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
-
+		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return resource.RetryableError(err)
-			} else {
-				return resource.NonRetryableError(err)
+			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+				// When waiting for service principal to become available
+				return resource.RetryableError(err)
 			}
-		}
-		return nil
 
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	}
 }
 

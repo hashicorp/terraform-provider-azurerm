@@ -2,23 +2,28 @@
   "Deadline": "10m",
   "Enable": [
     "errcheck",
-    "unconvert",
     "gofmt",
     "goimports",
     "gotype",
     "ineffassign",
     "interfacer",
+    "nakedret",
     "misspell",
+    "staticcheck",
     "structcheck",
     "unparam",
-    "unused",
+    "unconvert",
     "varcheck",
-    "vet"
+    "vet",
+    "vetshadow"
   ],
   "EnableGC": true,
   "Linters": {
     "errcheck": {
       "Command": "errcheck -abspath {not_tests=-ignoretests} -ignore github.com/hashicorp/terraform/helper/schema:ForceNew|Set -ignore io:Close"
+    },
+    "nakedret": {
+      "Command": "nakedret -l 1"
     }
   },
   "Sort": [
@@ -26,5 +31,5 @@
     "line"
   ],
   "Vendor": true,
-  "WarnUnmatchedDirective": true
+  "WarnUnmatchedDirective": false
 }

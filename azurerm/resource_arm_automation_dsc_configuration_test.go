@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	resourceName := "azurerm_automation_dsc_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
@@ -34,6 +34,35 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_dsc_configuration.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationDscConfiguration_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_dsc_configuration"),
 			},
 		},
 	})
@@ -73,13 +102,13 @@ func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error
 	return nil
 }
 
-func testCheckAzureRMAutomationDscConfigurationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -110,7 +139,7 @@ func testCheckAzureRMAutomationDscConfigurationExists(name string) resource.Test
 func testAccAzureRMAutomationDscConfiguration_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -118,6 +147,7 @@ resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name = "Basic"
   }
@@ -132,4 +162,20 @@ resource "azurerm_automation_dsc_configuration" "test" {
   description             = "test"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationDscConfiguration_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationDscConfiguration_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_dsc_configuration" "import" {
+  name                    = "${azurerm_automation_dsc_configuration.test.name}"
+  resource_group_name     = "${azurerm_automation_dsc_configuration.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_dsc_configuration.test.automation_account_name}"
+  location                = "${azurerm_automation_dsc_configuration.test.location}"
+  content_embedded        = "${azurerm_automation_dsc_configuration.test.content_embedded}"
+  description             = "${azurerm_automation_dsc_configuration.test.description}"
+}
+`, template)
 }

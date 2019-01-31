@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -169,6 +169,8 @@ $ az vm extension image list --location westus -o table
     extension, like settings, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

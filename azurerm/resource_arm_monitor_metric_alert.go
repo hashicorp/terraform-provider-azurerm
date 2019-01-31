@@ -11,14 +11,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Create: resourceArmMonitorMetricAlertCreateUpdate,
 		Read:   resourceArmMonitorMetricAlertRead,
-		Update: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Update: resourceArmMonitorMetricAlertCreateUpdate,
 		Delete: resourceArmMonitorMetricAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -30,7 +32,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -59,12 +61,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"metric_namespace": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"metric_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"aggregation": {
 							Type:     schema.TypeString,
@@ -100,7 +102,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -205,12 +207,25 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorMetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", *existing.ID)
+		}
+	}
 
 	enabled := d.Get("enabled").(bool)
 	autoMitigate := d.Get("auto_mitigate").(bool)
@@ -419,7 +434,8 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (result []interface{}) {
@@ -428,7 +444,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		return
 	}
 	for _, action := range *input {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -444,7 +460,8 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func resourceArmMonitorMetricAlertActionHash(input interface{}) int {

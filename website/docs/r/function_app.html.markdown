@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
-sidebar_current: "docs-azurerm-resource-function-app"
+sidebar_current: "docs-azurerm-resource-app-service-function-app"
 description: |-
   Manages a Function App.
 
@@ -98,6 +98,8 @@ The following arguments are supported:
 * `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
+
+* `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 

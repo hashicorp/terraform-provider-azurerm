@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image_gallery.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
@@ -36,19 +36,45 @@ func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 		},
 	})
 }
-
-func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
+func TestAccAzureRMSharedImageGallery_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 	resourceName := "azurerm_shared_image_gallery.test"
-	ri := acctest.RandInt()
-	location := testLocation()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImageGallery_complete(ri, location),
+				Config: testAccAzureRMSharedImageGallery_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageGalleryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+				),
+			},
+			{
+				Config:      testAccAzureRMSharedImageGallery_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_shared_image_gallery"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
+	resourceName := "azurerm_shared_image_gallery.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImageGallery_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageGalleryExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", "Shared images and things."),
@@ -94,12 +120,12 @@ func testCheckAzureRMSharedImageGalleryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSharedImageGalleryExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSharedImageGalleryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		galleryName := rs.Primary.Attributes["name"]
@@ -137,6 +163,18 @@ resource "azurerm_shared_image_gallery" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMSharedImageGallery_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_gallery" "import" {
+  name                = "${azurerm_shared_image_gallery.test.name}"
+  resource_group_name = "${azurerm_shared_image_gallery.test.resource_group_name}"
+  location            = "${azurerm_shared_image_gallery.test.location}"
+}
+`, testAccAzureRMSharedImageGallery_basic(rInt, location))
 }
 
 func testAccAzureRMSharedImageGallery_complete(rInt int, location string) string {

@@ -194,9 +194,8 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("account_type", sku.Name)
 		d.Set("account_tier", sku.Tier)
-		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
+		d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
 	}
 
 	if props := resp.AccountProperties; props != nil {
@@ -205,7 +204,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
 		}
 

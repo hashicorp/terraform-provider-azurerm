@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -130,6 +131,20 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", *existing.ID)
+		}
+	}
+
 	rule := servicebus.Rule{
 		Ruleproperties: &servicebus.Ruleproperties{
 			FilterType: servicebus.FilterType(filterType),
@@ -158,14 +173,13 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule); err != nil {
+		return fmt.Errorf("Error issuing create/update request for Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Service Bus Subscription Rule %s (resource group %s) ID", name, resourceGroup)

@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	resourceName := "azurerm_automation_module.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
@@ -31,6 +31,35 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 				ImportStateVerify: true,
 				// Module link is not returned by api in Get operation
 				ImportStateVerifyIgnore: []string{"module_link"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_module.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationModule_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationModuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationModule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_module"),
 			},
 		},
 	})
@@ -70,13 +99,13 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationModuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -107,7 +136,7 @@ func testCheckAzureRMAutomationModuleExists(name string) resource.TestCheckFunc 
 func testAccAzureRMAutomationModule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -115,6 +144,7 @@ resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name = "Basic"
   }
@@ -130,4 +160,21 @@ resource "azurerm_automation_module" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationModule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationModule_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_module" "import" {
+  name                    = "${azurerm_automation_module.test.name}"
+  resource_group_name     = "${azurerm_automation_module.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_module.test.automation_account_name}"
+
+  module_link = {
+    uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
+  }
+}
+`, template)
 }

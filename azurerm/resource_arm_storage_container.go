@@ -55,7 +55,7 @@ func resourceArmStorageContainer() *schema.Resource {
 }
 
 //Following the naming convention as laid out in the docs
-func validateArmStorageContainerName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -70,10 +70,10 @@ func validateArmStorageContainerName(v interface{}, k string) (ws []string, erro
 		errors = append(errors, fmt.Errorf(
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
-	return
+	return warnings, errors
 }
 
-func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageContainerAccessType(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
 		"private":   {},
@@ -84,7 +84,7 @@ func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string
 	if _, ok := validTypes[value]; !ok {
 		errors = append(errors, fmt.Errorf("Storage container access type %q is invalid, must be %q, %q or %q", value, "private", "blob", "page"))
 	}
-	return
+	return warnings, errors
 }
 
 func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -204,7 +204,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	output["lease_duration"] = container.Properties.LeaseDuration
 
 	if err := d.Set("properties", output); err != nil {
-		return fmt.Errorf("Error flattening `properties`: %+v", err)
+		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
 	return nil
@@ -252,8 +252,8 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 func checkContainerIsCreated(reference *storage.Container) func() *resource.RetryError {
 	return func() *resource.RetryError {
 		createOptions := &storage.CreateContainerOptions{}
-		_, err := reference.CreateIfNotExists(createOptions)
-		if err != nil {
+
+		if _, err := reference.CreateIfNotExists(createOptions); err != nil {
 			return resource.RetryableError(err)
 		}
 

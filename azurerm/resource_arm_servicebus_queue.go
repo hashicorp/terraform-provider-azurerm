@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -106,13 +107,14 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional: true,
 			},
 
-			// TODO: remove these in the next major release
+			// TODO: remove this in 2.0
 			"enable_batched_operations": {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
 
+			// TODO: remove this in 2.0
 			"support_ordering": {
 				Type:       schema.TypeBool,
 				Optional:   true,
@@ -145,6 +147,19 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBQueue{
 		Name: &name,
@@ -189,8 +204,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

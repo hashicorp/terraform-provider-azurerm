@@ -47,9 +47,15 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
+* `client_cert_enabled` - Does the App Service require client certificates for incoming requests?
+
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
+
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 ---
 
@@ -66,6 +72,8 @@ output "app_service_id" {
 `site_config` supports the following:
 
 * `always_on` - Is the app be loaded at all times?
+
+* `app_command_line` - App command line to launch.
 
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 

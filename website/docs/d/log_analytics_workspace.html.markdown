@@ -34,7 +34,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Log Analytics Workspace ID.
+* `id` - The Azure Resource ID of the Log Analytics Workspace.
 
 * `primary_shared_key` - The Primary shared key for the Log Analytics Workspace.
 

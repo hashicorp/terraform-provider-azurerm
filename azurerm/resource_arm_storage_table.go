@@ -39,7 +39,7 @@ func resourceArmStorageTable() *schema.Resource {
 	}
 }
 
-func validateArmStorageTableName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "table" {
 		errors = append(errors, fmt.Errorf(
@@ -52,7 +52,7 @@ func validateArmStorageTableName(v interface{}, k string) (ws []string, errors [
 			k, value))
 	}
 
-	return
+	return warnings, errors
 }
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {

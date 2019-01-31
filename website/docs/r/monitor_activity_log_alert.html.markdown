@@ -84,11 +84,14 @@ An `action` block supports the following:
 A `criteria` block supports the following:
 
 * `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `Security` and `Service Health`.
-* `operation_name` - (Required) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
+* `operation_name` - (Optional) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
+* `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
+* `resource_type` - (Optional) The resource type monitored by the activity log alert.
+* `resource_group` - (Optional) The name of resource group monitored by the activity log alert.
 * `resource_id` - (Optional) The specific resource monitored by the activity log alert. It should be within one of the `scopes`.
 * `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
 * `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
-* `status` - (Optional) The status of the event. for example, `Started`, `Failed`, or `Succeeded`.
+* `status` - (Optional) The status of the event. For example, `Started`, `Failed`, or `Succeeded`.
 * `sub_status` - (Optional) The sub status of the event.
 
 ## Attributes Reference

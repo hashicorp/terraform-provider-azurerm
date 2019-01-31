@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -51,7 +53,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 
 			"backup_policy_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -82,24 +84,37 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
 	}
 
-	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
-	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
+	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
+	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
+
+	if requireResourcesToBeImported {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		if err2 != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_protected_vm", *existing.ID)
+		}
+	}
 
 	item := backup.ProtectedItemResource{
 		Tags: expandTags(tags),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:          &policyId,
 			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
-			WorkloadType:      backup.VM,
+			WorkloadType:      backup.DataSourceTypeVM,
 			SourceResourceID:  utils.String(vmId),
 			FriendlyName:      utils.String(vmName),
 			VirtualMachineID:  utils.String(vmId),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
@@ -187,7 +202,7 @@ func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string) (backup.ProtectedItemResource, error) {
+func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsGroupClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
@@ -217,7 +232,8 @@ func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedI
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectedItemResource), fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be %t (Resource Group %q) to provision: %+v", protectedItemName, found, resourceGroup, err)
+		i, _ := resp.(backup.ProtectedItemResource)
+		return i, fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be %t (Resource Group %q) to provision: %+v", protectedItemName, found, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil

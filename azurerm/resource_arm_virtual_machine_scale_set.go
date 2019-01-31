@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
@@ -13,14 +14,15 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetCreate,
+		Create: resourceArmVirtualMachineScaleSetCreateUpdate,
 		Read:   resourceArmVirtualMachineScaleSetRead,
-		Update: resourceArmVirtualMachineScaleSetCreate,
+		Update: resourceArmVirtualMachineScaleSetCreateUpdate,
 		Delete: resourceArmVirtualMachineScaleSetDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -32,7 +34,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -55,6 +57,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"identity_ids": {
@@ -81,7 +84,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"tier": {
@@ -119,6 +122,57 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Manual),
 					string(compute.Rolling),
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"health_probe_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"automatic_os_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"rolling_upgrade_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"max_batch_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"max_unhealthy_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"max_unhealthy_upgraded_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"pause_time_between_batches": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT0S",
+							ValidateFunc: validateIso8601Duration(),
+						},
+					},
+				},
+				DiffSuppressFunc: azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff,
 			},
 
 			"overprovision": {
@@ -144,6 +198,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				}, true),
 			},
 
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Deallocate),
+					string(compute.Delete),
+				}, false),
+			},
+
 			"os_profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -159,14 +223,14 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"admin_username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"admin_password": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"custom_data": {
@@ -312,7 +376,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"primary": {
@@ -348,7 +412,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validation.NoZeroValues,
+											ValidateFunc: validate.NoEmptyStrings,
 										},
 									},
 								},
@@ -363,7 +427,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"subnet_id": {
@@ -377,6 +441,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
+									},
+
+									"application_security_group_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
+										Set:      schema.HashString,
+										MaxItems: 20,
 									},
 
 									"load_balancer_backend_address_pool_ids": {
@@ -659,10 +734,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
 	}
 }
 
-func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -687,17 +764,17 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	storageProfile.OsDisk = osDisk
 
 	if _, ok := d.GetOk("storage_profile_data_disk"); ok {
-		dataDisks, err := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
-		if err != nil {
-			return err
+		dataDisks, err2 := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.DataDisks = &dataDisks
 	}
 
 	if _, ok := d.GetOk("storage_profile_image_reference"); ok {
-		imageRef, err := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
-		if err != nil {
-			return err
+		imageRef, err2 := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.ImageReference = imageRef
 	}
@@ -712,14 +789,18 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	updatePolicy := d.Get("upgrade_policy_mode").(string)
+	upgradePolicy := d.Get("upgrade_policy_mode").(string)
+	automaticOsUpgrade := d.Get("automatic_os_upgrade").(bool)
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
 	priority := d.Get("priority").(string)
+	evictionPolicy := d.Get("eviction_policy").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
-			Mode: compute.UpgradeMode(updatePolicy),
+			Mode:                 compute.UpgradeMode(upgradePolicy),
+			AutomaticOSUpgrade:   utils.Bool(automaticOsUpgrade),
+			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 			NetworkProfile:   expandAzureRmVirtualMachineScaleSetNetworkProfile(d),
@@ -732,18 +813,28 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
+	if strings.EqualFold(priority, string(compute.Low)) {
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
+	}
+
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
 		diagnosticProfile := expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d)
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
+	if v, ok := d.GetOk("health_probe_id"); ok {
+		scaleSetProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	properties := compute.VirtualMachineScaleSet{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
-		Sku:      sku,
+		Name:                             &name,
+		Location:                         &location,
+		Tags:                             expandTags(tags),
+		Sku:                              sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones: zones,
+		Zones:                            zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -755,9 +846,9 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
-		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
-		if err != nil {
-			return err
+		plan, err2 := expandAzureRmVirtualMachineScaleSetPlan(d)
+		if err2 != nil {
+			return err2
 		}
 
 		properties.Plan = plan
@@ -768,7 +859,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -823,16 +914,23 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
-
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
+			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
+
+			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
+				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+				}
+			}
 		}
 		d.Set("overprovision", properties.Overprovision)
 		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
-			d.Set("priority", profile.Priority)
+			d.Set("priority", string(profile.Priority))
+			d.Set("eviction_policy", string(profile.EvictionPolicy))
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
@@ -852,7 +950,6 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
 						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
 					}
-
 				}
 
 				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
@@ -874,6 +971,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			}
 
 			if networkProfile := profile.NetworkProfile; networkProfile != nil {
+				if hp := networkProfile.HealthProbe; hp != nil {
+					if id := hp.ID; id != nil {
+						d.Set("health_probe_id", id)
+					}
+				}
+
 				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
 				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
 					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
@@ -913,6 +1016,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				}
 			}
 		}
+
 	}
 
 	if plan := resp.Plan; plan != nil {
@@ -943,7 +1047,7 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -1088,6 +1192,25 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 	return []interface{}{b}
 }
 
+func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
+	b := make(map[string]interface{})
+
+	if v := rollingUpgradePolicy.MaxBatchInstancePercent; v != nil {
+		b["max_batch_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyInstancePercent; v != nil {
+		b["max_unhealthy_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyUpgradedInstancePercent; v != nil {
+		b["max_unhealthy_upgraded_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.PauseTimeBetweenBatches; v != nil {
+		b["pause_time_between_batches"] = *v
+	}
+
+	return []interface{}{b}
+}
+
 func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.VirtualMachineScaleSetNetworkProfile) []map[string]interface{} {
 	networkConfigurations := profile.NetworkInterfaceConfigurations
 	result := make([]map[string]interface{}, 0, len(*networkConfigurations))
@@ -1109,17 +1232,15 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 			s["network_security_group_id"] = *v.ID
 		}
 
-		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings != nil {
-			dnsSetting := make(map[string]interface{})
-			dnsServers := make([]string, 0, len(*netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers))
-			if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers != nil {
-				for _, dnsServer := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers {
-					dnsServers = append(dnsServers, dnsServer)
-				}
-				dnsSetting["dns_servers"] = dnsServers
+		if dnsSettings := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings; dnsSettings != nil {
+			dnsServers := make([]string, 0)
+			if s := dnsSettings.DNSServers; s != nil {
+				dnsServers = *s
 			}
 
-			s["dns_settings"] = []interface{}{dnsSetting}
+			s["dns_settings"] = []interface{}{map[string]interface{}{
+				"dns_servers": dnsServers,
+			}}
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -1128,51 +1249,68 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				config := make(map[string]interface{})
 				config["name"] = *ipConfig.Name
 
-				properties := ipConfig.VirtualMachineScaleSetIPConfigurationProperties
+				if properties := ipConfig.VirtualMachineScaleSetIPConfigurationProperties; properties != nil {
 
-				if ipConfig.VirtualMachineScaleSetIPConfigurationProperties.Subnet != nil {
-					config["subnet_id"] = *properties.Subnet.ID
-				}
-
-				addressPools := make([]interface{}, 0)
-				if properties.ApplicationGatewayBackendAddressPools != nil {
-					for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
-						addressPools = append(addressPools, *pool.ID)
+					if properties.Subnet != nil {
+						config["subnet_id"] = *properties.Subnet.ID
 					}
-				}
-				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
-				if properties.LoadBalancerBackendAddressPools != nil {
-					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
-					for _, pool := range *properties.LoadBalancerBackendAddressPools {
-						addressPools = append(addressPools, *pool.ID)
+					addressPools := make([]interface{}, 0)
+					if properties.ApplicationGatewayBackendAddressPools != nil {
+						for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
+							if v := pool.ID; v != nil {
+								addressPools = append(addressPools, *v)
+							}
+						}
 					}
-					config["load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
-				}
+					config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
-				if properties.LoadBalancerInboundNatPools != nil {
-					inboundNatPools := make([]interface{}, 0, len(*properties.LoadBalancerInboundNatPools))
-					for _, rule := range *properties.LoadBalancerInboundNatPools {
-						inboundNatPools = append(inboundNatPools, *rule.ID)
+					applicationSecurityGroups := make([]interface{}, 0)
+					if properties.ApplicationSecurityGroups != nil {
+						for _, asg := range *properties.ApplicationSecurityGroups {
+							if v := asg.ID; v != nil {
+								applicationSecurityGroups = append(applicationSecurityGroups, *v)
+							}
+						}
 					}
-					config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
-				}
+					config["application_security_group_ids"] = schema.NewSet(schema.HashString, applicationSecurityGroups)
 
-				if properties.Primary != nil {
-					config["primary"] = *properties.Primary
-				}
+					if properties.LoadBalancerBackendAddressPools != nil {
+						addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
+						for _, pool := range *properties.LoadBalancerBackendAddressPools {
+							if v := pool.ID; v != nil {
+								addressPools = append(addressPools, *v)
+							}
+						}
+						config["load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
+					}
 
-				if properties.PublicIPAddressConfiguration != nil {
-					publicIpInfo := properties.PublicIPAddressConfiguration
-					publicIpConfigs := make([]map[string]interface{}, 0, 1)
-					publicIpConfig := make(map[string]interface{})
-					publicIpConfig["name"] = *publicIpInfo.Name
-					publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-					publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
-					config["public_ip_address_configuration"] = publicIpConfigs
-				}
+					if properties.LoadBalancerInboundNatPools != nil {
+						inboundNatPools := make([]interface{}, 0, len(*properties.LoadBalancerInboundNatPools))
+						for _, rule := range *properties.LoadBalancerInboundNatPools {
+							if v := rule.ID; v != nil {
+								inboundNatPools = append(inboundNatPools, *v)
+							}
+						}
+						config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
+					}
 
-				ipConfigs = append(ipConfigs, config)
+					if properties.Primary != nil {
+						config["primary"] = *properties.Primary
+					}
+
+					if properties.PublicIPAddressConfiguration != nil {
+						publicIpInfo := properties.PublicIPAddressConfiguration
+						publicIpConfigs := make([]map[string]interface{}, 0, 1)
+						publicIpConfig := make(map[string]interface{})
+						publicIpConfig["name"] = *publicIpInfo.Name
+						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
+						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+						config["public_ip_address_configuration"] = publicIpConfigs
+					}
+
+					ipConfigs = append(ipConfigs, config)
+				}
 			}
 
 			s["ip_configuration"] = ipConfigs
@@ -1446,6 +1584,19 @@ func expandVirtualMachineScaleSetSku(d *schema.ResourceData) (*compute.Sku, erro
 	return sku, nil
 }
 
+func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingUpgradePolicy {
+	if config, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+		policy := config.(map[string]interface{})
+		return &compute.RollingUpgradePolicy{
+			MaxBatchInstancePercent:             utils.Int32(int32(policy["max_batch_instance_percent"].(int))),
+			MaxUnhealthyInstancePercent:         utils.Int32(int32(policy["max_unhealthy_instance_percent"].(int))),
+			MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(policy["max_unhealthy_upgraded_instance_percent"].(int))),
+			PauseTimeBetweenBatches:             utils.String(policy["pause_time_between_batches"].(string)),
+		}
+	}
+	return nil
+}
+
 func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {
 	scaleSetNetworkProfileConfigs := d.Get("network_profile").(*schema.Set).List()
 	networkProfileConfig := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0, len(scaleSetNetworkProfileConfigs))
@@ -1504,6 +1655,18 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					})
 				}
 				ipConfiguration.ApplicationGatewayBackendAddressPools = &resources
+			}
+
+			if v := ipconfig["application_security_group_ids"]; v != nil {
+				asgs := v.(*schema.Set).List()
+				resources := make([]compute.SubResource, 0, len(asgs))
+				for _, p := range asgs {
+					id := p.(string)
+					resources = append(resources, compute.SubResource{
+						ID: &id,
+					})
+				}
+				ipConfiguration.ApplicationSecurityGroups = &resources
 			}
 
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
@@ -1660,7 +1823,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue, 0)
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
 		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}
@@ -1669,7 +1832,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 		Type: identityType,
 	}
 
-	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmssIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -2021,4 +2184,30 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 	result["product"] = *plan.Product
 
 	return []interface{}{result}
+}
+
+// When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *schema.ResourceData) bool {
+	if k == "rolling_upgrade_policy.#" && new == "0" {
+		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
+	}
+	return false
+}
+
+// Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
+func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	mode := d.Get("upgrade_policy_mode").(string)
+	if strings.ToLower(mode) != "rolling" {
+		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+			policy := policyRaw.(map[string]interface{})
+			isDefault := (policy["max_batch_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_upgraded_instance_percent"].(int) == 20) &&
+				(policy["pause_time_between_batches"] == "PT0S")
+			if !isDefault {
+				return fmt.Errorf("If `upgrade_policy_mode` is `%s`, `rolling_upgrade_policy` must be removed or set to default values", mode)
+			}
+		}
+	}
+	return nil
 }

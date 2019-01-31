@@ -26,7 +26,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "main" {
-  name = "${var.prefix}-resources"
+  name     = "${var.prefix}-resources"
   location = "West Europe"
 }
 
@@ -52,15 +52,15 @@ resource "azurerm_network_interface" "main" {
   ip_configuration {
     name                          = "internal"
     subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "${local.vm_name}"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = "${azurerm_resource_group.main.location}"
+  resource_group_name   = "${azurerm_resource_group.main.name}"
+  network_interface_ids = ["${azurerm_network_interface.main.id}"]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -90,8 +90,8 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "${local.vm_name}-disk1"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.main.location}"
+  resource_group_name  = "${azurerm_resource_group.main.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = 10
@@ -131,7 +131,7 @@ The following attributes are exported:
 
 Virtual Machines Data Disk Attachments can be imported using the `resource id`, e.g.
 
-```hcl
+```shell
 terraform import azurerm_virtual_machine_data_disk_attachment.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1/dataDisks/disk1
 ```
 

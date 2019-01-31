@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
-sidebar_current: "docs-azurerm-resource-recovery-services-protected-vm"
+sidebar_current: "docs-azurerm-recovery-services-protected-vm"
 description: |-
   Manages an Recovery Services Protected VM.
 ---
@@ -18,7 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-
 resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
   location            = "${azurerm_resource_group.example.location}"
@@ -26,32 +25,36 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protected_vm" "example" {
-  location            = "${azurerm_resource_group.example.location}"
+resource "azurerm_recovery_services_protection_policy_vm" "example" {
+  name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
-  source_vm_name      = "${azurerm_virtual_machine.example.name}"
-  source_vm_id        = "${azurerm_virtual_machine.example.id}"
-  backup_policy_name  = "aBackupPolicy"
+
+  backup = {
+    frequency = "Daily"
+    time      = "23:00"
+  }
 }
 
+resource "azurerm_recovery_services_protected_vm" "vm1" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
+  source_vm_id        = "${azurerm_virtual_machine.example.id}"
+  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.example.id}"
+}
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-
 * `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `source_vm_name` - (Required) Specifies the name of the VM to backup. Changing this forces a new resource to be created.
-
 * `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-* `backup_policy_name` - (Optional) Specifies the name of the backup policy to use. Defaults to `DefaultPolicy` Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) Specifies the id of the backup policy to use. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -8,12 +8,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
-	rInt := acctest.RandInt()
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -21,17 +23,52 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHub_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_iothub"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_standard(t *testing.T) {
-	rInt := acctest.RandInt()
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -39,18 +76,24 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_standard(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
-	rInt := acctest.RandInt()
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
 	rStr := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -58,8 +101,13 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -90,13 +138,13 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		iothubName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -121,18 +169,19 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 
 func testAccAzureRMIotHub_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   sku {
-    name = "B1"
-    tier = "Basic"
+    name     = "B1"
+    tier     = "Basic"
     capacity = "1"
   }
 
@@ -143,20 +192,44 @@ resource "azurerm_iothub" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMIotHub_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMIotHub_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "import" {
+  name                = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_iothub.test.name}"
+  location            = "${azurerm_iothub.test.location}"
+
+  sku {
+    name     = "B1"
+    tier     = "Basic"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, template)
+}
+
 func testAccAzureRMIotHub_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
@@ -169,53 +242,54 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_customRoutes(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "acctestsa%s"
-  resource_group_name       = "${azurerm_resource_group.foo.name}"
-  location                  = "${azurerm_resource_group.foo.location}"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-  name                      = "test"
-  resource_group_name       = "${azurerm_resource_group.foo.name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  container_access_type     = "private"
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
   endpoint {
-    type                        = "AzureIotHub.StorageContainer"
-    connection_string           = "${azurerm_storage_account.test.primary_blob_connection_string}"
-    name                        = "export"
-    batch_frequency_in_seconds  = 60
-    max_chunk_size_in_bytes     = 10485760
-    container_name              = "test"
-    encoding                    = "Avro"
-    file_name_format            = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+    type                       = "AzureIotHub.StorageContainer"
+    connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    name                       = "export"
+    batch_frequency_in_seconds = 60
+    max_chunk_size_in_bytes    = 10485760
+    container_name             = "test"
+    encoding                   = "Avro"
+    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }
 
   route {
-    name            = "export"
-    source          = "DeviceMessages"
-    condition       = "true"
-    endpoint_names  = ["export"]
-    enabled      = true
+    name           = "export"
+    source         = "DeviceMessages"
+    condition      = "true"
+    endpoint_names = ["export"]
+    enabled        = true
   }
 
   tags {

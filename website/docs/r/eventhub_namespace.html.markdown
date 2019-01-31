@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-x"
 description: |-
   Manages an EventHub Namespace.
 ---
@@ -48,6 +48,8 @@ The following arguments are supported:
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from 1 - 20.
+
+* `kafka_enabled` - (Optional) Is Kafka enabled for the EventHub Namespace? Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

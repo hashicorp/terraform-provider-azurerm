@@ -9,18 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateDeploymentCreate,
+		Create: resourceArmTemplateDeploymentCreateUpdate,
 		Read:   resourceArmTemplateDeploymentRead,
-		Update: resourceArmTemplateDeploymentCreate,
+		Update: resourceArmTemplateDeploymentCreateUpdate,
 		Delete: resourceArmTemplateDeploymentDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +71,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 	}
 }
 
-func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
 	ctx := client.StopContext
@@ -78,6 +79,19 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := deployClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_template_deployment", *existing.ID)
+		}
+	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Template Deployment creation.")
 	properties := resources.DeploymentProperties{
@@ -126,9 +140,8 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, deployClient.Client)
-	if err != nil {
-		return fmt.Errorf("Error creating deployment: %+v", err)
+	if err = future.WaitForCompletionRef(ctx, deployClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for deployment: %+v", err)
 	}
 
 	read, err := deployClient.Get(ctx, resourceGroup, name)
@@ -168,7 +181,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	outputs := make(map[string]string, 0)
+	outputs := make(map[string]string)
 	if outs := resp.Properties.Outputs; outs != nil {
 		outsVal := outs.(map[string]interface{})
 		if len(outsVal) > 0 {
@@ -236,8 +249,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 // TODO: move this out into the new `helpers` structure
 func expandParametersBody(body string) (map[string]interface{}, error) {
 	var parametersBody map[string]interface{}
-	err := json.Unmarshal([]byte(body), &parametersBody)
-	if err != nil {
+	if err := json.Unmarshal([]byte(body), &parametersBody); err != nil {
 		return nil, fmt.Errorf("Error Expanding the parameters_body for Azure RM Template Deployment")
 	}
 	return parametersBody, nil
@@ -245,8 +257,7 @@ func expandParametersBody(body string) (map[string]interface{}, error) {
 
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
-	err := json.Unmarshal([]byte(template), &templateBody)
-	if err != nil {
+	if err := json.Unmarshal([]byte(template), &templateBody); err != nil {
 		return nil, fmt.Errorf("Error Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
@@ -257,8 +268,8 @@ func normalizeJson(jsonString interface{}) string {
 		return ""
 	}
 	var j interface{}
-	err := json.Unmarshal([]byte(jsonString.(string)), &j)
-	if err != nil {
+
+	if err := json.Unmarshal([]byte(jsonString.(string)), &j); err != nil {
 		return fmt.Sprintf("Error parsing JSON: %+v", err)
 	}
 	b, _ := json.Marshal(j)

@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-resource-recovery-services-protection-policy-vm"
+sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
 description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
 
-# azurerm_recovery_services_protection_policy
+# azurerm_recovery_services_protection_policy_vm
 
 Manages an Recovery Services VM Protection Policy.
 
@@ -18,7 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-
 resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
   location            = "${azurerm_resource_group.example.location}"
@@ -27,19 +26,21 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+  name                = "tfex-recovery-vault-policy"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
+
+  timezone = "UTC"
+
   backup = {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
   retention_daily = {
     count = 10
   }
-  
+
   retention_weekly = {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
@@ -58,7 +59,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
     months   = ["January"]
   }
 }
-
 ```
 
 ## Argument Reference
@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
 
+* `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
+
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
 * `retention_weekly` - (Optional) Configures the policy weekly retention as documented in the `retention_weekly` block below. Required when backup frequency is `Weekly`.
@@ -80,6 +82,8 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -125,7 +129,7 @@ The `retention_yearly` block supports:
 
 * `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
 
-* `weeks` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
 
 ---
 

@@ -14,8 +14,8 @@ Use this data source to access information about an existing Managed Disk.
 
 ```hcl
 data "azurerm_managed_disk" "datasourcemd" {
-    name = "testManagedDisk"
-    resource_group_name = "acctestRG"
+  name                = "testManagedDisk"
+  resource_group_name = "acctestRG"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -40,7 +40,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -100,8 +100,8 @@ resource "azurerm_virtual_machine" "test" {
 ## Argument Reference
 
 * `name` - (Required) Specifies the name of the Managed Disk.
-* `resource_group_name` - (Required) Specifies the name of the resource group.
 
+* `resource_group_name` - (Required) Specifies the name of the resource group.
 
 ## Attributes Reference
 
@@ -111,6 +111,4 @@ resource "azurerm_virtual_machine" "test" {
 * `os_type` - The operating system for managed disk. Valid values are `Linux` or `Windows`
 * `disk_size_gb` - The size of the managed disk in gigabytes.
 * `tags` - A mapping of tags assigned to the resource.
-* `zones` - (Optional) A collection containing the availability zone the managed disk is allocated in.
-
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+* `zones` - A collection containing the availability zone the managed disk is allocated in.

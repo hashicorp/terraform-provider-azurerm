@@ -29,7 +29,7 @@ resource "azurerm_public_ip" "main" {
   name                         = "${var.prefix}-publicip"
   resource_group_name          = "${azurerm_resource_group.main.name}"
   location                     = "${azurerm_resource_group.main.location}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   tags                         = "${var.tags}"
 }
 
@@ -41,7 +41,7 @@ resource "azurerm_network_interface" "main" {
   ip_configuration {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.main.id}"
   }
 }

@@ -81,8 +81,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	schemaRaw := d.Get("schema").(string)
 	var schema map[string]interface{}
-	err := json.Unmarshal([]byte(schemaRaw), &schema)
-	if err != nil {
+	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
 		return fmt.Errorf("Error unmarshalling JSON from Schema: %+v", err)
 	}
 
@@ -106,8 +105,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger)
-	if err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger, "azurerm_logic_app_trigger_http_request"); err != nil {
 		return err
 	}
 
@@ -188,7 +186,7 @@ func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, k string) (ws []string, errors []error) {
+func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("^[A-Za-z0-9_/}{]+$")
@@ -196,5 +194,5 @@ func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, k string) (ws
 		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
 	}
 
-	return
+	return warnings, errors
 }

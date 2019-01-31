@@ -10,6 +10,8 @@ description: |-
 
 Manages a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
 
+-> **NOTE:** It's only possible to configure one Log Profile per Subscription. If you are trying to create more than one Log Profile, an error with `StatusCode=409` will occur.
+
 ## Example Usage
 
 ```hcl
@@ -25,7 +27,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-	
+
 resource "azurerm_eventhub_namespace" "test" {
   name                = "logprofileeventhub"
   location            = "${azurerm_resource_group.test.location}"
@@ -42,19 +44,19 @@ resource "azurerm_monitor_log_profile" "test" {
     "Delete",
     "Write",
   ]
-	
+
   locations = [
     "westus",
     "global",
   ]
-	
+
   # RootManageSharedAccessKey is created by default with listen, send, manage permissions
   servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  storage_account_id = "${azurerm_storage_account.test.id}"
 
   retention_policy {
     enabled = true
-    days = 7
+    days    = 7
   }
 }
 ```

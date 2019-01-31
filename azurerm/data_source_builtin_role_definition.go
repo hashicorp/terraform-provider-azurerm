@@ -10,6 +10,12 @@ import (
 func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBuiltInRoleDefinitionRead,
+
+		DeprecationMessage: `This Data Source has been deprecated in favour of the 'azurerm_role_definition' resource that now can look up role definitions by names.
+
+As such this Data Source will be removed in v2.0 of the AzureRM Provider.
+`,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -126,35 +132,31 @@ func flattenRoleDefinitionDataSourcePermissions(input *[]authorization.Permissio
 	}
 
 	for _, permission := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		actions := make([]string, 0)
-		if permission.Actions != nil {
-			for _, action := range *permission.Actions {
-				actions = append(actions, action)
-			}
+		if s := permission.Actions; s != nil {
+			actions = *s
 		}
 		output["actions"] = actions
 
 		dataActions := make([]interface{}, 0)
-		if permission.DataActions != nil {
-			for _, dataAction := range *permission.DataActions {
+		if s := permission.DataActions; s != nil {
+			for _, dataAction := range *s {
 				dataActions = append(dataActions, dataAction)
 			}
 		}
 		output["data_actions"] = schema.NewSet(schema.HashString, dataActions)
 
 		notActions := make([]string, 0)
-		if permission.NotActions != nil {
-			for _, action := range *permission.NotActions {
-				notActions = append(notActions, action)
-			}
+		if s := permission.NotActions; s != nil {
+			notActions = *s
 		}
 		output["not_actions"] = notActions
 
 		notDataActions := make([]interface{}, 0)
-		if permission.NotDataActions != nil {
-			for _, dataAction := range *permission.NotDataActions {
+		if s := permission.NotDataActions; s != nil {
+			for _, dataAction := range *s {
 				notDataActions = append(notDataActions, dataAction)
 			}
 		}

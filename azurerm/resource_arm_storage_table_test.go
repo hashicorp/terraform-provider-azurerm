@@ -10,17 +10,18 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
@@ -43,11 +44,11 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
@@ -64,12 +65,12 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.TestCheckFunc {
+func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -114,11 +115,11 @@ func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.
 	}
 }
 
-func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.TestCheckFunc {
+func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -142,12 +143,7 @@ func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.Te
 		table := tableClient.GetTableReference(t.Name)
 		timeout := uint(60)
 		options := &storage.TableOptions{}
-		err = table.Delete(timeout, options)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return table.Delete(timeout, options)
 	}
 }
 
@@ -177,7 +173,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		options := &storage.QueryTablesOptions{}
 		tables, err := tableClient.QueryTables(storage.NoMetadata, options)
-
 		if err != nil {
 			return nil
 		}
@@ -232,26 +227,26 @@ func TestValidateArmStorageTableName(t *testing.T) {
 func testAccAzureRMStorageTable_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "acctestacc%s"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_table" "test" {
-    name = "acctestst%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, rInt, location, rString, rInt)
 }

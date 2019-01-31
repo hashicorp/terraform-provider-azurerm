@@ -4,40 +4,69 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
-	ri := acctest.RandInt()
-
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_recovery_services_vault.test"
-	config := testAccAzureRMRecoveryServicesVault_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "location"),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "sku", string(recoveryservices.Standard)),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_recovery_services_vault.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_vault"),
 			},
 		},
 	})
@@ -70,12 +99,12 @@ func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMRecoveryServicesVaultExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -101,18 +130,30 @@ func testCheckAzureRMRecoveryServicesVaultExists(name string) resource.TestCheck
 }
 
 func testAccAzureRMRecoveryServicesVault_basic(rInt int, location string) string {
-	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_recovery_services_vault" "test" {
-    name                = "acctest-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
- 
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRecoveryServicesVault_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_vault" "import" {
+  name                = "${azurerm_recovery_services_vault.test.name}"
+  location            = "${azurerm_recovery_services_vault.test.location}"
+  resource_group_name = "${azurerm_recovery_services_vault.test.resource_group_name}"
+  sku                 = "${azurerm_recovery_services_vault.test.sku}"
+}
+`, testAccAzureRMRecoveryServicesVault_basic(rInt, location))
 }

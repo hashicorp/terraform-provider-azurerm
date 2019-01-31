@@ -31,7 +31,7 @@ resource "azurerm_public_ip" "lbpip" {
   name                         = "${var.rg_prefix}-ip"
   location                     = "${var.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "dynamic"
+  allocation_method = "Dynamic"
   domain_name_label            = "${var.lb_ip_dns_name}"
 }
 

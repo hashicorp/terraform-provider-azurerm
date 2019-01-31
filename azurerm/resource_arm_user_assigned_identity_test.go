@@ -10,26 +10,63 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	resourceName := "azurerm_user_assigned_identity.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
 					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
+	resourceName := "azurerm_user_assigned_identity.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(14)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMUserAssignedIdentityExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
+					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
+				),
+			},
+			{
+				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, testLocation(), rs),
+				ExpectError: testRequiresImportError("azurerm_user_assigned_identity"),
 			},
 		},
 	})
@@ -96,14 +133,26 @@ func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
 func testAccAzureRMUserAssignedIdentity_basic(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name = "acctest%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMUserAssignedIdentity_requiresImport(rInt int, location string, rString string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "import" {
+  name                = "${azurerm_user_assigned_identity.test.name}"
+  resource_group_name = "${azurerm_user_assigned_identity.test.resource_group_name}"
+  location            = "${azurerm_user_assigned_identity.test.location}"
+}
+`, testAccAzureRMUserAssignedIdentity_basic(rInt, location, rString))
 }
