@@ -19,7 +19,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 		Update: resourceArmKeyVaultSecretUpdate,
 		Delete: resourceArmKeyVaultSecretDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceArmKeyVaultChildResourceImporter,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -30,10 +30,19 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
+			"vault_id": {
+				Type:         schema.TypeString,
+				Optional:     true, //todo required in 2.0
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			//todo remove in 2.0
 			"vault_uri": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				Deprecated:   "This property has been deprecated in favour of the vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
 				ValidateFunc: validate.URLIsHTTPS,
 			},
 
@@ -59,6 +68,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 }
 
 func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -66,6 +76,20 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
+	keyVaultId := d.Get("vault_id").(string)
+
+	if keyVaultBaseUrl == "" {
+		if keyVaultId == "" {
+			return fmt.Errorf("one of `vault_id` or `vault_uri` must be set")
+		}
+
+		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url form id %q: %+v", name, keyVaultId, err)
+		}
+
+		keyVaultBaseUrl = pKeyVaultBaseUrl
+	}
 
 	if requireResourcesToBeImported {
 		existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
@@ -113,9 +137,20 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
+	keyVaultId := d.Get("vault_id").(string)
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
+	if err != nil {
+		fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	value := d.Get("value").(string)
@@ -164,9 +199,20 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
+	keyVaultId := d.Get("vault_id").(string)
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
+	if err != nil {
+		fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	// we always want to get the latest version
@@ -200,9 +246,20 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
+	keyVaultId := d.Get("vault_id").(string)
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
+	if err != nil {
+		fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)

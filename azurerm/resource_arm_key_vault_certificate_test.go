@@ -333,8 +333,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "acctestcert%s"
+  vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
@@ -367,8 +367,8 @@ func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location s
 %s
 
 resource "azurerm_key_vault_certificate" "import" {
-  name      = "${azurerm_key_vault_certificate.test.name}"
-  vault_uri = "${azurerm_key_vault_certificate.test.vault_uri}"
+  name     = "${azurerm_key_vault_certificate.test.name}"
+  vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
@@ -436,7 +436,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -523,8 +523,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "acctestcert%s"
+  vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -618,8 +618,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "acctestcert%s"
+  vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {

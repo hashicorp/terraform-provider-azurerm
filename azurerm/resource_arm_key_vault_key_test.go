@@ -342,7 +342,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "EC"
   key_size  = 2048
 
@@ -361,7 +361,7 @@ func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) s
 
 resource "azurerm_key_vault_key" "import" {
   name      = "${azurerm_key_vault_key.test.name}"
-  vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "EC"
   key_size  = 2048
 
@@ -417,7 +417,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
@@ -476,7 +476,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA-HSM"
   key_size  = 2048
 
@@ -535,7 +535,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
