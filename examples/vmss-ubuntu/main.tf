@@ -127,3 +127,59 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
     version   = "latest"
   }
 }
+
+resource "azurerm_autoscale_setting" "autoscale-cpu" {
+  name                = "autoscale-cpu"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.scaleset.id}"
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+ 
+  profile {
+    name = "autoscale-cpu"
+
+    capacity {
+      default = "${var.instance_count}"
+      minimum = 0
+      maximum = 1000
+    }
+
+    rule {
+      metric_trigger {
+        metric_name         = "Percentage CPU"
+        metric_resource_id  = "${azurerm_virtual_machine_scale_set.scaleset.id}"
+        time_grain          = "PT1M"
+        statistic           = "Average"
+        time_window         = "PT5M"
+        time_aggregation    = "Average"
+        operator            = "GreaterThan"
+        threshold           = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name         = "Percentage CPU"
+        metric_resource_id  = "${azurerm_virtual_machine_scale_set.scaleset.id}"
+        time_grain          = "PT1M"
+        statistic           = "Average"
+        time_window         = "PT5M"
+        time_aggregation    = "Average"
+        operator            = "LessThan"
+        threshold           = 15
+      }
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
