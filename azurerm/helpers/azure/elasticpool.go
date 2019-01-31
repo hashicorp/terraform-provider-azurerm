@@ -144,6 +144,16 @@ var getvCoreMaxGB = map[string]float64{
 	"businesscritical_gen5_80": 4096,
 }
 
+var getTierFromName = map[string]string{
+	"basicpool":    "Basic",
+	"standardpool": "Standard",
+	"premiumpool":  "Premium",
+	"gp_gen4":      "GeneralPurpose",
+	"gp_gen5":      "GeneralPurpose",
+	"bc_gen4":      "BusinessCritical",
+	"bc_gen5":      "BusinessCritical",
+}
+
 func MSSQLElasticPoolGetDTUBasedErrorMsg(name string, errorType ErrorType) string {
 	errType := "capacity"
 
@@ -187,29 +197,7 @@ func MSSQLElasticPoolNameTierIsValid(name string, tier string) bool {
 }
 
 func MSSQLElasticPoolGetTierFromSKUName(name string) string {
-	tier := ""
-
-	if strings.EqualFold(name, "BasicPool") {
-		tier = "Basic"
-	}
-
-	if strings.EqualFold(name, "StandardPool") {
-		tier = "Standard"
-	}
-
-	if strings.EqualFold(name, "PremiumPool") {
-		tier = "Premium"
-	}
-
-	if strings.HasPrefix(strings.ToLower(name), "gp_") {
-		tier = "GeneralPurpose"
-	}
-
-	if strings.HasPrefix(strings.ToLower(name), "bc_") {
-		tier = "BusinessCritical"
-	}
-
-	return tier
+	return getTierFromName[strings.ToLower(name)]
 }
 
 func MSSQLElasticPoolGetFamilyFromSKUName(name string) string {
