@@ -72,17 +72,17 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"minimum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 40),
+										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 40),
+										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"default": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 40),
+										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 								},
 							},
