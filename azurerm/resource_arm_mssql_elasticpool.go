@@ -227,7 +227,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					}
 
 					if !azure.MSSQLElasticPoolIsValidMaxGBSizeForSKU(maxSizeGb.(float64)) {
-						return fmt.Errorf("'max_size_gb'(%d) is not a valid value, valid values are 50, 100, 150, 200, 250, 300, 400, 500, 750, 800, 1024, 1200, 1280, 1536, 1600, 1792, 2000, 2048, 2304, 2500, 2560, 2816, 3000, 3072, 3328, 3584, 3840 or 4096", int(maxSizeGb.(float64)))
+						return fmt.Errorf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of 50, 100, 150, 200, 250, 300, 400, 500, 750, 800, 1024, 1200, 1280, 1536, 1600, 1792, 2000, 2048, 2304, 2500, 2560, 2816, 3000, 3072, 3328, 3584, 3840 or 4096", int(maxSizeGb.(float64)), azure.MSSQLElasticPoolGetTierFromSKUName(name.(string)))
 					}
 				}
 
