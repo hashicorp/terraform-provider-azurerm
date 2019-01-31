@@ -18,6 +18,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	LogAnalyticsWorkSpaceKeyPath = "log_analytics.0.workspace_key"
+)
+
 func resourceArmContainerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmContainerGroupCreate,
@@ -280,7 +284,7 @@ func resourceArmContainerGroup() *schema.Resource {
 			},
 
 			"log_analytics": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -290,7 +294,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validate.UUID,
 						},
 						"workspace_key": {
 							Type:         schema.TypeString,
@@ -318,7 +322,6 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 					},
 				},
-				Set: containerGroupLogAnalyticsHash,
 			},
 
 			"ip_address": {
@@ -382,8 +385,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
+	logList := d.Get("log_analytics").([]interface{})
 	containerGroup.Diagnostics = &containerinstance.ContainerGroupDiagnostics{
-		LogAnalytics: expandContainerLogAnalytics(d),
+		LogAnalytics: expandContainerLogAnalytics(logList),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
@@ -459,7 +463,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("os_type", string(props.OsType))
 
 		if diag := props.Diagnostics; diag != nil {
-			if err := d.Set("log_analytics", flattenContainerLogAnalytics(diag.LogAnalytics)); err != nil {
+			if err := d.Set("log_analytics", flattenContainerLogAnalytics(d, diag.LogAnalytics)); err != nil {
 				return fmt.Errorf("Error setting `log_analytics`: %+v", err)
 			}
 		}
@@ -705,9 +709,7 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	return &volumeMounts, &containerGroupVolumes
 }
 
-func expandContainerLogAnalytics(d *schema.ResourceData) *containerinstance.LogAnalytics {
-	logList := d.Get("log_analytics").(*schema.Set).List()
-
+func expandContainerLogAnalytics(logList []interface{}) *containerinstance.LogAnalytics {
 	if len(logList) <= 0 {
 		return nil
 	}
@@ -719,7 +721,6 @@ func expandContainerLogAnalytics(d *schema.ResourceData) *containerinstance.LogA
 	metadataMap := log["metadata"].(map[string]interface{})
 	metadata := make(map[string]*string)
 	for k, v := range metadataMap {
-		// TODO:
 		strValue := v.(string)
 		metadata[k] = &strValue
 	}
@@ -961,35 +962,30 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	return volumeConfigs
 }
 
-func flattenContainerLogAnalytics(input *containerinstance.LogAnalytics) *schema.Set {
+func flattenContainerLogAnalytics(d *schema.ResourceData, input *containerinstance.LogAnalytics) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	log := make(map[string]interface{})
-	logSet := schema.Set{
-		F: containerGroupLogAnalyticsHash,
-	}
+
 	if input.WorkspaceID != nil {
 		log["workspace_id"] = *input.WorkspaceID
 	}
 
-	if input.WorkspaceKey != nil {
-		log["workspace_key"] = *input.WorkspaceKey
+	if v, ok := d.GetOk(LogAnalyticsWorkSpaceKeyPath); ok {
+		log["workspace_key"] = v
 	}
 
 	log["log_type"] = input.LogType
 
-	// TODO: string ?
 	metadata := make(map[string]interface{})
 	for k, v := range input.Metadata {
 		metadata[k] = *v
 	}
 	log["metadata"] = metadata
 
-	logSet.Add(log)
-
-	return &logSet
+	return []interface{}{log}
 }
 
 func resourceArmContainerGroupPortsHash(v interface{}) int {

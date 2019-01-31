@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -218,6 +219,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 					resource.TestCheckResourceAttr(resourceName, "log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.log_type", string(containerinstance.ContainerInsights)),
+					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_key"),
 				),
 			},
 			{
@@ -295,6 +300,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 					resource.TestCheckResourceAttr(resourceName, "log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.log_type", string(containerinstance.ContainerInsights)),
+					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_key"),
 				),
 			},
 			{
