@@ -37,6 +37,12 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"location": locationSchema(),
 
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -447,6 +453,8 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", resp.Kind)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
