@@ -12,6 +12,61 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func SchemaAppServiceAadAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"allowed_audiences": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:      schema.TypeBool,
+					Required:  true,
+					Sensitive: false,
+				},
+				"additional_login_params": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"allowed_external_redirect_urls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"active_directory": SchemaAppServiceAadAuthSettings(),
+			},
+		},
+	}
+}
+
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -448,6 +503,79 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 	if input.SupportCredentials != nil {
 		result["support_credentials"] = *input.SupportCredentials
 	}
+
+	return append(results, result)
+}
+
+func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsProperties {
+	settings := input.([]interface{})
+	siteAuthSettingsProperties := web.SiteAuthSettingsProperties{}
+
+	if len(settings) == 0 {
+		return siteAuthSettingsProperties
+	}
+
+	setting := settings[0].(map[string]interface{})
+
+	if v, ok := setting["enabled"]; ok {
+		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := setting["additional_login_params"]; ok {
+		input := v.([]interface{})
+
+		additionalLoginParams := make([]string, 0)
+		for _, param := range input {
+			additionalLoginParams = append(additionalLoginParams, param.(string))
+		}
+
+		siteAuthSettingsProperties.AdditionalLoginParams = &additionalLoginParams
+	}
+
+	if v, ok := setting["active_directory"]; ok {
+
+		activeDirectorySettings := v.([]interface{})
+		activeDirectorySetting := activeDirectorySettings[0].(map[string]interface{})
+
+		if v, ok := activeDirectorySetting["client_id"]; ok {
+			siteAuthSettingsProperties.ClientID = utils.String(v.(string))
+		}
+
+		if v, ok := activeDirectorySetting["client_secret"]; ok {
+			siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
+		}
+	}
+
+	return siteAuthSettingsProperties
+}
+
+func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil {
+		log.Printf("[DEBUG] AuthSettings is nil")
+		return results
+	}
+
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
+	}
+
+	additionalLoginParams := make([]string, 0)
+	if s := input.AdditionalLoginParams; s != nil {
+		additionalLoginParams = *s
+	}
+	result["additional_login_params"] = additionalLoginParams
+
+	activeDirectorySettings := make([]interface{}, 0)
+	activeDirectorySetting := make(map[string]interface{})
+
+	if input.ClientID != nil {
+		activeDirectorySetting["client_id"] = input.ClientID
+	}
+
+	result["active_directory"] = append(activeDirectorySettings, activeDirectorySetting)
 
 	return append(results, result)
 }
