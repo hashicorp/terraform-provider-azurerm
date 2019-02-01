@@ -27,6 +27,8 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "key1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key2"),
 				),
 			},
 			{
@@ -54,6 +56,8 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "SpeechServices"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "key1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key2"),
 				),
 			},
 			{
@@ -111,6 +115,8 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(resourceName, "key1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key2"),
 				),
 			},
 			{
@@ -138,6 +144,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "key1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key2"),
 				),
 			},
 			{
@@ -147,6 +155,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(resourceName, "key1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key2"),
 				),
 			},
 		},
