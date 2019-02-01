@@ -238,7 +238,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
 	}
 
 	d.Set("key1", keys.Key1)
