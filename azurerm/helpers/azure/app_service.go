@@ -164,11 +164,11 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"AzureActiveDirectory",
-						"Facebook",
-						"Google",
-						"MicrosoftAccount",
-						"Twitter",
+						string(web.AzureActiveDirectory),
+						string(web.Facebook),
+						string(web.Google),
+						string(web.MicrosoftAccount),
+						string(web.Twitter),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
@@ -181,7 +181,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Optional: true,
 				},
 				"token_refresh_extension_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Optional: true,
 					Default:  72,
 				},
@@ -189,8 +189,8 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"AllowAnonymous",
-						"RedirectToLoginPage",
+						string(web.AllowAnonymous),
+						string(web.RedirectToLoginPage),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
@@ -667,6 +667,37 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		}
 
 		siteAuthSettingsProperties.AdditionalLoginParams = &additionalLoginParams
+	}
+
+	if v, ok := setting["allowed_external_redirect_urls"]; ok {
+		input := v.([]interface{})
+
+		allowedExternalRedirectUrls := make([]string, 0)
+		for _, param := range input {
+			allowedExternalRedirectUrls = append(allowedExternalRedirectUrls, param.(string))
+		}
+
+		siteAuthSettingsProperties.AllowedExternalRedirectUrls = &allowedExternalRedirectUrls
+	}
+
+	if v, ok := setting["default_provider"]; ok {
+		siteAuthSettingsProperties.DefaultProvider = web.BuiltInAuthenticationProvider(v.(string))
+	}
+
+	if v, ok := setting["issuer"]; ok {
+		siteAuthSettingsProperties.Issuer = utils.String(v.(string))
+	}
+
+	if v, ok := setting["runtime_version"]; ok {
+		siteAuthSettingsProperties.RuntimeVersion = utils.String(v.(string))
+	}
+
+	if v, ok := setting["token_refresh_extension_hours"]; ok {
+		siteAuthSettingsProperties.TokenRefreshExtensionHours = utils.Float(v.(float64))
+	}
+
+	if v, ok := setting["unauthenticated_client_action"]; ok {
+		siteAuthSettingsProperties.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.(string))
 	}
 
 	if v, ok := setting["active_directory"]; ok {
