@@ -220,7 +220,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if err := d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
+	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
