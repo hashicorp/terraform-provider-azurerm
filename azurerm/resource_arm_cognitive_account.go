@@ -243,9 +243,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("key1", keys.Key1)
 
-	if key2 := keys.Key2; key2 != nil {
-		d.Set("key2", key2)
-	}
+	d.Set("key2", keys.Key2)
 
 	flattenAndSetTags(d, resp.Tags)
 
