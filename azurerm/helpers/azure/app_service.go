@@ -52,7 +52,7 @@ func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
 				},
 				"app_secret": {
 					Type:     schema.TypeString,
-					Optional: true,
+					Required: true,
 				},
 				"oauth_scopes": {
 					Type:     schema.TypeList,
