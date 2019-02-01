@@ -804,11 +804,11 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	activeDirectorySetting := make(map[string]interface{})
 
 	if input.ClientID != nil {
-		activeDirectorySetting["client_id"] = input.ClientID
+		activeDirectorySetting["client_id"] = *input.ClientID
 	}
 
 	if input.ClientSecret != nil {
-		activeDirectorySetting["client_secret"] = input.ClientSecret
+		activeDirectorySetting["client_secret"] = *input.ClientSecret
 	}
 
 	if s := input.AllowedAudiences; s != nil {
@@ -816,6 +816,70 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	}
 
 	result["active_directory"] = append(activeDirectorySettings, activeDirectorySetting)
+
+	facebookSettings := make([]interface{}, 0)
+	facebookSetting := make(map[string]interface{})
+
+	if input.FacebookAppID != nil {
+		facebookSetting["app_id"] = *input.FacebookAppID
+	}
+
+	if input.FacebookAppSecret != nil {
+		facebookSetting["app_secret"] = *input.FacebookAppSecret
+	}
+
+	if s := input.FacebookOAuthScopes; s != nil {
+		facebookSetting["oauth_scopes"] = *s
+	}
+
+	result["facebook"] = append(facebookSettings, facebookSetting)
+
+	googleSettings := make([]interface{}, 0)
+	googleSetting := make(map[string]interface{})
+
+	if input.GoogleClientID != nil {
+		googleSetting["client_id"] = *input.GoogleClientID
+	}
+
+	if input.GoogleClientSecret != nil {
+		googleSetting["client_secret"] = *input.GoogleClientSecret
+	}
+
+	if s := input.GoogleOAuthScopes; s != nil {
+		googleSetting["oauth_scopes"] = *s
+	}
+
+	result["google"] = append(googleSettings, googleSetting)
+
+	microsoftSettings := make([]interface{}, 0)
+	microsoftSetting := make(map[string]interface{})
+
+	if input.MicrosoftAccountClientID != nil {
+		microsoftSetting["client_id"] = *input.MicrosoftAccountClientID
+	}
+
+	if input.MicrosoftAccountClientSecret != nil {
+		microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
+	}
+
+	if s := input.MicrosoftAccountOAuthScopes; s != nil {
+		microsoftSetting["oauth_scopes"] = *s
+	}
+
+	result["microsoft"] = append(microsoftSettings, microsoftSetting)
+
+	twitterSettings := make([]interface{}, 0)
+	twitterSetting := make(map[string]interface{})
+
+	if input.TwitterConsumerKey != nil {
+		twitterSetting["consumer_key"] = *input.TwitterConsumerKey
+	}
+
+	if input.TwitterConsumerSecret != nil {
+		twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
+	}
+
+	result["twitter"] = append(twitterSettings, twitterSetting)
 
 	return append(results, result)
 }
