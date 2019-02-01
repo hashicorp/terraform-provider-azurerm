@@ -232,7 +232,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
 		return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
-	
+
 	// Convert Bytes to Gigabytes only if max_size_gb
 	// has not changed else use max_size_gb
 	if maxSizeBytes.(int) != 0 && !diff.HasChange("max_size_gb") {
@@ -256,7 +256,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
 	} else {
 		// vCore Checks
-		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier][strings.ToLower(s.Family)][s.Capacity]
+		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)][s.Capacity]
 
 		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
@@ -309,7 +309,7 @@ func getDTUCapacityErrorMsg(s sku) string {
 }
 
 func getVCoreCapacityErrorMsg(s sku) string {
-	m := getvCoreMaxGB[strings.ToLower(s.Tier][strings.ToLower(s.Family)]
+	m := getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)]
 	return buildcapacityErrorString(s, m)
 }
 
