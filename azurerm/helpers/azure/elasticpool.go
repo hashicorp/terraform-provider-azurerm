@@ -228,9 +228,9 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
 	// Verify that Family is valid
 	if s.SkuType == DTU && s.Family != "" {
-		return fmt.Sprintf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
+		return fmt.Errorf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
-		return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
 	// Convert Bytes to Gigabytes only if max_size_gb
