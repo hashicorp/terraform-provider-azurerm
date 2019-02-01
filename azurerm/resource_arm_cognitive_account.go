@@ -241,9 +241,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if key1 := keys.Key1; key1 != nil {
-		d.Set("key1", key1)
-	}
+	d.Set("key1", keys.Key1)
 
 	if key2 := keys.Key2; key2 != nil {
 		d.Set("key2", key2)
