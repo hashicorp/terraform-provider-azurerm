@@ -31,6 +31,11 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
