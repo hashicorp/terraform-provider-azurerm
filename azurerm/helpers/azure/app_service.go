@@ -116,6 +116,27 @@ func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"consumer_key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"consumer_secret": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -143,6 +164,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"facebook":         SchemaAppServiceFacebookAuthSettings(),
 				"google":           SchemaAppServiceGoogleAuthSettings(),
 				"microsoft":        SchemaAppServiceMicrosoftAuthSettings(),
+				"twitter":          SchemaAppServiceTwitterAuthSettings(),
 			},
 		},
 	}
