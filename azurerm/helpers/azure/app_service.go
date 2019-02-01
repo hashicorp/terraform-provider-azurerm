@@ -544,6 +544,17 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		if v, ok := activeDirectorySetting["client_secret"]; ok {
 			siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
 		}
+
+		if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
+			input := v.([]interface{})
+
+			allowedAudiences := make([]string, 0)
+			for _, param := range input {
+				allowedAudiences = append(allowedAudiences, param.(string))
+			}
+
+			siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+		}
 	}
 
 	return siteAuthSettingsProperties
@@ -573,6 +584,14 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 
 	if input.ClientID != nil {
 		activeDirectorySetting["client_id"] = input.ClientID
+	}
+
+	if input.ClientSecret != nil {
+		activeDirectorySetting["client_secret"] = input.ClientSecret
+	}
+
+	if s := input.AllowedAudiences; s != nil {
+		activeDirectorySetting["allowed_audiences"] = *s
 	}
 
 	result["active_directory"] = append(activeDirectorySettings, activeDirectorySetting)
