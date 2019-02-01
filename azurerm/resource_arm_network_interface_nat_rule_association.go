@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -100,12 +101,12 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 	rules := make([]network.InboundNatRule, 0)
 
 	// first double-check it doesn't exist
+	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, natRuleId)
 	if p.LoadBalancerInboundNatRules != nil {
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					// TODO: switch to using the common error once https://github.com/terraform-providers/terraform-provider-azurerm/pull/1746 is merged
-					return fmt.Errorf("A Network Interface <-> Load Balancer NAT Rule association exists between %q and %q - please import it!", networkInterfaceId, natRuleId)
+					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
 				}
 
 				rules = append(rules, existingRule)
@@ -130,7 +131,6 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		return fmt.Errorf("Error waiting for completion of NAT Rule Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
-	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, natRuleId)
 	d.SetId(resourceId)
 
 	return resourceArmNetworkInterfaceNatRuleAssociationRead(d, meta)

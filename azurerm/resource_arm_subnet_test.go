@@ -38,6 +38,35 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_subnet.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnet_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSubnet_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_subnet"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
@@ -434,6 +463,20 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSubnet_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "import" {
+  name                 = "${azurerm_subnet.test.name}"
+  resource_group_name  = "${azurerm_subnet.test.resource_group_name}"
+  virtual_network_name = "${azurerm_subnet.test.virtual_network_name}"
+  address_prefix       = "${azurerm_subnet.test.address_prefix}"
+}
+`, template)
 }
 
 func testAccAzureRMSubnet_delegation(rInt int, location string) string {
