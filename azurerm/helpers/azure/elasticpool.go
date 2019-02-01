@@ -9,18 +9,31 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-type ErrorType int
-type SkuType int
+type errorType int
+type skuType int
 
 const (
-	CapacityError ErrorType = 0
-	AllOtherError ErrorType = 1
+	capacityError errorType = 0
+	allOtherError errorType = 1
 )
 
 const (
-	DTU   SkuType = 0
-	VCore SkuType = 1
+	DTU   skuType = 0
+	VCore skuType = 1
 )
+
+type sku struct {
+	Name, Tier, Family                                string
+	Capacity                                          int
+	MaxAllowedGB, MaxSizeGb, MinCapacity, MaxCapacity float64
+	ErrorType                                         errorType
+	SkuType                                           skuType
+}
+
+// getDTUMaxGB: this map holds all of the DTU to 'max_size_gb' mappings based on a DTU lookup
+//              note that the value can be below the returned value, except for 'basic' it's
+//              value must match exactly what is returned else it will be rejected by the API
+//              which will return a 'Internal Server Error'
 
 var getDTUMaxGB = map[string]map[int]float64{
 	"basic": {
@@ -60,6 +73,11 @@ var getDTUMaxGB = map[string]map[int]float64{
 	},
 }
 
+// supportedDTUMaxGBValues: this map holds all of the valid 'max_size_gb' values
+//                          for a DTU SKU type. If the 'max_size_gb' is anything
+//                          other than the values in the map the API with throw
+//                          an 'Internal Server Error'
+
 var supportedDTUMaxGBValues = map[float64]bool{
 	50:   true,
 	100:  true,
@@ -90,6 +108,9 @@ var supportedDTUMaxGBValues = map[float64]bool{
 	3840: true,
 	4096: true,
 }
+
+// getvCoreMaxGB: this map holds all of the vCore to 'max_size_gb' mappings based on a vCore lookup
+//                note that the value can be below the returned value
 
 var getvCoreMaxGB = map[string]map[string]map[int]float64{
 	"generalpurpose": {
@@ -156,6 +177,12 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 	},
 }
 
+// getTierFromName: this map contains all of the valid mappings between 'name' and 'tier'
+//                  the reason for this map is that the user may pass in an invalid mapping
+//                  (e.g. name: "Basicpool" tier:"BusinessCritical") this map allows me
+//                  to lookup the correct values in other maps even if the config file
+//                  contains an invalid 'tier' attribute.
+
 var getTierFromName = map[string]string{
 	"basicpool":    "Basic",
 	"standardpool": "Standard",
@@ -177,49 +204,61 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 	minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 	maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
-	skuToValidate := DTU
+	s := sku{
+		Name:        name.(string),
+		Tier:        tier.(string),
+		Family:      family.(string),
+		Capacity:    capacity.(int),
+		MaxSizeGb:   maxSizeGb.(float64),
+		MinCapacity: minCapacity.(float64),
+		MaxCapacity: maxCapacity.(float64),
+		ErrorType:   capacityError,
+		SkuType:     DTU,
+	}
 
 	if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-		skuToValidate = VCore
+		s.SkuType = VCore
 	}
 
 	// Convert Bytes to Gigabytes only if max_size_gb
 	// has not changed else use max_size_gb
-	if maxSizeBytes != 0 && !diff.HasChange("max_size_gb") {
-		maxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
+	if maxSizeBytes.(int) != 0 && !diff.HasChange("max_size_gb") {
+		s.MaxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
 	}
 
-	if skuToValidate == DTU {
+	if s.SkuType == DTU {
 		// DTU Checks
-		maxAllowedGB := getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name.(string))])][capacity.(int)]
+		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][s.Capacity]
 
 		// Check to see if this is a valid SKU capacity combo
-		if errMsg := getErrorMsg(name.(string), family.(string), capacity.(int), maxAllowedGB, maxSizeGb.(float64), minCapacity.(float64), maxCapacity.(float64), CapacityError, skuToValidate); errMsg != "" {
+		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
 		}
 
 		// Check to see if this is a valid Max_Size_GB value
-		if errMsg := getErrorMsg(name.(string), family.(string), capacity.(int), maxAllowedGB, maxSizeGb.(float64), minCapacity.(float64), maxCapacity.(float64), AllOtherError, skuToValidate); errMsg != "" {
+		s.ErrorType = allOtherError
+		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
 		}
 
 	} else {
 		// vCore Checks
-		maxAllowedGB := getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name.(string))])][strings.ToLower(getFamilyFromName(strings.ToLower(name.(string))))][capacity.(int)]
+		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(strings.ToLower(s.Name)))][s.Capacity]
 
-		if errMsg := getErrorMsg(name.(string), family.(string), capacity.(int), maxAllowedGB, maxSizeGb.(float64), minCapacity.(float64), maxCapacity.(float64), CapacityError, skuToValidate); errMsg != "" {
+		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
 		}
 
 		// Check to see if this is a valid Max_Size_GB value
-		if errMsg := getErrorMsg(name.(string), family.(string), capacity.(int), maxAllowedGB, maxSizeGb.(float64), minCapacity.(float64), maxCapacity.(float64), AllOtherError, skuToValidate); errMsg != "" {
+		s.ErrorType = allOtherError
+		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
 		}
 	}
 
 	// Universal check for all SKUs
-	if !nameTierIsValid(name.(string), tier.(string)) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", name.(string), tier.(string), getTierFromName[strings.ToLower(name.(string))])
+	if !nameTierIsValid(s.Name, s.Tier) {
+		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	return nil
@@ -258,15 +297,15 @@ func getFamilyFromName(name string) string {
 
 func getDTUCapacityErrorMsg(name string, capacity int) string {
 	m := getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name)])]
-	return buildCapacityErrorString(name, capacity, m)
+	return buildcapacityErrorString(name, capacity, m)
 }
 
 func getVCoreCapacityErrorMsg(name string, capacity int) string {
 	m := getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name)])][strings.ToLower(getFamilyFromName(name))]
-	return buildCapacityErrorString(name, capacity, m)
+	return buildcapacityErrorString(name, capacity, m)
 }
 
-func buildCapacityErrorString(name string, capacity int, m map[int]float64) string {
+func buildcapacityErrorString(name string, capacity int, m map[int]float64) string {
 	var a []int
 	str := ""
 	family := getFamilyFromName(name)
@@ -279,18 +318,18 @@ func buildCapacityErrorString(name string, capacity int, m map[int]float64) stri
 	}
 
 	// copy the keys into another map
-	possible := make([]int, 0, len(m))
+	p := make([]int, 0, len(m))
 	for k := range m {
-		possible = append(possible, k)
+		p = append(p, k)
 	}
 
 	// copy the values of the map of keys into a slice of ints
-	for v := range possible {
-		a = append(a, possible[v])
+	for v := range p {
+		a = append(a, p[v])
 	}
 
 	// sort the slice to get them in order
-	sort.Sort(sort.IntSlice(a))
+	sort.Ints(a)
 
 	// build the error message
 	for i := range a {
@@ -314,109 +353,109 @@ func getDTUNotValidSizeErrorMsg(name string, maxSizeGb float64) string {
 	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(maxSizeGb), getTierFromName[strings.ToLower(name)])
 
 	// copy the keys into another map
-	possible := make([]int, 0, len(m))
+	p := make([]int, 0, len(m))
 	for k := range m {
-		possible = append(possible, int(k))
+		p = append(p, int(k))
 	}
 
 	// copy the values of the map of keys into a slice of ints
-	for v := range possible {
-		a = append(a, possible[v])
+	for v := range p {
+		a = append(a, p[v])
 	}
 
 	// sort the slice to get them in order
-	sort.Sort(sort.IntSlice(a))
+	sort.Ints(a)
 
 	// build the error message
-	for index := range a {
+	for i := range a {
 
-		if index < len(a)-1 {
-			str += fmt.Sprintf("%d, ", a[index])
+		if i < len(a)-1 {
+			str += fmt.Sprintf("%d, ", a[i])
 		} else {
-			str += fmt.Sprintf("or %d GB", a[index])
+			str += fmt.Sprintf("or %d GB", a[i])
 		}
 	}
 
 	return str
 }
 
-func getErrorMsg(name string, family string, capacity int, maxAllowedGB float64, maxSizeGb float64, minCapacity float64, maxCapacity float64, errType ErrorType, skuType SkuType) string {
+func doSKUValidation(s sku) string {
 	errMsg := ""
 
-	if errType == CapacityError {
-		if skuType == DTU {
+	if s.ErrorType == capacityError {
+		if s.SkuType == DTU {
 			// DTU Based Capacity Errors
-			if maxAllowedGB == 0 {
-				return getDTUCapacityErrorMsg(name, capacity)
+			if s.MaxAllowedGB == 0 {
+				return getDTUCapacityErrorMsg(s.Name, s.Capacity)
 			}
 		} else {
 			// vCore Based Capacity Errors
-			if maxAllowedGB == 0 {
-				return getVCoreCapacityErrorMsg(name, capacity)
+			if s.MaxAllowedGB == 0 {
+				return getVCoreCapacityErrorMsg(s.Name, s.Capacity)
 			}
 		}
 	} else {
 		// AllOther Errors
-		if skuType == DTU {
-			if strings.EqualFold(name, "BasicPool") {
+		if s.SkuType == DTU {
+			if strings.EqualFold(s.Name, "BasicPool") {
 				// Basic SKU does not let you pick your max_size_GB they are fixed values
-				if maxSizeGb != maxAllowedGB {
-					return fmt.Sprintf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", capacity, maxAllowedGB, maxSizeGb)
+				if s.MaxSizeGb != s.MaxAllowedGB {
+					return fmt.Sprintf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", s.Capacity, s.MaxAllowedGB, s.MaxSizeGb)
 				}
 			} else {
 				// All other DTU based SKUs
-				if maxSizeGb > maxAllowedGB {
-					return fmt.Sprintf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", getTierFromName[strings.ToLower(name)], capacity, int(maxAllowedGB), int(maxSizeGb))
+				if s.MaxSizeGb > s.MaxAllowedGB {
+					return fmt.Sprintf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
 				}
 
-				if int(maxSizeGb) < 50 {
-					return fmt.Sprintf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", getTierFromName[strings.ToLower(name)], int(maxSizeGb))
+				if int(s.MaxSizeGb) < 50 {
+					return fmt.Sprintf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], int(s.MaxSizeGb))
 				}
 
 				// Check to see if the max_size_gb value is valid for this SKU type and capacity
-				if !supportedDTUMaxGBValues[maxSizeGb] {
-					return getDTUNotValidSizeErrorMsg(name, maxSizeGb)
+				if !supportedDTUMaxGBValues[s.MaxSizeGb] {
+					return getDTUNotValidSizeErrorMsg(s.Name, s.MaxSizeGb)
 				}
 			}
 
 			// All Other DTU based SKU Checks
-			if family != "" {
-				return fmt.Sprintf("Invalid attribute 'family' (%s) for service tiers 'Basic', 'Standard', and 'Premium', remove the 'family' attribute from the configuration file", family)
+			if s.Family != "" {
+				return fmt.Sprintf("Invalid attribute 'family' (%s) for service tiers 'Basic', 'Standard', and 'Premium', remove the 'family' attribute from the configuration file", s.Family)
 			}
-			if minCapacity != math.Trunc(minCapacity) {
+			if s.MinCapacity != math.Trunc(s.MinCapacity) {
 				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'minCapacity'")
 			}
 
-			if maxCapacity != math.Trunc(maxCapacity) {
+			if s.MaxCapacity != math.Trunc(s.MaxCapacity) {
 				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
 			}
 
-			if minCapacity < 0.0 {
+			if s.MinCapacity < 0.0 {
 				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings 'min_capacity' must be equal to or greater than zero")
 			}
 		} else {
-			// vCore Based AllOther Errors
-			if maxSizeGb > maxAllowedGB {
-				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", getTierFromName[strings.ToLower(name)], family, capacity, int(maxAllowedGB), int(maxSizeGb))
+			// vCore Based Errors
+			if s.MaxSizeGb > s.MaxAllowedGB {
+				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
 			}
 
-			if int(maxSizeGb) < 5 {
-				return fmt.Sprintf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", getTierFromName[strings.ToLower(name)], int(maxSizeGb))
+			if int(s.MaxSizeGb) < 5 {
+				return fmt.Sprintf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], int(s.MaxSizeGb))
 			}
 
-			if maxSizeGb != math.Trunc(maxSizeGb) {
-				return fmt.Sprintf("'max_size_gb' must be a whole number, got %f GB", maxSizeGb)
+			if s.MaxSizeGb != math.Trunc(s.MaxSizeGb) {
+				return fmt.Sprintf("'max_size_gb' must be a whole number, got %f GB", s.MaxSizeGb)
 			}
 
-			if !nameContainsFamily(name, family) {
-				return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", name, family, getFamilyFromName(name))
+			if !nameContainsFamily(s.Name, s.Family) {
+				return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s.Name))
 			}
 
-			if maxCapacity > float64(capacity) {
-				return fmt.Sprintf("service tier '%s' perDatabaseSettings 'maxCapacity' must not be higher than the SKUs 'capacity'(%d) value", getTierFromName[strings.ToLower(name)], capacity)
+			if s.MaxCapacity > float64(s.Capacity) {
+				return fmt.Sprintf("service tier '%s' perDatabaseSettings 'maxCapacity' must not be higher than the SKUs 'capacity'(%d) value", getTierFromName[strings.ToLower(s.Name)], s.Capacity)
 			}
 
-			if minCapacity > maxCapacity {
+			if s.MinCapacity > s.MaxCapacity {
 				return fmt.Sprintf("perDatabaseSettings 'maxCapacity' must be greater than or equal to the perDatabaseSettings 'minCapacity' value")
 			}
 		}
