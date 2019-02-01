@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -31,7 +31,7 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmLoadBalancerOutboundRuleName,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -58,8 +58,7 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 
 			"backend_address_pool_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 
 			"protocol": {
@@ -79,24 +78,237 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				Default:  false,
 			},
 
+			"allocated_outbound_ports": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"idle_timeout_in_minutes": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(4, 30),
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 		},
 	}
 }
 
 func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
+
+	name := d.Get("name").(string)
+	loadBalancerID := d.Get("loadbalancer_id").(string)
+	armMutexKV.Lock(loadBalancerID)
+	defer armMutexKV.Unlock(loadBalancerID)
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
+	if err != nil {
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
+	}
+	if !exists {
+		d.SetId("")
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		return nil
+	}
+
+	newOutboundRule, err := expandAzureRmLoadBalancerOutboundRule(d, loadBalancer)
+	if err != nil {
+		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
+	}
+
+	outboundRules := append(*loadBalancer.LoadBalancerPropertiesFormat.OutboundRules, *newLbRule)
+
+	existingOutboundRule, existingOutboundRuleIndex, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
+	if exists {
+		if name == *existingOutboundRule.Name {
+			if requireResourcesToBeImported && d.IsNewResource() {
+				return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.ID)
+			}
+
+			// this outbound rule is being updated/reapplied remove old copy from the slice
+			outboundRules = append(outboundRules[:existingOutboundRuleIndex], outboundRules[existingOutboundRuleIndex+1:]...)
+		}
+	}
+
+	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
+	if err != nil {
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
+	if err != nil {
+		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerName, resGroup)
+	}
+
+	var outboundRuleId string
+	for _, OutboundRule := range *(*read.LoadBalancerPropertiesFormat).OutboundRules {
+		if *OutboundRule.Name == name {
+			outboundRuleId = *OutboundRule.ID
+		}
+	}
+
+	if outboundRuleId == "" {
+		return fmt.Errorf("Cannot find created Load Balancer Outbound Rule ID %q", outboundRuleId)
+	}
+
+	d.SetId(outboundRuleId)
+
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
 
 func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interface{}) error {
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	name := id.Path["outboundRules"]
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
+	if err != nil {
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
+	}
+	if !exists {
+		d.SetId("")
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		return nil
+	}
+
+	config, _, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
+	if !exists {
+		d.SetId("")
+		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", name)
+		return nil
+	}
+
+	d.Set("name", config.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	if properties := config.OutboundRulePropertiesFormat; properties != nil {
+		d.Set("protocol", properties.Protocol)
+		d.Set("backend_address_pool_id", properties.BackendAddressPool.ID)
+
+		fipID, err := parseAzureResourceID(*properties.FrontendIPConfiguration.ID)
+		if err != nil {
+			return err
+		}
+
+		d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
+		d.Set("frontend_ip_configuration_id", properties.FrontendIPConfiguration.ID)
+
+		if properties.EnableTCPReset != nil {
+			d.Set("enable_tcp_reset", properties.EnableTCPReset)
+		}
+
+		if properties.IdleTimeoutInMinutes != nil {
+			d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
+		}
+
+		if properties.AllocatedOutboundPorts != nil {
+			d.Set("allocated_outbound_ports", properties.AllocatedOutboundPorts)
+		}
+
+	}
+
 	return nil
 }
 
 func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
+
+	loadBalancerID := d.Get("loadbalancer_id").(string)
+	armMutexKV.Lock(loadBalancerID)
+	defer armMutexKV.Unlock(loadBalancerID)
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
+	if err != nil {
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
+	}
+	if !exists {
+		d.SetId("")
+		return nil
+	}
+
+	_, index, exists := findLoadBalancerOutboundRuleByName(loadBalancer, d.Get("name").(string))
+	if !exists {
+		return nil
+	}
+
+	oldOutboundRules := *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
+	newOutboundRules := append(oldOutboundRules[:index], oldOutboundRules[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.OuboundRules = &newOutboundRules
+
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	if err != nil {
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
+	if err != nil {
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read ID of Load Balancer %q (resource group %s)", loadBalancerName, resGroup)
+	}
+
 	return nil
+}
+
+func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
+
+	properties := network.OutboundRulePropertiesFormat{
+		Protocol: network.Protocol1(d.Get("protocol").(string)),
+	}
+
+	rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+	if !exists {
+		return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
+	}
+
+	properties.FrontendIPConfiguration = &network.SubResource{
+		ID: rule.ID,
+	}
+
+	properties.BackendAddressPool = &network.SubResource{
+		ID: &v,
+	}
+
+	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := d.GetOk("enable_tcp_reset"); ok {
+		properties.EnableTCPReset = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("allocated_outbound_ports"); ok {
+		properties.AllocatedOutboundPorts = utils.Int32(int32(v.(int)))
+	}
+
+	return &network.OutboundRule{
+		Name:                         utils.String(d.Get("name").(string)),
+		OutboundRulePropertiesFormat: &properties,
+	}, nil
 }
