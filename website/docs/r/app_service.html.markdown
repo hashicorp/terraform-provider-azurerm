@@ -57,6 +57,111 @@ resource "azurerm_app_service" "test" {
 }
 ```
 
+## Example Usage (Java 1.8)
+
+```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "some-resource-group"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "some-app-service-plan"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "${random_id.server.hex}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    java_version           = "1.8"
+    java_container         = "JETTY"
+    java_container_version = "9.3"
+    scm_type               = "LocalGit"
+  }
+}
+```
+
+## Example Usage (Authentication)
+
+```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "some-resource-group"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "some-app-service-plan"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "${random_id.server.hex}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/d13958f6-b541-4dad-97b9-5a39c6b01297"
+    default_provider              = "AzureActiveDirectory"
+    unauthenticated_client_action = "RedirectToLoginPage"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "someallowedaudience",
+      ]
+    }
+    
+    microsoft {
+      client_id     = "microsoftclientid"
+      client_secret = "microsoftclientsecret"
+
+      oauth_scopes = [
+        "somescope",
+      ]
+    }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -172,6 +277,79 @@ A `cors` block supports the following:
 ---
 
 Elements of `ip_restriction` support:
+`auth_settings` supports the following:
+
+* `enabled` - (Required) Is Authentication enabled?
+
+* `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
+
+* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app.
+
+~> **NOTE:** When providing multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+
+* `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
+
+* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+
+* `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
+
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+
+* `unauthenticated_client_action` - (Optional) The action to take when an unauthenticated client attempts to access the app. Possible values are `AllowAnonymous` and `RedirectToLoginPage`.
+
+* `active_directory` - (Optional) Active directory Authentication configuration.
+
+* `facebook` - (Optional) Facebook Authentication configuration.
+
+* `google` - (Optional) Google Authentication configuration.
+
+* `microsoft` - (Optional) Microsoft Account Authentication configuration.
+
+* `twitter` - (Optional) Twitter Authentication configuration.
+
+---
+
+`active_directory` supports the following:
+
+* `client_id` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
+
+* `client_secret` - (Optional) The Client Secret of this relying party application. If no secret is provided, implicit flow will be used.
+
+* `allowed_audiences` (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+
+---
+
+`facebook` supports the following:
+
+* `app_id` - (Required) The App ID of the Facebook app used for login
+
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+
+---
+
+`google` supports the following:
+
+* `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
+
+* `client_secret` - (Required) The client secret associated with the Google web application.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. https://developers.google.com/identity/sign-in/web/
+
+---
+
+`microsoft` supports the following:
+
+* `client_id` - (Required) The OAuth 2.0 client ID that was created for the app used for authentication.
+
+* `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+`ip_restriction` supports the following:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
