@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -173,8 +174,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
 				"issuer": {
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 				"runtime_version": {
 					Type:     schema.TypeString,
@@ -830,6 +832,32 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 		additionalLoginParams = *s
 	}
 	result["additional_login_params"] = additionalLoginParams
+
+	allowedExternalRedirectUrls := make([]string, 0)
+	if s := input.AllowedExternalRedirectUrls; s != nil {
+		allowedExternalRedirectUrls = *s
+	}
+	result["allowed_external_redirect_urls"] = allowedExternalRedirectUrls
+
+	if input.DefaultProvider != "" {
+		result["default_provider"] = input.DefaultProvider
+	}
+
+	if input.Issuer != nil {
+		result["issuer"] = *input.Issuer
+	}
+
+	if input.RuntimeVersion != nil {
+		result["runtime_version"] = *input.RuntimeVersion
+	}
+
+	if input.TokenRefreshExtensionHours != nil {
+		result["token_refresh_extension_hours"] = *input.TokenRefreshExtensionHours
+	}
+
+	if input.UnauthenticatedClientAction != "" {
+		result["unauthenticated_client_action"] = input.UnauthenticatedClientAction
+	}
 
 	activeDirectorySettings := make([]interface{}, 0)
 	activeDirectorySetting := make(map[string]interface{})
