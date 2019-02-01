@@ -104,6 +104,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 			"key1": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Sensitive: true,
 			},
 
 			"key2": {
