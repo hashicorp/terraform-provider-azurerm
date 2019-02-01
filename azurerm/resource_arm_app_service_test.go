@@ -1461,6 +1461,38 @@ func TestAccAzureRMAppService_authSettingsUnauthenticatedClientAction(t *testing
 	})
 }
 
+func TestAccAzureRMAppService_authSettingsTokenStoreEnabled(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppService_authSettingsTokenStoreEnabled(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_store_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -3168,6 +3200,52 @@ resource "azurerm_app_service" "test" {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
     token_refresh_extension_hours = 75
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppService_authSettingsTokenStoreEnabled(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    token_store_enabled = true
 
     active_directory {
       client_id     = "aadclientid"

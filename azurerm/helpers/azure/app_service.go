@@ -187,6 +187,11 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Optional: true,
 					Default:  72,
 				},
+				"token_store_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 				"unauthenticated_client_action": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -698,6 +703,10 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		siteAuthSettingsProperties.TokenRefreshExtensionHours = utils.Float(v.(float64))
 	}
 
+	if v, ok := setting["token_store_enabled"]; ok {
+		siteAuthSettingsProperties.TokenStoreEnabled = utils.Bool(v.(bool))
+	}
+
 	if v, ok := setting["unauthenticated_client_action"]; ok {
 		siteAuthSettingsProperties.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.(string))
 	}
@@ -888,6 +897,10 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 
 	if input.TokenRefreshExtensionHours != nil {
 		result["token_refresh_extension_hours"] = *input.TokenRefreshExtensionHours
+	}
+
+	if input.TokenStoreEnabled != nil {
+		result["token_store_enabled"] = *input.TokenStoreEnabled
 	}
 
 	if input.UnauthenticatedClientAction != "" {
