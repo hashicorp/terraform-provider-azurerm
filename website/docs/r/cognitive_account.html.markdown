@@ -67,6 +67,10 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint used to connect to the Cognitive Service Account.
 
+* `key1` - A key that can be used when connecting to the Cognitive Service Account.
+
+* `key2` - The second key that can be used as an alternative to key1 when connecting to the Cognitive Service Account.
+
 ## Import
 
 Cognitive Service Accounts can be imported using the `resource id`, e.g.
