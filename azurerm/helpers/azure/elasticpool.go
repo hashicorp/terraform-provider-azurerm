@@ -216,7 +216,8 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		SkuType:     DTU,
 	}
 
-	if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+	// Check to see if the name describes a vCore type SKU
+	if strings.HasPrefix(strings.ToLower(s.Name), "gp_") || strings.HasPrefix(strings.ToLower(s.Name), "bc_") {
 		s.SkuType = VCore
 	}
 
@@ -243,7 +244,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
 	} else {
 		// vCore Checks
-		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(strings.ToLower(s.Name)))][s.Capacity]
+		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(s))][s.Capacity]
 
 		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
@@ -257,35 +258,35 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 	}
 
 	// Universal check for all SKUs
-	if !nameTierIsValid(s.Name, s.Tier) {
+	if !nameTierIsValid(s) {
 		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	return nil
 }
 
-func nameContainsFamily(name string, family string) bool {
-	return strings.Contains(strings.ToLower(name), strings.ToLower(family))
+func nameContainsFamily(s sku) bool {
+	return strings.Contains(strings.ToLower(s.Name), strings.ToLower(s.Family))
 }
 
-func nameTierIsValid(name string, tier string) bool {
-	if strings.EqualFold(name, "BasicPool") && !strings.EqualFold(tier, "Basic") ||
-		strings.EqualFold(name, "StandardPool") && !strings.EqualFold(tier, "Standard") ||
-		strings.EqualFold(name, "PremiumPool") && !strings.EqualFold(tier, "Premium") ||
-		strings.HasPrefix(strings.ToLower(name), "gp_") && !strings.EqualFold(tier, "GeneralPurpose") ||
-		strings.HasPrefix(strings.ToLower(name), "bc_") && !strings.EqualFold(tier, "BusinessCritical") {
+func nameTierIsValid(s sku) bool {
+	if strings.EqualFold(s.Name, "BasicPool") && !strings.EqualFold(s.Tier, "Basic") ||
+		strings.EqualFold(s.Name, "StandardPool") && !strings.EqualFold(s.Tier, "Standard") ||
+		strings.EqualFold(s.Name, "PremiumPool") && !strings.EqualFold(s.Tier, "Premium") ||
+		strings.HasPrefix(strings.ToLower(s.Name), "gp_") && !strings.EqualFold(s.Tier, "GeneralPurpose") ||
+		strings.HasPrefix(strings.ToLower(s.Name), "bc_") && !strings.EqualFold(s.Tier, "BusinessCritical") {
 		return false
 	}
 
 	return true
 }
 
-func getFamilyFromName(name string) string {
-	if !strings.HasPrefix(strings.ToLower(name), "gp_") && !strings.HasPrefix(strings.ToLower(name), "bc_") {
+func getFamilyFromName(s sku) string {
+	if !strings.HasPrefix(strings.ToLower(s.Name), "gp_") && !strings.HasPrefix(strings.ToLower(s.Name), "bc_") {
 		return ""
 	}
 
-	nameFamily := name[3:]
+	nameFamily := s.Name[3:]
 	retFamily := "Gen4" // Default
 
 	if strings.EqualFold(nameFamily, "Gen5") {
@@ -295,26 +296,26 @@ func getFamilyFromName(name string) string {
 	return retFamily
 }
 
-func getDTUCapacityErrorMsg(name string, capacity int) string {
-	m := getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name)])]
-	return buildcapacityErrorString(name, capacity, m)
+func getDTUCapacityErrorMsg(s sku) string {
+	m := getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])]
+	return buildcapacityErrorString(s, m)
 }
 
-func getVCoreCapacityErrorMsg(name string, capacity int) string {
-	m := getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(name)])][strings.ToLower(getFamilyFromName(name))]
-	return buildcapacityErrorString(name, capacity, m)
+func getVCoreCapacityErrorMsg(s sku) string {
+	m := getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(s))]
+	return buildcapacityErrorString(s, m)
 }
 
-func buildcapacityErrorString(name string, capacity int, m map[int]float64) string {
+func buildcapacityErrorString(s sku, m map[int]float64) string {
 	var a []int
 	str := ""
-	family := getFamilyFromName(name)
-	tier := getTierFromName[strings.ToLower(name)]
+	family := getFamilyFromName(s)
+	tier := getTierFromName[strings.ToLower(s.Name)]
 
-	if family == "" {
-		str += fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", tier, capacity)
+	if s.SkuType == DTU {
+		str += fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", tier, s.Capacity)
 	} else {
-		str += fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", tier, family, capacity)
+		str += fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", tier, family, s.Capacity)
 	}
 
 	// copy the keys into another map
@@ -336,7 +337,7 @@ func buildcapacityErrorString(name string, capacity int, m map[int]float64) stri
 		if i < len(a)-1 {
 			str += fmt.Sprintf("%d, ", a[i])
 		} else {
-			if family == "" {
+			if s.SkuType == DTU {
 				str += fmt.Sprintf("or %d DTUs", a[i])
 			} else {
 				str += fmt.Sprintf("or %d vCores", a[i])
@@ -347,10 +348,10 @@ func buildcapacityErrorString(name string, capacity int, m map[int]float64) stri
 	return str
 }
 
-func getDTUNotValidSizeErrorMsg(name string, maxSizeGb float64) string {
+func getDTUNotValidSizeErrorMsg(s sku) string {
 	m := supportedDTUMaxGBValues
 	var a []int
-	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(maxSizeGb), getTierFromName[strings.ToLower(name)])
+	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), getTierFromName[strings.ToLower(s.Name)])
 
 	// copy the keys into another map
 	p := make([]int, 0, len(m))
@@ -383,18 +384,12 @@ func doSKUValidation(s sku) string {
 	errMsg := ""
 
 	if s.ErrorType == capacityError {
-		if s.SkuType == DTU {
-			// DTU Based Capacity Errors
-			if s.MaxAllowedGB == 0 {
-				return getDTUCapacityErrorMsg(s.Name, s.Capacity)
-			}
-		} else {
-			// vCore Based Capacity Errors
-			if s.MaxAllowedGB == 0 {
-				return getVCoreCapacityErrorMsg(s.Name, s.Capacity)
-			}
+		if s.SkuType == DTU && s.MaxAllowedGB == 0 {
+			return getDTUCapacityErrorMsg(s)
+		} else if s.SkuType == VCore && s.MaxAllowedGB == 0 {
+			return getVCoreCapacityErrorMsg(s)
 		}
-	} else {
+	} else if s.ErrorType == allOtherError {
 		// AllOther Errors
 		if s.SkuType == DTU {
 			if strings.EqualFold(s.Name, "BasicPool") {
@@ -414,7 +409,7 @@ func doSKUValidation(s sku) string {
 
 				// Check to see if the max_size_gb value is valid for this SKU type and capacity
 				if !supportedDTUMaxGBValues[s.MaxSizeGb] {
-					return getDTUNotValidSizeErrorMsg(s.Name, s.MaxSizeGb)
+					return getDTUNotValidSizeErrorMsg(s)
 				}
 			}
 
@@ -433,7 +428,7 @@ func doSKUValidation(s sku) string {
 			if s.MinCapacity < 0.0 {
 				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings 'min_capacity' must be equal to or greater than zero")
 			}
-		} else {
+		} else if s.SkuType == VCore {
 			// vCore Based Errors
 			if s.MaxSizeGb > s.MaxAllowedGB {
 				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
@@ -447,8 +442,8 @@ func doSKUValidation(s sku) string {
 				return fmt.Sprintf("'max_size_gb' must be a whole number, got %f GB", s.MaxSizeGb)
 			}
 
-			if !nameContainsFamily(s.Name, s.Family) {
-				return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s.Name))
+			if !nameContainsFamily(s) {
+				return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 			}
 
 			if s.MaxCapacity > float64(s.Capacity) {
