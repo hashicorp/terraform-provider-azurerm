@@ -140,6 +140,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 				"active_directory": SchemaAppServiceAadAuthSettings(),
+				"facebook":         SchemaAppServiceFacebookAuthSettings(),
+				"google":           SchemaAppServiceGoogleAuthSettings(),
+				"microsoft":        SchemaAppServiceMicrosoftAuthSettings(),
 			},
 		},
 	}
