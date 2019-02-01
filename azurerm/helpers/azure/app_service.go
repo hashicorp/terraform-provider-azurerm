@@ -160,6 +160,40 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
+				"default_provider": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"AzureActiveDirectory",
+						"Facebook",
+						"Google",
+						"MicrosoftAccount",
+						"Twitter",
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				"issuer": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"runtime_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"token_refresh_extension_hours": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  72,
+				},
+				"unauthenticated_client_action": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"AllowAnonymous",
+						"RedirectToLoginPage",
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
 				"active_directory": SchemaAppServiceAadAuthSettings(),
 				"facebook":         SchemaAppServiceFacebookAuthSettings(),
 				"google":           SchemaAppServiceGoogleAuthSettings(),
