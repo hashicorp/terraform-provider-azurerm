@@ -38,7 +38,7 @@ func SchemaAppServiceAadAuthSettings() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceFacebookSettings() *schema.Schema {
+func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
