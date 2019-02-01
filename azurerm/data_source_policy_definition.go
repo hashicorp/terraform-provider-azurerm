@@ -101,15 +101,15 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	d.Set("type", policyDefinition.Type)
 	d.Set("policy_type", policyDefinition.PolicyType)
 
-	if policyRuleStr, _ := flattenJSON(policyDefinition.PolicyRule, "policy_rule"); policyRuleStr != "" {
+	if policyRuleStr := flattenJSON(policyDefinition.PolicyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
 	}
 
-	if metadataStr, _ := flattenJSON(policyDefinition.Metadata, "metadata"); metadataStr != "" {
+	if metadataStr := flattenJSON(policyDefinition.Metadata); metadataStr != "" {
 		d.Set("metadata", metadataStr)
 	}
 
-	if parametersStr, _ := flattenJSON(policyDefinition.Parameters, "parameters"); parametersStr != "" {
+	if parametersStr := flattenJSON(policyDefinition.Parameters); parametersStr != "" {
 		d.Set("parameters", parametersStr)
 	}
 

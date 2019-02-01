@@ -228,15 +228,15 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("display_name", props.DisplayName)
 		d.Set("description", props.Description)
 
-		if policyRuleStr, _ := flattenJSON(resp.PolicyRule, "policy_rule"); policyRuleStr != "" {
+		if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
 		}
 
-		if metadataStr, _ := flattenJSON(resp.Metadata, "metadata"); metadataStr != "" {
+		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, _ := flattenJSON(resp.Parameters, "parameters"); parametersStr != "" {
+		if parametersStr := flattenJSON(props.Parameters); parametersStr != "" {
 			d.Set("parameters", parametersStr)
 		}
 	}
@@ -331,15 +331,14 @@ func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, n
 	return res, err
 }
 
-func flattenJSON(stringMap interface{}, name string) (string, error) {
+func flattenJSON(stringMap interface{}) string {
 	if stringMap != nil {
 		value := stringMap.(map[string]interface{})
 		jsonString, err := structure.FlattenJsonToString(value)
-		if err != nil {
-			return "", fmt.Errorf("unable to flatten JSON for `%s`: %s", name, err)
+		if err == nil {
+			return jsonString
 		}
-		return jsonString, nil
 	}
 
-	return "", nil
+	return ""
 }
