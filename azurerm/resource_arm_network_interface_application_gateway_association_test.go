@@ -31,6 +31,11 @@ func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociati
 }
 
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_network_interface_application_gateway_backend_address_pool_association.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()

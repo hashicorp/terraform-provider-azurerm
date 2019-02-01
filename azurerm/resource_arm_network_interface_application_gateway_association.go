@@ -106,7 +106,11 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 		for _, existingPool := range *p.ApplicationGatewayBackendAddressPools {
 			if id := existingPool.ID; id != nil {
 				if *id == backendAddressPoolId {
-					return tf.ImportAsExistsError("azurerm_network_interface_application_gateway_backend_address_pool_association", resourceId)
+					if requireResourcesToBeImported {
+						return tf.ImportAsExistsError("azurerm_network_interface_application_gateway_backend_address_pool_association", resourceId)
+					}
+
+					continue
 				}
 
 				pools = append(pools, existingPool)
