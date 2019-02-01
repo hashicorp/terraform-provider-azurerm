@@ -96,6 +96,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			"vault_id": {
 				Type:         schema.TypeString,
 				Optional:     true, //todo required in 2.0
+				Computed:     true, //todo required in 2.0
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -383,6 +384,12 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		}
 
 		keyVaultBaseUrl = pKeyVaultBaseUrl
+	} else {
+		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", keyVaultBaseUrl, name, err)
+		}
+		d.Set("vault_id", id)
 	}
 
 	if requireResourcesToBeImported {
@@ -473,7 +480,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
 	if err != nil {
-		fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
@@ -533,7 +540,7 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 
 	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
 	if err != nil {
-		fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)

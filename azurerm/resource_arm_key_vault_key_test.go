@@ -2,7 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -230,6 +233,16 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
+
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		// get the latest version
 		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
@@ -248,6 +261,9 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -255,9 +271,16 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
 		if err != nil {
@@ -274,6 +297,9 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 
 func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -282,9 +308,16 @@ func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestChe
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.DeleteKey(ctx, vaultBaseUrl, name)
 		if err != nil {

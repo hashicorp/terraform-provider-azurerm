@@ -2,7 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -225,6 +228,16 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
+
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		// get the latest version
 		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
@@ -232,7 +245,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
-			return err
+			return fmt.Errorf("Bad: Get on keyVault certificate: %+v", err)
 		}
 
 		return fmt.Errorf("Key Vault Certificate still exists:\n%#v", resp)
@@ -243,16 +256,27 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
+
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
 		if err != nil {
@@ -260,7 +284,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 				return fmt.Errorf("Bad: Key Vault Certificate %q (resource group: %q) does not exist", name, vaultBaseUrl)
 			}
 
-			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
+			return fmt.Errorf("Bad: Get on keyVault certificate: %+v", err)
 		}
 
 		return nil
@@ -269,6 +293,9 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 
 func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -276,9 +303,16 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
 		if err != nil {
