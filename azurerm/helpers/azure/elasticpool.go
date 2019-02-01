@@ -425,9 +425,6 @@ func doSKUValidation(s sku) string {
 				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
 			}
 
-			if s.MinCapacity < 0.0 {
-				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings 'min_capacity' must be equal to or greater than zero")
-			}
 		} else if s.SkuType == VCore {
 			// vCore Based Errors
 			if s.MaxSizeGb > s.MaxAllowedGB {
