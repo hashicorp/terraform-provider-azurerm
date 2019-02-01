@@ -100,6 +100,16 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"key1": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"key2": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -192,6 +202,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["accounts"]
 
 	resp, err := client.GetProperties(ctx, resourceGroup, name)
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -215,6 +226,25 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
+	}
+
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+		return err
+	}
+
+	if key1 := keys.Key1; key1 != nil {
+		d.Set("key1", key1)
+	}
+
+	if key2 := keys.Key2; key2 != nil {
+		d.Set("key2", key2)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
