@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -1464,6 +1466,57 @@ func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_key", "twitterconsumerkey"),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_secret", "twitterconsumersecret"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config1 := testAccAzureRMAppService_aadAuthSettings(ri, testLocation(), tenantID)
+	config2 := testAccAzureRMAppService_aadMicrosoftAuthSettings(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config1,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
 				),
 			},
 			{
@@ -3019,4 +3072,59 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_aadMicrosoftAuthSettings(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled          = true
+    issuer           = "https://sts.windows.net/%s"
+    default_provider = "%s"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+    
+    microsoft {
+      client_id     = "microsoftclientid"
+      client_secret = "microsoftclientsecret"
+
+      oauth_scopes = [
+        "microsoftscope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, tenantID, web.AzureActiveDirectory)
 }
