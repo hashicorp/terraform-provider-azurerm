@@ -670,7 +670,6 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	}
 
 	if v, ok := setting["active_directory"]; ok {
-
 		activeDirectorySettings := v.([]interface{})
 		activeDirectorySetting := activeDirectorySettings[0].(map[string]interface{})
 
@@ -691,6 +690,91 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 			}
 
 			siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+		}
+	}
+
+	if v, ok := setting["facebook"]; ok {
+		facebookSettings := v.([]interface{})
+		facebookSetting := facebookSettings[0].(map[string]interface{})
+
+		if v, ok := facebookSetting["app_id"]; ok {
+			siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
+		}
+
+		if v, ok := facebookSetting["app_secret"]; ok {
+			siteAuthSettingsProperties.FacebookAppSecret = utils.String(v.(string))
+		}
+
+		if v, ok := facebookSetting["oauth_scopes"]; ok {
+			input := v.([]interface{})
+
+			oauthScopes := make([]string, 0)
+			for _, param := range input {
+				oauthScopes = append(oauthScopes, param.(string))
+			}
+
+			siteAuthSettingsProperties.FacebookOAuthScopes = &oauthScopes
+		}
+	}
+
+	if v, ok := setting["google"]; ok {
+		googleSettings := v.([]interface{})
+		googleSetting := googleSettings[0].(map[string]interface{})
+
+		if v, ok := googleSetting["client_id"]; ok {
+			siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
+		}
+
+		if v, ok := googleSetting["client_secret"]; ok {
+			siteAuthSettingsProperties.GoogleClientSecret = utils.String(v.(string))
+		}
+
+		if v, ok := googleSetting["oauth_scopes"]; ok {
+			input := v.([]interface{})
+
+			oauthScopes := make([]string, 0)
+			for _, param := range input {
+				oauthScopes = append(oauthScopes, param.(string))
+			}
+
+			siteAuthSettingsProperties.GoogleOAuthScopes = &oauthScopes
+		}
+	}
+
+	if v, ok := setting["microsoft"]; ok {
+		microsoftSettings := v.([]interface{})
+		microsoftSetting := microsoftSettings[0].(map[string]interface{})
+
+		if v, ok := microsoftSetting["client_id"]; ok {
+			siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
+		}
+
+		if v, ok := microsoftSetting["client_secret"]; ok {
+			siteAuthSettingsProperties.MicrosoftAccountClientSecret = utils.String(v.(string))
+		}
+
+		if v, ok := microsoftSetting["oauth_scopes"]; ok {
+			input := v.([]interface{})
+
+			oauthScopes := make([]string, 0)
+			for _, param := range input {
+				oauthScopes = append(oauthScopes, param.(string))
+			}
+
+			siteAuthSettingsProperties.MicrosoftAccountOAuthScopes = &oauthScopes
+		}
+	}
+
+	if v, ok := setting["twitter"]; ok {
+		twitterSettings := v.([]interface{})
+		twitterSetting := twitterSettings[0].(map[string]interface{})
+
+		if v, ok := twitterSetting["consumer_key"]; ok {
+			siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
+		}
+
+		if v, ok := twitterSetting["consumer_secret"]; ok {
+			siteAuthSettingsProperties.TwitterConsumerSecret = utils.String(v.(string))
 		}
 	}
 
