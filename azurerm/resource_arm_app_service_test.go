@@ -1361,6 +1361,35 @@ func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_facebookAuthSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_id", "facebookappid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_secret", "facebookappsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.oauth_scopes.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -2737,4 +2766,47 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppService_facebookAuthSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    facebook {
+      app_id     = "facebookappid"
+      app_secret = "facebookappsecret"
+
+      oauth_scopes = [
+        "facebookscope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt)
 }
