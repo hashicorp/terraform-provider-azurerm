@@ -287,7 +287,9 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		ID:                         read.ID,
 		SiteAuthSettingsProperties: &authSettings}
 
-	client.UpdateAuthSettings(ctx, resGroup, name, auth)
+	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
+		return err
+	}
 
 	return resourceArmAppServiceUpdate(d, meta)
 }
