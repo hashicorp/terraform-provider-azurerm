@@ -705,8 +705,12 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	if v, ok := setting["active_directory"]; ok {
 		activeDirectorySettings := v.([]interface{})
 
-		if len(activeDirectorySettings) > 0 {
-			activeDirectorySetting := activeDirectorySettings[0].(map[string]interface{})
+		for _, setting := range activeDirectorySettings {
+			if setting == nil {
+				continue
+			}
+
+			activeDirectorySetting := setting.(map[string]interface{})
 
 			if v, ok := activeDirectorySetting["client_id"]; ok {
 				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
@@ -732,8 +736,12 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	if v, ok := setting["facebook"]; ok {
 		facebookSettings := v.([]interface{})
 
-		if len(facebookSettings) > 0 {
-			facebookSetting := facebookSettings[0].(map[string]interface{})
+		for _, setting := range facebookSettings {
+			if setting == nil {
+				continue
+			}
+
+			facebookSetting := setting.(map[string]interface{})
 
 			if v, ok := facebookSetting["app_id"]; ok {
 				siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
@@ -759,8 +767,12 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	if v, ok := setting["google"]; ok {
 		googleSettings := v.([]interface{})
 
-		if len(googleSettings) > 0 {
-			googleSetting := googleSettings[0].(map[string]interface{})
+		for _, setting := range googleSettings {
+			if setting == nil {
+				continue
+			}
+
+			googleSetting := setting.(map[string]interface{})
 
 			if v, ok := googleSetting["client_id"]; ok {
 				siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
@@ -786,8 +798,12 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	if v, ok := setting["microsoft"]; ok {
 		microsoftSettings := v.([]interface{})
 
-		if len(microsoftSettings) > 0 {
-			microsoftSetting := microsoftSettings[0].(map[string]interface{})
+		for _, setting := range microsoftSettings {
+			if setting == nil {
+				continue
+			}
+
+			microsoftSetting := setting.(map[string]interface{})
 
 			if v, ok := microsoftSetting["client_id"]; ok {
 				siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
@@ -813,8 +829,12 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	if v, ok := setting["twitter"]; ok {
 		twitterSettings := v.([]interface{})
 
-		if len(twitterSettings) > 0 {
-			twitterSetting := twitterSettings[0].(map[string]interface{})
+		for _, setting := range twitterSettings {
+			if setting == nil {
+				continue
+			}
+
+			twitterSetting := setting.(map[string]interface{})
 
 			if v, ok := twitterSetting["consumer_key"]; ok {
 				siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
