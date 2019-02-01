@@ -38,6 +38,32 @@ func SchemaAppServiceAadAuthSettings() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceFacebookSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"app_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"app_secret": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
