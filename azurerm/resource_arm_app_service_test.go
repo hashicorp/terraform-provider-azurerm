@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -1332,7 +1331,7 @@ func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppService_aadAuthSettings(ri, testLocation(), tenantID)
 
@@ -1363,7 +1362,7 @@ func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_facebookAuthSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1392,7 +1391,7 @@ func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_googleAuthSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1421,7 +1420,7 @@ func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_microsoftAuthSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1450,7 +1449,7 @@ func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_twitterAuthSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
