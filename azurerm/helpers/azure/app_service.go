@@ -704,25 +704,28 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 
 	if v, ok := setting["active_directory"]; ok {
 		activeDirectorySettings := v.([]interface{})
-		activeDirectorySetting := activeDirectorySettings[0].(map[string]interface{})
 
-		if v, ok := activeDirectorySetting["client_id"]; ok {
-			siteAuthSettingsProperties.ClientID = utils.String(v.(string))
-		}
+		if len(activeDirectorySettings) > 0 {
+			activeDirectorySetting := activeDirectorySettings[0].(map[string]interface{})
 
-		if v, ok := activeDirectorySetting["client_secret"]; ok {
-			siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
-		}
-
-		if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
-			input := v.([]interface{})
-
-			allowedAudiences := make([]string, 0)
-			for _, param := range input {
-				allowedAudiences = append(allowedAudiences, param.(string))
+			if v, ok := activeDirectorySetting["client_id"]; ok {
+				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
 			}
 
-			siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+			if v, ok := activeDirectorySetting["client_secret"]; ok {
+				siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
+				input := v.([]interface{})
+
+				allowedAudiences := make([]string, 0)
+				for _, param := range input {
+					allowedAudiences = append(allowedAudiences, param.(string))
+				}
+
+				siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+			}
 		}
 	}
 
