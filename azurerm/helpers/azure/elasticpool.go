@@ -221,6 +221,18 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		s.SkuType = VCore
 	}
 
+	// Universal check for both DTU and vCore based SKUs
+	if !nameTierIsValid(s) {
+		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
+	}
+
+	// Verify that Family is valid
+	if s.SkuType == DTU && s.Family != "" {
+		return fmt.Sprintf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
+	} else if s.SkuType == VCore && !nameContainsFamily(s) {
+		return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+	}
+	
 	// Convert Bytes to Gigabytes only if max_size_gb
 	// has not changed else use max_size_gb
 	if maxSizeBytes.(int) != 0 && !diff.HasChange("max_size_gb") {
@@ -229,7 +241,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
 	if s.SkuType == DTU {
 		// DTU Checks
-		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][s.Capacity]
+		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
 
 		// Check to see if this is a valid SKU capacity combo
 		if errMsg := doSKUValidation(s); errMsg != "" {
@@ -244,7 +256,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
 	} else {
 		// vCore Checks
-		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(s))][s.Capacity]
+		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier][strings.ToLower(s.Family)][s.Capacity]
 
 		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
@@ -255,11 +267,6 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		if errMsg := doSKUValidation(s); errMsg != "" {
 			return fmt.Errorf(errMsg)
 		}
-	}
-
-	// Universal check for all SKUs
-	if !nameTierIsValid(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	return nil
@@ -297,25 +304,23 @@ func getFamilyFromName(s sku) string {
 }
 
 func getDTUCapacityErrorMsg(s sku) string {
-	m := getDTUMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])]
+	m := getDTUMaxGB[strings.ToLower(s.Tier)]
 	return buildcapacityErrorString(s, m)
 }
 
 func getVCoreCapacityErrorMsg(s sku) string {
-	m := getvCoreMaxGB[strings.ToLower(getTierFromName[strings.ToLower(s.Name)])][strings.ToLower(getFamilyFromName(s))]
+	m := getvCoreMaxGB[strings.ToLower(s.Tier][strings.ToLower(s.Family)]
 	return buildcapacityErrorString(s, m)
 }
 
 func buildcapacityErrorString(s sku, m map[int]float64) string {
 	var a []int
 	str := ""
-	family := getFamilyFromName(s)
-	tier := getTierFromName[strings.ToLower(s.Name)]
 
 	if s.SkuType == DTU {
-		str += fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", tier, s.Capacity)
+		str += fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
 	} else {
-		str += fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", tier, family, s.Capacity)
+		str += fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", s.Tier, s.Family, s.Capacity)
 	}
 
 	// copy the keys into another map
@@ -351,7 +356,7 @@ func buildcapacityErrorString(s sku, m map[int]float64) string {
 func getDTUNotValidSizeErrorMsg(s sku) string {
 	m := supportedDTUMaxGBValues
 	var a []int
-	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), getTierFromName[strings.ToLower(s.Name)])
+	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), s.Tier)
 
 	// copy the keys into another map
 	p := make([]int, 0, len(m))
@@ -400,11 +405,11 @@ func doSKUValidation(s sku) string {
 			} else {
 				// All other DTU based SKUs
 				if s.MaxSizeGb > s.MaxAllowedGB {
-					return fmt.Sprintf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
+					return fmt.Sprintf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", s.Tier, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
 				}
 
 				if int(s.MaxSizeGb) < 50 {
-					return fmt.Sprintf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], int(s.MaxSizeGb))
+					return fmt.Sprintf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
 				}
 
 				// Check to see if the max_size_gb value is valid for this SKU type and capacity
@@ -414,41 +419,34 @@ func doSKUValidation(s sku) string {
 			}
 
 			// All Other DTU based SKU Checks
-			if s.Family != "" {
-				return fmt.Sprintf("Invalid attribute 'family' (%s) for service tiers 'Basic', 'Standard', and 'Premium', remove the 'family' attribute from the configuration file", s.Family)
-			}
 			if s.MinCapacity != math.Trunc(s.MinCapacity) {
-				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'minCapacity'")
+				return fmt.Sprintf("service tier '%s' must have whole numbers as their 'minCapacity'", s.Tier)
 			}
 
 			if s.MaxCapacity != math.Trunc(s.MaxCapacity) {
-				return fmt.Sprintf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
+				return fmt.Sprintf("service tier '%s' must have whole numbers as their 'maxCapacity'", s.Tier)
 			}
 
 		} else if s.SkuType == VCore {
 			// vCore Based Errors
 			if s.MaxSizeGb > s.MaxAllowedGB {
-				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
+				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", s.Tier, s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
 			}
 
 			if int(s.MaxSizeGb) < 5 {
-				return fmt.Sprintf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", getTierFromName[strings.ToLower(s.Name)], int(s.MaxSizeGb))
+				return fmt.Sprintf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
 			}
 
 			if s.MaxSizeGb != math.Trunc(s.MaxSizeGb) {
 				return fmt.Sprintf("'max_size_gb' must be a whole number, got %f GB", s.MaxSizeGb)
 			}
 
-			if !nameContainsFamily(s) {
-				return fmt.Sprintf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
-			}
-
 			if s.MaxCapacity > float64(s.Capacity) {
-				return fmt.Sprintf("service tier '%s' perDatabaseSettings 'maxCapacity' must not be higher than the SKUs 'capacity'(%d) value", getTierFromName[strings.ToLower(s.Name)], s.Capacity)
+				return fmt.Sprintf("service tier '%s' perDatabaseSettings 'maxCapacity'(%d) must not be higher than the SKUs 'capacity'(%d) value", s.Tier, int(s.MaxCapacity), s.Capacity)
 			}
 
 			if s.MinCapacity > s.MaxCapacity {
-				return fmt.Sprintf("perDatabaseSettings 'maxCapacity' must be greater than or equal to the perDatabaseSettings 'minCapacity' value")
+				return fmt.Sprintf("perDatabaseSettings 'maxCapacity'(%d) must be greater than or equal to the perDatabaseSettings 'minCapacity'(%d) value", int(s.MaxCapacity), int(s.MinCapacity))
 			}
 		}
 	}
