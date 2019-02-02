@@ -310,7 +310,7 @@ func getFamilyFromName(s sku) string {
 func getDTUCapacityErrorMsg(s sku) string {
 	m := getDTUMaxGB[strings.ToLower(s.Tier)]
 	stub := fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
-	return buildErrorString(s, stub, m) + "DTUs"
+	return buildErrorString(s, stub, m) + " DTUs"
 }
 
 func getVCoreCapacityErrorMsg(s sku) string {
