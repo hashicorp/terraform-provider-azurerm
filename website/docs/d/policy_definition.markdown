@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_policy_definition
 
-Use this data source to access information about a Policy Definition, both custom and built in. Looks at your current subscription by default.
+Use this data source to access information about a Policy Definition, both custom and built in. Retrieves Policy Definitions from your current subscription by default.
 
 ## Example Usage
 
@@ -25,16 +25,16 @@ output "id" {
 ## Argument Reference
 
 * `display_name` - (Required) Specifies the name of the Policy Definition.
-* `management_group_id` - (Optional) look at this management_group for the policy definitions.
+* `management_group_id` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
 
 ## Attributes Reference
 
-* `id` - the ID of the Policy Definition.
+* `id` - The ID of the Policy Definition.
 * `name` - The Name of the Policy Definition.
-* `type` - the Type of Policy.
-* `description` - the Description of the Policy.
-* `policy_type` - the Type of the Policy, such as `Microsoft.Authorization/policyDefinitions`.
-* `policy_rule` - the Rule as defined (in JSON) in the Policy.
-* `parameters` - any Parameters defined in the Policy.
-* `metadata` - any Metadata defined in the Policy.
+* `type` - The Type of Policy.
+* `description` - The Description of the Policy.
+* `policy_type` - The Type of the Policy, such as `Microsoft.Authorization/policyDefinitions`.
+* `policy_rule` - The Rule as defined (in JSON) in the Policy.
+* `parameters` - Any Parameters defined in the Policy.
+* `metadata` - Any Metadata defined in the Policy.
