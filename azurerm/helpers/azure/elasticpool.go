@@ -273,6 +273,10 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 }
 
 func nameContainsFamily(s sku) bool {
+	if s.Family == "" {
+		return false
+	}
+
 	return strings.Contains(strings.ToLower(s.Name), strings.ToLower(s.Family))
 }
 
