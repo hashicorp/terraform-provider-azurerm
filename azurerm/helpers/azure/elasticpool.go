@@ -78,35 +78,35 @@ var getDTUMaxGB = map[string]map[int]float64{
 //                          other than the values in the map the API with throw
 //                          an 'Internal Server Error'
 
-var supportedDTUMaxGBValues = map[float64]bool{
-	50:   true,
-	100:  true,
-	150:  true,
-	200:  true,
-	250:  true,
-	300:  true,
-	400:  true,
-	500:  true,
-	750:  true,
-	800:  true,
-	1024: true,
-	1200: true,
-	1280: true,
-	1536: true,
-	1600: true,
-	1792: true,
-	2000: true,
-	2048: true,
-	2304: true,
-	2500: true,
-	2560: true,
-	2816: true,
-	3000: true,
-	3072: true,
-	3328: true,
-	3584: true,
-	3840: true,
-	4096: true,
+var supportedDTUMaxGBValues = map[int]float64{
+	50:   1,
+	100:  1,
+	150:  1,
+	200:  1,
+	250:  1,
+	300:  1,
+	400:  1,
+	500:  1,
+	750:  1,
+	800:  1,
+	1024: 1,
+	1200: 1,
+	1280: 1,
+	1536: 1,
+	1600: 1,
+	1792: 1,
+	2000: 1,
+	2048: 1,
+	2304: 1,
+	2500: 1,
+	2560: 1,
+	2816: 1,
+	3000: 1,
+	3072: 1,
+	3328: 1,
+	3584: 1,
+	3840: 1,
+	4096: 1,
 }
 
 // getvCoreMaxGB: this map holds all of the vCore to 'max_size_gb' mappings based on a vCore lookup
@@ -216,6 +216,12 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		SkuType:     DTU,
 	}
 
+	// Convert Bytes to Gigabytes only if
+	// 'max_size_bytes' has changed
+	if diff.HasChange("max_size_bytes") {
+		s.MaxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
+	}
+
 	// Check to see if the name describes a vCore type SKU
 	if strings.HasPrefix(strings.ToLower(s.Name), "gp_") || strings.HasPrefix(strings.ToLower(s.Name), "bc_") {
 		s.SkuType = VCore
@@ -231,12 +237,6 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		return fmt.Errorf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
 		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
-	}
-
-	// Convert Bytes to Gigabytes only if max_size_gb
-	// has not changed else use max_size_gb
-	if maxSizeBytes.(int) != 0 && !diff.HasChange("max_size_gb") {
-		s.MaxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
 	}
 
 	if s.SkuType == DTU {
@@ -309,23 +309,24 @@ func getFamilyFromName(s sku) string {
 
 func getDTUCapacityErrorMsg(s sku) string {
 	m := getDTUMaxGB[strings.ToLower(s.Tier)]
-	return buildcapacityErrorString(s, m)
+	stub := fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
+	return buildErrorString(s, stub, m) + "DTUs"
 }
 
 func getVCoreCapacityErrorMsg(s sku) string {
 	m := getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)]
-	return buildcapacityErrorString(s, m)
+	stub := fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", s.Tier, s.Family, s.Capacity)
+	return buildErrorString(s, stub, m) + " vCores"
 }
 
-func buildcapacityErrorString(s sku, m map[int]float64) string {
-	var a []int
-	str := ""
+func getDTUNotValidSizeErrorMsg(s sku) string {
+	m := supportedDTUMaxGBValues
+	stub := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), s.Tier)
+	return buildErrorString(s, stub, m) + " GB"
+}
 
-	if s.SkuType == DTU {
-		str += fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
-	} else {
-		str += fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", s.Tier, s.Family, s.Capacity)
-	}
+func buildErrorString(s sku, stub string, m map[int]float64) string {
+	var a []int
 
 	// copy the keys into another map
 	p := make([]int, 0, len(m))
@@ -344,49 +345,13 @@ func buildcapacityErrorString(s sku, m map[int]float64) string {
 	// build the error message
 	for i := range a {
 		if i < len(a)-1 {
-			str += fmt.Sprintf("%d, ", a[i])
+			stub += fmt.Sprintf("%d, ", a[i])
 		} else {
-			if s.SkuType == DTU {
-				str += fmt.Sprintf("or %d DTUs", a[i])
-			} else {
-				str += fmt.Sprintf("or %d vCores", a[i])
-			}
+			stub += fmt.Sprintf("or %d", a[i])
 		}
 	}
 
-	return str
-}
-
-func getDTUNotValidSizeErrorMsg(s sku) string {
-	m := supportedDTUMaxGBValues
-	var a []int
-	str := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), s.Tier)
-
-	// copy the keys into another map
-	p := make([]int, 0, len(m))
-	for k := range m {
-		p = append(p, int(k))
-	}
-
-	// copy the values of the map of keys into a slice of ints
-	for v := range p {
-		a = append(a, p[v])
-	}
-
-	// sort the slice to get them in order
-	sort.Ints(a)
-
-	// build the error message
-	for i := range a {
-
-		if i < len(a)-1 {
-			str += fmt.Sprintf("%d, ", a[i])
-		} else {
-			str += fmt.Sprintf("or %d GB", a[i])
-		}
-	}
-
-	return str
+	return stub
 }
 
 func doSKUValidation(s sku) string {
@@ -417,7 +382,7 @@ func doSKUValidation(s sku) string {
 				}
 
 				// Check to see if the max_size_gb value is valid for this SKU type and capacity
-				if !supportedDTUMaxGBValues[s.MaxSizeGb] {
+				if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
 					return getDTUNotValidSizeErrorMsg(s)
 				}
 			}
