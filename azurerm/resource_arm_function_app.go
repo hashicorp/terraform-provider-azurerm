@@ -39,7 +39,6 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"kind": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
