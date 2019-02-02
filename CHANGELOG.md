@@ -38,6 +38,7 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - support for the `max_tasks_per_node` property [GH-2805]
 * `azurerm_cosmosdb_account` - support for the `EnableAggregationPipeline`, `MongoDBv3.4` and ` mongoEnableDocLevelTTL` capabilities [GH-2715]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
+* `azurerm_function_app` - support for linux via the `linux_fx_version` property [GH-2767]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
 * `azurerm_postgresql_server` - support for version `10` and `10.2` [GH-2768]
 * `azurerm_kubernetes_cluster` - add addtional validation [GH-2772]
