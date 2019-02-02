@@ -310,22 +310,22 @@ func getFamilyFromName(s sku) string {
 func getDTUCapacityErrorMsg(s sku) string {
 	m := getDTUMaxGB[strings.ToLower(s.Tier)]
 	stub := fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
-	return buildErrorString(s, stub, m) + " DTUs"
+	return buildErrorString(stub, m) + " DTUs"
 }
 
 func getVCoreCapacityErrorMsg(s sku) string {
 	m := getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)]
 	stub := fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", s.Tier, s.Family, s.Capacity)
-	return buildErrorString(s, stub, m) + " vCores"
+	return buildErrorString(stub, m) + " vCores"
 }
 
 func getDTUNotValidSizeErrorMsg(s sku) string {
 	m := supportedDTUMaxGBValues
 	stub := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), s.Tier)
-	return buildErrorString(s, stub, m) + " GB"
+	return buildErrorString(stub, m) + " GB"
 }
 
-func buildErrorString(s sku, stub string, m map[int]float64) string {
+func buildErrorString(stub string, m map[int]float64) string {
 	var a []int
 
 	// copy the keys into another map
