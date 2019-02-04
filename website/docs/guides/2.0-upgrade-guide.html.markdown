@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: 2.0 Upgrade Guide"
 sidebar_current: "docs-azurerm-guide-2.0-upgrade"
 description: | -
-    This page documents how to migrate between two resources in the Azure Provider which have been renamed.
+    Azure Resource Manager: 2.0 Upgrade Guide
 
 ---
 
@@ -16,6 +16,36 @@ Since then we've added support for 191 Resources, 58 Data Sources and have launc
 Version 2.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
 
 -> **NOTE:** This guide is a Work In Progress and as such fields may be added to this guide until version 2.0 of the AzureRM Provider is released.
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute in the `provider` block, either to a specific version of the AzureRM Provider, like so:
+
+```hcl
+provider "azurerm" {
+  version = "=1.22.0"
+}
+```
+
+.. or to any 1.x release:
+
+```hcl
+provider "azurerm" {
+  version = "~> 1.x"
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/docs/configuration/providers.html#provider-versions).
+
+Once version 2.0 of the AzureRM Provider is released - you can then upgrade to it by updating the version specified in the Provider block, like so:
+
+```hcl
+provider "azurerm" {
+  version = "=2.0.0"
+}
+```
+
+## What's coming in Version 2.0 of the AzureRM Provider?
 
 At a high level, we're intending for version 2.0 to include the following changes:
 
@@ -42,6 +72,8 @@ In order to match the behaviour of other Terraform Providers version 2.0 of the 
 A resource with the ID /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1 already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for `azurerm_resource_group` for more information.
 ```
 
+Information on how to import a given Resource can be found in the documentation for that Resource - for example here's how to [here's how to import a Resource Group in Terraform](/docs/providers/azurerm/r/resource_group.html#import).
+
 You can opt into this behaviour in version 1.22 of the AzureRM Provider by setting the Environment Variable `ARM_PROVIDER_STRICT` to `true`.
 
 ## Custom Timeouts for Resources
@@ -64,7 +96,7 @@ resource "azurerm_resource_group" "test" {
 }
 ```
 
-We intend to support the `timeout` block in version 2.0 of the Azure Provider - which will allow timeouts to be specified on resources (as shown above). [This feature request is being tracked here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/171) and will form part of the 2.0 release of the AzureRM Provider.
+We intend to support the `timeouts` block in version 2.0 of the Azure Provider - which will allow timeouts to be specified on resources (as shown above). [This feature request is being tracked here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/171) and will form part of the 2.0 release of the AzureRM Provider.
 
 ## New Resources for Virtual Machines and Virtual Machine Scale Sets
 
@@ -316,33 +348,5 @@ The existing `azurerm_virtual_machine_scale_set` Resource will continue to be av
 ---
 
 We've spent the past few months laying the groundwork for these changes - and whilst we appreciate that your Terraform Configurations may require code changes to upgrade to 2.0 - we take Semantic Versioning seriously and so try our best to limit these changes to major versions.
-
-### Pinning your Provider Version
-
-We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute in the `provider` block, either to a specific version of the AzureRM Provider, like so:
-
-```hcl
-provider "azurerm" {
-  version = "=1.22.0"
-}
-```
-
-.. or to any 1.x release:
-
-```hcl
-provider "azurerm" {
-  version = "~> 1.x"
-}
-```
-
-More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/docs/configuration/providers.html#provider-versions).
-
-Once version 2.0 of the AzureRM Provider is released - you can then upgrade to it by updating the version specified in the Provider block, like so:
-
-```hcl
-provider "azurerm" {
-  version = "=2.0.0"
-}
-```
 
 You can follow along with the work in the 2.0 release [in this GitHub Milestone](https://github.com/terraform-providers/terraform-provider-azurerm/milestone/31) - and [in this GitHub Issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
