@@ -390,12 +390,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 
 									"tenant_id": {
-										// this can be sourced from the client config if it's not specified
-										Type:         schema.TypeString,
-										Optional:     true,
-										Computed:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.UUID,
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										// OrEmpty since this can be sourced from the client config if it's not specified
+										ValidateFunc: validate.UUIDOrEmpty,
 									},
 								},
 							},
