@@ -38,6 +38,11 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
 
