@@ -67,9 +67,9 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint used to connect to the Cognitive Service Account.
 
-* `primary_access_key` - A key that can be used when connecting to the Cognitive Service Account.
+* `primary_access_key` - A primary access key which can be used to connect to the Cognitive Service Account.
 
-* `secondary_access_key` - The second key that can be used as an alternative to key1 when connecting to the Cognitive Service Account.
+* `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
 
 ## Import
 
