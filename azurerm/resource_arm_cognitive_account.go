@@ -101,13 +101,13 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			"key1": {
+			"primary_access_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"key2": {
+			"secondary_access_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -241,9 +241,9 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
 	}
 
-	d.Set("key1", keys.Key1)
+	d.Set("primary_access_key", keys.Key1)
 
-	d.Set("key2", keys.Key2)
+	d.Set("secondary_access_key", keys.Key2)
 
 	flattenAndSetTags(d, resp.Tags)
 
