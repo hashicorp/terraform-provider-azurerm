@@ -10,6 +10,7 @@ UPGRADE NOTES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_policy_definition` [GH-2788]
 * **New Resource:** `azurerm_ddos_protection_plan` [GH-2654]
 * **New Resource:** `azurerm_log_analytics_linked_service ` [GH-2768]
 * **New Resource:** `azurerm_monitor_autoscale_setting` [GH-2768]
