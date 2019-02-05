@@ -15,7 +15,7 @@ Since then we've added support for 191 Resources, 58 Data Sources and have launc
 
 Version 2.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
 
--> **NOTE:** This guide is a Work In Progress and as such fields may be added to this guide until version 2.0 of the AzureRM Provider is released.
+-> **NOTE:** This guide is a Work In Progress and additional information may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
 At a high level, we're intending for version 2.0 to include the following changes:
 
