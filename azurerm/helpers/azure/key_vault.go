@@ -23,7 +23,7 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client keyvault.VaultsClient,
 
 	vaultName, ok := id.Path["vaults"]
 	if !ok {
-		return "", fmt.Errorf("resource id does not contain `valuts`: %q", keyVaultId)
+		return "", fmt.Errorf("resource id does not contain `vaults`: %q", keyVaultId)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, vaultName)
@@ -43,7 +43,7 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client keyvault.VaultsClient,
 
 func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient, keyVaultUrl string) (string, error) {
 
-	list, err := client.ListComplete(ctx, utils.Int32(1))
+	list, err := client.ListComplete(ctx, utils.Int32(1000))
 	if err != nil {
 		return "", fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
 	}
@@ -102,7 +102,7 @@ func KeyVaultExists(ctx context.Context, client keyvault.VaultsClient, keyVaultI
 
 	vaultName, ok := id.Path["vaults"]
 	if !ok {
-		return false, fmt.Errorf("resource id does not contain `valuts`: %q", keyVaultId)
+		return false, fmt.Errorf("resource id does not contain `vaults`: %q", keyVaultId)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, vaultName)

@@ -29,7 +29,7 @@ func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta inter
 		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
 	}
 
-	list, err := client.ListComplete(ctx, utils.Int32(1))
+	list, err := client.ListComplete(ctx, utils.Int32(1000))
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to list Key Vaults for Key Vault Child import: %v", err)
 	}
@@ -496,7 +496,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Key Vault Certificate Policy: %+v", err)
+		return fmt.Errorf("Error reading Key Vault Certificate: %+v", err)
 	}
 
 	d.Set("name", id.Name)

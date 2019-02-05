@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `value` - (Required) Specifies the value of the Key Vault Secret.
 
-* `vault_id` - (Required) Specifies the ID of the Key Vault instance the certificate resides in, available from the `azurerm_key_vault.id` property.
+* `vault_id` - (Required) The ID of the Key Vault where the Secret should be created.
 
 * `content_type` - (Optional) Specifies the content type for the Key Vault Secret.
 
