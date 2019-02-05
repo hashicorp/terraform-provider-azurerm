@@ -9,13 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-type errorType int
 type skuType int
-
-const (
-	capacityError errorType = 0
-	allOtherError errorType = 1
-)
 
 const (
 	DTU   skuType = 0
@@ -26,7 +20,6 @@ type sku struct {
 	Name, Tier, Family                                string
 	Capacity                                          int
 	MaxAllowedGB, MaxSizeGb, MinCapacity, MaxCapacity float64
-	ErrorType                                         errorType
 	SkuType                                           skuType
 }
 
@@ -195,14 +188,14 @@ var getTierFromName = map[string]string{
 
 func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 
-	name, _ := diff.GetOk("sku.0.name")
-	tier, _ := diff.GetOk("sku.0.tier")
-	capacity, _ := diff.GetOk("sku.0.capacity")
-	family, _ := diff.GetOk("sku.0.family")
-	maxSizeBytes, _ := diff.GetOk("max_size_bytes")
-	maxSizeGb, _ := diff.GetOk("max_size_gb")
-	minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
-	maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
+	name := diff.Get("sku.0.name")
+	tier := diff.Get("sku.0.tier")
+	capacity := diff.Get("sku.0.capacity")
+	family := diff.Get("sku.0.family")
+	maxSizeBytes := diff.Get("max_size_bytes")
+	maxSizeGb := diff.Get("max_size_gb")
+	minCapacity := diff.Get("per_database_settings.0.min_capacity")
+	maxCapacity := diff.Get("per_database_settings.0.max_capacity")
 
 	s := sku{
 		Name:        name.(string),
@@ -212,7 +205,6 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		MaxSizeGb:   maxSizeGb.(float64),
 		MinCapacity: minCapacity.(float64),
 		MaxCapacity: maxCapacity.(float64),
-		ErrorType:   capacityError,
 		SkuType:     DTU,
 	}
 
@@ -239,34 +231,13 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
+	//get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
-		// DTU Checks
 		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
-
-		// Check to see if this is a valid SKU capacity combo
-		if errMsg := doSKUValidation(s); errMsg != "" {
-			return fmt.Errorf(errMsg)
-		}
-
-		// Check to see if this is a valid Max_Size_GB value
-		s.ErrorType = allOtherError
-		if errMsg := doSKUValidation(s); errMsg != "" {
-			return fmt.Errorf(errMsg)
-		}
-
+		return doDTUSKUValidation(s)
 	} else {
-		// vCore Checks
 		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)][s.Capacity]
-
-		if errMsg := doSKUValidation(s); errMsg != "" {
-			return fmt.Errorf(errMsg)
-		}
-
-		// Check to see if this is a valid Max_Size_GB value
-		s.ErrorType = allOtherError
-		if errMsg := doSKUValidation(s); errMsg != "" {
-			return fmt.Errorf(errMsg)
-		}
+		return doVCoreSKUValidation(s)
 	}
 
 	return nil
@@ -354,71 +325,70 @@ func buildErrorString(stub string, m map[int]float64) string {
 	return stub
 }
 
-func doSKUValidation(s sku) string {
-	errMsg := ""
+func doDTUSKUValidation(s sku) error {
 
-	if s.ErrorType == capacityError {
-		if s.SkuType == DTU && s.MaxAllowedGB == 0 {
-			return getDTUCapacityErrorMsg(s)
-		} else if s.SkuType == VCore && s.MaxAllowedGB == 0 {
-			return getVCoreCapacityErrorMsg(s)
+	if s.MaxAllowedGB == 0 {
+		return fmt.Errorf(getDTUCapacityErrorMsg(s))
+	}
+
+	if strings.EqualFold(s.Name, "BasicPool") {
+		// Basic SKU does not let you pick your max_size_GB they are fixed values
+		if s.MaxSizeGb != s.MaxAllowedGB {
+			return fmt.Errorf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", s.Capacity, s.MaxAllowedGB, s.MaxSizeGb)
 		}
-	} else if s.ErrorType == allOtherError {
-		// AllOther Errors
-		if s.SkuType == DTU {
-			if strings.EqualFold(s.Name, "BasicPool") {
-				// Basic SKU does not let you pick your max_size_GB they are fixed values
-				if s.MaxSizeGb != s.MaxAllowedGB {
-					return fmt.Sprintf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", s.Capacity, s.MaxAllowedGB, s.MaxSizeGb)
-				}
-			} else {
-				// All other DTU based SKUs
-				if s.MaxSizeGb > s.MaxAllowedGB {
-					return fmt.Sprintf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", s.Tier, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
-				}
+	} else {
+		// All other DTU based SKUs
+		if s.MaxSizeGb > s.MaxAllowedGB {
+			return fmt.Errorf("service tier '%s' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", s.Tier, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
+		}
 
-				if int(s.MaxSizeGb) < 50 {
-					return fmt.Sprintf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
-				}
+		if int(s.MaxSizeGb) < 50 {
+			return fmt.Errorf("service tier '%s', must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
+		}
 
-				// Check to see if the max_size_gb value is valid for this SKU type and capacity
-				if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
-					return getDTUNotValidSizeErrorMsg(s)
-				}
-			}
-
-			// All Other DTU based SKU Checks
-			if s.MinCapacity != math.Trunc(s.MinCapacity) {
-				return fmt.Sprintf("service tier '%s' must have whole numbers as their 'minCapacity'", s.Tier)
-			}
-
-			if s.MaxCapacity != math.Trunc(s.MaxCapacity) {
-				return fmt.Sprintf("service tier '%s' must have whole numbers as their 'maxCapacity'", s.Tier)
-			}
-
-		} else if s.SkuType == VCore {
-			// vCore Based Errors
-			if s.MaxSizeGb > s.MaxAllowedGB {
-				return fmt.Sprintf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", s.Tier, s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
-			}
-
-			if int(s.MaxSizeGb) < 5 {
-				return fmt.Sprintf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
-			}
-
-			if s.MaxSizeGb != math.Trunc(s.MaxSizeGb) {
-				return fmt.Sprintf("'max_size_gb' must be a whole number, got %f GB", s.MaxSizeGb)
-			}
-
-			if s.MaxCapacity > float64(s.Capacity) {
-				return fmt.Sprintf("service tier '%s' perDatabaseSettings 'maxCapacity'(%d) must not be higher than the SKUs 'capacity'(%d) value", s.Tier, int(s.MaxCapacity), s.Capacity)
-			}
-
-			if s.MinCapacity > s.MaxCapacity {
-				return fmt.Sprintf("perDatabaseSettings 'maxCapacity'(%d) must be greater than or equal to the perDatabaseSettings 'minCapacity'(%d) value", int(s.MaxCapacity), int(s.MinCapacity))
-			}
+		// Check to see if the max_size_gb value is valid for this SKU type and capacity
+		if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
+			return fmt.Errorf(getDTUNotValidSizeErrorMsg(s))
 		}
 	}
 
-	return errMsg
+	// All Other DTU based SKU Checks
+	if s.MinCapacity != math.Trunc(s.MinCapacity) {
+		return fmt.Errorf("service tier '%s' must have whole numbers as their 'minCapacity'", s.Tier)
+	}
+
+	if s.MaxCapacity != math.Trunc(s.MaxCapacity) {
+		return fmt.Errorf("service tier '%s' must have whole numbers as their 'maxCapacity'", s.Tier)
+	}
+
+	return nil
+}
+
+func doVCoreSKUValidation(s sku) error {
+
+	if s.MaxAllowedGB == 0 {
+		return fmt.Errorf(getVCoreCapacityErrorMsg(s))
+	}
+
+	if s.MaxSizeGb > s.MaxAllowedGB {
+		return fmt.Errorf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", s.Tier, s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
+	}
+
+	if int(s.MaxSizeGb) < 5 {
+		return fmt.Errorf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
+	}
+
+	if s.MaxSizeGb != math.Trunc(s.MaxSizeGb) {
+		return fmt.Errorf("'max_size_gb' must be a whole number, got %f GB", s.MaxSizeGb)
+	}
+
+	if s.MaxCapacity > float64(s.Capacity) {
+		return fmt.Errorf("service tier '%s' perDatabaseSettings 'maxCapacity'(%d) must not be higher than the SKUs 'capacity'(%d) value", s.Tier, int(s.MaxCapacity), s.Capacity)
+	}
+
+	if s.MinCapacity > s.MaxCapacity {
+		return fmt.Errorf("perDatabaseSettings 'maxCapacity'(%d) must be greater than or equal to the perDatabaseSettings 'minCapacity'(%d) value", int(s.MaxCapacity), int(s.MinCapacity))
+	}
+
+	return nil
 }
