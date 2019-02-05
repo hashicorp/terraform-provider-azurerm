@@ -42,6 +42,7 @@ IMPROVEMENTS:
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_function_app` - support for linux via the `linux_fx_version` property [GH-2767]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
+* `azurerm_mssql_elasticpool` - support for setting `max_size_gb` [GH-2695]
 * `azurerm_postgresql_server` - support for version `10` and `10.2` [GH-2768]
 * `azurerm_kubernetes_cluster` - add addtional validation [GH-2772]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
