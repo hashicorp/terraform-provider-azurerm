@@ -239,8 +239,6 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)][s.Capacity]
 		return doVCoreSKUValidation(s)
 	}
-
-	return nil
 }
 
 func nameContainsFamily(s sku) bool {
