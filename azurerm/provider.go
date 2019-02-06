@@ -144,6 +144,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_role_definition":                       dataSourceArmRoleDefinition(),
 			"azurerm_route_table":                           dataSourceArmRouteTable(),
 			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
+			"azurerm_servicebus_namespace":                  dataSourceArmServiceBusNamespace(),
 			"azurerm_shared_image_gallery":                  dataSourceArmSharedImageGallery(),
 			"azurerm_shared_image_version":                  dataSourceArmSharedImageVersion(),
 			"azurerm_shared_image":                          dataSourceArmSharedImage(),
