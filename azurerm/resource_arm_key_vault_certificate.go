@@ -62,7 +62,7 @@ func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta inter
 		}
 
 		if id.KeyVaultBaseUrl == *get.Properties.VaultURI {
-			d.Set("vault_id", *get.ID)
+			d.Set("vault_id", get.ID)
 			break
 		}
 
