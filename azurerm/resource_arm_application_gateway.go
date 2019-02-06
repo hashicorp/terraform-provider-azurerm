@@ -444,6 +444,69 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"redirection": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"redirection_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Permanent",
+											"Temporary",
+											"Found",
+											"See Other",
+										}, true),
+									},
+
+									"target_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Listener",
+											"External Site",
+										}, true),
+									},
+
+									"target_listener": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"listener_id": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+
+												"include_path": {
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+											},
+										},
+									},
+
+									"target_external_site_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"include_query_string": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"include_path": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
