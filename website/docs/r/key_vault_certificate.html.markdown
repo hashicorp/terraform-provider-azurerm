@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Certificate. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) Specifies the ID of the Key Vault instance the certificate resides in, available from the `azurerm_key_vault.id` property.
+* `vault_id` - (Required) The ID of the Key Vault where the Certificate should be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
