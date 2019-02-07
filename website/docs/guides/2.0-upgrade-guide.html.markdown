@@ -49,14 +49,14 @@ provider "azurerm" {
 
 At a high level, we're intending for version 2.0 to include the following changes:
 
-* Existing Resources will be required to be imported
+* Changes when importing existing resources - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
 * Custom Timeouts will be available on Resources - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#timeouts).
 * New resources for Virtual Machines and Virtual Machine Scale Sets
 * Removing Fields, Data Sources and Resources which have been deprecated
 
 Each of these topics is covered in more detail below, however please note that this guide is a Work In Progress until version 2.0 of the AzureRM Provider is released and thus things may be added/changed as necessary.
 
-## Requiring Resources to be Imported
+## Changes when Importing Existing Resources
 
 Terraform allows for existing resources which have been created outside of Terraform to be Imported into Terraform's State. Once a resource is imported into the state, it's possible for Terraform to track changes and manage this resource. The Azure Provider allows Importing existing resources into the state (using `terraform import`) for (almost) every resource.
 
