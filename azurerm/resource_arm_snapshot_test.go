@@ -69,7 +69,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceFabricCluster_requiresImport(ri, testLocation(), 3),
+				Config: testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
