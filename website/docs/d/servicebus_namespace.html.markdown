@@ -31,4 +31,23 @@ output "location" {
 
 ## Attributes Reference
 
-* `location` - The location of the resource group.
+* `location` - The location of the Resource Group in which the ServiceBus Namespace exists.
+
+* `sku` - The Tier used for the ServiceBus Namespace.
+
+* `capacity` - The capacity of the ServiceBus Namespace.
+
+* `tags` - A mapping of tags assigned to the resource.
+
+The following attributes are exported only if there is an authorization rule named
+`RootManageSharedAccessKey` which is created automatically by Azure.
+
+* `default_primary_connection_string` - The primary connection string for the authorization
+    rule `RootManageSharedAccessKey`.
+
+* `default_secondary_connection_string` - The secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`.
+
+* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+
+* `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
