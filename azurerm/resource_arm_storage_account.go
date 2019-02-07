@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -113,16 +114,19 @@ func resourceArmStorageAccount() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:           schema.TypeString,
+							Required:       true,
+							ValidationFunc: validate.NoEmptyStrings,
 						},
 						"key_version": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:           schema.TypeString,
+							Required:       true,
+							ValidationFunc: validate.NoEmptyStrings,
 						},
 						"key_vault_uri": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:           schema.TypeString,
+							Required:       true,
+							ValidationFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -520,8 +524,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
+					Services:           &storage.EncryptionServices{},
+					KeySource:          storage.KeySource(encryptionSource),
+					KeyVaultProperties: &storage.KeyVaultProperties,
 				},
 			},
 		}
@@ -542,6 +547,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			}
 			d.SetPartial("enable_file_encryption")
 		}
+
+		// *********************************************
+		// Add Properties here
+		// *********************************************
 
 		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
