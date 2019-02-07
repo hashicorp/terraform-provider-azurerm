@@ -98,6 +98,7 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		keyVaultBaseUri = pKeyVaultBaseUrl
+		d.Set("vault_uri", keyVaultBaseUri)
 	} else {
 		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUri)
 		if err != nil {
