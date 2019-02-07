@@ -118,14 +118,14 @@ func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAutoScaleSetting_capacity(ri, location, 2, 4, 3),
+				Config: testAccAzureRMAutoScaleSetting_capacity(ri, location, 0, 400, 0),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "2"),
-					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "4"),
-					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "3"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.minimum", "0"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.maximum", "400"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.capacity.0.default", "0"),
 				),
 			},
 			{
