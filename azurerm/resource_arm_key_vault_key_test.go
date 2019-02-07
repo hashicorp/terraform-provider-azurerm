@@ -233,7 +233,7 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -271,7 +271,7 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -308,7 +308,7 @@ func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestChe
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -375,7 +375,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "EC"
   key_size  = 2048
 
@@ -394,7 +394,7 @@ func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) s
 
 resource "azurerm_key_vault_key" "import" {
   name      = "${azurerm_key_vault_key.test.name}"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "EC"
   key_size  = 2048
 
@@ -450,7 +450,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
@@ -509,7 +509,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA-HSM"
   key_size  = 2048
 
@@ -567,10 +567,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "key-%s"
-  vault_id  = "${azurerm_key_vault.test.id}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name          = "key-%s"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
+  key_type      = "RSA"
+  key_size      = 2048
 
   key_opts = [
     "decrypt",

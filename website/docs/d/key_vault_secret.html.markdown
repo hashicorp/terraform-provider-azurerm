@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` Data Source / Resource.
+* `vault_uri` - (Required) Specifies the ID of the Key Vault Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
 
 
 ## Attributes Reference

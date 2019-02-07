@@ -20,10 +20,24 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
+			"key_vault_id": {
+				Type:          schema.TypeString,
+				Optional:      true, //todo required in 2.0
+				Computed:      true, //todo removed in 2.0
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"vault_uri"},
+			},
+
+			//todo remove in 2.0
 			"vault_uri": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.URLIsHTTPS,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
+				ValidateFunc:  validate.URLIsHTTPS,
+				ConflictsWith: []string{"key_vault_id"},
 			},
 
 			"key_type": {
@@ -65,16 +79,37 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 }
 
 func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	vaultUri := d.Get("vault_uri").(string)
+	keyVaultBaseUri := d.Get("vault_uri").(string)
 	name := d.Get("name").(string)
+	keyVaultId := d.Get("key_vault_id").(string)
 
-	resp, err := client.GetKey(ctx, vaultUri, name, "")
+	if keyVaultBaseUri == "" {
+		if keyVaultId == "" {
+			return fmt.Errorf("one of `key_vault_id` or `vault_uri` must be set")
+		}
+
+		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
+
+		keyVaultBaseUri = pKeyVaultBaseUrl
+	} else {
+		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUri)
+		if err != nil {
+			return fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", keyVaultBaseUri, name, err)
+		}
+		d.Set("key_vault_id", id)
+	}
+
+	resp, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Key %q was not found in Key Vault at URI %q", name, vaultUri)
+			return fmt.Errorf("Key %q was not found in Key Vault at URI %q", name, keyVaultBaseUri)
 		}
 
 		return err

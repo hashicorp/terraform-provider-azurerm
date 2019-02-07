@@ -60,7 +60,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "generated" {
   name      = "generated-certificate"
-  vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Key. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Key Vault where the Key should be created.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created.
 
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `Oct` (Octet), `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 

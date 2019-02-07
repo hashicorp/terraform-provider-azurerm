@@ -179,7 +179,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -217,7 +217,7 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -253,7 +253,7 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -319,7 +319,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_secret" "test" {
   name      = "secret-%s"
   value     = "rick-and-morty"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
 }
 `, rString, location, rString, rString)
 }
@@ -332,7 +332,7 @@ func testAccAzureRMKeyVaultSecret_requiresImport(rString string, location string
 resource "azurerm_key_vault_secret" "import" {
   name      = "${azurerm_key_vault_secret.test.name}"
   value     = "${azurerm_key_vault_secret.test.value}"
-  vault_id  = "${azurerm_key_vault_secret.test.vault_id}"
+  key_vault_id  = "${azurerm_key_vault_secret.test.key_vault_id}"
 }
 `, template)
 }
@@ -379,7 +379,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
   value        = "<rick><morty /></rick>"
-  vault_id     = "${azurerm_key_vault.test.id}"
+  key_vault_id     = "${azurerm_key_vault.test.id}"
   content_type = "application/xml"
 
   tags {

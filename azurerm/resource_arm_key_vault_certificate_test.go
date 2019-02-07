@@ -228,7 +228,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -267,7 +267,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -303,7 +303,7 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
-		keyVaultId := rs.Primary.Attributes["vault_id"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
 		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
 		if err != nil {
@@ -368,7 +368,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name     = "acctestcert%s"
-  vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
@@ -402,7 +402,7 @@ func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location s
 
 resource "azurerm_key_vault_certificate" "import" {
   name     = "${azurerm_key_vault_certificate.test.name}"
-  vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
@@ -470,7 +470,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name      = "acctestcert%s"
-  vault_id  = "${azurerm_key_vault.test.id}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -558,7 +558,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name     = "acctestcert%s"
-  vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -653,7 +653,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name     = "acctestcert%s"
-  vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
