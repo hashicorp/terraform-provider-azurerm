@@ -38,6 +38,38 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_key_vault_access_policy.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultAccessPolicy_basic(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultAccessPolicy_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_access_policy"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 	resourceName1 := "azurerm_key_vault_access_policy.test_with_application_id"
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
@@ -117,19 +149,25 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 
 func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		vaultName := rs.Primary.Attributes["vault_name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parseAzureResourceID(rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+		resGroup := id.ResourceGroup
+		vaultName := id.Path["vaults"]
+
 		objectId := rs.Primary.Attributes["object_id"]
 		applicationId := rs.Primary.Attributes["application_id"]
-
-		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resGroup, vaultName)
 		if err != nil {
@@ -158,8 +196,7 @@ func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) s
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   key_permissions = [
     "get",
@@ -176,14 +213,35 @@ resource "azurerm_key_vault_access_policy" "test" {
 `, template)
 }
 
+func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_basic(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_access_policy" "import" {
+  key_vault_id  = "${azurerm_key_vault.test.id}"
+  tenant_id     = "${azurerm_key_vault_access_policy.test.tenant_id}"
+  object_id     = "${azurerm_key_vault_access_policy.test.object_id}"
+
+  key_permissions = [
+    "get",
+  ]
+
+  secret_permissions = [
+    "get",
+    "set",
+  ]
+}
+`, template)
+}
+
 func testAccAzureRMKeyVaultAccessPolicy_multiple(rString string, location string) string {
 	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_key_vault_access_policy" "test_with_application_id" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   key_permissions = [
     "create",
@@ -206,8 +264,7 @@ resource "azurerm_key_vault_access_policy" "test_with_application_id" {
 }
 
 resource "azurerm_key_vault_access_policy" "test_no_application_id" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   key_permissions = [
     "list",

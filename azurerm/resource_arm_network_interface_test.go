@@ -4,76 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"log"
-
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_network_interface", &resource.Sweeper{
-		Name: "azurerm_network_interface",
-		F:    testSweepNetworkInterfaces,
-		Dependencies: []string{
-			"azurerm_application_gateway",
-			"azurerm_virtual_machine",
-		},
-	})
-}
-
-func testSweepNetworkInterfaces(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).ifaceClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the Network Interfaces..")
-	results, err := client.ListAll(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on Network Interfaces: %+v", err)
-	}
-
-	for _, network := range results.Values() {
-		id, err := parseAzureResourceID(*network.ID)
-		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
-		}
-
-		resourceGroupName := id.ResourceGroup
-		name := *network.Name
-		location := *network.Location
-
-		if !shouldSweepAcceptanceTestResource(name, location, region) {
-			continue
-		}
-
-		log.Printf("Deleting Network Interfaces %q", name)
-		future, err := client.Delete(ctx, resourceGroupName, name)
-		if err != nil {
-			if response.WasNotFound(future.Response()) {
-				continue
-			}
-
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			if response.WasNotFound(future.Response()) {
-				continue
-			}
-
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
@@ -90,6 +25,34 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 					testCheckAzureRMNetworkInterfaceDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_interface.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterface_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface"),
 			},
 		},
 	})
@@ -566,6 +529,25 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterface_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "import" {
+  name                = "${azurerm_network_interface.test.name}"
+  location            = "${azurerm_network_interface.test.location}"
+  resource_group_name = "${azurerm_network_interface.test.resource_group_name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt int, location string) string {

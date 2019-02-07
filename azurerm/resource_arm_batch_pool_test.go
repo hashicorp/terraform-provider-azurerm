@@ -16,11 +16,7 @@ import (
 func TestAccAzureRMBatchPool_basic(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testaccAzureRMBatchPool_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -28,7 +24,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMBatchPool_basic(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -47,14 +43,15 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
+func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testaccAzureRMBatchPool_fixedScale_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -62,10 +59,45 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMBatchPool_basic(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
+					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
+					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_dedicated_nodes", "1"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.#", "0"),
+				),
+			},
+			{
+				Config:      testaccAzureRMBatchPool_requiresImport(ri, rs, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_batch_account"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "max_tasks_per_node", "2"),
 					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
 					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.#", "1"),
@@ -87,11 +119,7 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testaccAzureRMBatchPool_autoScale_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +127,7 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -122,12 +150,7 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testaccAzureRMBatchPool_fixedScale_complete(ri, rs, location)
-	configUpdate := testaccAzureRMBatchPool_autoScale_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -135,7 +158,7 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -154,7 +177,7 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: configUpdate,
+				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -177,11 +200,7 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testaccAzureRMBatchPoolStartTask_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -189,7 +208,7 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMBatchPoolStartTask_basic(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -206,8 +225,9 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.max_task_retry_count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.env", "TEST"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.bu", "Research&Dev"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
@@ -304,7 +324,8 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+  vm_size             = "Standard_A1",
+  max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
   
   fixed_scale {
@@ -412,6 +433,31 @@ resource "azurerm_batch_pool" "test" {
 `, rInt, location, rString, rString)
 }
 
+func testaccAzureRMBatchPool_requiresImport(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_batch_pool" "import" {
+  name                = "${azurerm_batch_pool.test.name}"
+  resource_group_name = "${azurerm_batch_pool.test.resource_group_name}"
+  account_name        = "${azurerm_batch_pool.test.account_name}"
+  node_agent_sku_id   = "${azurerm_batch_pool.test.node_agent_sku_id}"
+  vm_size             = "${azurerm_batch_pool.test.vm_size}"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+}
+`, testaccAzureRMBatchPool_basic(rInt, location, rString))
+}
+
 func testaccAzureRMBatchPoolStartTask_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -449,7 +495,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment {
-      env = "TEST"
+			env = "TEST",
+			bu  = "Research&Dev"
     }
 
     user_identity {

@@ -14,7 +14,6 @@ import (
 func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusSubscription_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
@@ -31,6 +30,33 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_subscription.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_servicebus_subscription"),
 			},
 		},
 	})
@@ -256,6 +282,20 @@ resource "azurerm_servicebus_subscription" "test" {
 
 func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) string {
 	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt, "")
+}
+
+func testAccAzureRMServiceBusSubscription_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s 
+
+resource "azurerm_servicebus_subscription" "import" {
+    name                = "${azurerm_servicebus_subscription.test.name}"
+    namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
+    topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
+    resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
+    max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
+}
+`, testAccAzureRMServiceBusSubscription_basic(rInt, location))
 }
 
 func testAccAzureRMServiceBusSubscription_withDefaultTtl(rInt int, location string) string {

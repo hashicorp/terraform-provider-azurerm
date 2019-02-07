@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -98,7 +100,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			//so lets only allow it to be set if the SKU is premium
 			if _, ok := d.GetOk("capacity"); ok {
 				sku := d.Get("sku").(string)
-				if strings.ToLower(sku) != strings.ToLower(string(servicebus.Premium)) {
+				if !strings.EqualFold(sku, string(servicebus.Premium)) {
 					return fmt.Errorf("`capacity` can only be set for a Premium SKU")
 				}
 			}
@@ -119,6 +121,19 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace %q (resource group %q) ID", name, resourceGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBNamespace{
 		Location: &location,

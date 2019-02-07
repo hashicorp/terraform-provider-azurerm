@@ -2,63 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_resource_group", &resource.Sweeper{
-		Name: "azurerm_resource_group",
-		F:    testSweepResourceGroups,
-	})
-}
-
-func testSweepResourceGroups(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).resourceGroupsClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the Resource Groups..")
-	results, err := client.List(ctx, "", utils.Int32(int32(1000)))
-	if err != nil {
-		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
-	}
-
-	for _, resourceGroup := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*resourceGroup.Name, *resourceGroup.Location, region) {
-			continue
-		}
-
-		name := *resourceGroup.Name
-		log.Printf("Deleting Resource Group %q", name)
-		deleteFuture, err := client.Delete(ctx, name)
-		if err != nil {
-			return err
-		}
-
-		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -66,7 +20,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
 				),
@@ -80,10 +34,14 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_resource_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -91,7 +49,30 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMResourceGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMResourceGroup_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_resource_group"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+	resourceName := "azurerm_resource_group.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
 					testCheckAzureRMResourceGroupDisappears(resourceName),
@@ -231,6 +212,17 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMResourceGroup_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "import" {
+  name     = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+}
+`, testAccAzureRMResourceGroup_basic(rInt, location))
 }
 
 func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {

@@ -89,7 +89,7 @@ A `azure_active_directory` block supports the following:
 
 * `cluster_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Cluster Application. Changing this forces a new resource to be created.
 
-* `cluster_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
 
 ---
 

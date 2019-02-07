@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
-sidebar_current: "docs-azurerm-resource-application-gateway"
+sidebar_current: "docs-azurerm-resource-network-application-gateway"
 description: |-
   Manages an Application Gateway.
 ---
@@ -145,11 +145,15 @@ The following arguments are supported:
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
+* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
+
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -171,9 +175,13 @@ A `backend_address_pool` block supports the following:
 
 * `name` - (Required) The name of the Backend Address Pool.
 
-* `fqdn_list` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
+* `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `ip_address_list` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
+
+* `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+
+* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -190,6 +198,8 @@ A `backend_http_settings` block supports the following:
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
 * `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
@@ -243,6 +253,8 @@ A `http_listener` block supports the following:
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
 ---
 
 A `match` block supports the following:
@@ -267,7 +279,7 @@ A `path_rule` block supports the following:
 
 A `probe` block support the following:
 
-* `host` - (Required) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe.
+* `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
 
 * `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
 
@@ -280,6 +292,8 @@ A `probe` block support the following:
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
 
@@ -313,6 +327,16 @@ A `sku` block supports the following:
 
 ---
 
+A `ssl_certificate` block supports the following:
+
+* `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
+
+* `data` - (Required) PFX certificate.
+
+* `password` - (Required) Password for the pfx file specified in data.
+
+---
+
 A `url_path_map` block supports the following:
 
 * `name` - (Required) The Name of the URL Path Map.
@@ -335,6 +359,16 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall.
 
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+
+---
+
+A `custom_error_configuration` block supports the following:
+
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
+
+* `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -353,6 +387,8 @@ The following attributes are exported:
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
 
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
 * `probe` - A `probe` block as defined below.
@@ -362,6 +398,8 @@ The following attributes are exported:
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
 * `url_path_map` - A list of `url_path_map` blocks as defined below.
+
+* `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -468,6 +506,12 @@ A `url_path_map` block exports the following:
 * `default_backend_http_settings_id` - The ID of the Default Backend HTTP Settings Collection.
 
 * `path_rule` - A list of `path_rule` blocks as defined above.
+
+---
+
+A `custom_error_configuration` block exports the following:
+
+* `id` - The ID of the Custom Error Configuration.
 
 ## Import
 

@@ -25,10 +25,40 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 				),
-			}, {
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHub_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_iothub"),
 			},
 		},
 	})
@@ -139,15 +169,15 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 
 func testAccAzureRMIotHub_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "B1"
@@ -162,17 +192,40 @@ resource "azurerm_iothub" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMIotHub_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMIotHub_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "import" {
+  name                = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_iothub.test.name}"
+  location            = "${azurerm_iothub.test.location}"
+
+  sku {
+    name     = "B1"
+    tier     = "Basic"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, template)
+}
+
 func testAccAzureRMIotHub_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"
@@ -189,30 +242,30 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_customRoutes(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.foo.name}"
-  location                 = "${azurerm_resource_group.foo.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.foo.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"

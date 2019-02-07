@@ -1,12 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -132,6 +137,19 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_notification_hub", *existing.ID)
+		}
+	}
+
 	apnsRaw := d.Get("apns_credential").([]interface{})
 	apnsCredential, err := expandNotificationHubsAPNSCredentials(apnsRaw)
 	if err != nil {
@@ -156,10 +174,25 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
+	// Notification Hubs are eventually consistent
+	log.Printf("[DEBUG] Waiting for Notification Hub %q to become available", name)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   notificationHubStateRefreshFunc(ctx, client, resourceGroup, namespaceName, name),
+		Timeout:                   10 * time.Minute,
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 10,
+	}
+	if _, err2 := stateConf.WaitForState(); err2 != nil {
+		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
+	}
+
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
+
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Notification Hub %q (Namespace %q / Resource Group %q) ID", name, namespaceName, resourceGroup)
 	}
@@ -167,6 +200,21 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	d.SetId(*read.ID)
 
 	return resourceArmNotificationHubRead(d, meta)
+}
+
+func notificationHubStateRefreshFunc(ctx context.Context, client notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "404", nil
+			}
+
+			return nil, "", fmt.Errorf("Error retrieving Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
 
 func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {

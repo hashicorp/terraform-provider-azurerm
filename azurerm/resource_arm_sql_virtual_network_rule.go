@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -67,6 +68,19 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 	resourceGroup := d.Get("resource_group_name").(string)
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
 	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_virtual_network_rule", *existing.ID)
+		}
+	}
 
 	parameters := sql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &sql.VirtualNetworkRuleProperties{

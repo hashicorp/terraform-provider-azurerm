@@ -2,7 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -31,6 +34,35 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"key_size"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultKey_basicEC(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultKey_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_key"),
 			},
 		},
 	})
@@ -201,6 +233,16 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		// get the latest version
 		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
@@ -219,6 +261,9 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -226,9 +271,16 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
 		if err != nil {
@@ -245,6 +297,9 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 
 func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -253,9 +308,16 @@ func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestChe
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.DeleteKey(ctx, vaultBaseUrl, name)
 		if err != nil {
@@ -313,7 +375,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "EC"
   key_size  = 2048
 
@@ -323,6 +385,25 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 `, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultKey_basicEC(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "import" {
+  name      = "${azurerm_key_vault_key.test.name}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
+  key_type  = "EC"
+  key_size  = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, template)
 }
 
 func testAccAzureRMKeyVaultKey_basicRSA(rString string, location string) string {
@@ -369,7 +450,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
@@ -428,7 +509,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
   key_type  = "RSA-HSM"
   key_size  = 2048
 
@@ -486,10 +567,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name          = "key-%s"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
+  key_type      = "RSA"
+  key_size      = 2048
 
   key_opts = [
     "decrypt",

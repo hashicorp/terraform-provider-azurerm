@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,9 +65,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -76,13 +79,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKubernetesClusterDnsPrefix(),
+				ValidateFunc: validate.KubernetesDNSPrefix,
 			},
 
 			"kubernetes_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"agent_pool_profile": {
@@ -95,7 +99,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateKubernetesClusterAgentPoolName(),
+							ValidateFunc: validate.KubernetesAgentPoolName,
 						},
 
 						"count": {
@@ -123,6 +127,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validate.NoEmptyStrings,
 						},
 
 						"os_disk_size_gb": {
@@ -134,9 +139,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"vnet_subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"os_type": {
@@ -169,16 +175,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"client_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"client_secret": {
-							Type:      schema.TypeString,
-							ForceNew:  true,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -224,8 +232,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Required: true,
 									},
 									"log_analytics_workspace_id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
@@ -242,8 +251,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Required: true,
 									},
 									"subnet_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
@@ -259,9 +269,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"admin_username": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,
@@ -271,9 +282,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key_data": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
@@ -301,31 +313,35 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"dns_service_ip": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.IPv4Address,
 						},
 
 						"docker_bridge_cidr": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.CIDR,
 						},
 
 						"pod_cidr": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.CIDR,
 						},
 
 						"service_cidr": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.CIDR,
 						},
 					},
 				},
@@ -352,30 +368,34 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"client_app_id": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_id": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_secret": {
-										Type:      schema.TypeString,
-										ForceNew:  true,
-										Required:  true,
-										Sensitive: true,
+										Type:         schema.TypeString,
+										ForceNew:     true,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"tenant_id": {
-										// this can be sourced from the client config if it's not specified
 										Type:     schema.TypeString,
 										Optional: true,
 										Computed: true,
 										ForceNew: true,
+										// OrEmpty since this can be sourced from the client config if it's not specified
+										ValidateFunc: validate.UUIDOrEmpty,
 									},
 								},
 							},
@@ -493,6 +513,20 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -1170,20 +1204,6 @@ func resourceKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
-}
-
-func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
-		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
-	)
-}
-
-func validateKubernetesClusterDnsPrefix() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,43}[a-zA-Z0-9]$"),
-		"The DNS name must contain between 3 and 45 characters. The name can contain only letters, numbers, and hyphens. The name must start with a letter and must end with a letter or a number.",
-	)
 }
 
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {

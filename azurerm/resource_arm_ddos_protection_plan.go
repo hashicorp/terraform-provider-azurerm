@@ -10,14 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const azureDDosProtectionPlanResourceName = "azurerm_ddos_protection_plan"
+const azureDDoSProtectionPlanResourceName = "azurerm_ddos_protection_plan"
 
-func resourceArmDDosProtectoinPlan() *schema.Resource {
+func resourceArmDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDDosProtectoinPlanCreateUpdate,
-		Read:   resourceArmDDosProtectoinPlanRead,
-		Update: resourceArmDDosProtectoinPlanCreateUpdate,
-		Delete: resourceArmDDosProtectoinPlanDelete,
+		Create: resourceArmDDoSProtectionPlanCreateUpdate,
+		Read:   resourceArmDDoSProtectionPlanRead,
+		Update: resourceArmDDoSProtectionPlanCreateUpdate,
+		Delete: resourceArmDDoSProtectionPlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,11 +46,11 @@ func resourceArmDDosProtectoinPlan() *schema.Resource {
 	}
 }
 
-func resourceArmDDosProtectoinPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for DDos protection plan creation")
+	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -59,7 +59,7 @@ func resourceArmDDosProtectoinPlanCreateUpdate(d *schema.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DDos Protection Plan %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing DDoS Protection Plan %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -76,8 +76,8 @@ func resourceArmDDosProtectoinPlanCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureDDosProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureDDosProtectionPlanResourceName)
+	azureRMLockByName(name, azureDDoSProtectionPlanResourceName)
+	defer azureRMUnlockByName(name, azureDDoSProtectionPlanResourceName)
 
 	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
@@ -89,28 +89,28 @@ func resourceArmDDosProtectoinPlanCreateUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation/update of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if plan.ID == nil {
-		return fmt.Errorf("Cannot read DDos Protection Plan %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read DDoS Protection Plan %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*plan.ID)
 
-	return resourceArmDDosProtectoinPlanRead(d, meta)
+	return resourceArmDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmDDosProtectoinPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -124,12 +124,12 @@ func resourceArmDDosProtectoinPlanRead(d *schema.ResourceData, meta interface{})
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(plan.Response) {
-			log.Printf("[DEBUG] DDos Protection Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] DDoS Protection Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", plan.Name)
@@ -150,7 +150,7 @@ func resourceArmDDosProtectoinPlanRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmDDosProtectoinPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -165,11 +165,11 @@ func resourceArmDDosProtectoinPlanDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] DDos Protection Plan %q was not found in Resource Group %q - assuming removed!", name, resourceGroup)
+			log.Printf("[DEBUG] DDoS Protection Plan %q was not found in Resource Group %q - assuming removed!", name, resourceGroup)
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	vnetsToLock, err := extractVnetNames(d)
@@ -177,19 +177,19 @@ func resourceArmDDosProtectoinPlanDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureDDosProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureDDosProtectionPlanResourceName)
+	azureRMLockByName(name, azureDDoSProtectionPlanResourceName)
+	defer azureRMUnlockByName(name, azureDDoSProtectionPlanResourceName)
 
 	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DDos Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return err

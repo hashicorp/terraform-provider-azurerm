@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -60,6 +62,19 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	resourceGroup := d.Get("resource_group_name").(string)
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, cacheName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Redis Firewall Rule %q (cache %q / resource group %q) ID", name, cacheName, resourceGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", *existing.ID)
+		}
+	}
 
 	parameters := redis.FirewallRuleCreateParameters{
 		FirewallRuleProperties: &redis.FirewallRuleProperties{

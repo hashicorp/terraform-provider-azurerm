@@ -181,7 +181,7 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 	}
 
 	replyUrls := make([]string, 0)
-	if s := resp.IdentifierUris; s != nil {
+	if s := resp.ReplyUrls; s != nil {
 		replyUrls = *s
 	}
 	if err := d.Set("reply_urls", replyUrls); err != nil {

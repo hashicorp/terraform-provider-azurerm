@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -38,10 +40,25 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing resource group: %+v", err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_resource_group", *existing.ID)
+		}
+	}
+
 	parameters := resources.Group{
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
+
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
 		return fmt.Errorf("Error creating resource group: %+v", err)
 	}

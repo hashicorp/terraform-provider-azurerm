@@ -14,9 +14,66 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+//todo refactor and find a home for this wayward func
+func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := azure.ParseKeyVaultChildID(d.Id())
+	if err != nil {
+		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
+	}
+
+	list, err := client.ListComplete(ctx, utils.Int32(1000))
+	if err != nil {
+		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to list Key Vaults for Key Vault Child import: %v", err)
+	}
+
+	for list.NotDone() {
+		v := list.Value()
+		if v.ID == nil {
+			log.Printf("[DEBUG] Key Vault Child import: v.ID was nil, continuing")
+			continue
+		}
+
+		vid, err := parseAzureResourceID(*v.ID)
+		if err != nil {
+			log.Printf("[DEBUG] Key Vault Child import: unable to parse v.ID (%s): %v", *v.ID, err)
+			continue
+		}
+		resourceGroup := vid.ResourceGroup
+		name := vid.Path["vaults"]
+
+		//resp does not appear to contain the vault properties, so lets fech them
+		get, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			log.Printf("[DEBUG] Key Vault Child import: Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			continue
+		}
+
+		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
+			log.Printf("[DEBUG] Key Vault Child import: KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
+			continue
+		}
+
+		if id.KeyVaultBaseUrl == *get.Properties.VaultURI {
+			d.Set("key_vault_id", get.ID)
+			break
+		}
+
+		e := list.NextWithContext(ctx)
+		if e != nil {
+			return []*schema.ResourceData{d}, e
+		}
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
 
 func resourceArmKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
@@ -24,8 +81,9 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 		Create: resourceArmKeyVaultCertificateCreate,
 		Read:   resourceArmKeyVaultCertificateRead,
 		Delete: resourceArmKeyVaultCertificateDelete,
+
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceArmKeyVaultChildResourceImporter,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -36,11 +94,24 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
+			"key_vault_id": {
+				Type:          schema.TypeString,
+				Optional:      true, //todo required in 2.0
+				Computed:      true, //todo removed in 2.0
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"vault_uri"},
+			},
+
+			//todo remove in 2.0
 			"vault_uri": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.URLIsHTTPS,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
+				ValidateFunc:  validate.URLIsHTTPS,
+				ConflictsWith: []string{"key_vault_id"},
 			},
 
 			"certificate": {
@@ -297,13 +368,47 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 }
 
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
+	keyVaultId := d.Get("key_vault_id").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
-	tags := d.Get("tags").(map[string]interface{})
 
+	if keyVaultBaseUrl == "" {
+		if keyVaultId == "" {
+			return fmt.Errorf("one of `key_vault_id` or `vault_uri` must be set")
+		}
+
+		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Certificate %q vault url form id %q: %+v", name, keyVaultId, err)
+		}
+
+		keyVaultBaseUrl = pKeyVaultBaseUrl
+	} else {
+		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", keyVaultBaseUrl, name, err)
+		}
+		d.Set("key_vault_id", id)
+	}
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		}
+	}
+
+	tags := d.Get("tags").(map[string]interface{})
 	policy := expandKeyVaultCertificatePolicy(d)
 
 	if v, ok := d.GetOk("certificate"); ok {
@@ -370,13 +475,23 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
+	keyVaultId := d.Get("key_vault_id").(string)
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
+	}
 
+	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
 			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
@@ -384,7 +499,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return err
+		return fmt.Errorf("Error reading Key Vault Certificate: %+v", err)
 	}
 
 	d.Set("name", id.Name)
@@ -420,9 +535,20 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
+	keyVaultId := d.Get("key_vault_id").(string)
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, meta.(*ArmClient).keyVaultClient, keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)

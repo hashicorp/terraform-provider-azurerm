@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -10,73 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_virtual_network", &resource.Sweeper{
-		Name: "azurerm_virtual_network",
-		F:    testSweepVirtualNetworks,
-		Dependencies: []string{
-			"azurerm_application_gateway",
-			"azurerm_subnet",
-			"azurerm_network_interface",
-			"azurerm_virtual_machine",
-		},
-	})
-}
-
-func testSweepVirtualNetworks(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).vnetClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the Virtual Networks..")
-	results, err := client.ListAll(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on Virtual Networks: %+v", err)
-	}
-
-	for _, network := range results.Values() {
-		id, err := parseAzureResourceID(*network.ID)
-		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
-		}
-
-		resourceGroupName := id.ResourceGroup
-		name := *network.Name
-		location := *network.Location
-
-		if !shouldSweepAcceptanceTestResource(name, location, region) {
-			continue
-		}
-
-		log.Printf("Deleting Virtual Network %q", name)
-		future, err := client.Delete(ctx, resourceGroupName, name)
-		if err != nil {
-			if response.WasNotFound(future.Response()) {
-				continue
-			}
-
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			if response.WasNotFound(future.Response()) {
-				continue
-			}
-
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
@@ -100,6 +33,35 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetwork_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_network.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualNetwork_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_network"),
 			},
 		},
 	})
@@ -318,6 +280,25 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualNetwork_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "import" {
+  name                = "${azurerm_virtual_network.test.name}"
+  location            = "${azurerm_virtual_network.test.location}"
+  resource_group_name = "${azurerm_virtual_network.test.resource_group_name}"
+  address_space       = ["10.0.0.0/16"]
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMVirtualNetwork_ddosProtectionPlan(rInt int, location string) string {

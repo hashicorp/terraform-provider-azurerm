@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageTable() *schema.Resource {
@@ -73,9 +74,24 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	table := tableClient.GetTableReference(name)
+	id := fmt.Sprintf("https://%s.table.%s/%s", storageAccountName, environment.StorageEndpointSuffix, name)
+
+	if requireResourcesToBeImported {
+		metaDataLevel := storage.MinimalMetadata
+		options := &storage.QueryTablesOptions{}
+		tables, e := tableClient.QueryTables(metaDataLevel, options)
+		if e != nil {
+			return fmt.Errorf("Error checking if Table %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, e)
+		}
+
+		for _, table := range tables.Tables {
+			if table.Name == name {
+				return tf.ImportAsExistsError("azurerm_storage_table", id)
+			}
+		}
+	}
 
 	log.Printf("[INFO] Creating table %q in storage account %q.", name, storageAccountName)
-
 	timeout := uint(60)
 	options := &storage.TableOptions{}
 	err = table.Create(timeout, storage.NoMetadata, options)
@@ -83,7 +99,6 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error creating table %q in storage account %q: %s", name, storageAccountName, err)
 	}
 
-	id := fmt.Sprintf("https://%s.table.%s/%s", storageAccountName, environment.StorageEndpointSuffix, name)
 	d.SetId(id)
 	return resourceArmStorageTableRead(d, meta)
 }

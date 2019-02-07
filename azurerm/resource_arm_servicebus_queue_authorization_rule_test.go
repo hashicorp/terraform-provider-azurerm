@@ -62,6 +62,7 @@ func testAccAzureRMServiceBusQueueAuthorizationRule(t *testing.T, listen, send, 
 
 func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -69,7 +70,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -78,7 +79,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -96,6 +97,35 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_queue_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send", "false"),
+					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(ri, testLocation(), true, false, false),
+				ExpectError: testRequiresImportError("azurerm_servicebus_queue_authorization_rule"),
 			},
 		},
 	})
@@ -191,4 +221,21 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
   manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_queue_authorization_rule" "import" {
+  name                = "${azurerm_servicebus_queue_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_servicebus_queue_authorization_rule.test.namespace_name}"
+  queue_name          = "${azurerm_servicebus_queue_authorization_rule.test.queue_name}"
+  resource_group_name = "${azurerm_servicebus_queue_authorization_rule.test.resource_group_name}"
+
+  listen = "${azurerm_servicebus_queue_authorization_rule.test.listen}"
+  send   = "${azurerm_servicebus_queue_authorization_rule.test.send}"
+  manage = "${azurerm_servicebus_queue_authorization_rule.test.manage}"
+}
+`, testAccAzureRMServiceBusQueueAuthorizationRule_base(rInt, location, listen, send, manage))
 }

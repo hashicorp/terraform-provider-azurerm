@@ -35,6 +35,35 @@ func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_security_rule.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkSecurityRule_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_security_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 	resourceGroup := "azurerm_network_security_rule.test"
 	rInt := tf.AccRandTimeInt()
@@ -228,6 +257,8 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "test" {
   name                        = "test123"
+  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
   priority                    = 100
   direction                   = "Outbound"
   access                      = "Allow"
@@ -236,10 +267,29 @@ resource "azurerm_network_security_rule" "test" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkSecurityRule_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_security_rule" "import" {
+  name                        = "${azurerm_network_security_rule.test.name}"
+  network_security_group_name = "${azurerm_network_security_rule.test.network_security_group_name}"
+  resource_group_name         = "${azurerm_network_security_rule.test.resource_group_name}"
+  priority                    = "${azurerm_network_security_rule.test.priority}"
+  direction                   = "${azurerm_network_security_rule.test.direction}"
+  access                      = "${azurerm_network_security_rule.test.access}"
+  protocol                    = "${azurerm_network_security_rule.test.protocol}"
+  source_port_range           = "${azurerm_network_security_rule.test.source_port_range}"
+  destination_port_range      = "${azurerm_network_security_rule.test.destination_port_range}"
+  source_address_prefix       = "${azurerm_network_security_rule.test.source_address_prefix}"
+  destination_address_prefix  = "${azurerm_network_security_rule.test.destination_address_prefix}"
+}
+`, template)
 }
 
 func testAccAzureRMNetworkSecurityRule_updateBasic(rInt int, location string) string {

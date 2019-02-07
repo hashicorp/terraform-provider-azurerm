@@ -1,0 +1,31 @@
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gofmt
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - nakedret
+    - misspell
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - unconvert
+    - varcheck
+    - vet
+    - vetshadow
+
+linters-settings:
+  errcheck:
+    ignore: github.com/hashicorp/terraform/helper/schema:ForceNew|Set,fmt:.*,io:Close
+
+run:
+  modules-download-mode: vendor
