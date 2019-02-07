@@ -62,7 +62,7 @@ Terraform allows for existing resources which have been created outside of Terra
 
 Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's API's are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
 
-Where the unique identifier for (most) Azure resources is the `name` (rather than for example an `aws_instance` where AWS will generate a different unique identifier) - it's possible that users may have unintentionally imported resources into Terraform when running `terraform apply` on an existing resource.
+Where the unique identifier for (most) Azure resources is the `name` (rather than for example an `aws_instance` where AWS will generate a different unique identifier) - it's possible that users may have unintentionally imported existing resources into Terraform (and made changes to the resource) when running `terraform apply` when using the same unique identifier as an existing resource.
 
 Whilst this may allow resources to work in some cases, it leads to hard-to-diagnose bugs in others (which could have been caught during `terraform plan`).
 
