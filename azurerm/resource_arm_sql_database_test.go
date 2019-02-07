@@ -170,7 +170,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	timeToRestore := time.Now().Add(15 * time.Minute)
-	formattedTime := string(timeToRestore.UTC().Format(time.RFC3339))
+	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
 	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(ri, formattedTime, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

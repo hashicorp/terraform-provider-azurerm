@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"testing"
@@ -570,7 +571,9 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 				Destroy: false,
 				Config:  prepConfig,
 				Check: func(s *terraform.State) error {
-					testCheckAzureRMVirtualMachineDestroy(s)
+					if err := testCheckAzureRMVirtualMachineDestroy(s); err != nil {
+						log.Printf("[DEBUG] WARNING testCheckAzureRMVirtualMachineDestroy error'd: %v", err)
+					}
 					return nil
 				},
 			},

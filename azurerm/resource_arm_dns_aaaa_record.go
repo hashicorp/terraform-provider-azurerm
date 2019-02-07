@@ -75,24 +75,18 @@ func resourceArmDnsAaaaRecordCreateUpdate(d *schema.ResourceData, meta interface
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	records, err := expandAzureRmDnsAaaaRecords(d)
-	if err != nil {
-		return err
-	}
-
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:    expandTags(tags),
 			TTL:         &ttl,
-			AaaaRecords: &records,
+			AaaaRecords: expandAzureRmDnsAaaaRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.AAAA, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.AAAA, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -178,7 +172,7 @@ func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
 	return results
 }
 
-func expandAzureRmDnsAaaaRecords(d *schema.ResourceData) ([]dns.AaaaRecord, error) {
+func expandAzureRmDnsAaaaRecords(d *schema.ResourceData) *[]dns.AaaaRecord {
 	recordStrings := d.Get("records").(*schema.Set).List()
 	records := make([]dns.AaaaRecord, len(recordStrings))
 
@@ -189,5 +183,5 @@ func expandAzureRmDnsAaaaRecords(d *schema.ResourceData) ([]dns.AaaaRecord, erro
 		}
 	}
 
-	return records, nil
+	return &records
 }

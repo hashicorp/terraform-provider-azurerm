@@ -18,7 +18,6 @@ linters:
     - structcheck
     - typecheck
     - unused
-    - unparam
     - unconvert
     - varcheck
     - vet
