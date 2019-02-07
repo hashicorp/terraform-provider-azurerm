@@ -3,13 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,15 +43,24 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"frontend_ip_configuration_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
+			"frontend_ip_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
 
-			"frontend_ip_configuration_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"backend_address_pool_id": {
@@ -115,7 +122,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
 	}
 
-	outboundRules := append(*loadBalancer.LoadBalancerPropertiesFormat.OutboundRules, *newLbRule)
+	outboundRules := append(*loadBalancer.LoadBalancerPropertiesFormat.OutboundRules, *newOutboundRule)
 
 	existingOutboundRule, existingOutboundRuleIndex, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
 	if exists {
@@ -200,13 +207,25 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		d.Set("protocol", properties.Protocol)
 		d.Set("backend_address_pool_id", properties.BackendAddressPool.ID)
 
-		fipID, err := parseAzureResourceID(*properties.FrontendIPConfiguration.ID)
-		if err != nil {
-			return err
-		}
+		frontendIpConfigurations := make([]interface{}, 0)
+		for _, feConfig := range *properties.FrontendIPConfigurations {
+			if feConfig.ID == nil {
+				continue
+			}
 
-		d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
-		d.Set("frontend_ip_configuration_id", properties.FrontendIPConfiguration.ID)
+			feConfigId, err := parseAzureResourceID(*feConfig.ID)
+			if err != nil {
+				return nil
+			}
+
+			name := feConfigId.Path["frontendIPConfigurations"]
+			frontendConfiguration := map[string]interface{}{
+				"id":   *feConfig.ID,
+				"name": name,
+			}
+			frontendIpConfigurations = append(frontendIpConfigurations, frontendConfiguration)
+		}
+		d.Set("frontend_ip_configuration", frontendIpConfigurations)
 
 		if properties.EnableTCPReset != nil {
 			d.Set("enable_tcp_reset", properties.EnableTCPReset)
@@ -249,7 +268,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 
 	oldOutboundRules := *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
 	newOutboundRules := append(oldOutboundRules[:index], oldOutboundRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.OuboundRules = &newOutboundRules
+	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &newOutboundRules
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
@@ -282,17 +301,29 @@ func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.L
 		Protocol: network.Protocol1(d.Get("protocol").(string)),
 	}
 
-	rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
-	if !exists {
-		return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
+	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
+	feConfigSubResources := make([]network.SubResource, 0)
+
+	for _, raw := range feConfigs {
+		v := raw.(map[string]interface{})
+		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v["name"].(string))
+		if !exists {
+			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v["name"])
+		}
+
+		feConfigSubResource := network.SubResource{
+			ID: rule.ID,
+		}
+
+		feConfigSubResources = append(feConfigSubResources, feConfigSubResource)
 	}
 
-	properties.FrontendIPConfiguration = &network.SubResource{
-		ID: rule.ID,
-	}
+	properties.FrontendIPConfigurations = &feConfigSubResources
 
-	properties.BackendAddressPool = &network.SubResource{
-		ID: &v,
+	if v := d.Get("backend_address_pool_id").(string); v != "" {
+		properties.BackendAddressPool = &network.SubResource{
+			ID: &v,
+		}
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
