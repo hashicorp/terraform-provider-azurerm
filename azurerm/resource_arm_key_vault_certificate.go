@@ -29,48 +29,11 @@ func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta inter
 		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
 	}
 
-	list, err := client.ListComplete(ctx, utils.Int32(1000))
+	kvid, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
 	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to list Key Vaults for Key Vault Child import: %v", err)
+		return []*schema.ResourceData{d}, fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", id.KeyVaultBaseUrl, id.Name, err)
 	}
-
-	for list.NotDone() {
-		v := list.Value()
-		if v.ID == nil {
-			log.Printf("[DEBUG] Key Vault Child import: v.ID was nil, continuing")
-			continue
-		}
-
-		vid, err := parseAzureResourceID(*v.ID)
-		if err != nil {
-			log.Printf("[DEBUG] Key Vault Child import: unable to parse v.ID (%s): %v", *v.ID, err)
-			continue
-		}
-		resourceGroup := vid.ResourceGroup
-		name := vid.Path["vaults"]
-
-		//resp does not appear to contain the vault properties, so lets fech them
-		get, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			log.Printf("[DEBUG] Key Vault Child import: Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
-			continue
-		}
-
-		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
-			log.Printf("[DEBUG] Key Vault Child import: KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
-			continue
-		}
-
-		if id.KeyVaultBaseUrl == *get.Properties.VaultURI {
-			d.Set("key_vault_id", get.ID)
-			break
-		}
-
-		e := list.NextWithContext(ctx)
-		if e != nil {
-			return []*schema.ResourceData{d}, e
-		}
-	}
+	d.Set("key_vault_id", kvid)
 
 	return []*schema.ResourceData{d}, nil
 }
