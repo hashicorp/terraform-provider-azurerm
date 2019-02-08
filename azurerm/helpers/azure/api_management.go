@@ -13,3 +13,11 @@ func SchemaApiManagementName() *schema.Schema {
 		ValidateFunc: validate.ApiManagementServiceName,
 	}
 }
+
+func SchemaApiManagementDataSourceName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validate.ApiManagementServiceName,
+	}
+}

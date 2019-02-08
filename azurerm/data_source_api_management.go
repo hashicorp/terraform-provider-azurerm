@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,11 +15,7 @@ func dataSourceApiManagementService() *schema.Resource {
 		Read: dataSourceApiManagementRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ApiManagementServiceName,
-			},
+			"name": azure.SchemaApiManagementDataSourceName(),
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
