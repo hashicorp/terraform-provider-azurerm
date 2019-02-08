@@ -161,7 +161,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApiManagementProduct_subscriptionlimits(t *testing.T) {
+func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -175,8 +175,9 @@ func TestAccAzureRMApiManagementProduct_subscriptionlimits(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_subscriptionLimits(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subscription_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "subscription_limits", "2"),
+					resource.TestCheckResourceAttr(resourceName, "approval_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "subscription_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "subscriptions_limit", "2"),
 				),
 			},
 			{
@@ -353,9 +354,9 @@ resource "azurerm_api_management_product" "test" {
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   display_name          = "Test Product"
-  subscription_required = false
-  approval_required     = false
-  subscription_limits   = 2
+  subscription_required = true
+  approval_required     = true
+  subscriptions_limit   = 2
   published             = false
 }
 `, rInt, location, rInt)

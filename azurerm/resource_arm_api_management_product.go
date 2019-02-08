@@ -103,7 +103,6 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 
 	properties := apimanagement.ProductContract{
 		ProductContractProperties: &apimanagement.ProductContractProperties{
-			ApprovalRequired:     utils.Bool(approvalRequired),
 			Description:          utils.String(description),
 			DisplayName:          utils.String(displayName),
 			State:                publishedVal,
@@ -112,8 +111,10 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 		},
 	}
 
-	// Can be present only if subscriptionRequired property is present and has a value of false.
-	if !subscriptionRequired && subscriptionsLimit > 0 {
+	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.
+	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
+	if subscriptionRequired && subscriptionsLimit > 0 {
+		properties.ProductContractProperties.ApprovalRequired = utils.Bool(approvalRequired)
 		properties.ProductContractProperties.SubscriptionsLimit = utils.Int32(int32(subscriptionsLimit))
 	}
 
