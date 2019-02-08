@@ -24,12 +24,12 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "approval_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "approval_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(resourceName, "published", "true"),
-					resource.TestCheckResourceAttr(resourceName, "subscription_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "published", "false"),
+					resource.TestCheckResourceAttr(resourceName, "subscription_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "terms", ""),
 				),
 			},
@@ -112,27 +112,9 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "approval_required", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(resourceName, "published", "true"),
-					resource.TestCheckResourceAttr(resourceName, "subscription_required", "true"),
-					resource.TestCheckResourceAttr(resourceName, "terms", ""),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMApiManagementProduct_updated(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "approval_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Updated Product"),
+					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
 					resource.TestCheckResourceAttr(resourceName, "published", "false"),
 					resource.TestCheckResourceAttr(resourceName, "subscription_required", "false"),
@@ -145,15 +127,33 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
+				Config: testAccAzureRMApiManagementProduct_updated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "approval_required", "true"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
+					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Updated Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
 					resource.TestCheckResourceAttr(resourceName, "published", "true"),
 					resource.TestCheckResourceAttr(resourceName, "subscription_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "terms", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementProductExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "approval_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
+					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
+					resource.TestCheckResourceAttr(resourceName, "published", "false"),
+					resource.TestCheckResourceAttr(resourceName, "subscription_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "terms", ""),
 				),
 			},
@@ -208,6 +208,7 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
 					resource.TestCheckResourceAttr(resourceName, "published", "true"),
+					resource.TestCheckResourceAttr(resourceName, "subscriptions_limit", "2"),
 					resource.TestCheckResourceAttr(resourceName, "subscription_required", "true"),
 					resource.TestCheckResourceAttr(resourceName, "terms", "These are some example terms and conditions"),
 				),
@@ -273,9 +274,8 @@ resource "azurerm_api_management_product" "test" {
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   display_name          = "Test Product"
-  subscription_required = true
-  approval_required     = true
-  published             = true
+  subscription_required = false
+  published             = false
 }
 `, rInt, location, rInt)
 }
@@ -390,6 +390,7 @@ resource "azurerm_api_management_product" "test" {
   subscription_required = true
   approval_required     = true
   published             = true
+  subscriptions_limit   = 2
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
 }

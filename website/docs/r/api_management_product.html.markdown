@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `approval_required` - (Required) Do subscribers need to be approved prior to being able to use the Product?
+* `approval_required` - (Optional) Do subscribers need to be approved prior to being able to use the Product?
 
 -> **NOTE:** `approval_required` can only be set when `subscription_required` is set to `true`.
 

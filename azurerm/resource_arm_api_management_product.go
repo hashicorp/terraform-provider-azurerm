@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,8 +30,9 @@ func resourceArmApiManagementProduct() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"subscription_required": {
@@ -38,14 +40,14 @@ func resourceArmApiManagementProduct() *schema.Resource {
 				Required: true,
 			},
 
-			"approval_required": {
+			"published": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"published": {
+			"approval_required": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
 			},
 
 			"description": {
