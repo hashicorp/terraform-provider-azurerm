@@ -39,4 +39,10 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Availability Set exists.
 
+* `managed` - Whether the availability set is managed or not.
+
+* `platform_fault_domain_count` - The number of fault domains that are used.
+
+* `platform_update_domain_count` - The number of update domains that are used.
+
 * `tags` - A mapping of tags assigned to the resource.

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -65,9 +66,16 @@ func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(*resp.ID)
-	d.Set("location", resp.Location)
-	d.Set("platform_update_domain_count", resp.PlatformUpdateDomainCount)
-	d.Set("platform_fault_domain_count", resp.PlatformFaultDomainCount)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+	if resp.Sku != nil && resp.Sku.Name != nil {
+		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
+	}
+	if props := resp.AvailabilitySetProperties; props != nil {
+		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
