@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -59,7 +60,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_tier": {
@@ -70,7 +71,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"Standard",
 					"Premium",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_replication_type": {
@@ -82,7 +83,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"GRS",
 					"RAGRS",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -94,42 +95,6 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.Cool),
 					string(storage.Hot),
 				}, true),
-			},
-
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftStorage),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyvault),
-					string(storage.MicrosoftStorage),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-
-			"key_vault_properties": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_name": {
-							Type:           schema.TypeString,
-							Required:       true,
-							ValidationFunc: validate.NoEmptyStrings,
-						},
-						"key_version": {
-							Type:           schema.TypeString,
-							Required:       true,
-							ValidationFunc: validate.NoEmptyStrings,
-						},
-						"key_vault_uri": {
-							Type:           schema.TypeString,
-							Required:       true,
-							ValidationFunc: validate.NoEmptyStrings,
-						},
-					},
-				},
 			},
 
 			"custom_domain": {
@@ -150,18 +115,6 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"enable_https_traffic_only": {
@@ -298,7 +251,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 							}, true),
@@ -371,8 +324,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountKind := d.Get("account_kind").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -381,7 +332,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	networkRules := expandStorageAccountNetworkRules(d)
-	keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -391,17 +341,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandTags(tags),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
-					},
-					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
-					}},
-				KeySource:          storage.KeySource(storageAccountEncryptionSource),
-				KeyVaultProperties: keyVaultProperties,
-			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         networkRules,
 		},
@@ -531,46 +470,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("tags")
 	}
 
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:           &storage.EncryptionServices{},
-					KeySource:          storage.KeySource(encryptionSource),
-					KeyVaultProperties: &storage.KeyVaultProperties,
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-			d.SetPartial("enable_file_encryption")
-		}
-
-		// *********************************************
-		// Add Properties here
-		// *********************************************
-
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-		}
-	}
-
 	if d.HasChange("custom_domain") {
 		customDomain := expandStorageAccountCustomDomain(d)
 		opts := storage.AccountUpdateParameters{
@@ -628,27 +527,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
-	if d.HasChange("account_encryption_source") {
-		accountEncryptionSource := d.Get("account_encryption_source").(string)
-		keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					KeySource:          storage.KeySource(accountEncryptionSource),
-					KeyVaultProperties: keyVaultProperties,
-				},
-			},
-		}
-
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account account_encryption_source and key_vault_properties %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("account_encryption_source")
-		d.SetPartial("key_vault_properties")
-	}
-
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
@@ -700,24 +578,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
-			}
-		}
-
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
-
-			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil {
-				if err := d.Set("key_vault_properties", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties)); err != nil {
-					return fmt.Errorf("Error flattening `key_vault_properties`: %+v", err)
-				}
 			}
 		}
 
@@ -863,17 +723,6 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 	}
 }
 
-func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
-	domain := make(map[string]interface{})
-
-	if v := input.Name; v != nil {
-		domain["name"] = *v
-	}
-
-	// use_subdomain isn't returned
-	return []interface{}{domain}
-}
-
 func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
 	if len(networkRules) == 0 {
@@ -934,6 +783,45 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	}
 
 	return storage.Bypass(strings.Join(bypassValues, ", "))
+}
+
+func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &storage.Identity{
+		Type: &identityType,
+	}
+}
+
+func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	if identity.Type != nil {
+		result["type"] = *identity.Type
+	}
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
+}
+
+func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
+	domain := make(map[string]interface{})
+
+	if v := input.Name; v != nil {
+		domain["name"] = *v
+	}
+
+	// use_subdomain isn't returned
+	return []interface{}{domain}
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
@@ -1007,69 +895,4 @@ func validateArmStorageAccountType(v interface{}, _ string) (warnings []string, 
 
 	errors = append(errors, fmt.Errorf("Invalid storage account type %q", input))
 	return warnings, errors
-}
-
-func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
-	identities := d.Get("identity").([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &storage.Identity{
-		Type: &identityType,
-	}
-}
-
-func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
-
-	return []interface{}{result}
-}
-
-func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *storage.KeyVaultProperties {
-	vs := d.Get("key_vault_properties").([]interface{})
-	if vs == nil || len(vs) == 0 {
-		return &storage.KeyVaultProperties{}
-	}
-
-	v := vs[0].(map[string]interface{})
-	keyName := v["key_name"].(string)
-	keyVersion := v["key_version"].(string)
-	keyVaultURI := v["key_vault_uri"].(string)
-
-	return &storage.KeyVaultProperties{
-		KeyName:     utils.String(keyName),
-		KeyVersion:  utils.String(keyVersion),
-		KeyVaultURI: utils.String(keyVaultURI),
-	}
-}
-
-func flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties *storage.KeyVaultProperties) []interface{} {
-	if keyVaultProperties == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	if keyVaultProperties.KeyName != nil {
-		result["key_name"] = *keyVaultProperties.KeyName
-	}
-	if keyVaultProperties.KeyVersion != nil {
-		result["key_version"] = *keyVaultProperties.KeyVersion
-	}
-	if keyVaultProperties.KeyVaultURI != nil {
-		result["key_vault_uri"] = *keyVaultProperties.KeyVaultURI
-	}
-
-	return []interface{}{result}
 }
