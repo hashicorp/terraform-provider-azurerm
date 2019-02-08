@@ -69,9 +69,8 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			},
 
 			"protocol": {
-				Type:      schema.TypeString,
-				Required:  true,
-				StateFunc: ignoreCaseStateFunc,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Protocol1All),
 					string(network.Protocol1TCP),
@@ -88,11 +87,13 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			"allocated_outbound_ports": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  1024,
 			},
 
 			"idle_timeout_in_minutes": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  4,
 			},
 		},
 	}
