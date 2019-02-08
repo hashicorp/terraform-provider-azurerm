@@ -99,6 +99,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_api_management":                        dataSourceApiManagementService(),
+			"azurerm_api_management_product":                dataSourceApiManagementProduct(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_application_insights":                  dataSourceArmApplicationInsights(),
