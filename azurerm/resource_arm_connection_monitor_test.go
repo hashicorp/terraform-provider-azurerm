@@ -41,6 +41,37 @@ func testAccAzureRMConnectionMonitor_addressBasic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMConnectionMonitor_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_connection_monitor.test"
+
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMConnectionMonitorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMConnectionMonitor_basicAddressConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMConnectionMonitorExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMConnectionMonitor_requiresImportConfig(ri, location),
+				ExpectError: testRequiresImportError("azurerm_connection_monitor"),
+			},
+		},
+	})
+
+}
+
 func testAccAzureRMConnectionMonitor_addressComplete(t *testing.T) {
 	resourceName := "azurerm_connection_monitor.test"
 
@@ -638,4 +669,29 @@ resource "azurerm_connection_monitor" "test" {
   depends_on = ["azurerm_virtual_machine_extension.src"]
 }
 `, config, rInt)
+}
+
+func testAccAzureRMConnectionMonitor_requiresImportConfig(rInt int, location string) string {
+	config := testAccAzureRMConnectionMonitor_basicAddressConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_connection_monitor" "import" {
+  name                 = "${azurerm_connection_monitor.test.name}"
+  network_watcher_name = "${azurerm_connection_monitor.test.network_watcher_name}"
+  resource_group_name  = "${azurerm_connection_monitor.test.resource_group_name}"
+  location             = "${azurerm_connection_monitor.test.location}"
+
+  source {
+    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+  }
+
+  destination {
+    address = "terraform.io"
+    port = 80
+  }
+
+  depends_on = ["azurerm_virtual_machine_extension.src"]
+}
+`, config)
 }

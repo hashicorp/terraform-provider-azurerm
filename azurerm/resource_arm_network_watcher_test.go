@@ -36,6 +36,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"destinationUpdate":         testAccAzureRMConnectionMonitor_destinationUpdate,
 			"missingDestinationInvalid": testAccAzureRMConnectionMonitor_missingDestination,
 			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
