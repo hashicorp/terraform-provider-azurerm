@@ -13,13 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-/*
-TODO: refactor this:
-
- * resource_group_name/workspace_name can become case-sensitive
- * linked_service_properties should be a list / removed in favour of the top level element?
- * we can remove `workspace` from the resource name?
-*/
 func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
 		DeprecationMessage: `The 'azurerm_log_analytics_workspace_linked_service' resource is deprecated in favour of the renamed version 'azurerm_log_analytics_linked_service'.
@@ -60,15 +53,16 @@ As such the existing 'azurerm_log_analytics_workspace_linked_service' resource i
 			},
 
 			"resource_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"linked_service_properties.0"},
 			},
 
 			"linked_service_properties": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -79,10 +73,6 @@ As such the existing 'azurerm_log_analytics_workspace_linked_service' resource i
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
-							ConflictsWith: []string{
-								// this is the top-level field, not this one
-								"resource_id",
-							},
 						},
 					},
 				},
@@ -167,7 +157,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	lsName := id.Path["linkedServices"]
+	lsName := id.Path["linkedservices"]
 
 	resp, err := client.Get(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
@@ -176,10 +166,6 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 			return nil
 		}
 		return fmt.Errorf("Error making Read request on AzureRM Log Analytics Linked Service '%s': %+v", lsName, err)
-	}
-	if resp.ID == nil {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)
@@ -211,7 +197,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData,
 
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	lsName := id.Path["linkedServices"]
+	lsName := id.Path["linkedservices"]
 
 	resp, err := client.Delete(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
@@ -225,7 +211,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData,
 	return nil
 }
 
-func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
+func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -237,5 +223,5 @@ func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsig
 		properties["resource_id"] = interface{}(*resourceID)
 	}
 
-	return interface{}(properties)
+	return []interface{}{properties}
 }

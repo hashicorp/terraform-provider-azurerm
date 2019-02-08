@@ -391,7 +391,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -435,7 +435,7 @@ resource "azurerm_autoscale_setting" "import" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -479,7 +479,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -529,7 +529,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     recurrence {
@@ -567,7 +567,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -676,7 +676,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -728,7 +728,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     rule {
@@ -780,7 +780,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     recurrence {
@@ -824,7 +824,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     recurrence {
@@ -868,7 +868,7 @@ resource "azurerm_autoscale_setting" "test" {
     capacity {
       default = 1
       minimum = 1
-      maximum = 10
+      maximum = 30
     }
 
     fixed_date {

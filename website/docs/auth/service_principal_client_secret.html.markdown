@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via a Service Principal and a Client Secret"
-sidebar_current: "docs-azurerm-authentication-service-principal-client-secret"
+sidebar_current: "docs-azurerm-guide-authentication-service-principal-client-secret"
 description: |-
   This guide will cover how to use a Service Principal (Shared Account) with a Client Secret as authentication for the Azure Provider.
 
