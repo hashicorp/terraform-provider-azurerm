@@ -22,17 +22,7 @@ func resourceArmApiManagementProduct() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"product_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				/*
-					Constraints: []validation.Constraint{{Target: "productID", Name: validation.MaxLength, Rule: 80, Chain: nil},
-					{Target: "productID", Name: validation.MinLength, Rule: 1, Chain: nil},
-					{Target: "productID", Name: validation.Pattern, Rule: `(^[\w]+$)|(^[\w][\w\-]+[\w]$)`, Chain: nil}}},
-				*/
-				// TODO: validation
-			},
+			"product_id": azure.SchemaApiManagementProductName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
