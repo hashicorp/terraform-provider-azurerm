@@ -2,7 +2,7 @@
 layout: "azurerm"
 page_title: "Azure Resource Manager: 2.0 Upgrade Guide"
 sidebar_current: "docs-azurerm-guide-2.0-upgrade"
-description: | -
+description: |-
     Azure Resource Manager: 2.0 Upgrade Guide
 
 ---
