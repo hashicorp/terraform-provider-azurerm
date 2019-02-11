@@ -12,6 +12,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// Once Microsoft adds support for `supports_credentials` in their SDK we should add that to this schema.
+func SchemaAppServiceCorsSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"allowed_origins": {
+					Type:     schema.TypeList,
+					Required: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -207,9 +226,53 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+
+				"cors": SchemaAppServiceCorsSettings(),
 			},
 		},
 	}
+}
+
+func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
+	settings := input.([]interface{})
+	corsSettings := web.CorsSettings{}
+
+	if len(settings) == 0 {
+		return corsSettings
+	}
+
+	setting := settings[0].(map[string]interface{})
+
+	if v, ok := setting["allowed_origins"]; ok {
+		input := v.([]interface{})
+
+		allowedOrigins := make([]string, 0)
+		for _, param := range input {
+			allowedOrigins = append(allowedOrigins, param.(string))
+		}
+
+		corsSettings.AllowedOrigins = &allowedOrigins
+	}
+
+	return corsSettings
+}
+
+func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil {
+		log.Printf("[DEBUG] CorsSettings is nil")
+		return results
+	}
+
+	allowedOrigins := make([]string, 0)
+	if s := input.AllowedOrigins; s != nil {
+		allowedOrigins = *s
+	}
+	result["allowed_origins"] = allowedOrigins
+
+	return append(results, result)
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
@@ -340,6 +403,12 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.VnetName = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := ExpandAppServiceCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
 	return siteConfig
 }
 
@@ -450,6 +519,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
+
+	if input.Cors != nil {
+		result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
+	}
 
 	return append(results, result)
 }
