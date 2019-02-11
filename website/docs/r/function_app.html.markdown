@@ -135,7 +135,9 @@ The following arguments are supported:
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
 ---
 
 `identity` supports the following:
