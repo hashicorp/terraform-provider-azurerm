@@ -21,8 +21,8 @@ FEATURES:
 DEPRECATIONS:
 
 
-* data `azurerm_key_vault_key` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
-* data `azurerm_key_vault_secret` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
+* Data Source `azurerm_key_vault_key` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
+* Data Source `azurerm_key_vault_secret` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
 * `azurerm_key_vault_certificate` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
 * `azurerm_key_vault_key` - deprecating the `vault_uri` property in favour of `key_vault_id` [GH-2820]
 * `azurerm_key_vault_access_policy` - deprecating the `vault_name` and `resource_group_name` properties in favour of `key_vault_id` [GH-2820]
