@@ -49,16 +49,16 @@ variable "subnet_name" {
 
 # Note: New Service Endpoints may be available in the future
 # Docs: https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview
+
 variable "service_endpoints" {
   type = "list"
   description = "The service endoints to enable on the subnet."
-  default     = ["Microsoft.AzureCosmosDb","Microsoft.KeyVault","Microsoft.Sql","Microsoft.Storage","Microsoft.ServiceBus","Microsoft.EventHub"]
+  default     = ["Microsoft.Sql","Microsoft.Storage"]
 }
 
 # NSGs
-# Note: HDInsight Static IPs for management traffic
+# Note: HDInsight Static IPs for management traffic. These may change in the future.
 # Docs: https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-extend-hadoop-virtual-network#hdinsight-ip-1
-# Warning: Be sure to check for updates, this is a static list of IPs that may change over time.
 
 variable "source_address_prefixes_mgmt" {
   type        = "list"
