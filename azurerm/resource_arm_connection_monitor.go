@@ -27,17 +27,19 @@ func resourceArmConnectionMonitor() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"network_watcher_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -71,7 +73,7 @@ func resourceArmConnectionMonitor() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      0,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validate.PortNumberOrZero,
 						},
 					},
 				},
@@ -207,7 +209,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
 		d.Set("auto_start", props.AutoStart)
-		d.Set("interval_in_seconds", int(*props.MonitoringIntervalInSeconds))
+		d.Set("interval_in_seconds", props.MonitoringIntervalInSeconds)
 
 		source := flattenArmConnectionMonitorSource(props.Source)
 		if err := d.Set("source", source); err != nil {
@@ -270,9 +272,6 @@ func flattenArmConnectionMonitorSource(input *network.ConnectionMonitorSource) [
 
 func expandArmConnectionMonitorSource(d *schema.ResourceData) (*network.ConnectionMonitorSource, error) {
 	sources := d.Get("source").([]interface{})
-	if len(sources) == 0 {
-		return nil, fmt.Errorf("Error expanding `source`: not found")
-	}
 	source := sources[0].(map[string]interface{})
 
 	monitorSource := network.ConnectionMonitorSource{}
@@ -311,9 +310,6 @@ func flattenArmConnectionMonitorDestination(input *network.ConnectionMonitorDest
 
 func expandArmConnectionMonitorDestination(d *schema.ResourceData) (*network.ConnectionMonitorDestination, error) {
 	dests := d.Get("destination").([]interface{})
-	if len(dests) == 0 {
-		return nil, fmt.Errorf("Error expanding `destination`: not found")
-	}
 	dest := dests[0].(map[string]interface{})
 
 	monitorDest := network.ConnectionMonitorDestination{}
