@@ -1,4 +1,9 @@
-## 1.23.0 (Unreleased)
+## 1.22.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_storage_container` - support for large numbers of containers within a storage account [GH-2873]
+
 ## 1.22.0 (February 11, 2019)
 
 UPGRADE NOTES:
@@ -20,7 +25,6 @@ FEATURES:
 * **New Resource:** `azurerm_network_interface_application_security_group_association` ([#2789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2789))
 
 DEPRECATIONS:
-
 
 * Data Source `azurerm_key_vault_key` - deprecating the `vault_uri` property in favour of `key_vault_id` ([#2820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2820))
 * Data Source `azurerm_key_vault_secret` - deprecating the `vault_uri` property in favour of `key_vault_id` ([#2820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2820))
