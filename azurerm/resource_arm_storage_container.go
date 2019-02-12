@@ -174,30 +174,10 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	var container *storage.Container
-	listParams := storage.ListContainersParameters{
-		Prefix:  id.containerName,
-		Timeout: 90,
-	}
 
-	for {
-		resp, err := blobClient.ListContainers(listParams)
-		if err != nil {
-			return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.containerName, err)
-		}
-
-		for _, c := range resp.Containers {
-			if c.Name == id.containerName {
-				container = &c
-				break
-			}
-		}
-
-		if resp.NextMarker == "" {
-			break
-		}
-
-		listParams.Marker = resp.NextMarker
+	resp := blobClient.GetContainerReference(id.containerName)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.containerName, err)
 	}
 
 	if container == nil {
@@ -211,18 +191,18 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resourceGroup)
 
 	// for historical reasons, "private" above is an empty string in the API
-	if container.Properties.PublicAccess == storage.ContainerAccessTypePrivate {
+	if resp.Properties.PublicAccess == storage.ContainerAccessTypePrivate {
 		d.Set("container_access_type", "private")
 	} else {
-		d.Set("container_access_type", string(container.Properties.PublicAccess))
+		d.Set("container_access_type", string(resp.Properties.PublicAccess))
 	}
 
 	output := make(map[string]interface{})
 
-	output["last_modified"] = container.Properties.LastModified
-	output["lease_status"] = container.Properties.LeaseStatus
-	output["lease_state"] = container.Properties.LeaseState
-	output["lease_duration"] = container.Properties.LeaseDuration
+	output["last_modified"] = resp.Properties.LastModified
+	output["lease_status"] = resp.Properties.LeaseStatus
+	output["lease_state"] = resp.Properties.LeaseState
+	output["lease_duration"] = resp.Properties.LeaseDuration
 
 	if err := d.Set("properties", output); err != nil {
 		return fmt.Errorf("Error setting `properties`: %+v", err)
