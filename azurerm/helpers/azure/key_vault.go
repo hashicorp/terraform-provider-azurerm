@@ -41,17 +41,16 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client keyvault.VaultsClient,
 	return *resp.Properties.VaultURI, nil
 }
 
-func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient, keyVaultUrl string) (string, error) {
-
+func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient, keyVaultUrl string) (*string, error) {
 	list, err := client.ListComplete(ctx, utils.Int32(1000))
 	if err != nil {
-		return "", fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
+		return nil, fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
 	}
 
 	for list.NotDone() {
 		v := list.Value()
 		if v.ID == nil {
-			log.Printf("[DEBUG]GetKeyVaultId: v.ID was nil, continuing")
+			log.Printf("[DEBUG] GetKeyVaultId: v.ID was nil, continuing")
 			continue
 		}
 
@@ -76,16 +75,16 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		}
 
 		if keyVaultUrl == *get.Properties.VaultURI {
-			return *get.ID, nil
+			return get.ID, nil
 		}
 
-		e := list.NextWithContext(ctx)
-		if e != nil {
-			return "", fmt.Errorf("Error GetKeyVaultId: Error getting next value on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if e := list.NextWithContext(ctx); e != nil {
+			return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next value on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	return "", fmt.Errorf("Error GetKeyVaultId unable to find Key Vault with url %q", keyVaultUrl)
+	// we haven't found it, but Data Sources and Resources need to handle this error separately
+	return nil, nil
 }
 
 func KeyVaultExists(ctx context.Context, client keyvault.VaultsClient, keyVaultId string) (bool, error) {
