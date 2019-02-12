@@ -156,7 +156,6 @@ variable "azuresqldb_databases" {
 variable "sql_server_admin_user" {
   type = "string"
   description = "The admin user for the Azure SQL Database server."
-  default = "sqlserveradmin"
 }
 
 variable "sql_server_admin_password" {

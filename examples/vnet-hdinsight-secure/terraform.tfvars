@@ -36,5 +36,3 @@ account_replication_type = "LRS" # Change this to the type of replication you wa
 
 # SQL
 azuresqldb_databases = ["hivemetastoredb"]
-
-sql_server_admin_user = "sqlserveradmin"
