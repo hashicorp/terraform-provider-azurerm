@@ -115,6 +115,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
+						"override_path": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Required:     true,
@@ -1226,6 +1231,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
+		path := v["override_path"].(string)
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
@@ -1236,6 +1242,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				Path:                           utils.String(path),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
 				Port:                           utils.Int32(port),
 				Protocol:                       network.ApplicationGatewayProtocol(protocol),
@@ -1294,6 +1301,9 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+			if path := props.Path; path != nil {
+				output["override_path"] = string(*path)
+			}
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
 			}
