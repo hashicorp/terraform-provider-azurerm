@@ -204,10 +204,10 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	ok, err := azure.KeyVaultExists(ctx, vaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -252,10 +252,10 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -313,10 +313,10 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}

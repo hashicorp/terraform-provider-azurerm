@@ -460,10 +460,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -528,10 +528,10 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}

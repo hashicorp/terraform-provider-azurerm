@@ -163,10 +163,10 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -235,10 +235,10 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -290,10 +290,10 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 
 	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}

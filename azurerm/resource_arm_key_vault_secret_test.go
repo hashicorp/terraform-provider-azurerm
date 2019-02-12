@@ -350,7 +350,7 @@ resource "azurerm_key_vault_secret" "test" {
 `, rString, location, rString, rString)
 }
 
-func testAccAzureRMKeyVaultSecret_basicClassic(rString string, location string) string {
+func testAccAzureRMKeyVaultSecret_basicClasic(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
