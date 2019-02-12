@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -249,8 +252,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"reverse_proxy_endpoint_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 						"durability_level": {
 							Type:     schema.TypeString,
@@ -336,6 +340,19 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
 
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
@@ -890,7 +907,6 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 		instanceCount := node["instance_count"].(int)
 		clientEndpointPort := node["client_endpoint_port"].(int)
 		httpEndpointPort := node["http_endpoint_port"].(int)
-		reverseProxyEndpointPort := node["reverse_proxy_endpoint_port"].(int)
 		isPrimary := node["is_primary"].(bool)
 		durabilityLevel := node["durability_level"].(string)
 
@@ -900,8 +916,10 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			IsPrimary:                    utils.Bool(isPrimary),
 			ClientConnectionEndpointPort: utils.Int32(int32(clientEndpointPort)),
 			HTTPGatewayEndpointPort:      utils.Int32(int32(httpEndpointPort)),
-			ReverseProxyEndpointPort:     utils.Int32(int32(reverseProxyEndpointPort)),
 			DurabilityLevel:              servicefabric.DurabilityLevel(durabilityLevel),
+		}
+		if v := int32(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
+			result.ReverseProxyEndpointPort = utils.Int32(v)
 		}
 
 		applicationPortsRaw := node["application_ports"].([]interface{})

@@ -7,6 +7,8 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -130,6 +132,19 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 	tags := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_scheduler_job_collection", *existing.ID)
+		}
+	}
 
 	collection := scheduler.JobCollectionDefinition{
 		Location: utils.String(location),

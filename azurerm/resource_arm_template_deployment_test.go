@@ -13,14 +13,14 @@ import (
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
@@ -28,17 +28,43 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 
-func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMTemplateDeployment_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_template_deployment"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					testCheckAzureRMTemplateDeploymentDisappears("azurerm_template_deployment.test"),
@@ -51,14 +77,14 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
@@ -69,14 +95,14 @@ func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_withParams(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -88,14 +114,14 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -108,14 +134,14 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckOutput("tfIntOutput", "-123"),
@@ -136,14 +162,14 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTemplateDeployment_withError(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
 				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
 			},
 		},
@@ -340,6 +366,20 @@ DEPLOY
   deployment_mode = "Complete"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMTemplateDeployment_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_template_deployment" "import" {
+  name                = "${azurerm_template_deployment.test.name}"
+  resource_group_name = "${azurerm_template_deployment.test.resource_group_name}"
+
+  template_body   = "${azurerm_template_deployment.test.template_body}"
+  deployment_mode = "${azurerm_template_deployment.test.deployment_mode}"
+}
+`, testAccAzureRMTemplateDeployment_basicMultiple(rInt, location))
 }
 
 func testAccAzureRMTemplateDeployment_nestedTemplate(rInt int, location string) string {

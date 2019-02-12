@@ -242,6 +242,7 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	log.Printf("[INFO] Connecting to %s:%v remote server...", hostName, port)
 

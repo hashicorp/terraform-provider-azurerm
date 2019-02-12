@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/validation"
@@ -143,6 +144,19 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	container := blobClient.GetContainerReference(containerName)
 	blob := container.GetBlobReference(name)
 
+	// gives us https://example.blob.core.windows.net/container/file.vhd
+	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, containerName, name)
+	if requireResourcesToBeImported && d.IsNewResource() {
+		exists, err := blob.Exists()
+		if err != nil {
+			return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, storageAccountName, resourceGroupName, err)
+		}
+
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_blob", id)
+		}
+	}
+
 	if sourceUri != "" {
 		options := &storage.CopyOptions{}
 		if err := blob.Copy(sourceUri, options); err != nil {
@@ -187,8 +201,6 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// gives us https://example.blob.core.windows.net/container/file.vhd
-	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, containerName, name)
 	d.SetId(id)
 	return resourceArmStorageBlobRead(d, meta)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -116,6 +117,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
@@ -125,6 +127,19 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *existing.ID)
+		}
+	}
+
 	profile := trafficmanager.Profile{
 		Name:              &name,
 		Location:          &location,
@@ -132,7 +147,6 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		Tags:              expandTags(tags),
 	}
 
-	ctx := meta.(*ArmClient).StopContext
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
 		return err
 	}

@@ -17,16 +17,18 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":      testAccAzureRMNetworkWatcher_basic,
-			"complete":   testAccAzureRMNetworkWatcher_complete,
-			"update":     testAccAzureRMNetworkWatcher_update,
-			"disappears": testAccAzureRMNetworkWatcher_disappears,
+			"basic":          testAccAzureRMNetworkWatcher_basic,
+			"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
+			"complete":       testAccAzureRMNetworkWatcher_complete,
+			"update":         testAccAzureRMNetworkWatcher_update,
+			"disappears":     testAccAzureRMNetworkWatcher_disappears,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccAzureRMPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
 		},
 	}
 
@@ -46,7 +48,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
@@ -66,10 +68,38 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_watcher"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
@@ -92,7 +122,8 @@ func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
-	resource.ParallelTest(t, resource.TestCase{
+
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
@@ -117,7 +148,7 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
@@ -231,6 +262,19 @@ resource "azurerm_network_watcher" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMNetworkWatcher_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMNetworkWatcher_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher" "import" {
+  name                = "${azurerm_network_watcher.test.name}"
+  location            = "${azurerm_network_watcher.test.location}"
+  resource_group_name = "${azurerm_network_watcher.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMNetworkWatcher_completeConfig(rInt int, location string) string {

@@ -37,6 +37,11 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"location": locationSchema(),
 
+			"kind": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -182,6 +187,11 @@ func resourceArmFunctionApp() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"linux_fx_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -447,6 +457,8 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", resp.Kind)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -622,6 +634,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -644,6 +660,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.WebSocketsEnabled != nil {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
+	}
+
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
 	results = append(results, result)
