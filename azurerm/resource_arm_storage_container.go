@@ -174,20 +174,30 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	containers, err := blobClient.ListContainers(storage.ListContainersParameters{
+	var container *storage.Container
+	listParams := storage.ListContainersParameters{
 		Prefix:  id.containerName,
 		Timeout: 90,
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve storage containers in account %q: %s", id.containerName, err)
 	}
 
-	var container *storage.Container
-	for _, cont := range containers.Containers {
-		if cont.Name == id.containerName {
-			container = &cont
+	for {
+		resp, err := blobClient.ListContainers(listParams)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.containerName, err)
+		}
+
+		for _, c := range resp.Containers {
+			if c.Name == id.containerName {
+				container = &c
+				break
+			}
+		}
+
+		if resp.NextMarker == "" {
 			break
 		}
+
+		listParams.Marker = resp.NextMarker
 	}
 
 	if container == nil {
