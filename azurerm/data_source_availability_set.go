@@ -37,14 +37,11 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 			},
 
 			"managed": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
-			"tags": {
-				Type:     schema.TypeMap,
-				Computed: true,
-			},
+			"tags": tagsForDataSourceSchema(),
 		},
 	}
 }
