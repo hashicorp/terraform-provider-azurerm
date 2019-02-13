@@ -140,7 +140,7 @@ func (client QueuesClient) CreateOrUpdateResponder(resp *http.Response) (result 
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // queueName - the queue name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 // parameters - the shared access authorization rule.
 func (client QueuesClient) CreateOrUpdateAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, queueName string, authorizationRuleName string, parameters SBAuthorizationRule) (result SBAuthorizationRule, err error) {
 	if tracing.IsEnabled() {
@@ -332,7 +332,7 @@ func (client QueuesClient) DeleteResponder(resp *http.Response) (result autorest
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // queueName - the queue name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client QueuesClient) DeleteAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, queueName string, authorizationRuleName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/QueuesClient.DeleteAuthorizationRule")
@@ -518,7 +518,7 @@ func (client QueuesClient) GetResponder(resp *http.Response) (result SBQueue, er
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // queueName - the queue name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client QueuesClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, queueName string, authorizationRuleName string) (result SBAuthorizationRule, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/QueuesClient.GetAuthorizationRule")
@@ -888,7 +888,7 @@ func (client QueuesClient) ListByNamespaceComplete(ctx context.Context, resource
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // queueName - the queue name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client QueuesClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, queueName string, authorizationRuleName string) (result AccessKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/QueuesClient.ListKeys")
@@ -984,7 +984,7 @@ func (client QueuesClient) ListKeysResponder(resp *http.Response) (result Access
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // queueName - the queue name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 // parameters - parameters supplied to regenerate the authorization rule.
 func (client QueuesClient) RegenerateKeys(ctx context.Context, resourceGroupName string, namespaceName string, queueName string, authorizationRuleName string, parameters RegenerateAccessKeyParameters) (result AccessKeys, err error) {
 	if tracing.IsEnabled() {
