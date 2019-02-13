@@ -4,7 +4,7 @@ require (
 	cloud.google.com/go v0.34.0 // indirect
 	contrib.go.opencensus.io/exporter/ocagent v0.4.1 // indirect
 	git.apache.org/thrift.git v0.0.0-20181218151757-9b75e4fe745a // indirect
-	github.com/Azure/azure-sdk-for-go v24.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v25.1.0+incompatible
 	github.com/Azure/go-autorest v11.3.2+incompatible
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 // indirect
@@ -15,6 +15,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/davecgh/go-spew v1.1.0
 	github.com/fsouza/go-dockerclient v0.0.0-20160427172547-1d4f4ae73768 // indirect
+	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
 	github.com/go-ini/ini v1.23.1 // indirect
 	github.com/golang/mock v1.2.0 // indirect
 	github.com/google/uuid v0.0.0-20170814143639-7e072fc3a7be
@@ -34,6 +35,7 @@ require (
 	github.com/hashicorp/terraform v0.11.9
 	github.com/hashicorp/yamux v0.0.0-20160720233140-d1caa6c97c9f // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20160803190731-bd40a432e4c7 // indirect
+	github.com/marstr/collection v1.0.1 // indirect
 	github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c // indirect
 	github.com/mitchellh/cli v1.0.0 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -42,10 +44,14 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/openzipkin/zipkin-go v0.1.3 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v0.9.2 // indirect
 	github.com/prometheus/common v0.0.0-20181218105931-67670fe90761 // indirect
 	github.com/satori/go.uuid v0.0.0-20160927100844-b061729afc07
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
+	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
+	github.com/spf13/cobra v0.0.3 // indirect
+	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/ulikunitz/xz v0.5.4 // indirect
 	github.com/zclconf/go-cty v0.0.0-20180227163247-7166230c635f // indirect
 	golang.org/x/crypto v0.0.0-20181112202954-3d3f9f413869
