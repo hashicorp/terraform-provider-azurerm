@@ -292,12 +292,20 @@ resource "azurerm_lb" "test" {
   }
 }
 
+resource "azurerm_lb_backend_address_pool" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "be-%d"
+}
+
 resource "azurerm_lb_outbound_rule" "test" {
   location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
   protocol                       = "All"
+
 
   frontend_ip_configuration {
     name = "one-%d"
@@ -319,7 +327,7 @@ resource "azurerm_lb_outbound_rule" "import" {
   protocol                       = "All"
 
   frontend_ip_configuration {
-    name = "${azurerm_lb_outbound_rule.test.frontend_ip_configuration_name}"
+    name = "${azurerm_lb_outbound_rule.test.frontend_ip_configuration.0.name}"
   }
 }
 `, template)
@@ -337,6 +345,12 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "be-%d"
 }
 
 resource "azurerm_lb" "test" {
@@ -372,30 +386,45 @@ resource "azurerm_lb" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                 = "fe1-%d"
+    public_ip_address_id = "${azurerm_public_ip.test1.id}"
   }
+
+  frontend_ip_configuration {
+    name                 = "fe2-%d"
+    public_ip_address_id = "${azurerm_public_ip.test2.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "be-%d"
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
   location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = "${azurerm_lb.test1.id}"
   name                           = "%s"
   protocol                       = "Tcp"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+
   frontend_ip_configuration {
-    name = "one-%d"
+    name = "fe1-%d"
   }
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
   location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = "${azurerm_lb.test2.id}"
   name                           = "%s"
   protocol                       = "Udp"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+
   frontend_ip_configuration {
-    name = "one-%d"
+    name = "fe2-%d"
   }
 }
 `, rInt, location, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
@@ -408,8 +437,15 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+resource "azurerm_public_ip" "test1" {
+  name                = "test-ip-1-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "test-ip-2-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
@@ -421,9 +457,20 @@ resource "azurerm_lb" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                 = "fe1-%d"
+    public_ip_address_id = "${azurerm_public_ip.test1.id}"
   }
+
+  frontend_ip_configuration {
+    name                 = "fe2-%d"
+    public_ip_address_id = "${azurerm_public_ip.test2.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "be-%d"
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
@@ -432,8 +479,10 @@ resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
   protocol                       = "All"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+
   frontend_ip_configuration {
-    name = "one-%d"
+    name = "fe1-%d"
   }
 }
 
@@ -443,8 +492,10 @@ resource "azurerm_lb_outbound_rule" "test2" {
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
   protocol                       = "All"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+
   frontend_ip_configuration {
-    name = "one-%d"
+    name = "fe2-%d"
   }
 }
 `, rInt, location, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
