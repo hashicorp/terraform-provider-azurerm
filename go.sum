@@ -14,6 +14,8 @@ github.com/Azure/go-autorest v11.2.8+incompatible h1:Q2feRPMlcfVcqz3pF87PJzkm5lZ
 github.com/Azure/go-autorest v11.2.8+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v11.3.2+incompatible h1:2bRmoaLvtIXW5uWpZVoIkc0C1z7c84rVGnP+3mpyCRg=
 github.com/Azure/go-autorest v11.3.2+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
+github.com/Azure/go-autorest v11.4.0+incompatible h1:z3Yr6KYqs0nhSNwqGXEBpWK977hxVqsLv2n9PVYcixY=
+github.com/Azure/go-autorest v11.4.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/agext/levenshtein v1.2.1 h1:QmvMAjj2aEICytGiWzmxoE0x2KZvE0fvmqMOfy2tjT8=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
 github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 h1:bpmA3CCh0K829XIR5kfcV+YDt+Gwi7SEYPCcYEVKWUo=
