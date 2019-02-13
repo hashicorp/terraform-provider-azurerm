@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
-sidebar_current: "docs-azurerm-datasource-availability_set"
+sidebar_current: "docs-azurerm-datasource-availability-set"
 description: |-
   Gets information about an existing Availability Set.
 ---
