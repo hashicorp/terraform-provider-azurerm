@@ -1301,7 +1301,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
-			
+
 			if path := props.Path; path != nil {
 				output["override_path"] = *path
 			}
