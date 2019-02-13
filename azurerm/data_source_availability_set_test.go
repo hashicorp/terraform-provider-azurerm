@@ -24,7 +24,7 @@ func TestAccDataSourceAvailabilitySet_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 				),
 			},
 		},
