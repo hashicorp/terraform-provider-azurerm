@@ -51,7 +51,7 @@ func TestAccAzureRMApplicationGateway_overridePath(t *testing.T) {
 				Config: testAccAzureRMApplicationGateway_overridePath(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.override_path", "/path1/"),
+					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.path", "/path1/"),
 				),
 			},
 			{
@@ -533,7 +533,7 @@ resource "azurerm_application_gateway" "test" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    override_path         = "/path1/"
+    path         = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1

@@ -115,7 +115,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"override_path": {
+						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -1231,7 +1231,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		path := v["override_path"].(string)
+		path := v["path"].(string)
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
@@ -1303,7 +1303,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
 
 			if path := props.Path; path != nil {
-				output["override_path"] = *path
+				output["path"] = *path
 			}
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
