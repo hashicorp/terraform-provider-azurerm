@@ -247,7 +247,8 @@ func testAccAzureRMKeyVaultAccessPolicy_basicClassic(rString string, location st
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 
   key_permissions = [
     "get",
