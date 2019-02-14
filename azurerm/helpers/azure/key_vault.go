@@ -89,7 +89,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		}
 
 		if e := list.NextWithContext(ctx); e != nil {
-			return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next vault on KeyVault url %q (Resource Group %q): %+v", keyVaultUrl, err)
+			return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
 		}
 	}
 
