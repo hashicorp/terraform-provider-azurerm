@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to v25.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-2886]
 * dependencies: upgrading to v11.4.0 of `github.com/Azure/go-autorest` [GH-2886]
+* `azurerm_application_gateway` - support for `path` within the `backend_http_settings` block [GH-2879]
 
 ## 1.22.1 (February 14, 2019)
 
