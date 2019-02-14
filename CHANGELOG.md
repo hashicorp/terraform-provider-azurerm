@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Data Source:** `azurerm_availability_set` [GH-2850]
 
+IMPROVEMENTS:
+
+* dependencies: upgrading to v25.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-2886]
+* dependencies: upgrading to v11.4.0 of `github.com/Azure/go-autorest` [GH-2886]
+
 ## 1.22.1 (February 14, 2019)
 
 BUG FIXES:
