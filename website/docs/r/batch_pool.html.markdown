@@ -46,7 +46,7 @@ resource "azurerm_batch_pool" "test" {
   display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  
+
   auto_scale {
     evaluation_interval = "PT15M"
     formula             = <<EOF
@@ -57,7 +57,7 @@ resource "azurerm_batch_pool" "test" {
       $TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
 EOF
   }
-  
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
-* `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`.
+* `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
@@ -122,7 +122,7 @@ A `fixed_scale` block supports the following:
 
 * `resize_timeout` - (Optional) The timeout for resize operations. Defaults to `PT15M`.
 
---- 
+---
 
 A `auto_scale` block supports the following:
 
