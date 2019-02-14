@@ -2473,8 +2473,8 @@ resource "azurerm_app_service" "test" {
         "http://www.contoso.com",
         "www.contoso.com",
         "contoso.com"
-			]
-			support_credentials = true
+      ]
+      support_credentials = true
     }
   }
 }
