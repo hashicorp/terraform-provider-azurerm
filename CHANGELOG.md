@@ -2,10 +2,10 @@
 
 BUG FIXES:
 
-* `azurerm_key_vault_access_policy` - fixing a bug where the Key Vault Resource ID was empty [GH-2874]
-* `azurerm_key_vault_certificate` - fixing a bug where the Key Vault Resource ID was empty [GH-2874]
-* `azurerm_key_vault_key` - fixing a bug where the Key Vault Resource ID was empty [GH-2874]
-* `azurerm_key_vault_secret` - fixing a bug where the Key Vault Resource ID was empty [GH-2874]
+* `azurerm_key_vault_access_policy` - will no longer fail to find the Key Vault if `key_vault_id` is empty [GH-2874]
+* `azurerm_key_vault_certificate` - will no longer fail to find the Key Vault if `key_vault_id` is [GH-2874]
+* `azurerm_key_vault_key` - will no longer fail to find the Key Vault if `key_vault_id` is [GH-2874]
+* `azurerm_key_vault_secret` - will no longer fail to find the Key Vault if `key_vault_id` is [GH-2874]
 * `azurerm_storage_container` - support for large numbers of containers within a storage account [GH-2873]
 
 ## 1.22.0 (February 11, 2019)
