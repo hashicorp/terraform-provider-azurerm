@@ -49,12 +49,12 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		v := list.Value()
 
 		if v.ID == nil {
-			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: v.ID was nil, continuing")
+			return nil, fmt.Errorf("v.ID was nil")
 		}
 
 		vid, err := ParseAzureResourceID(*v.ID)
 		if err != nil {
-			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: unable to parse v.ID (%s): %v", *v.ID, err)
+			return nil, fmt.Errorf("Error parsing ID for Key Vault URI %q: %s", *v.ID, err)
 		}
 		resourceGroup := vid.ResourceGroup
 		name := vid.Path["vaults"]
@@ -64,15 +64,15 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		if err != nil {
 			if utils.ResponseWasNotFound(get.Response) {
 				if e := list.NextWithContext(ctx); e != nil {
-					return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
+					return nil, fmt.Errorf("Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
 				}
 				continue
 			}
-			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
-			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
+			return nil, fmt.Errorf("KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
 		}
 
 		if keyVaultUrl == *get.Properties.VaultURI {
@@ -80,7 +80,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		}
 
 		if e := list.NextWithContext(ctx); e != nil {
-			return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
+			return nil, fmt.Errorf("Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
 		}
 	}
 
