@@ -1,4 +1,9 @@
 ## 1.23.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_availability_set` [GH-2850]
+
 ## 1.22.1 (February 14, 2019)
 
 BUG FIXES:
