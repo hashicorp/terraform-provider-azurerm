@@ -103,6 +103,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_application_insights":                  dataSourceArmApplicationInsights(),
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
+			"azurerm_availability_set":                      dataSourceArmAvailabilitySet(),
 			"azurerm_azuread_application":                   dataSourceArmAzureADApplication(),
 			"azurerm_azuread_service_principal":             dataSourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_batch_account":                         dataSourceArmBatchAccount(),
