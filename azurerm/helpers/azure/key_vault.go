@@ -47,7 +47,6 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		return nil, fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
 	}
 
-
 	for list.NotDone() {
 		v := list.Value()
 
