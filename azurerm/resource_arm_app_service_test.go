@@ -1197,6 +1197,7 @@ func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.support_credentials", "true"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.0", "http://www.contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.1", "www.contoso.com"),
@@ -2472,7 +2473,8 @@ resource "azurerm_app_service" "test" {
         "http://www.contoso.com",
         "www.contoso.com",
         "contoso.com"
-      ]
+			]
+			support_credentials = true
     }
   }
 }

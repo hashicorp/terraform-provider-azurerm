@@ -26,6 +26,11 @@ func SchemaAppServiceCorsSettings() *schema.Schema {
 					Required: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
+				"support_credentials": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -254,6 +259,10 @@ func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
 		corsSettings.AllowedOrigins = &allowedOrigins
 	}
 
+	if v, ok := setting["support_credentials"]; ok {
+		corsSettings.SupportCredentials = utils.Bool(v.(bool))
+	}
+
 	return corsSettings
 }
 
@@ -271,6 +280,10 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 		allowedOrigins = *s
 	}
 	result["allowed_origins"] = allowedOrigins
+
+	if input.SupportCredentials != nil {
+		result["support_credentials"] = *input.SupportCredentials
+	}
 
 	return append(results, result)
 }

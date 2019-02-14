@@ -251,6 +251,8 @@ The following attributes are exported:
 
 * `allowed_origins` - (Required) List of allowed origins
 
+* `support_credentials` - (Optional) Should credential headers be allowed? Defaults to `false`.
+
 ## Import
 
 App Services can be imported using the `resource id`, e.g.
