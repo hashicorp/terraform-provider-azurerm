@@ -3,8 +3,6 @@ package azure
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -47,16 +45,16 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		return nil, fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
 	}
 
-	getIdIfUrlIs := func(v keyvault.Resource, url string) *string {
+	for list.NotDone() {
+		v := list.Value()
+
 		if v.ID == nil {
-			log.Printf("[DEBUG] GetKeyVaultId: v.ID was nil, continuing")
-			return nil
+			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: v.ID was nil, continuing")
 		}
 
 		vid, err := ParseAzureResourceID(*v.ID)
 		if err != nil {
-			log.Printf("[DEBUG] GetKeyVaultId: unable to parse v.ID (%s): %v", *v.ID, err)
-			return nil
+			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: unable to parse v.ID (%s): %v", *v.ID, err)
 		}
 		resourceGroup := vid.ResourceGroup
 		name := vid.Path["vaults"]
@@ -64,25 +62,21 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 		//resp does not appear to contain the vault properties, so lets fetch them
 		get, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			log.Printf("[DEBUG] GetKeyVaultId: Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
-			return nil
+			if utils.ResponseWasNotFound(get.Response) {
+				if e := list.NextWithContext(ctx); e != nil {
+					return nil, fmt.Errorf("Error GetKeyVaultId: Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
+				}
+				continue
+			}
+			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
-			log.Printf("[DEBUG] GetKeyVaultId: KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
-			return nil
+			return nil, fmt.Errorf("[DEBUG] GetKeyVaultId: KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
 		}
 
-		if url == *get.Properties.VaultURI {
-			return get.ID
-		}
-
-		return nil
-	}
-
-	for list.NotDone() {
-		if id := getIdIfUrlIs(list.Value(), keyVaultUrl); id != nil {
-			return id, nil
+		if keyVaultUrl == *get.Properties.VaultURI {
+			return get.ID, nil
 		}
 
 		if e := list.NextWithContext(ctx); e != nil {
