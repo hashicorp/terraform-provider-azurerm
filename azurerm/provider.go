@@ -101,6 +101,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_api_management":                        dataSourceApiManagementService(),
 			"azurerm_api_management_group":                  dataSourceApiManagementGroup(),
 			"azurerm_api_management_product":                dataSourceApiManagementProduct(),
+			"azurerm_api_management_user":                   dataSourceArmApiManagementUser(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_application_insights":                  dataSourceArmApplicationInsights(),
