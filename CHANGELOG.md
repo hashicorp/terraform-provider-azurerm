@@ -11,6 +11,10 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for `path` within the `backend_http_settings` block [GH-2879]
 * `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block [GH-2887]
 
+BUG FIXES:
+
+* `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
+
 ## 1.22.1 (February 14, 2019)
 
 BUG FIXES:
