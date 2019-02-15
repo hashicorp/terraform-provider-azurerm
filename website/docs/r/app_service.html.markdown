@@ -119,7 +119,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
--> **Note:** To use enable Continuous Deployment on a Single Container App Service, use the following App Setting : `DOCKER_ENABLE_CI=true`.
+-> **Note:** To enable Continuous Deployment on a Single Container App Service, use the following App Setting : `DOCKER_ENABLE_CI=true`.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
