@@ -112,11 +112,12 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
-	eventGridDomainsClient      eventgrid.DomainsClient
-	eventGridTopicsClient       eventgrid.TopicsClient
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
+	eventGridDomainsClient            eventgrid.DomainsClient
+	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
+	eventGridTopicsClient             eventgrid.TopicsClient
+	eventHubClient                    eventhub.EventHubsClient
+	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient          eventhub.NamespacesClient
 
 	solutionsClient operationsmanagement.SolutionsClient
 
@@ -835,6 +836,10 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egdc.Client, auth)
 	c.eventGridDomainsClient = egdc
+
+	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egesc.Client, auth)
+	c.eventGridEventSubscriptionsClient = egesc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
