@@ -82,6 +82,11 @@ func resourceArmAppService() *schema.Resource {
 				Default:  false,
 			},
 
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -250,6 +255,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
+	}
+
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
@@ -301,6 +311,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
@@ -453,6 +468,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)

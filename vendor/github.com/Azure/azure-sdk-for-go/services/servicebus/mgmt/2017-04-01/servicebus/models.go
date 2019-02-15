@@ -515,9 +515,9 @@ type ArmDisasterRecoveryProperties struct {
 	ProvisioningState ProvisioningStateDR `json:"provisioningState,omitempty"`
 	// PendingReplicationOperationsCount - Number of entities pending to be replicated.
 	PendingReplicationOperationsCount *int64 `json:"pendingReplicationOperationsCount,omitempty"`
-	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairning
+	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	PartnerNamespace *string `json:"partnerNamespace,omitempty"`
-	// AlternateName - Primary/Secondary eventhub namespace name, which is part of GEO DR pairning
+	// AlternateName - Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	AlternateName *string `json:"alternateName,omitempty"`
 	// Role - role of namespace in GEO DR - possible values 'Primary' or 'PrimaryNotReplicating' or 'Secondary'. Possible values include: 'Primary', 'PrimaryNotReplicating', 'Secondary'
 	Role RoleDisasterRecovery `json:"role,omitempty"`
@@ -545,7 +545,7 @@ type CaptureDescription struct {
 
 // CheckNameAvailability description of a Check Name availability request properties.
 type CheckNameAvailability struct {
-	// Name - The Name to check the namespce name availability and The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.
+	// Name - The Name to check the namespace name availability and The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.
 	Name *string `json:"name,omitempty"`
 }
 
@@ -624,7 +624,7 @@ func (cf CorrelationFilter) MarshalJSON() ([]byte, error) {
 type Destination struct {
 	// Name - Name for capture destination
 	Name *string `json:"name,omitempty"`
-	// DestinationProperties - Properties describing the storage account, blob container and acrchive name format for capture destination
+	// DestinationProperties - Properties describing the storage account, blob container and archive name format for capture destination
 	*DestinationProperties `json:"properties,omitempty"`
 }
 
@@ -673,7 +673,7 @@ func (d *Destination) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DestinationProperties properties describing the storage account, blob container and acrchive name format
+// DestinationProperties properties describing the storage account, blob container and archive name format
 // for capture destination
 type DestinationProperties struct {
 	// StorageAccountResourceID - Resource id of the storage account to be used to create the blobs
@@ -684,7 +684,7 @@ type DestinationProperties struct {
 	ArchiveNameFormat *string `json:"archiveNameFormat,omitempty"`
 }
 
-// ErrorResponse error reponse indicates ServiceBus service is not able to process the incoming request.
+// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request.
 // The reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - Error code.
@@ -1830,7 +1830,7 @@ type PremiumMessagingRegionsProperties struct {
 }
 
 // RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
-// specifies which key neeeds to be reset.
+// specifies which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
 	// KeyType - The access key to regenerate. Possible values include: 'PrimaryKey', 'SecondaryKey'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -2361,7 +2361,7 @@ type SBAuthorizationRuleProperties struct {
 // SBNamespace description of a namespace resource.
 type SBNamespace struct {
 	autorest.Response `json:"-"`
-	// Sku - Porperties of Sku
+	// Sku - Properties of Sku
 	Sku *SBSku `json:"sku,omitempty"`
 	// SBNamespaceProperties - Properties of the namespace.
 	*SBNamespaceProperties `json:"properties,omitempty"`
@@ -2650,7 +2650,7 @@ type SBNamespaceProperties struct {
 
 // SBNamespaceUpdateParameters description of a namespace resource.
 type SBNamespaceUpdateParameters struct {
-	// Sku - Porperties of Sku
+	// Sku - Properties of Sku
 	Sku *SBSku `json:"sku,omitempty"`
 	// SBNamespaceProperties - Properties of the namespace.
 	*SBNamespaceProperties `json:"properties,omitempty"`
@@ -3549,7 +3549,7 @@ func NewSBTopicListResultPage(getNextPage func(context.Context, SBTopicListResul
 	return SBTopicListResultPage{fn: getNextPage}
 }
 
-// SBTopicProperties the Tpoic Properties definition.
+// SBTopicProperties the Topic Properties definition.
 type SBTopicProperties struct {
 	// SizeInBytes - Size of the topic, in bytes.
 	SizeInBytes *int64 `json:"sizeInBytes,omitempty"`
@@ -3561,7 +3561,7 @@ type SBTopicProperties struct {
 	AccessedAt *date.Time `json:"accessedAt,omitempty"`
 	// SubscriptionCount - Number of subscriptions.
 	SubscriptionCount *int32 `json:"subscriptionCount,omitempty"`
-	// CountDetails - Message count deatils
+	// CountDetails - Message count details
 	CountDetails *MessageCountDetails `json:"countDetails,omitempty"`
 	// DefaultMessageTimeToLive - ISO 8601 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 	DefaultMessageTimeToLive *string `json:"defaultMessageTimeToLive,omitempty"`

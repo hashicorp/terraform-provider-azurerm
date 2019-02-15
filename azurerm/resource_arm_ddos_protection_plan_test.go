@@ -38,7 +38,7 @@ func testAccAzureRMDDoSProtectionPlan_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
@@ -69,7 +69,7 @@ func testAccAzureRMDDoSProtectionPlan_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
@@ -93,7 +93,7 @@ func testAccAzureRMDDoSProtectionPlan_withTags(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
@@ -129,7 +129,7 @@ func testAccAzureRMDDoSProtectionPlan_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,

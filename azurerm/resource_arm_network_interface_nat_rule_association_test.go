@@ -30,6 +30,35 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_interface_nat_rule_association.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface_nat_rule_association"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	ri := tf.AccRandTimeInt()
@@ -225,4 +254,17 @@ resource "azurerm_network_interface_nat_rule_association" "test" {
   nat_rule_id           = "${azurerm_lb_nat_rule.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface_nat_rule_association" "import" {
+  network_interface_id  = "${azurerm_network_interface_nat_rule_association.test.network_interface_id}"
+  ip_configuration_name = "${azurerm_network_interface_nat_rule_association.test.ip_configuration_name}"
+  nat_rule_id           = "${azurerm_network_interface_nat_rule_association.test.nat_rule_id}"
+}
+`, template)
 }

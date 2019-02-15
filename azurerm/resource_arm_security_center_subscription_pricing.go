@@ -44,6 +44,9 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 
 	name := securityCenterSubscriptionPricingName
 
+	// not doing import check as afaik it always exists (cannot be deleted)
+	// all this resource does is flip a boolean
+
 	pricing := security.Pricing{
 		PricingProperties: &security.PricingProperties{
 			PricingTier: security.PricingTier(d.Get("tier").(string)),

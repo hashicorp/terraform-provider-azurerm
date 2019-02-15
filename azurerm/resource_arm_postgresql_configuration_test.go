@@ -13,9 +13,6 @@ import (
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
-	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,7 +20,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "on"),
 				),
@@ -34,7 +31,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMPostgreSQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "backslash_quote"),

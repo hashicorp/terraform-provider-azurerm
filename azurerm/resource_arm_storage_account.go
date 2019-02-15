@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -323,12 +324,26 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 
-	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
-	accountKind := d.Get("account_kind").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported {
+		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
+		}
+	}
+
+	accountKind := d.Get("account_kind").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
@@ -393,7 +408,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Create
-	ctx := meta.(*ArmClient).StopContext
 	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
@@ -785,8 +799,8 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 	name := domain["name"].(string)
 	useSubDomain := domain["use_subdomain"].(bool)
 	return &storage.CustomDomain{
-		Name:         utils.String(name),
-		UseSubDomain: utils.Bool(useSubDomain),
+		Name:             utils.String(name),
+		UseSubDomainName: utils.Bool(useSubDomain),
 	}
 }
 

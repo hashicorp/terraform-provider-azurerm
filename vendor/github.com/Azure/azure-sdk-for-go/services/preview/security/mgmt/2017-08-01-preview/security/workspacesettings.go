@@ -210,7 +210,8 @@ func (client WorkspaceSettingsClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Get settings about where we should store your security data and logs
+// Get settings about where we should store your security data and logs. If the result is empty, it means that no
+// custom-workspace configuration was set
 // Parameters:
 // workspaceSettingName - name of the security setting
 func (client WorkspaceSettingsClient) Get(ctx context.Context, workspaceSettingName string) (result WorkspaceSetting, err error) {
@@ -291,7 +292,8 @@ func (client WorkspaceSettingsClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// List settings about where we should store your security data and logs
+// List settings about where we should store your security data and logs. If the result is empty, it means that no
+// custom-workspace configuration was set
 func (client WorkspaceSettingsClient) List(ctx context.Context) (result WorkspaceSettingListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspaceSettingsClient.List")

@@ -135,12 +135,12 @@ func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
-// CreateOrUpdateAuthorizationRule creates an authorizatio rule for the specified topic.
+// CreateOrUpdateAuthorizationRule creates an authorization rule for the specified topic.
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // topicName - the topic name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 // parameters - the shared access authorization rule.
 func (client TopicsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string, parameters SBAuthorizationRule) (result SBAuthorizationRule, err error) {
 	if tracing.IsEnabled() {
@@ -332,7 +332,7 @@ func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // topicName - the topic name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) DeleteAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.DeleteAuthorizationRule")
@@ -518,7 +518,7 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result SBTopic, er
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // topicName - the topic name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result SBAuthorizationRule, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.GetAuthorizationRule")
@@ -888,7 +888,7 @@ func (client TopicsClient) ListByNamespaceComplete(ctx context.Context, resource
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // topicName - the topic name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result AccessKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListKeys")
@@ -984,7 +984,7 @@ func (client TopicsClient) ListKeysResponder(resp *http.Response) (result Access
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // topicName - the topic name.
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 // parameters - parameters supplied to regenerate the authorization rule.
 func (client TopicsClient) RegenerateKeys(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string, parameters RegenerateAccessKeyParameters) (result AccessKeys, err error) {
 	if tracing.IsEnabled() {

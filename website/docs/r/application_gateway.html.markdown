@@ -89,6 +89,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
+    path         = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -145,11 +146,15 @@ The following arguments are supported:
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
+* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
+
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -171,9 +176,13 @@ A `backend_address_pool` block supports the following:
 
 * `name` - (Required) The name of the Backend Address Pool.
 
-* `fqdn_list` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
+* `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `ip_address_list` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
+
+* `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+
+* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -182,6 +191,8 @@ A `backend_http_settings` block supports the following:
 * `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
 
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
+
+* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
@@ -256,6 +267,8 @@ A `http_listener` block supports the following:
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
 ---
 
 A `match` block supports the following:
@@ -328,6 +341,16 @@ A `sku` block supports the following:
 
 ---
 
+A `ssl_certificate` block supports the following:
+
+* `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
+
+* `data` - (Required) PFX certificate.
+
+* `password` - (Required) Password for the pfx file specified in data.
+
+---
+
 A `url_path_map` block supports the following:
 
 * `name` - (Required) The Name of the URL Path Map.
@@ -351,6 +374,14 @@ A `waf_configuration` block supports the following:
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall.
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+
+---
+
+A `custom_error_configuration` block supports the following:
+
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
+
+* `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
 
 ## Attributes Reference
 
@@ -381,6 +412,8 @@ The following attributes are exported:
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
 * `url_path_map` - A list of `url_path_map` blocks as defined below.
+
+* `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -487,6 +520,12 @@ A `url_path_map` block exports the following:
 * `default_backend_http_settings_id` - The ID of the Default Backend HTTP Settings Collection.
 
 * `path_rule` - A list of `path_rule` blocks as defined above.
+
+---
+
+A `custom_error_configuration` block exports the following:
+
+* `id` - The ID of the Custom Error Configuration.
 
 ## Import
 

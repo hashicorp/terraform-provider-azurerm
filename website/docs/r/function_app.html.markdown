@@ -136,6 +136,8 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
 ---
 
 `identity` supports the following:
@@ -156,6 +158,8 @@ The following attributes are exported:
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+* `kind` - The Function App kind - such as `functionapp,linux,container`
 
 ---
 

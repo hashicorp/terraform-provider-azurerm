@@ -41,6 +41,38 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_storage_container.test"
+	var c storage.Container
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageContainer_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_container"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
@@ -322,6 +354,20 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "import" {
+  name                  = "${azurerm_storage_container.test.name}"
+  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
+  container_access_type = "${azurerm_storage_container.test.container_access_type}"
+}
+`, template)
 }
 
 func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {

@@ -10,6 +10,8 @@ description: |-
 
 Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 ## Example Usage
 
 ```hcl
@@ -297,13 +299,13 @@ A `profile` block supports the following:
 
 A `capacity` block supports the following:
 
-* `default` - (Required) The number of instances that are available for scaling if metrics are not available for evaluation. The default is only used if the current instance count is lower than the default.
+* `default` - (Required) The number of instances that are available for scaling if metrics are not available for evaluation. The default is only used if the current instance count is lower than the default. Valid values are between `0` and `1000`.
 
-* `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `1` and `40`.
+* `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `0` and `1000`.
 
 -> **NOTE:** The maximum number of instances is also limited by the amount of Cores available in the subscription.
 
-* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `1` and `40`.
+* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `0` and `1000`.
 
 ---
 

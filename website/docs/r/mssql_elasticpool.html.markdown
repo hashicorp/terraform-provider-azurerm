@@ -32,13 +32,13 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   server_name         = "${azurerm_sql_server.test.name}"
-  max_size_bytes      = 5368709120
+  max_size_gb         = 756
 
   sku {
     name     = "GP_Gen5"
-    capacity = 4
     tier     = "GeneralPurpose"
     family   = "Gen5"
+    capacity = 4
   }
 
   per_database_settings {
@@ -64,7 +64,9 @@ The following arguments are supported:
 
 * `per_database_settings` - (Required) A `per_database_settings` block as defined below.
 
-* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes.
+* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes. Conflicts with `max_size_bytes`. 
+
+* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -78,7 +80,7 @@ The following arguments are supported:
 
 * `tier` - (Required) The tier of the particular SKU. Possible values are `GeneralPurpose`, `BusinessCritical`, `Basic`, `Standard`, or `Premium`. For more information see the documentation for your Elasticpool configuration: [vCore-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-vcore-resource-limits-elastic-pools) or [DTU-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-dtu-resource-limits-elastic-pools).
 
-* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`.
+* `family` - (Optional) The `family` of hardware `Gen4` or `Gen5`.
 
 ---
 
