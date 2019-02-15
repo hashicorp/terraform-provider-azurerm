@@ -119,6 +119,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+-> **Note:** To use enable Continuous Deployment on a Single Container App Service, use the following App Setting : `DOCKER_ENABLE_CI=true`.
+
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
