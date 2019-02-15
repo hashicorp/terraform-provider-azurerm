@@ -321,10 +321,24 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 				Config: testAccAzureRMApplicationGateway_connectionDraining(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.connection_draining.0.enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_Small"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
 					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.enabled"),
-					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.drain_timeout_in_sec"),
-					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.1.connection_draining.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.1.connection_draining.drain_timeout_in_sec", "127"),
+					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.drain_timeout_sec"),
 				),
 			},
 			{
@@ -1360,8 +1374,6 @@ locals {
   frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  probe1_name                    = "${azurerm_virtual_network.test.name}-probe1"
-  probe2_name                    = "${azurerm_virtual_network.test.name}-probe2"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
@@ -1369,6 +1381,7 @@ resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+  enable_http2        = true
 
   sku {
     name     = "Standard_Small"
@@ -1399,22 +1412,12 @@ resource "azurerm_application_gateway" "test" {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
     port                  = 80
-    probe_name            = "${local.probe1_name}"
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  backend_http_settings {
-    name                  = "${local.http_setting_name}-2"
-    cookie_based_affinity = "Disabled"
-    port                  = 8080
-    probe_name            = "${local.probe2_name}"
     protocol              = "Http"
     request_timeout       = 1
 
-    connection_draining {
-      enabled = true
-      drain_timeout_in_sec = 127
+	connection_draining {
+      enabled           = true
+      drain_timeout_sec = 1984
     }
   }
 

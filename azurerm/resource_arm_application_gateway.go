@@ -157,9 +157,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Required: true,
 									},
 
-									"drain_timeout_in_sec": {
+									"drain_timeout_sec": {
 										Type:         schema.TypeInt,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 3600),
 									},
 								},
@@ -1215,7 +1215,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
 			output["protocol"] = string(props.Protocol)
-			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props)
+			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
 
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
@@ -1273,49 +1273,32 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *network.ApplicationGatewayConnectionDraining {
 	connectionsRaw := d["connection_draining"].([]interface{})
 
-	var connectionDraining *network.ApplicationGatewayConnectionDraining
-	if len(connectionsRaw) > 0 {
-		connectionRaw := connectionsRaw[0].(map[string]interface{})
-
-		enabled := connectionRaw["enabled"].(bool)
-		var drainTimeout int32
-
-		if enabled {
-			drainTimeout = int32(connectionRaw["drain_timeout_in_sec"].(int))
-		}
-
-		connectionDraining = &network.ApplicationGatewayConnectionDraining{
-			Enabled:           utils.Bool(enabled),
-			DrainTimeoutInSec: utils.Int32(drainTimeout),
-		}
+	if len(connectionsRaw) <= 0 {
+		return nil
 	}
 
-	return connectionDraining
+	connectionRaw := connectionsRaw[0].(map[string]interface{})
+
+	return &network.ApplicationGatewayConnectionDraining{
+		Enabled:           utils.Bool(connectionRaw["enabled"].(bool)),
+		DrainTimeoutInSec: utils.Int32(int32(connectionRaw["drain_timeout_sec"].(int))),
+	}
 }
 
-func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat) []interface{} {
-	results := make([]interface{}, 0)
-
-	if connectionDraining := input.ConnectionDraining; connectionDraining != nil {
-		enabled := false
-		if connectionDraining.Enabled != nil {
-			enabled = *connectionDraining.Enabled
-		}
-
-		var drainTimeout int32
-		if enabled && connectionDraining.DrainTimeoutInSec != nil {
-			drainTimeout = *connectionDraining.DrainTimeoutInSec
-		}
-
-		var result = map[string]interface{}{
-			"enabled":              enabled,
-			"drain_timeout_in_sec": drainTimeout,
-		}
-
-		results = append(results, result)
+func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatewayConnectionDraining) []interface{} {
+	result := map[string]interface{}{}
+	if input == nil {
+		return []interface{}{}
 	}
 
-	return results
+	if v := input.Enabled; v != nil {
+		result["enabled"] = *v
+	}
+	if v := input.DrainTimeoutInSec; v != nil {
+		result["drain_timeout_sec"] = *v
+	}
+
+	return []interface{}{result}
 }
 
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
