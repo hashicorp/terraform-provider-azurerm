@@ -329,8 +329,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
-
 	networkRules := expandStorageAccountNetworkRules(d)
 
 	parameters := storage.AccountCreateParameters{

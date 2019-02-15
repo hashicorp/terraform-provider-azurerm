@@ -6,18 +6,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountCreate,
-		Read:   resourceArmStorageAccountRead,
-		Update: resourceArmStorageAccountUpdate,
-		Delete: resourceArmStorageAccountDelete,
+		Read:   resourceArmStorageAccountVaultCustomKeysRead,
+		Update: resourceArmStorageAccountVaultCustomKeysUpdate,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -26,21 +24,29 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"storage_account_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageAccountName,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"enable_blob_encryption": {
+				Type:     schema.TypeBool,
+				Required: true,
+				Default:  true,
+			},
 
-			"location": locationSchema(),
+			"enable_file_encryption": {
+				Type:     schema.TypeBool,
+				Required: true,
+				Default:  true,
+			},
 
 			"account_encryption_source": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftStorage),
+				Required: true,
+				Default:  string(storage.MicrosoftKeyvault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
@@ -76,84 +82,20 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 	}
 }
 
-func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
-
-	storageAccountName := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-
-	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
-		}
-	}
-
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
-	keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
-
-	parameters := storage.AccountCreateParameters{
-		Location: &location,
-		Sku: &storage.Sku{
-			Name: storage.SkuName(storageType),
-		},
-		Tags: expandTags(tags),
-		Kind: storage.Kind(accountKind),
-		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
-					},
-					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
-					}},
-				KeySource:          storage.KeySource(storageAccountEncryptionSource),
-				KeyVaultProperties: keyVaultProperties,
-			},
-			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         networkRules,
-		},
-	}
-
-	// Create
-	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
-	if err != nil {
-		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
-	}
-
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
-	}
-
-	return resourceArmStorageAccountRead(d, meta)
-}
-
 // resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
 // and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
 // available requires a call to Update per parameter...
-func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
-	id, err := parseAzureResourceID(d.Id())
+
+	storageAccountId := d.Get("storage_account_id").(string)
+
+	id, err := azure.ParseAzureResourceID(storageAccountId)
 	if err != nil {
 		return err
 	}
+
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
@@ -216,15 +158,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return resourceArmStorageAccountRead(d, meta)
+	return resourceArmStorageAccountVaultCustomKeysRead(d, meta)
 }
 
-func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountVaultCustomKeysRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
-	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
-	id, err := parseAzureResourceID(d.Id())
+	storageAccountId := d.Get("storage_account_id").(string)
+
+	id, err := parseAzureResourceID(storageAccountId)
 	if err != nil {
 		return err
 	}
@@ -240,12 +183,12 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
+	// keys, err := client.ListKeys(ctx, resGroup, name)
+	// if err != nil {
+	// 	return err
+	// }
 
-	accessKeys := *keys.Keys
+	//accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -271,38 +214,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			}
 		}
 	}
-
-	return nil
-}
-
-func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	// Not sure what to do here...
-
-	// ctx := meta.(*ArmClient).StopContext
-	// client := meta.(*ArmClient).storageServiceClient
-
-	// id, err := parseAzureResourceID(d.Id())
-	// if err != nil {
-	// 	return err
-	// }
-	// name := id.Path["storageAccounts"]
-	// resourceGroup := id.ResourceGroup
-
-	// read, err := client.GetProperties(ctx, resourceGroup, name)
-	// if err != nil {
-	// 	if utils.ResponseWasNotFound(read.Response) {
-	// 		return nil
-	// 	}
-
-	// 	return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	// }
-
-	// resp, err := client.Delete(ctx, resourceGroup, name)
-	// if err != nil {
-	// 	if !response.WasNotFound(resp.Response) {
-	// 		return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	// 	}
-	// }
 
 	return nil
 }
