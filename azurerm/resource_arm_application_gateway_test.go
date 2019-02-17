@@ -386,8 +386,8 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
-					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.enabled"),
-					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.drain_timeout_sec"),
+					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.0.enabled"),
+					resource.TestCheckNoResourceAttr(resourceName, "backend_http_settings.0.connection_draining.0.drain_timeout_sec"),
 				),
 			},
 			{

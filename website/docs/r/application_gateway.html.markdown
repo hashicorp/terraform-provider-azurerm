@@ -206,7 +206,7 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
-* `connection_draining` - (Optional) One or more `connection_draining` blocks.
+* `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
 ---
 
