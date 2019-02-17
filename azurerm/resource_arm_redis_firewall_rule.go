@@ -162,7 +162,7 @@ func validateRedisFirewallRuleName(v interface{}, k string) (warnings []string, 
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z_]+$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and underscores", k))
 	}
 
 	return warnings, errors
