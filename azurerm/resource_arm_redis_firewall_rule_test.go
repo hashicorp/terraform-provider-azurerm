@@ -34,7 +34,7 @@ func TestAzureRMRedisFirewallRuleName_validation(t *testing.T) {
 		},
 		{
 			Value:    "hello_world",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "helloworld21!",
