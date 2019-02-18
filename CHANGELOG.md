@@ -14,6 +14,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
+* `azurerm_redis_firewall_rule` - allowing underscores in the `name` field [GH-2906]
 
 ## 1.22.1 (February 14, 2019)
 
