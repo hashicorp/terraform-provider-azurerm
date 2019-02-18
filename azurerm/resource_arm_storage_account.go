@@ -799,8 +799,8 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 	name := domain["name"].(string)
 	useSubDomain := domain["use_subdomain"].(bool)
 	return &storage.CustomDomain{
-		Name:         utils.String(name),
-		UseSubDomain: utils.Bool(useSubDomain),
+		Name:             utils.String(name),
+		UseSubDomainName: utils.Bool(useSubDomain),
 	}
 }
 

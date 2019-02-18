@@ -38,6 +38,34 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault_access_policy.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultAccessPolicy_basicClassic(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -197,6 +225,30 @@ func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) s
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = "${azurerm_key_vault.test.id}"
+
+  key_permissions = [
+    "get",
+  ]
+
+  secret_permissions = [
+    "get",
+    "set",
+  ]
+
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+}
+`, template)
+}
+
+func testAccAzureRMKeyVaultAccessPolicy_basicClassic(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_access_policy" "test" {
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 
   key_permissions = [
     "get",

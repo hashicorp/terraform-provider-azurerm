@@ -6892,6 +6892,10 @@ type CorsSettings struct {
 	// AllowedOrigins - Gets or sets the list of origins that should be allowed to make cross-origin
 	// calls (for example: http://example.com:12345). Use "*" to allow all.
 	AllowedOrigins *[]string `json:"allowedOrigins,omitempty"`
+	// SupportCredentials - Gets or sets whether CORS requests with credentials are allowed. See
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Requests_with_credentials
+	// for more details.
+	SupportCredentials *bool `json:"supportCredentials,omitempty"`
 }
 
 // CsmMoveResourceEnvelope object with a list of the resources that need to be moved and the resource group
@@ -17556,6 +17560,9 @@ type SiteAuthSettingsProperties struct {
 	// Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users.
 	// More information on OpenID Connect: http://openid.net/specs/openid-connect-core-1_0.html
 	ClientSecret *string `json:"clientSecret,omitempty"`
+	// ClientSecretCertificateThumbprint - An alternative to the client secret, that is the thumbprint of a certificate used for signing purposes. This property acts as
+	// a replacement for the Client Secret. It is also optional.
+	ClientSecretCertificateThumbprint *string `json:"clientSecretCertificateThumbprint,omitempty"`
 	// Issuer - The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application.
 	// When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 	// This URI is a case-sensitive identifier for the token issuer.
@@ -17732,8 +17739,12 @@ type SiteConfig struct {
 	ManagedServiceIdentityID *int32 `json:"managedServiceIdentityId,omitempty"`
 	// XManagedServiceIdentityID - Explicit Managed Service Identity Id
 	XManagedServiceIdentityID *int32 `json:"xManagedServiceIdentityId,omitempty"`
-	// IPSecurityRestrictions - IP security restrictions.
+	// IPSecurityRestrictions - IP security restrictions for main.
 	IPSecurityRestrictions *[]IPSecurityRestriction `json:"ipSecurityRestrictions,omitempty"`
+	// ScmIPSecurityRestrictions - IP security restrictions for scm.
+	ScmIPSecurityRestrictions *[]IPSecurityRestriction `json:"scmIpSecurityRestrictions,omitempty"`
+	// ScmIPSecurityRestrictionsUseMain - IP security restrictions for scm to use main.
+	ScmIPSecurityRestrictionsUseMain *bool `json:"scmIpSecurityRestrictionsUseMain,omitempty"`
 	// HTTP20Enabled - Http20Enabled: configures a web site to allow clients to connect over http2.0
 	HTTP20Enabled *bool `json:"http20Enabled,omitempty"`
 	// MinTLSVersion - MinTlsVersion: configures the minimum version of TLS required for SSL requests. Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
@@ -17888,6 +17899,12 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	}
 	if sc.IPSecurityRestrictions != nil {
 		objectMap["ipSecurityRestrictions"] = sc.IPSecurityRestrictions
+	}
+	if sc.ScmIPSecurityRestrictions != nil {
+		objectMap["scmIpSecurityRestrictions"] = sc.ScmIPSecurityRestrictions
+	}
+	if sc.ScmIPSecurityRestrictionsUseMain != nil {
+		objectMap["scmIpSecurityRestrictionsUseMain"] = sc.ScmIPSecurityRestrictionsUseMain
 	}
 	if sc.HTTP20Enabled != nil {
 		objectMap["http20Enabled"] = sc.HTTP20Enabled
@@ -20626,6 +20643,8 @@ type StackMajorVersion struct {
 	IsDefault *bool `json:"isDefault,omitempty"`
 	// MinorVersions - Minor versions associated with the major version.
 	MinorVersions *[]StackMinorVersion `json:"minorVersions,omitempty"`
+	// ApplicationInsights - <code>true</code> if this supports Application Insights; otherwise, <code>false</code>.
+	ApplicationInsights *bool `json:"applicationInsights,omitempty"`
 }
 
 // StackMinorVersion application stack minor version.
@@ -23017,6 +23036,8 @@ type VnetInfoProperties struct {
 	ResyncRequired *bool `json:"resyncRequired,omitempty"`
 	// DNSServers - DNS servers to be used by this Virtual Network. This should be a comma-separated list of IP addresses.
 	DNSServers *string `json:"dnsServers,omitempty"`
+	// IsSwift - Flag that is used to denote if this is VNET injection
+	IsSwift *bool `json:"isSwift,omitempty"`
 }
 
 // VnetParameters the required set of inputs to validate a VNET
