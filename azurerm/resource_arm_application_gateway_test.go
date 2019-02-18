@@ -162,6 +162,33 @@ func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_httpListenerRedirect(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_httpListenerRedirect(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "redirect_type", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "include_path", "true"),
+					resource.TestCheckResourceAttr(resourceName, "include_query_string", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationGateway_customErrorConfigurations(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
@@ -930,7 +957,7 @@ resource "azurerm_application_gateway" "test" {
 
   redirect_configuration {
     name                 = "${local.redirect_configuration_name}"
-    redirect_type        = "Permanent"
+    redirect_type        = "Temporary"
     target_listener_name = "${local.listener_name2}"
     include_path         = true
     include_query_string = false
