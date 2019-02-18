@@ -54,6 +54,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
@@ -102,11 +103,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
-    rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    name                        = "${local.request_routing_rule_name}"
+    rule_type                   = "Basic"
+    http_listener_name          = "${local.listener_name}"
+    backend_address_pool_name   = "${local.backend_address_pool_name}"
+    backend_http_settings_name  = "${local.http_setting_name}"
   }
 }
 ```
@@ -154,6 +155,8 @@ The following arguments are supported:
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 ---
 
@@ -369,6 +372,22 @@ A `custom_error_configuration` block supports the following:
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
 
+---
+
+A `redirect_configuration` block supports the following:
+
+* `name` - (Required) Unique name of the redirect configuration block
+
+* `redirect_type` - (Required) The type of redirect. Possible values are `Permanent`, `Temporary`, `Found` and `SeeOther`
+
+* `target_listener_name` - (Optional) The name of the listener to redirect to. This parameter is mutually exclusive with `target_url`.
+
+* `target_url` - (Optional) The Url to redirect the request to. This parameter is mutually exclusive with `target_listener_name`.
+
+* `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
+
+* `include_query_string` - (Optional) Whether or not to include the query string in the redirected Url. Default to `false`
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -401,6 +420,7 @@ The following attributes are exported:
 
 * `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
+* `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
 ---
 
 A `authentication_certificate` block exports the following:
@@ -512,6 +532,12 @@ A `url_path_map` block exports the following:
 A `custom_error_configuration` block exports the following:
 
 * `id` - The ID of the Custom Error Configuration.
+
+---
+
+A `redirect_configuration` block exports the following:
+
+* `id` - The ID of the Redirect Configuration.
 
 ## Import
 
