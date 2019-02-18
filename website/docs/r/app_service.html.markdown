@@ -172,7 +172,27 @@ The following arguments are supported:
 
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
-* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, Possible values include:
+    - "DOCKER|`<image:tag>` (e.g. DOCKER|golang:latest) for single Docker container deployment.
+    - "COMPOSE|`<base64encoded_docker_compose_file>` for multiple Docker containers deployment.
+
+~> **NOTE:** When you use third party tools to update your Docker Compose definitions, you can tell Terraform not to worry about those changes with this snippet :
+
+```
+resource "azurerm_app_service" "test" {
+  # ...
+  site_config = {
+    # ...
+    linux_fx_version = "COMPOSE|<base64encoded_docker_compose_file>"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      "site_config.0.linux_fx_version", # will be updated with every deployment
+    ]
+  }
+}
+```
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 * `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1` and `7.2`.
