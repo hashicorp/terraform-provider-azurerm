@@ -419,6 +419,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						"redirect_configuration_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"backend_address_pool_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -440,6 +445,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"url_path_map_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"redirect_configuration_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -2103,6 +2113,8 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 			if config.IncludeQueryString != nil {
 				output["include_query_string"] = *config.IncludeQueryString
 			}
+
+			// TODO: Do we need/want to return the collections of referencing []SubResource ?
 
 			results = append(results, output)
 		}
