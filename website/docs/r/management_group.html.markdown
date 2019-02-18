@@ -15,9 +15,18 @@ Manages a Management Group.
 ```hcl
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_management_group" "test" {
+resource "azurerm_management_group" "ParentMG" {
+  display_name = "${var.ParentMGName}"
   subscription_ids = [
-    "${data.azurerm_subscription.current.id}",
+    "${var.ParentMG-SubIDs}",
+  ]
+}
+
+resource "azurerm_management_group" "ChildMG" {
+  display_name = "${var.ChildMGName}"
+  parent_management_group_id = "${azurerm_management_group.ParentMG.id}"
+  subscription_ids = [
+    "${var.ChildMG-SubIDs}",
   ]
 }
 ```
