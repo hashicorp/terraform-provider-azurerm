@@ -15,7 +15,9 @@ import (
 func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 	return &schema.Resource{
 		Read:   resourceArmStorageAccountVaultCustomKeysRead,
+		Create: resourceArmStorageAccountVaultCustomKeysUpdate,
 		Update: resourceArmStorageAccountVaultCustomKeysUpdate,
+		Delete: resourceArmStorageAccountVaultCustomKeysDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -27,25 +29,22 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Required: true,
-				Default:  true,
 			},
 
 			"enable_file_encryption": {
 				Type:     schema.TypeBool,
 				Required: true,
-				Default:  true,
 			},
 
 			"account_encryption_source": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Default:  string(storage.MicrosoftKeyvault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MicrosoftKeyvault),
@@ -98,17 +97,17 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
+	encryptionSource := d.Get("account_encryption_source").(string)
 
 	d.Partial(true)
 
 	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
 					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
+					KeySource: storage.KeySource(storage.MicrosoftStorage),
 				},
 			},
 		}
@@ -119,6 +118,11 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 				Enabled: utils.Bool(enableEncryption),
 			}
 
+			_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+			if err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+			}
+
 			d.SetPartial("enable_blob_encryption")
 		}
 
@@ -127,22 +131,24 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 			opts.Encryption.Services.File = &storage.EncryptionService{
 				Enabled: utils.Bool(enableEncryption),
 			}
-			d.SetPartial("enable_file_encryption")
-		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+			_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+			if err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+			}
+
+			d.SetPartial("enable_file_encryption")
 		}
 	}
 
-	if d.HasChange("account_encryption_source") {
-		accountEncryptionSource := d.Get("account_encryption_source").(string)
+	// NOTE: If KeySource is KeyVault you also need to send key vault properties
+	if encryptionSource == "Microsoft.Keyvault" {
 		keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
+
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
-					KeySource:          storage.KeySource(accountEncryptionSource),
+					KeySource:          storage.KeySource(storage.MicrosoftKeyvault),
 					KeyVaultProperties: keyVaultProperties,
 				},
 			},
@@ -150,7 +156,7 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 
 		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account account_encryption_source and key_vault_properties %q: %+v", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
 
 		d.SetPartial("account_encryption_source")
@@ -158,6 +164,7 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 	}
 
 	d.Partial(false)
+
 	return resourceArmStorageAccountVaultCustomKeysRead(d, meta)
 }
 
@@ -215,6 +222,11 @@ func resourceArmStorageAccountVaultCustomKeysRead(d *schema.ResourceData, meta i
 		}
 	}
 
+	return nil
+}
+
+func resourceArmStorageAccountVaultCustomKeysDelete(d *schema.ResourceData, meta interface{}) error {
+	// Thnik what to do here?
 	return nil
 }
 
