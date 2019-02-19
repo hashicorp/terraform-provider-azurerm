@@ -126,10 +126,9 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 				Config: testAccAzureRMIotHub_fallbackRoute(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
-					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.name", "fallback"),
-					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.source", "DeviceMessages"),
-					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.endpoint_name", "fallback"),
-					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.source", "DeviceMessages"),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.endpoint_names.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.enabled", "true"),
 				),
 			},
 			{
@@ -346,9 +345,8 @@ resource "azurerm_iothub" "test" {
   }
 
   fallback_route {
-    name           = "fallback"
     source         = "DeviceMessages"
-    endpoint_name  = "fallback"
+    endpoint_names = ["fallback"]
     enabled        = true
   }
 
