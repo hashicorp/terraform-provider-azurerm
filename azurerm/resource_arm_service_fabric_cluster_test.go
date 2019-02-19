@@ -554,6 +554,34 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_nodeTypePlacementProperties(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_nodeTypePlacementProperties(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "node_type.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.placement_properties.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.placement_properties.placement_prop1", "placement_prop1_value"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.placement_properties.placement_prop2", "placement_prop2_value"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -1187,6 +1215,38 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceFabricCluster_nodeTypePlacementProperties(rInt int, location string) string {
+	return fmt.Sprintf(`
+  resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+  }
+  
+  resource "azurerm_service_fabric_cluster" "test" {
+    name                = "acctest-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location            = "${azurerm_resource_group.test.location}"
+    reliability_level   = "Bronze"
+    upgrade_mode        = "Automatic"
+    vm_image            = "Windows"
+    management_endpoint = "http://example:80"
+  
+    node_type {
+      name                 = "first"
+      instance_count       = 3
+      is_primary           = true
+      client_endpoint_port = 2020
+      http_endpoint_port   = 80
+
+      placement_properties = {
+        placement_prop1 = "placement_prop1_value"
+        placement_prop2 = "placement_prop2_value"
+      }
+    }
+  }
+	`, rInt, location, rInt)
 }
 
 func testAccAzureRMServiceFabricCluster_tags(rInt int, location string) string {

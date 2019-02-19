@@ -163,6 +163,8 @@ A `node_type` block supports the following:
 
 * `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
 
+* `placement_properties` - (Optional) A map containing the placement properties of this Node Type
+
 ---
 
 A `application_ports` block supports the following:

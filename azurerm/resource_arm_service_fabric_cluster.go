@@ -311,6 +311,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"placement_properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -948,6 +953,14 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			}
 		}
 
+		if rawPlacementProperties := node["placement_properties"].(map[string]interface{}); rawPlacementProperties != nil {
+			placementProperties := make(map[string]*string)
+			for k, v := range rawPlacementProperties {
+				placementProperties[k] = utils.String(v.(string))
+			}
+			result.PlacementProperties = placementProperties
+		}
+
 		results = append(results, result)
 	}
 
@@ -1015,6 +1028,10 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 			ephermeralPorts = append(ephermeralPorts, r)
 		}
 		output["ephemeral_ports"] = ephermeralPorts
+
+		if properties := v.PlacementProperties; properties != nil {
+			output["placement_properties"] = properties
+		}
 
 		results = append(results, output)
 	}
