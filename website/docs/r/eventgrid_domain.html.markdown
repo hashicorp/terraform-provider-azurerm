@@ -40,8 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `cloudeventv01schema`, `customeventschema`, 
-or `eventgridschema`. Defaults to `eventgridschema`.
+* `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `cloudeventv01schema`, `customeventschema`, or `eventgridschema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
 
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
 
@@ -49,33 +48,37 @@ or `eventgridschema`. Defaults to `eventgridschema`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`input_mapping_fields` supports the following:
+---
 
-* `id` - (Optional) Specifies the id of the EventGrid Event to associate with the domain
+A `input_mapping_fields` supports the following:
 
-* `topic` - (Optional) Specifies the topic of the EventGrid Event to associate with the domain
+* `id` - (Optional) Specifies the id of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-* `event_type` - (Optional) Specifies the event type of the EventGrid Event to associate with the domain
+* `topic` - (Optional) Specifies the topic of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-* `event_time` - (Optional) Specifies the event time of the EventGrid Event to associate with the domain
+* `event_type` - (Optional) Specifies the event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-* `data_version` - (Optional) Specifies the data version of the EventGrid Event to associate with the domain
+* `event_time` - (Optional) Specifies the event time of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-* `subject` - (Optional) Specifies the subject of the EventGrid Event to associate with the domain
+* `data_version` - (Optional) Specifies the data version of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-`input_mapping_default_values` supports the following: 
+* `subject` - (Optional) Specifies the subject of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
-* `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain
+---
 
-* `data_version` - (Optional) Specifies the default data version of the EventGrid Event to associate with the domain
+A `input_mapping_default_values` supports the following: 
 
-* `subject` - (Optional) Specifies the default subject of the EventGrid Event to associate with the domain
+* `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
+
+* `data_version` - (Optional) Specifies the default data version of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
+
+* `subject` - (Optional) Specifies the default subject of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The EventGrid Domain ID.
+* `id` - The ID of the EventGrid Domain.
 
 * `endpoint` - The Endpoint associated with the EventGrid Domain.
 
