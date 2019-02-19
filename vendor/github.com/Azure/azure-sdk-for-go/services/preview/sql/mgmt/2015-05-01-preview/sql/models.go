@@ -4664,6 +4664,10 @@ type ManagedInstanceProperties struct {
 	DNSZone *string `json:"dnsZone,omitempty"`
 	// DNSZonePartner - The resource id of another managed instance whose DNS zone this managed instance will share after creation.
 	DNSZonePartner *string `json:"dnsZonePartner,omitempty"`
+	// PublicDataEndpointEnabled - Whether or not the public data endpoint is enabled.
+	PublicDataEndpointEnabled *bool `json:"publicDataEndpointEnabled,omitempty"`
+	// ProxyOverride - Proxy override of the managed instance.
+	ProxyOverride *string `json:"proxyOverride,omitempty"`
 }
 
 // ManagedInstancesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a

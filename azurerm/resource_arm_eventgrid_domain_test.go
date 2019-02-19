@@ -180,13 +180,13 @@ resource "azurerm_eventgrid_domain" "test" {
 
   input_schema = "CustomEventSchema"
   input_mapping_fields {
-	topic = "test"
+	topic      = "test"
 	event_type = "test"
   }
 
   input_mapping_default_values {
 	data_version = "1.0"
-	subject = "DefaultSubject"
+	subject      = "DefaultSubject"
   }
 }
 `, rInt, location, rInt)

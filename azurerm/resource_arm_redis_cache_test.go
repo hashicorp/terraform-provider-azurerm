@@ -661,7 +661,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
+	maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
@@ -688,6 +689,7 @@ resource "azurerm_redis_cache" "test" {
 
   redis_configuration {
     maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
@@ -714,6 +716,7 @@ resource "azurerm_redis_cache" "test" {
 
   redis_configuration {
     maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }

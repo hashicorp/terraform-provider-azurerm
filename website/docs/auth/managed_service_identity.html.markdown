@@ -72,7 +72,7 @@ Whilst a Provider block is _technically_ optional when using Environment Variabl
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.21.0"
+  version = "=1.22.0"
 }
 ```
 
@@ -87,7 +87,7 @@ It's also possible to configure Managed Service Identity within the Provider Blo
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.21.0"
+  version = "=1.22.0"
 
   use_msi = true
 }

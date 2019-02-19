@@ -102,7 +102,10 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 	} else {
 		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUri)
 		if err != nil {
-			return fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", keyVaultBaseUri, name, err)
+			return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultBaseUri, err)
+		}
+		if id == nil {
+			return fmt.Errorf("Unable to locate the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUri, err)
 		}
 		d.Set("key_vault_id", id)
 	}

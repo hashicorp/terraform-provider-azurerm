@@ -39,6 +39,32 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultKey_basicECClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicECClassic(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -374,8 +400,63 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_basicECClassic(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
   name      = "key-%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
   key_type  = "EC"
   key_size  = 2048
 

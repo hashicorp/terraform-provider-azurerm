@@ -3985,6 +3985,241 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// RecoverableManagedDatabase a recoverable managed database resource.
+type RecoverableManagedDatabase struct {
+	autorest.Response `json:"-"`
+	// RecoverableManagedDatabaseProperties - Resource properties.
+	*RecoverableManagedDatabaseProperties `json:"properties,omitempty"`
+	// ID - Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RecoverableManagedDatabase.
+func (rmd RecoverableManagedDatabase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rmd.RecoverableManagedDatabaseProperties != nil {
+		objectMap["properties"] = rmd.RecoverableManagedDatabaseProperties
+	}
+	if rmd.ID != nil {
+		objectMap["id"] = rmd.ID
+	}
+	if rmd.Name != nil {
+		objectMap["name"] = rmd.Name
+	}
+	if rmd.Type != nil {
+		objectMap["type"] = rmd.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for RecoverableManagedDatabase struct.
+func (rmd *RecoverableManagedDatabase) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var recoverableManagedDatabaseProperties RecoverableManagedDatabaseProperties
+				err = json.Unmarshal(*v, &recoverableManagedDatabaseProperties)
+				if err != nil {
+					return err
+				}
+				rmd.RecoverableManagedDatabaseProperties = &recoverableManagedDatabaseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				rmd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				rmd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				rmd.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// RecoverableManagedDatabaseListResult a list of recoverable managed databases.
+type RecoverableManagedDatabaseListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of results.
+	Value *[]RecoverableManagedDatabase `json:"value,omitempty"`
+	// NextLink - Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// RecoverableManagedDatabaseListResultIterator provides access to a complete listing of
+// RecoverableManagedDatabase values.
+type RecoverableManagedDatabaseListResultIterator struct {
+	i    int
+	page RecoverableManagedDatabaseListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *RecoverableManagedDatabaseListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RecoverableManagedDatabaseListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *RecoverableManagedDatabaseListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter RecoverableManagedDatabaseListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter RecoverableManagedDatabaseListResultIterator) Response() RecoverableManagedDatabaseListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter RecoverableManagedDatabaseListResultIterator) Value() RecoverableManagedDatabase {
+	if !iter.page.NotDone() {
+		return RecoverableManagedDatabase{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the RecoverableManagedDatabaseListResultIterator type.
+func NewRecoverableManagedDatabaseListResultIterator(page RecoverableManagedDatabaseListResultPage) RecoverableManagedDatabaseListResultIterator {
+	return RecoverableManagedDatabaseListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (rmdlr RecoverableManagedDatabaseListResult) IsEmpty() bool {
+	return rmdlr.Value == nil || len(*rmdlr.Value) == 0
+}
+
+// recoverableManagedDatabaseListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (rmdlr RecoverableManagedDatabaseListResult) recoverableManagedDatabaseListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if rmdlr.NextLink == nil || len(to.String(rmdlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(rmdlr.NextLink)))
+}
+
+// RecoverableManagedDatabaseListResultPage contains a page of RecoverableManagedDatabase values.
+type RecoverableManagedDatabaseListResultPage struct {
+	fn    func(context.Context, RecoverableManagedDatabaseListResult) (RecoverableManagedDatabaseListResult, error)
+	rmdlr RecoverableManagedDatabaseListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *RecoverableManagedDatabaseListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RecoverableManagedDatabaseListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.rmdlr)
+	if err != nil {
+		return err
+	}
+	page.rmdlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *RecoverableManagedDatabaseListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page RecoverableManagedDatabaseListResultPage) NotDone() bool {
+	return !page.rmdlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page RecoverableManagedDatabaseListResultPage) Response() RecoverableManagedDatabaseListResult {
+	return page.rmdlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page RecoverableManagedDatabaseListResultPage) Values() []RecoverableManagedDatabase {
+	if page.rmdlr.IsEmpty() {
+		return nil
+	}
+	return *page.rmdlr.Value
+}
+
+// Creates a new instance of the RecoverableManagedDatabaseListResultPage type.
+func NewRecoverableManagedDatabaseListResultPage(getNextPage func(context.Context, RecoverableManagedDatabaseListResult) (RecoverableManagedDatabaseListResult, error)) RecoverableManagedDatabaseListResultPage {
+	return RecoverableManagedDatabaseListResultPage{fn: getNextPage}
+}
+
+// RecoverableManagedDatabaseProperties the recoverable managed database's properties.
+type RecoverableManagedDatabaseProperties struct {
+	// LastAvailableBackupDate - The last available backup date.
+	LastAvailableBackupDate *string `json:"lastAvailableBackupDate,omitempty"`
+}
+
 // Resource ARM resource.
 type Resource struct {
 	// ID - Resource ID.

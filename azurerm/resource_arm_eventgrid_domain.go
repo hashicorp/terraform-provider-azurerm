@@ -44,7 +44,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 					string(eventgrid.InputSchemaCloudEventV01Schema),
 					string(eventgrid.InputSchemaCustomEventSchema),
 					string(eventgrid.InputSchemaEventGridSchema),
-				}, true),
+				}, false),
 			},
 
 			"input_mapping_fields": {
@@ -160,19 +160,19 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, domain)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for EventGrid Domain %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Domain %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read EventGrid Domain %q (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -194,12 +194,12 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Domain '%s' was not found (resource group '%s')", name, resourceGroup)
+			log.Printf("[WARN] EventGrid Domain %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventGrid Domain %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -213,12 +213,20 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 
 		d.Set("input_schema", string(props.InputSchema))
 
-		if err := d.Set("input_mapping_fields", flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields`: %+v", err)
+		inputMappingFields, err := flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)
+		if err != nil {
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 
-		if err := d.Set("input_mapping_default_values", flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields`: %+v", err)
+		inputMappingDefaultValues, err := flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)
+		if err != nil {
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -321,60 +329,68 @@ func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid
 	return &jsonMapping
 }
 
-func flattenAzureRmEventgridDomainInputMapping(input eventgrid.BasicInputSchemaMapping) []interface{} {
+func flattenAzureRmEventgridDomainInputMapping(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
 	if input == nil {
-		return nil
+		return nil, nil
 	}
 	result := make(map[string]interface{})
 
-	jsonValues := input.(eventgrid.JSONInputSchemaMapping).JSONInputSchemaMappingProperties
+	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
+	if !ok {
+		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
+	}
+	props := jsonValues.JSONInputSchemaMappingProperties
 
-	if jsonValues.EventTime != nil && jsonValues.EventTime.SourceField != nil {
-		result["event_time"] = *jsonValues.EventTime.SourceField
+	if props.EventTime != nil && props.EventTime.SourceField != nil {
+		result["event_time"] = *props.EventTime.SourceField
 	}
 
-	if jsonValues.ID != nil && jsonValues.ID.SourceField != nil {
-		result["id"] = *jsonValues.ID.SourceField
+	if props.ID != nil && props.ID.SourceField != nil {
+		result["id"] = *props.ID.SourceField
 	}
 
-	if jsonValues.Topic != nil && jsonValues.Topic.SourceField != nil {
-		result["topic"] = *jsonValues.Topic.SourceField
+	if props.Topic != nil && props.Topic.SourceField != nil {
+		result["topic"] = *props.Topic.SourceField
 	}
 
-	if jsonValues.DataVersion != nil && jsonValues.DataVersion.SourceField != nil {
-		result["data_version"] = *jsonValues.DataVersion.SourceField
+	if props.DataVersion != nil && props.DataVersion.SourceField != nil {
+		result["data_version"] = *props.DataVersion.SourceField
 	}
 
-	if jsonValues.EventType != nil && jsonValues.EventType.SourceField != nil {
-		result["event_type"] = *jsonValues.EventType.SourceField
+	if props.EventType != nil && props.EventType.SourceField != nil {
+		result["event_type"] = *props.EventType.SourceField
 	}
 
-	if jsonValues.Subject != nil && jsonValues.Subject.SourceField != nil {
-		result["subject"] = *jsonValues.Subject.SourceField
+	if props.Subject != nil && props.Subject.SourceField != nil {
+		result["subject"] = *props.Subject.SourceField
 	}
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
-func flattenAzureRmEventgridDomainInputMappingDefaultValues(input eventgrid.BasicInputSchemaMapping) []interface{} {
+func flattenAzureRmEventgridDomainInputMappingDefaultValues(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
 	if input == nil {
-		return nil
+		return nil, nil
 	}
 	result := make(map[string]interface{})
 
-	jsonValues := input.(eventgrid.JSONInputSchemaMapping).JSONInputSchemaMappingProperties
+	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
+	if !ok {
+		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
+	}
+	props := jsonValues.JSONInputSchemaMappingProperties
 
-	if jsonValues.DataVersion != nil && jsonValues.DataVersion.DefaultValue != nil {
-		result["data_version"] = *jsonValues.DataVersion.DefaultValue
+	if props.DataVersion != nil && props.DataVersion.DefaultValue != nil {
+		result["data_version"] = *props.DataVersion.DefaultValue
 	}
 
-	if jsonValues.EventType != nil && jsonValues.EventType.DefaultValue != nil {
-		result["event_type"] = *jsonValues.EventType.DefaultValue
+	if props.EventType != nil && props.EventType.DefaultValue != nil {
+		result["event_type"] = *props.EventType.DefaultValue
 	}
 
-	if jsonValues.Subject != nil && jsonValues.Subject.DefaultValue != nil {
-		result["subject"] = *jsonValues.Subject.DefaultValue
+	if props.Subject != nil && props.Subject.DefaultValue != nil {
+		result["subject"] = *props.Subject.DefaultValue
 	}
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
