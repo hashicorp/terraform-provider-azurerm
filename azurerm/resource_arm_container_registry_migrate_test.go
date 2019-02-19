@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
@@ -139,6 +140,10 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
-	client.resourceGroupsClient.Delete(ctx, resourceGroupName)
+	if _, err := client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
+		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)
+	}
+	if _, err := client.resourceGroupsClient.Delete(ctx, resourceGroupName); err != nil {
+		log.Printf("[DEBUG] Error deleting Resource Group %q): %v", resourceGroupName, err)
+	}
 }

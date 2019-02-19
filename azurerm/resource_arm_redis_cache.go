@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -123,6 +125,13 @@ func resourceArmRedisCache() *schema.Resource {
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
 						},
+
+						"maxfragmentationmemory_reserved": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+
 						"rdb_backup_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -219,6 +228,19 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Redis Instance %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_redis_cache", *existing.ID)
+		}
+	}
+
 	patchSchedule, err := expandRedisPatchSchedule(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
@@ -267,22 +289,22 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create request for read Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for Redis Cache %s (resource group %s)", name, resGroup)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
+	log.Printf("[DEBUG] Waiting for Redis Cache (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -291,7 +313,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("Error waiting for Redis Cache (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	d.SetId(*read.ID)
@@ -560,6 +582,11 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["maxmemory-policy"] = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["maxfragmentationmemory-reserved"] = utils.String(delta)
+	}
+
 	// Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
@@ -641,6 +668,14 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	}
 	if v := input["maxmemory-policy"]; v != nil {
 		outputs["maxmemory_policy"] = *v
+	}
+
+	if v := input["maxfragmentationmemory-reserved"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+		}
+		outputs["maxfragmentationmemory_reserved"] = i
 	}
 
 	// delta, reserved, enabled, frequency,, count,

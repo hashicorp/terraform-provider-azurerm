@@ -12,7 +12,6 @@ import (
 
 func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_policy_definition.test"
-
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,6 +29,35 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_policy_definition.test"
+
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
+				ExpectError: testRequiresImportError("azurerm_policy_definition"),
 			},
 		},
 	})
@@ -173,6 +201,21 @@ POLICY_RULE
 PARAMETERS
 }
 `, ri, ri)
+}
+
+func testAzureRMPolicyDefinition_requiresImport(ri int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_definition" "import" {
+  name         = "${azurerm_policy_definition.test.name}"
+  policy_type  = "${azurerm_policy_definition.test.policy_type}"
+  mode         = "${azurerm_policy_definition.test.mode}"
+  display_name = "${azurerm_policy_definition.test.display_name}"
+  policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
+  parameters   = "${azurerm_policy_definition.test.parameters}"
+}
+`, testAzureRMPolicyDefinition_basic(ri))
 }
 
 func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {

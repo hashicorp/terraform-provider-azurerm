@@ -75,23 +75,17 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	records, err := expandAzureRmDnsPtrRecords(d)
-	if err != nil {
-		return err
-	}
-
 	parameters := dns.RecordSet{
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:   expandTags(tags),
 			TTL:        &ttl,
-			PtrRecords: &records,
+			PtrRecords: expandAzureRmDnsPtrRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -184,7 +178,7 @@ func flattenAzureRmDnsPtrRecords(records *[]dns.PtrRecord) []string {
 	return results
 }
 
-func expandAzureRmDnsPtrRecords(d *schema.ResourceData) ([]dns.PtrRecord, error) {
+func expandAzureRmDnsPtrRecords(d *schema.ResourceData) *[]dns.PtrRecord {
 	recordStrings := d.Get("records").(*schema.Set).List()
 	records := make([]dns.PtrRecord, len(recordStrings))
 
@@ -195,5 +189,5 @@ func expandAzureRmDnsPtrRecords(d *schema.ResourceData) ([]dns.PtrRecord, error)
 		}
 	}
 
-	return records, nil
+	return &records
 }

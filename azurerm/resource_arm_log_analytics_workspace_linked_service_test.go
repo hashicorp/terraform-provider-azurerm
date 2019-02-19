@@ -164,11 +164,7 @@ func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location s
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
-}
+  resource_id         = "${azurerm_automation_account.test.id}"}
 `, template)
 }
 
@@ -180,10 +176,7 @@ func testAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(rInt int, l
 resource "azurerm_log_analytics_workspace_linked_service" "import" {
   resource_group_name = "${azurerm_log_analytics_workspace_linked_service.test.resource_group_name}"
   workspace_name      = "${azurerm_log_analytics_workspace_linked_service.test.workspace_name}"
-
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
+  resource_id         = "${azurerm_log_analytics_workspace_linked_service.test.resource_id}"
 }
 `, template)
 }
@@ -197,10 +190,7 @@ resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
   linked_service_name = "automation"
-
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
+  resource_id         = "${azurerm_automation_account.test.id}"
 }
 `, template)
 }
