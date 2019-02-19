@@ -1005,61 +1005,69 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 }
 
 func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
-	if primary == nil {
-		return fmt.Errorf("primary endpoints should not be empty")
-	}
-
 	var blobEndpoint, blobHost string
-	if v := primary.Blob; v != nil {
-		blobEndpoint = *v
+	if primary != nil {
+		if v := primary.Blob; v != nil {
+			blobEndpoint = *v
 
-		u, err := url.Parse(*v)
-		if err != nil {
-			return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			}
+			blobHost = u.Host
 		}
-		blobHost = u.Host
 	}
 	d.Set("primary_blob_endpoint", blobEndpoint)
 	d.Set("primary_blob_host", blobHost)
 
 	var queueEndpoint, queueHost string
-	if v := primary.Queue; v != nil {
-		queueEndpoint = *v
+	if primary != nil {
+		if v := primary.Queue; v != nil {
+			queueEndpoint = *v
 
-		u, err := url.Parse(*v)
-		if err != nil {
-			return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
+			}
+			queueHost = u.Host
 		}
-		queueHost = u.Host
 	}
 	d.Set("primary_queue_endpoint", queueEndpoint)
 	d.Set("primary_queue_host", queueHost)
 
 	var tableEndpoint, tableHost string
-	if v := primary.Table; v != nil {
-		tableEndpoint = *v
+	if primary != nil {
+		if v := primary.Table; v != nil {
+			tableEndpoint = *v
 
-		u, err := url.Parse(*v)
-		if err != nil {
-			return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
+			}
+			tableHost = u.Host
 		}
-		tableHost = u.Host
 	}
 	d.Set("primary_table_endpoint", tableEndpoint)
 	d.Set("primary_table_host", tableHost)
 
 	var fileEndpoint, fileHost string
-	if v := primary.File; v != nil {
-		fileEndpoint = *v
+	if primary != nil {
+		if v := primary.File; v != nil {
+			fileEndpoint = *v
 
-		u, err := url.Parse(*v)
-		if err != nil {
-			return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
+			}
+			fileHost = u.Host
 		}
-		fileHost = u.Host
 	}
 	d.Set("primary_file_endpoint", fileEndpoint)
 	d.Set("primary_file_host", fileHost)
+
+	if primary == nil {
+		return fmt.Errorf("primary endpoints should not be empty")
+	}
 
 	return nil
 }
