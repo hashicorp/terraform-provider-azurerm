@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_availability_set` [GH-2850]
+* **New Data Source:** `azurerm_network_watcher` [GH-2791]
 * **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
+* **New Resource:** `azurerm_network_watcher` [GH-2791]
 
 IMPROVEMENTS:
 
