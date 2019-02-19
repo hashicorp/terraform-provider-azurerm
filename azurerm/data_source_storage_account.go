@@ -269,13 +269,25 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if err := flattenAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.Name, accessKeys[0].Value); err != nil {
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if err := flattenAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.Name, accessKeys[1].Value); err != nil {
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
+
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 	}
 
 	d.Set("primary_access_key", accessKeys[0].Value)

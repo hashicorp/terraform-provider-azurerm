@@ -698,13 +698,25 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if err := flattenAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.Name, accessKeys[0].Value); err != nil {
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if err := flattenAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.Name, accessKeys[1].Value); err != nil {
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
+
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
 		networkRules := props.NetworkRuleSet
 		if networkRules != nil {
@@ -973,44 +985,52 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	return []interface{}{result}
 }
 
-func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints, acctName *string, acctKey *string) error {
+func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
+	var endpoint string
+	if blobEndpoint != nil {
+		endpoint = *blobEndpoint
+	}
+
+	var name string
+	if acctName != nil {
+		name = *acctName
+	}
+
+	var key string
+	if acctKey != nil {
+		key = *acctKey
+	}
+
+	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
+}
+
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
 	}
 
-	if acctName == nil {
-		return fmt.Errorf("account name should not be nil")
-	}
-
-	if acctKey == nil {
-		return fmt.Errorf("account key should not be nil")
-	}
-
-	var blobEndpoint, blobHost, blobConnectionStr string
+	var blobEndpoint, blobHost string
 	if v := primary.Blob; v != nil {
 		blobEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
-			blobHost = u.Host
-		} else {
+		u, err := url.Parse(*v)
+		if err != nil {
 			return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
 		}
-
-		blobConnectionStr = fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", blobEndpoint, *acctName, *acctKey)
+		blobHost = u.Host
 	}
 	d.Set("primary_blob_endpoint", blobEndpoint)
 	d.Set("primary_blob_host", blobHost)
-	d.Set("primary_blob_connection_string", blobConnectionStr)
 
 	var queueEndpoint, queueHost string
 	if v := primary.Queue; v != nil {
 		queueEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
-			queueHost = u.Host
-		} else {
+		u, err := url.Parse(*v)
+		if err != nil {
 			return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
 		}
+		queueHost = u.Host
 	}
 	d.Set("primary_queue_endpoint", queueEndpoint)
 	d.Set("primary_queue_host", queueHost)
@@ -1019,11 +1039,11 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.Table; v != nil {
 		tableEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
-			tableHost = u.Host
-		} else {
+		u, err := url.Parse(*v)
+		if err != nil {
 			return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
 		}
+		tableHost = u.Host
 	}
 	d.Set("primary_table_endpoint", tableEndpoint)
 	d.Set("primary_table_host", tableHost)
@@ -1032,11 +1052,11 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	if v := primary.File; v != nil {
 		fileEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
-			fileHost = u.Host
-		} else {
+		u, err := url.Parse(*v)
+		if err != nil {
 			return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
 		}
+		fileHost = u.Host
 	}
 	d.Set("primary_file_endpoint", fileEndpoint)
 	d.Set("primary_file_host", fileHost)
@@ -1044,48 +1064,47 @@ func flattenAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primar
 	return nil
 }
 
-func flattenAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints, acctName *string, acctKey *string) error {
-	if secondary == nil {
-		return nil
-	}
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
+	var blobEndpoint, blobHost string
+	if secondary != nil {
+		if v := secondary.Blob; v != nil {
+			blobEndpoint = *v
 
-	var blobEndpoint, blobHost, blobConnectionStr string
-	if v := secondary.Blob; v != nil {
-		blobEndpoint = *v
-
-		if u, err := url.Parse(*v); err == nil {
-			blobHost = u.Host
-		} else {
-			return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			if u, err := url.Parse(*v); err == nil {
+				blobHost = u.Host
+			} else {
+				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			}
 		}
-
-		blobConnectionStr = fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", blobEndpoint, *acctName, *acctKey)
 	}
 	d.Set("secondary_blob_endpoint", blobEndpoint)
 	d.Set("secondary_blob_host", blobHost)
-	d.Set("secondary_blob_connection_string", blobConnectionStr)
 
 	var queueEndpoint, queueHost string
-	if v := secondary.Queue; v != nil {
-		queueEndpoint = *v
+	if secondary != nil {
+		if v := secondary.Queue; v != nil {
+			queueEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
+			}
 			queueHost = u.Host
-		} else {
-			return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
 		}
 	}
 	d.Set("secondary_queue_endpoint", queueEndpoint)
 	d.Set("secondary_queue_host", queueHost)
 
 	var tableEndpoint, tableHost string
-	if v := secondary.Table; v != nil {
-		tableEndpoint = *v
+	if secondary != nil {
+		if v := secondary.Table; v != nil {
+			tableEndpoint = *v
 
-		if u, err := url.Parse(*v); err == nil {
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
+			}
 			tableHost = u.Host
-		} else {
-			return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
 		}
 	}
 	d.Set("secondary_table_endpoint", tableEndpoint)
