@@ -958,7 +958,7 @@ resource "azurerm_application_gateway" "test" {
   redirect_configuration {
     name                 = "${local.redirect_configuration_name}"
     redirect_type        = "Temporary"
-    target_listener_name = "${local.listener_name2}"
+    target_listener_name = "${local.target_listener_name}"
     include_path         = true
     include_query_string = false
   }
