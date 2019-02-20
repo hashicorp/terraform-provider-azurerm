@@ -497,6 +497,16 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"target_listener_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -1928,7 +1938,7 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 			}
 		}
 
-		if redirectConfigName := v["redirect_config_name"].(string); redirectConfigName != "" {
+		if redirectConfigName := v["redirect_configuration_name"].(string); redirectConfigName != "" {
 			redirectConfigID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigName)
 			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RedirectConfiguration = &network.SubResource{
 				ID: utils.String(redirectConfigID),
