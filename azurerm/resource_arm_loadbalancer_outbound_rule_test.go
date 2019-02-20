@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,7 +14,7 @@ import (
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	outboundRuleId := fmt.Sprintf(
@@ -55,7 +54,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 	location := testLocation()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -88,7 +87,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -116,17 +115,8 @@ func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
-	outboundRule2Name := fmt.Sprintf("OutboundRule-%s", tf.AccRandTimeInt())
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	outboundRuleID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, ri, ri, outboundRuleName)
-
-	outboundRule2ID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, ri, ri, outboundRule2Name)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
+	outboundRule2Name := fmt.Sprintf("OutboundRule-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -158,7 +148,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_reapply(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	deleteOutboundRuleState := func(s *terraform.State) error {
 		return s.Remove("azurerm_lb_outbound_rule.test")
@@ -174,7 +164,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_reapply(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					deleteRuleState,
+					deleteOutboundRuleState,
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -192,7 +182,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_reapply(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%s", ri)
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -311,7 +301,7 @@ resource "azurerm_lb_outbound_rule" "test" {
     name = "one-%d"
   }
 }
-`, rInt, location, rInt, rInt, rInt, outboundRuleName, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, outboundRuleName, rInt)
 }
 
 func testAccAzureRMLoadBalancerOutboundRule_requiresImport(rInt int, name string, location string) string {
@@ -363,7 +353,7 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMLoadBalancerOutboundRule_multipleRules(rInt int, outboundRuleName, outboundRule2Name string, location string) string {
@@ -427,7 +417,7 @@ resource "azurerm_lb_outbound_rule" "test2" {
     name = "fe2-%d"
   }
 }
-`, rInt, location, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
 }
 
 func testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(rInt int, outboundRuleName, outboundRule2Name string, location string) string {
@@ -498,5 +488,5 @@ resource "azurerm_lb_outbound_rule" "test2" {
     name = "fe2-%d"
   }
 }
-`, rInt, location, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
 }
