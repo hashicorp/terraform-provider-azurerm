@@ -25,7 +25,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -39,6 +38,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
@@ -112,6 +112,7 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
+	eventGridDomainsClient      eventgrid.DomainsClient
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
@@ -244,6 +245,7 @@ type ArmClient struct {
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
 	azureFirewallsClient            network.AzureFirewallsClient
+	connectionMonitorsClient        network.ConnectionMonitorsClient
 	ddosProtectionPlanClient        network.DdosProtectionPlansClient
 	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
@@ -830,6 +832,10 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egtc.Client, auth)
 	c.eventGridTopicsClient = egtc
+
+	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egdc.Client, auth)
+	c.eventGridDomainsClient = egdc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -908,6 +914,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&azureFirewallsClient.Client, auth)
 	c.azureFirewallsClient = azureFirewallsClient
+
+	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&connectionMonitorsClient.Client, auth)
+	c.connectionMonitorsClient = connectionMonitorsClient
 
 	ddosProtectionPlanClient := network.NewDdosProtectionPlansClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ddosProtectionPlanClient.Client, auth)

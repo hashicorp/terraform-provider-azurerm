@@ -87,7 +87,7 @@ func (client EventSubscriptionsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -172,7 +172,7 @@ func (client EventSubscriptionsClient) DeletePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -260,7 +260,7 @@ func (client EventSubscriptionsClient) GetPreparer(ctx context.Context, scope st
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -343,7 +343,7 @@ func (client EventSubscriptionsClient) GetFullURLPreparer(ctx context.Context, s
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -366,6 +366,85 @@ func (client EventSubscriptionsClient) GetFullURLSender(req *http.Request) (*htt
 // GetFullURLResponder handles the response to the GetFullURL request. The method always
 // closes the http.Response Body.
 func (client EventSubscriptionsClient) GetFullURLResponder(resp *http.Response) (result EventSubscriptionFullURL, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListByDomainTopic list all event subscriptions that have been created for a specific domain topic
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription.
+// domainName - name of the top level domain
+// topicName - name of the domain topic
+func (client EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, resourceGroupName string, domainName string, topicName string) (result EventSubscriptionsListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListByDomainTopic")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListByDomainTopicPreparer(ctx, resourceGroupName, domainName, topicName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByDomainTopicSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListByDomainTopicResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListByDomainTopicPreparer prepares the ListByDomainTopic request.
+func (client EventSubscriptionsClient) ListByDomainTopicPreparer(ctx context.Context, resourceGroupName string, domainName string, topicName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"topicName":         autorest.Encode("path", topicName),
+	}
+
+	const APIVersion = "2018-09-15-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/domains/{domainName}/topics/{topicName}/providers/Microsoft.EventGrid/eventSubscriptions", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByDomainTopicSender sends the ListByDomainTopic request. The method will close the
+// http.Response Body if it receives an error.
+func (client EventSubscriptionsClient) ListByDomainTopicSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListByDomainTopicResponder handles the response to the ListByDomainTopic request. The method always
+// closes the http.Response Body.
+func (client EventSubscriptionsClient) ListByDomainTopicResponder(resp *http.Response) (result EventSubscriptionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -424,7 +503,7 @@ func (client EventSubscriptionsClient) ListByResourcePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -499,7 +578,7 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -577,7 +656,7 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypePrep
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -649,7 +728,7 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionPreparer(ctx cont
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -725,7 +804,7 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypePrepa
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -803,7 +882,7 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -883,7 +962,7 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypePr
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -958,7 +1037,7 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionPreparer(ctx co
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1036,7 +1115,7 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypePre
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1079,7 +1158,7 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypeRes
 // for a resource, and
 // '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}'
 // for an EventGrid topic.
-// eventSubscriptionName - name of the event subscription to be created
+// eventSubscriptionName - name of the event subscription to be updated
 // eventSubscriptionUpdateParameters - updated event subscription information
 func (client EventSubscriptionsClient) Update(ctx context.Context, scope string, eventSubscriptionName string, eventSubscriptionUpdateParameters EventSubscriptionUpdateParameters) (result EventSubscriptionsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -1114,7 +1193,7 @@ func (client EventSubscriptionsClient) UpdatePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-01-01"
+	const APIVersion = "2018-09-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

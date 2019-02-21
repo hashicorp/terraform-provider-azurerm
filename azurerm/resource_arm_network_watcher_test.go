@@ -23,6 +23,21 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"update":         testAccAzureRMNetworkWatcher_update,
 			"disappears":     testAccAzureRMNetworkWatcher_disappears,
 		},
+		"DataSource": {
+			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+		},
+		"ConnectionMonitor": {
+			"addressBasic":              testAccAzureRMConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
+		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
