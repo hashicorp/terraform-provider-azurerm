@@ -141,7 +141,8 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 	}
 
-	d.SetId(storageAccountId)
+	resourceId := fmt.Sprintf("%s/encryptionSettings", storageAccountId)
+	d.SetId(resourceId)
 
 	return resourceArmStorageAccountEncryptionSettingsRead(d, meta)
 }
