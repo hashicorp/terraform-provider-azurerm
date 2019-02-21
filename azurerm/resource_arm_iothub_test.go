@@ -346,7 +346,7 @@ resource "azurerm_iothub" "test" {
 
   fallback_route {
     source         = "DeviceMessages"
-    endpoint_names = ["fallback"]
+    endpoint_names = ["events"]
     enabled        = true
   }
 

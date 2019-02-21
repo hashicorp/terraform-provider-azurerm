@@ -256,6 +256,7 @@ func resourceArmIotHub() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source": {
@@ -278,16 +279,18 @@ func resourceArmIotHub() *schema.Resource {
 							Default:  "true",
 						},
 						"endpoint_names": {
-							Type: schema.TypeList,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringLenBetween(0, 64),
 							},
-							Required: true,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -307,14 +310,11 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := d.Id()
-	b1 := d.Id() == ""
-	b2 := d.IsNewResource()
-	if requireResourcesToBeImported && d.Id() == "" {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing IoTHub %q (Resource Group %q): %s, %v %v %v", name, resourceGroup, err, id, b1, b2)
+				return fmt.Errorf("Error checking for presence of existing IoTHub %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -355,16 +355,12 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
 			Routing: &devices.RoutingProperties{
-				Endpoints: endpoints,
-				Routes:    routes,
+				Endpoints:     endpoints,
+				Routes:        routes,
+				FallbackRoute: fallbackRoute,
 			},
 		},
 		Tags: expandTags(tags),
-	}
-
-	if !d.IsNewResource() {
-		properties.Properties.Routing.FallbackRoute = fallbackRoute
-		panic("re")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -383,11 +379,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*resp.ID)
 
-	if d.Id() == "" {
-		return resourceArmIotHubCreateUpdate(d, meta)
-	} else {
-		return resourceArmIotHubRead(d, meta)
-	}
+	return resourceArmIotHubRead(d, meta)
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
@@ -643,8 +635,6 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 
 	source := fallbackRouteMap["source"].(string)
 	condition := fallbackRouteMap["condition"].(string)
-	endpointNames := make([]string, 0)
-	endpointNames = append(endpointNames)
 	isEnabled := fallbackRouteMap["enabled"].(bool)
 
 	return &devices.FallbackRouteProperties{
