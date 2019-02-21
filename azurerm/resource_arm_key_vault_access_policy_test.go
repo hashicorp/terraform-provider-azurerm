@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -170,6 +171,24 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "list"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "encrypt"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:             config,
+				ExpectNonEmptyPlan: true,
+				ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
 			},
 		},
 	})
@@ -383,6 +402,48 @@ resource "azurerm_key_vault" "test" {
   tags {
     environment = "Production"
   }
+}
+`, rString, location, rString)
+}
+
+func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "standard"
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  # Must appear to be URL, but not actually exist - appending a string works
+  key_vault_id = "${azurerm_key_vault.test.id}NOPE"
+
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+  key_permissions = [
+    "get",
+  ]
+
+  secret_permissions = [
+    "get",
+  ]
 }
 `, rString, location, rString)
 }
