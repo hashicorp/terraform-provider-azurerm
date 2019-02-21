@@ -123,7 +123,11 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
 	}
 
-	outboundRules := append(*loadBalancer.LoadBalancerPropertiesFormat.OutboundRules, *newOutboundRule)
+	outboundRules := make([]network.OutboundRule, 0)
+
+	if loadBalancer.LoadBalancerPropertiesFormat.OutboundRules != nil {
+		outboundRules = *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
+	}
 
 	existingOutboundRule, existingOutboundRuleIndex, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
 	if exists {
@@ -136,6 +140,8 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 			outboundRules = append(outboundRules[:existingOutboundRuleIndex], outboundRules[existingOutboundRuleIndex+1:]...)
 		}
 	}
+
+	outboundRules = append(outboundRules, *newOutboundRule)
 
 	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
