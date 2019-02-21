@@ -145,7 +145,11 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 
 	keyVault, err := client.Get(ctx, resourceGroup, vaultName)
 	if err != nil {
-		if utils.ResponseWasNotFound(keyVault.Response) {
+		// If the key vault does not exist but this is not a new resource, the policy
+		// which previously existed was deleted with the key vault, so reflect that in
+		// state. If this is a new resource and key vault does not exist, it's likely
+		// a bad ID was given.
+		if utils.ResponseWasNotFound(keyVault.Response) && !d.IsNewResource() {
 			log.Printf("[DEBUG] Parent Key Vault %q was not found in Resource Group %q - removing from state!", vaultName, resourceGroup)
 			d.SetId("")
 			return nil
