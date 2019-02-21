@@ -332,7 +332,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_sql_server":                                                             resourceArmSqlServer(),
 			"azurerm_sql_virtual_network_rule":                                               resourceArmSqlVirtualNetworkRule(),
 			"azurerm_storage_account":                                                        resourceArmStorageAccount(),
-			"azurerm_storage_account_key_vault_custom_keys":                                  resourceArmStorageAccountKeyVaultCustomKeys(),
+			"azurerm_storage_account_encryption_settings":                                    resourceArmStorageAccountEncryptionSettings(),
 			"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
 			"azurerm_storage_container":                                                      resourceArmStorageContainer(),
 			"azurerm_storage_queue":                                                          resourceArmStorageQueue(),

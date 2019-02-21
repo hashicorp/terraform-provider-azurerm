@@ -12,17 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
+func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceArmStorageAccountVaultCustomKeysRead,
-		Create: resourceArmStorageAccountVaultCustomKeysUpdate,
-		Update: resourceArmStorageAccountVaultCustomKeysUpdate,
-		Delete: resourceArmStorageAccountVaultCustomKeysDelete,
+		Read:   resourceArmStorageAccountEncryptionSettingsRead,
+		Create: resourceArmStorageAccountEncryptionSettingsCreateUpdate,
+		Update: resourceArmStorageAccountEncryptionSettingsCreateUpdate,
+		Delete: resourceArmStorageAccountEncryptionSettingsDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  resourceStorageAccountMigrateState,
 		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
@@ -32,20 +31,33 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"key_vault_policy_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"key_vault_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"enable_file_encryption": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"account_encryption_source": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftKeyvault),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
@@ -56,7 +68,7 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 			"key_vault_properties": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key_name": {
@@ -70,9 +82,8 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"key_vault_uri": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -81,11 +92,9 @@ func resourceArmStorageAccountKeyVaultCustomKeys() *schema.Resource {
 	}
 }
 
-// resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
-// and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
-// available requires a call to Update per parameter...
-func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).storageServiceClient
 
 	storageAccountId := d.Get("storage_account_id").(string)
@@ -97,78 +106,47 @@ func resourceArmStorageAccountVaultCustomKeysUpdate(d *schema.ResourceData, meta
 
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
+	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
+	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	encryptionSource := d.Get("account_encryption_source").(string)
+	keyVaultId := d.Get("key_vault_id").(string)
 
-	d.Partial(true)
+	pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(storage.MicrosoftStorage),
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-			}
-
-			d.SetPartial("enable_file_encryption")
-		}
+	if err != nil {
+		return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
 	}
 
-	// NOTE: If KeySource is KeyVault you also need to send key vault properties
-	if encryptionSource == "Microsoft.Keyvault" {
-		keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
+	keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
+	keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					KeySource:          storage.KeySource(storage.MicrosoftKeyvault),
-					KeyVaultProperties: keyVaultProperties,
-				},
+	opts := storage.AccountUpdateParameters{
+		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+			Encryption: &storage.Encryption{
+				Services: &storage.EncryptionServices{
+					Blob: &storage.EncryptionService{
+						Enabled: utils.Bool(enableBlobEncryption),
+					},
+					File: &storage.EncryptionService{
+						Enabled: utils.Bool(enableFileEncryption),
+					}},
+				KeySource:          storage.KeySource(encryptionSource),
+				KeyVaultProperties: keyVaultProperties,
 			},
-		}
-
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("account_encryption_source")
-		d.SetPartial("key_vault_properties")
+		},
 	}
 
-	d.Partial(false)
+	_, err = client.Update(ctx, resourceGroupName, storageAccountName, opts)
+	if err != nil {
+		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+	}
 
-	return resourceArmStorageAccountVaultCustomKeysRead(d, meta)
+	d.SetId(storageAccountId)
+
+	return resourceArmStorageAccountEncryptionSettingsRead(d, meta)
 }
 
-func resourceArmStorageAccountVaultCustomKeysRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountEncryptionSettingsRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 
@@ -188,18 +166,6 @@ func resourceArmStorageAccountVaultCustomKeysRead(d *schema.ResourceData, meta i
 			return nil
 		}
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
-	}
-
-	// keys, err := client.ListKeys(ctx, resGroup, name)
-	// if err != nil {
-	// 	return err
-	// }
-
-	//accessKeys := *keys.Keys
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
 	if props := resp.AccountProperties; props != nil {
@@ -225,8 +191,37 @@ func resourceArmStorageAccountVaultCustomKeysRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmStorageAccountVaultCustomKeysDelete(d *schema.ResourceData, meta interface{}) error {
-	// Thnik what to do here?
+func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).storageServiceClient
+
+	storageAccountId := d.Get("storage_account_id").(string)
+
+	id, err := azure.ParseAzureResourceID(storageAccountId)
+	if err != nil {
+		return err
+	}
+
+	storageAccountName := id.Path["storageAccounts"]
+	resourceGroupName := id.ResourceGroup
+
+	// Since this isn't a real object, just modifying an existing object
+	// "Delete" doesn't really make sense it should really be a "Revert to Default"
+	// So instead of the Delete func actually deleting the Storage Account I am
+	// making it reset the Storage Account to it's default state
+	opts := storage.AccountUpdateParameters{
+		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+			Encryption: &storage.Encryption{
+				KeySource: storage.KeySource(storage.MicrosoftStorage),
+			},
+		},
+	}
+
+	_, err = client.Update(ctx, resourceGroupName, storageAccountName, opts)
+	if err != nil {
+		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+	}
+
 	return nil
 }
 
@@ -239,12 +234,10 @@ func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *stor
 	v := vs[0].(map[string]interface{})
 	keyName := v["key_name"].(string)
 	keyVersion := v["key_version"].(string)
-	keyVaultURI := v["key_vault_uri"].(string)
 
 	return &storage.KeyVaultProperties{
-		KeyName:     utils.String(keyName),
-		KeyVersion:  utils.String(keyVersion),
-		KeyVaultURI: utils.String(keyVaultURI),
+		KeyName:    utils.String(keyName),
+		KeyVersion: utils.String(keyVersion),
 	}
 }
 
