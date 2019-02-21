@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -17,6 +18,9 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccDataSourceAzureRMBatchPool_complete(ri, rs, location)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -46,6 +50,13 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.id", certificateID),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_location", "CurrentUser"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_name", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.0", "StartTask"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.1", "RemoteUser"),
 				),
 			},
 		},
@@ -78,6 +89,17 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
+resource "azurerm_batch_certificate" "test" {
+	name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${file("testdata/batch_certificate.pfx")}"
+	format               = "Pfx"
+	password             = "terraform"
+	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	thumbprint_algorithm = "SHA1"
+}
+	
 
 resource "azurerm_batch_pool" "test" {
   name                   = "testaccpool%s"
@@ -100,6 +122,11 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
+	certificate = {
+    id             = "${azurerm_batch_certificate.test.id}"
+    visibility = [ "StartTask", "RemoteUser" ]
+  }
+  
   start_task {
     command_line         = "echo 'Hello World from $env'"
     max_task_retry_count = 1

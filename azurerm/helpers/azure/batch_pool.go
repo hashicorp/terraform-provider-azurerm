@@ -135,6 +135,22 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	return append(results, result)
 }
 
+// FlattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
+func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
+	certificates := make([]interface{}, 0)
+	if armCertificates != nil {
+		for _, armCertificate := range *armCertificates {
+			certificate := map[string]interface{}{}
+			certificate["id"] = armCertificate.ID
+			certificate["store_location"] = armCertificate.StoreLocation
+			certificate["store_name"] = armCertificate.StoreName
+			certificate["visibility"] = armCertificate.Visibility
+			certificates = append(certificates, certificate)
+		}
+	}
+	return certificates
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -156,6 +172,44 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	return imageRef, nil
+}
+
+// ExpandBatchPoolCertificateReferences expands Batch pool certificate references
+func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
+	result := []batch.CertificateReference{}
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		certificateReference, err := expandBatchPoolCertificateReference(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *certificateReference)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.CertificateReference, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: storage image reference should be defined")
+	}
+
+	id := ref["id"].(string)
+	storeLocation := ref["store_location"].(string)
+	storeName := ref["store_name"].(string)
+	visibilityRefs := ref["visibility"].([]interface{})
+	visibility := []batch.CertificateVisibility{}
+	for _, visibilityRef := range visibilityRefs {
+		visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
+	}
+
+	certificateReference := &batch.CertificateReference{
+		ID:            &id,
+		StoreLocation: batch.CertificateStoreLocation(storeLocation),
+		StoreName:     &storeName,
+		Visibility:    &visibility,
+	}
+	return certificateReference, nil
 }
 
 // ExpandBatchPoolStartTask expands Batch pool start task

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -232,6 +233,39 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBatchPoolCertificate(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPoolCertificate(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.id", certificateID),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_location", "CurrentUser"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_name", ""),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.0", "StartTask"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.1", "RemoteUser"),
 				),
 			},
 		},
@@ -507,5 +541,55 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
+`, rInt, location, rString, rString)
+}
+
+func testaccAzureRMBatchPoolCertificate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_batch_certificate" "test" {
+	name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${file("testdata/batch_certificate.pfx")}"
+	format               = "Pfx"
+	password             = "terraform"
+	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	thumbprint_algorithm = "SHA1"
+}
+	
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+	}
+	certificate = {
+		id             = "${azurerm_batch_certificate.test.id}"
+		visibility = [ "StartTask", "RemoteUser" ]
+	}
+}
+
 `, rInt, location, rString, rString)
 }

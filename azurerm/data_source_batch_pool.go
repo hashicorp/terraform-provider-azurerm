@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -107,6 +109,39 @@ func dataSourceArmBatchPool() *schema.Resource {
 			"node_agent_sku_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"store_location": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"CurrentUser",
+								"LocalMachine",
+							}, false),
+						},
+						"store_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"visibility": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 			"start_task": {
 				Type:     schema.TypeList,
@@ -215,6 +250,8 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
+
+		d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates))
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}

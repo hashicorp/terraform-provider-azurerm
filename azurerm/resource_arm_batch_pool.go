@@ -163,6 +163,45 @@ func resourceArmBatchPool() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateFunc:     validate.NoEmptyStrings,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"store_location": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"CurrentUser",
+								"LocalMachine",
+							}, false),
+						},
+						"store_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"visibility": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"StartTask",
+									"Task",
+									"RemoteUser",
+								}, false),
+							},
+						},
+					},
+				},
+			},
 			"start_task": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -312,6 +351,13 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
+	certificates := d.Get("certificate").([]interface{})
+	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	if err != nil {
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+	parameters.PoolProperties.Certificates = certificateReferences
+
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -404,6 +450,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 		parameters.PoolProperties.StartTask = startTask
 	}
+	certificates := d.Get("certificate").([]interface{})
+	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	if err != nil {
+		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+	parameters.PoolProperties.Certificates = certificateReferences
 
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
@@ -465,6 +517,8 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
+
+		d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates))
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}
