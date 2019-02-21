@@ -245,6 +245,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_lb_nat_pool":                            resourceArmLoadBalancerNatPool(),
 			"azurerm_lb_nat_rule":                            resourceArmLoadBalancerNatRule(),
 			"azurerm_lb_probe":                               resourceArmLoadBalancerProbe(),
+			"azurerm_lb_outbound_rule":                       resourceArmLoadBalancerOutboundRule(),
 			"azurerm_lb_rule":                                resourceArmLoadBalancerRule(),
 			"azurerm_lb":                                     resourceArmLoadBalancer(),
 			"azurerm_local_network_gateway":                  resourceArmLocalNetworkGateway(),
