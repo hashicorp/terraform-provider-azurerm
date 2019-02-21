@@ -290,7 +290,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -312,9 +311,9 @@ func testAccAzureRMLoadBalancerOutboundRule_requiresImport(rInt int, name string
 
 resource "azurerm_lb_outbound_rule" "import" {
   name                           = "${azurerm_lb_outbound_rule.test.name}"
-  location                       = "${azurerm_lb_outbound_rule.test.location}"
   resource_group_name            = "${azurerm_lb_outbound_rule.test.resource_group_name}"
   loadbalancer_id                = "${azurerm_lb_outbound_rule.test.loadbalancer_id}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
   protocol                       = "All"
 
   frontend_ip_configuration {
@@ -406,7 +405,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -419,7 +417,6 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -480,7 +477,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -493,7 +489,6 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"

@@ -32,8 +32,6 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": deprecatedLocationSchema(),
-
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
