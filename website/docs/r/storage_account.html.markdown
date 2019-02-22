@@ -97,16 +97,8 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
-* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
-* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
-
-* `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
-
-* `key_vault_properties` - (Optional) A `key_vault_properties` block as documented below.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
@@ -115,14 +107,6 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
-
----
-
-* `key_vault_properties` supports the following:
-
-* `key_name` - (Required) The name of Key Vault key.
-* `key_version` - (Required) The version of Key Vault key.
-* `key_vault_uri` - (Required) The Uri of Key Vault.
 
 ---
 
