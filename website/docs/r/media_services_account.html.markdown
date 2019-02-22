@@ -66,7 +66,7 @@ A `storage_account` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The `resource id` of the Media Services account.
+* `id` - The Resource ID of the Media Services Account.
 
 ## Import
 

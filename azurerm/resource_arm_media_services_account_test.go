@@ -26,7 +26,6 @@ func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
 				Config: testAccAzureRMMediaServicesAccount_basic(ri, rs, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
 				),
 			},
 			{
@@ -52,8 +51,7 @@ func TestAccAzureRMMediaServicesAccount_complete(t *testing.T) {
 				Config: testAccAzureRMMediaServicesAccount_complete(ri, rs, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 			{
@@ -81,7 +79,7 @@ func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMMediaServicesAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 			{
@@ -237,6 +235,10 @@ resource "azurerm_media_services_account" "test" {
     id         = "${azurerm_storage_account.second.id}"
     is_primary = false
   }
+
+  tags {
+    "Hello" = "World"
+  }
 }
 `, template, rString, rString)
 }
@@ -267,6 +269,10 @@ resource "azurerm_media_services_account" "test" {
   storage_account {
     id         = "${azurerm_storage_account.first.id}"
     is_primary = true
+  }
+
+  tags {
+    "Hello" = "World"
   }
 }
 `, template, rString, rString)

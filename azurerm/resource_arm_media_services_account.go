@@ -59,11 +59,6 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
-
-			"media_service_account_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -91,11 +86,14 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 		Tags:     expandTags(tags),
 	}
 
-	service, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters)
-	if err != nil {
-		return fmt.Errorf("Error creating Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, err)
+	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters); e != nil {
+		return fmt.Errorf("Error creating Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, e)
 	}
 
+	service, err := client.Get(ctx, resourceGroup, accountName)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, err)
+	}
 	d.SetId(*service.ID)
 
 	return nil
@@ -125,12 +123,12 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
 	if props := resp.ServiceProperties; props != nil {
-		d.Set("media_service_account_id", props.MediaServiceID.String())
 		accounts := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
 		if e := d.Set("storage_account", accounts); e != nil {
 			return fmt.Errorf("Error flattening `storage_account`: %s", e)
@@ -202,7 +200,7 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 
 	results := make([]interface{}, 0)
 	for _, storageAccount := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if storageAccount.ID != nil {
 			output["id"] = *storageAccount.ID
