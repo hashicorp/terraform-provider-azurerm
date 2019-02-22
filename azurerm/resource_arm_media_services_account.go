@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMediaServices() *schema.Resource {
+func resourceArmMediaServicesAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMediaServicesCreateUpdate,
-		Read:   resourceArmMediaServicesRead,
-		Update: resourceArmMediaServicesCreateUpdate,
-		Delete: resourceArmMediaServicesDelete,
+		Create: resourceArmMediaServicesAccountCreateUpdate,
+		Read:   resourceArmMediaServicesAccountRead,
+		Update: resourceArmMediaServicesAccountCreateUpdate,
+		Delete: resourceArmMediaServicesAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceArmMediaServices() *schema.Resource {
 	}
 }
 
-func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -101,7 +101,7 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -142,7 +142,7 @@ func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
