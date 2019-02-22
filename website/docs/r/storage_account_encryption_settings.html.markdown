@@ -110,8 +110,8 @@ The following arguments are supported:
 
 * `key_vault` supports the following:
 
-* `key_vault_id` - (Required) The id of the Key Vault.
-* `key_vault_policy_id` - (Required) The id of the `azurerm_key_vault_access_policy` resource granting the service account access to the key vault.
+* `key_vault_id` - (Required) The ID of the Key Vault.
+* `key_vault_policy_id` - (Required) The resource ID of the `azurerm_key_vault_access_policy` granting the storage account access to the key vault.
 * `key_name` - (Required) The name of Key Vault key.
 * `key_version` - (Required) The version of Key Vault key.
 
