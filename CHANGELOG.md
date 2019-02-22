@@ -22,6 +22,7 @@ BUG FIXES:
 
 * `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
 * `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist [GH-2922]
+* `azurerm_policy_definition` - making the `metadata` field to computed [GH-2939]
 * `azurerm_redis_firewall_rule` - allowing underscores in the `name` field [GH-2906]
 
 ## 1.22.1 (February 14, 2019)
