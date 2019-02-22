@@ -38,8 +38,6 @@ func resourceArmMediaServices() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"tags": tagsSchema(),
-
 			"storage_account": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -59,12 +57,18 @@ func resourceArmMediaServices() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tagsSchema(),
+
+			"media_service_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -73,15 +77,15 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 	tags := d.Get("tags").(map[string]interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	storageAccounts := expandAzureRmStorageAccounts(d)
-	err := validateStorageConfiguration(storageAccounts)
+	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
+	storageAccounts, err := expandMediaServicesAccountStorageAccounts(storageAccountsRaw)
 	if err != nil {
 		return err
 	}
 
 	parameters := media.Service{
 		ServiceProperties: &media.ServiceProperties{
-			StorageAccounts: &storageAccounts,
+			StorageAccounts: storageAccounts,
 		},
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
@@ -89,7 +93,7 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 
 	service, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Media Service Account: %+v", err)
+		return fmt.Errorf("Error creating Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, err)
 	}
 
 	d.SetId(*service.ID)
@@ -98,7 +102,6 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -113,51 +116,33 @@ func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Media Services Account %q - removing from state", d.Id())
+			log.Printf("[INFO] Media Services Account %q was not found in Resource Group %q - removing from state", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Media Services Account: %+v", err)
+		return fmt.Errorf("Error retrieving Media Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, resp.Tags)
 
-	d.Set("media_service_account_id", *(resp.ServiceProperties.MediaServiceID))
-	d.Set("storage_account", expandStorageAccountsForRead(resp.ServiceProperties.StorageAccounts))
+	if props := resp.ServiceProperties; props != nil {
+		d.Set("media_service_account_id", props.MediaServiceID.String())
+		accounts := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
+		if e := d.Set("storage_account", accounts); e != nil {
+			return fmt.Errorf("Error flattening `storage_account`: %s", e)
+		}
+	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
-func expandStorageAccountsForRead(storageAccounts *[]media.StorageAccount) []interface{} {
-
-	result := make([]interface{}, 0)
-
-	for _, storageAccount := range *storageAccounts {
-
-		sa := make(map[string]interface{}, 1)
-
-		sa["id"] = *storageAccount.ID
-
-		isPrimary := true
-		if storageAccount.Type == media.Secondary {
-			isPrimary = false
-		}
-
-		sa["is_primary"] = isPrimary
-
-		result = append(result, sa)
-	}
-
-	return result
-}
-
 func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).mediaServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -169,9 +154,9 @@ func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) er
 	name := id.Path["mediaservices"]
 	resourceGroup := id.ResourceGroup
 
-	httpResponse, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(httpResponse.Response) {
+		if response.WasNotFound(resp.Response) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing AzureRM delete request for Media Services Account '%s': %+v", name, err)
@@ -180,35 +165,23 @@ func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func validateStorageConfiguration(storageAccounts []media.StorageAccount) error {
+func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.StorageAccount, error) {
+	results := make([]media.StorageAccount, 0)
 
-	// Only one storage account can be primary
-	primaryAssigned := false
-
-	for _, account := range storageAccounts {
-		if account.Type == media.Primary {
-			if primaryAssigned {
-				return fmt.Errorf("Error processing storage account '%v'. Another storage account is already assigned as is_primary = 'true'", *(account.ID))
-			}
-		}
-		primaryAssigned = true
-	}
-
-	return nil
-}
-
-func expandAzureRmStorageAccounts(d *schema.ResourceData) []media.StorageAccount {
-	storageAccounts := d.Get("storage_account").(*schema.Set).List()
-	rules := make([]media.StorageAccount, 0)
-
-	for _, accountMapRaw := range storageAccounts {
+	foundPrimary := false
+	for _, accountMapRaw := range input {
 		accountMap := accountMapRaw.(map[string]interface{})
 
 		id := accountMap["id"].(string)
 
 		storageType := media.Secondary
 		if accountMap["is_primary"].(bool) {
+			if foundPrimary {
+				return nil, fmt.Errorf("Only one Storage Account can be set as Primary")
+			}
+
 			storageType = media.Primary
+			foundPrimary = true
 		}
 
 		storageAccount := media.StorageAccount{
@@ -216,8 +189,29 @@ func expandAzureRmStorageAccounts(d *schema.ResourceData) []media.StorageAccount
 			Type: storageType,
 		}
 
-		rules = append(rules, storageAccount)
+		results = append(results, storageAccount)
 	}
 
-	return rules
+	return &results, nil
+}
+
+func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	results := make([]interface{}, 0)
+	for _, storageAccount := range *input {
+		output := make(map[string]interface{}, 0)
+
+		if storageAccount.ID != nil {
+			output["id"] = *storageAccount.ID
+		}
+
+		output["is_primary"] = storageAccount.Type == media.Primary
+
+		results = append(results, output)
+	}
+
+	return results
 }

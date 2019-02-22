@@ -3,19 +3,19 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMediaServicesAccount_singlestorage(t *testing.T) {
-
+func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
+	resourceName := "azurerm_media_services_account.test"
 	ri := tf.AccRandTimeInt()
-	resourceName := fmt.Sprintf("%d", ri)
+	rs := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,56 +23,25 @@ func TestAccAzureRMMediaServicesAccount_singlestorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: generateTemplate_singlestorage(resourceName, testLocation()),
+				Config: testAccAzureRMMediaServicesAccount_basic(ri, rs, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMMediaServicesAccount("azurerm_media_services_account.ams", testLocation(), "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func generateTemplate_singlestorage(name string, location string) string {
-	return fmt.Sprintf(`
-	resource "azurerm_resource_group" "testrg" {
-			name     = "%[1]s"
-			location = "%[2]s"
-	  }
-	  
-	  resource "azurerm_storage_account" "testsa" {
-			name                     = "%[1]s"
-			resource_group_name      = "${azurerm_resource_group.testrg.name}"
-			location                 = "${azurerm_resource_group.testrg.location}"
-			account_tier             = "Standard"
-			account_replication_type = "GRS"
-		
-			tags {
-				environment = "staging"
-			}
-	  }
-	  
-	  resource "azurerm_media_services_account" "ams" {
-	  
-			  name					= "%[1]s"
-			  location				= "${azurerm_resource_group.testrg.location}"
-			  resource_group_name 	= "${azurerm_resource_group.testrg.name}"
-			  
-			  storage_account {
-					  id			= "${azurerm_storage_account.testsa.id}"
-					  is_primary	= true
-			  }
-
-			  tags {
-				environment = "staging"
-			  }
-	  }
-`, name, location)
-}
-
-func TestAccAzureRMMediaServicesAccount_multiplestorage(t *testing.T) {
-
+func TestAccAzureRMMediaServicesAccount_complete(t *testing.T) {
+	resourceName := "azurerm_media_services_account.test"
 	ri := tf.AccRandTimeInt()
-	resourceName := fmt.Sprintf("%d", ri)
+	rs := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,105 +49,68 @@ func TestAccAzureRMMediaServicesAccount_multiplestorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: generateTemplate_multiplestorage(resourceName, testLocation()),
+				Config: testAccAzureRMMediaServicesAccount_complete(ri, rs, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMMediaServicesAccount("azurerm_media_services_account.ams", testLocation(), "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func generateTemplate_multiplestorage(name string, location string) string {
-	return fmt.Sprintf(`
-	resource "azurerm_resource_group" "testrg" {
-			name     = "%[1]s"
-			location = "%[2]s"
-	  }
-	  
-	  resource "azurerm_storage_account" "testsa1" {
-			name                     = "1%[1]s"
-			resource_group_name      = "${azurerm_resource_group.testrg.name}"
-			location                 = "${azurerm_resource_group.testrg.location}"
-			account_tier             = "Standard"
-			account_replication_type = "GRS"
-		
-			tags {
-			environment = "staging"
-			}
-	  }
+func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
+	resourceName := "azurerm_media_services_account.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(5)
+	location := testLocation()
 
-	  resource "azurerm_storage_account" "testsa2" {
-		name                     = "2%[1]s"
-		resource_group_name      = "${azurerm_resource_group.testrg.name}"
-		location                 = "${azurerm_resource_group.testrg.location}"
-		account_tier             = "Standard"
-		account_replication_type = "GRS"
-	
-		tags {
-			environment = "staging"
-		}
-  }
-	  
-	  resource "azurerm_media_services_account" "ams" {
-	  
-			  name					= "%[1]s"
-			  location				= "${azurerm_resource_group.testrg.location}"
-			  resource_group_name	= "${azurerm_resource_group.testrg.name}"
-			  
-			  storage_account {
-					  id			= "${azurerm_storage_account.testsa1.id}"
-					  is_primary	= true
-			  }
-
-			  storage_account {
-					id			= "${azurerm_storage_account.testsa2.id}"
-					is_primary	= false
-			  }
-
-			  tags {
-					environment = "staging"
-			  }
-	  }
-`, name, location)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMediaServicesAccount_multipleAccounts(ri, rs, location),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMMediaServicesAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "media_service_account_id"),
+				),
+			},
+			{
+				Config:   testAccAzureRMMediaServicesAccount_multipleAccountsUpdated(ri, rs, location),
+				PlanOnly: true,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func TestAzureRMMediaServicesAccount_validateStorageConfiguration(t *testing.T) {
-
-	accounts := []media.StorageAccount{
-		{
-			ID:   utils.String("id1"),
-			Type: media.Primary,
+func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(5)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMMediaServicesAccount_multiplePrimaries(ri, rs, testLocation()),
+				ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
+			},
 		},
-		{
-			ID:   utils.String("id2"),
-			Type: media.Primary,
-		},
-	}
-
-	actualErr := validateStorageConfiguration(accounts)
-	expectedErr := fmt.Errorf("Error processing storage account 'id2'. Another storage account is already assigned as is_primary = 'true'")
-
-	if actualErr == nil || expectedErr.Error() != actualErr.Error() {
-		t.Fatal("validateStorageConfiguration must throw an error when more than one storage account is Primary.")
-	}
-
-	accounts = []media.StorageAccount{
-		{
-			ID:   utils.String("id1"),
-			Type: media.Primary,
-		},
-		{
-			ID:   utils.String("id2"),
-			Type: media.Secondary,
-		},
-	}
-
-	actualErr = validateStorageConfiguration(accounts)
-
-	if actualErr != nil {
-		t.Fatal("validateStorageConfiguration must allow multiple storage accounts when only one is Primary.")
-	}
+	})
 }
 
 func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
@@ -205,7 +137,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Media Services Account '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Media Services Account %q (Resource Group %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -238,15 +170,152 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func checkAccAzureRMMediaServicesAccount(resourceName string, location string, storageCount string) resource.TestCheckFunc {
-	// It would be ideal to also validate which storage account was Primary, but that isn't straight forward.
-	// The key for the storage account's Primary flag is non-deterministic (ex: storage_account.1137153885.is_primary) and
-	// isn't based on the storage account name.
-	return resource.ComposeTestCheckFunc(
-		testCheckAzureRMMediaServicesAccountExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
-		resource.TestCheckResourceAttr(resourceName, "storage_account.#", storageCount),
-	)
+func testAccAzureRMMediaServicesAccount_basic(rInt int, rString, location string) string {
+	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  storage_account {
+    id         = "${azurerm_storage_account.first.id}"
+    is_primary = true
+  }
+}
+`, template, rString)
+}
+
+func testAccAzureRMMediaServicesAccount_complete(rInt int, rString, location string) string {
+	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  storage_account {
+    id         = "${azurerm_storage_account.first.id}"
+    is_primary = true
+  }
+
+  tags {
+    "Hello" = "World"
+  }
+}
+`, template, rString)
+}
+
+func testAccAzureRMMediaServicesAccount_multipleAccounts(rInt int, rString, location string) string {
+	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "second" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  storage_account {
+    id         = "${azurerm_storage_account.first.id}"
+    is_primary = true
+  }
+
+  storage_account {
+    id         = "${azurerm_storage_account.second.id}"
+    is_primary = false
+  }
+}
+`, template, rString, rString)
+}
+
+func testAccAzureRMMediaServicesAccount_multipleAccountsUpdated(rInt int, rString, location string) string {
+	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "second" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  storage_account {
+    id         = "${azurerm_storage_account.second.id}"
+    is_primary = false
+  }
+
+  storage_account {
+    id         = "${azurerm_storage_account.first.id}"
+    is_primary = true
+  }
+}
+`, template, rString, rString)
+}
+
+func testAccAzureRMMediaServicesAccount_multiplePrimaries(rInt int, rString, location string) string {
+	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "second" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  storage_account {
+    id         = "${azurerm_storage_account.first.id}"
+    is_primary = true
+  }
+
+  storage_account {
+    id         = "${azurerm_storage_account.second.id}"
+    is_primary = true
+  }
+}
+`, template, rString, rString)
+}
+
+func testAccAzureRMMediaServicesAccount_template(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "first" {
+  name                     = "acctestsa1%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+`, rInt, location, rString)
 }
