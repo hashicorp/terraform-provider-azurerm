@@ -5,9 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,19 +28,6 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
-			"key_vault_policy_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"key_vault_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -55,22 +40,27 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 				Default:  true,
 			},
 
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyvault),
-					string(storage.MicrosoftStorage),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"key_vault_properties": {
+			"key_vault": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						// This attribute is not used, it was only added
+						// to  create a dependancy between this resource
+						// and the key vault policy
+						"key_vault_policy_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"key_vault_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
 						"key_name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -106,20 +96,13 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
-	encryptionSource := d.Get("account_encryption_source").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
 
-	pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	// set default values for the attributes
+	enableBlobEncryption := true
+	enableFileEncryption := true
+	encryptionSource := storage.MicrosoftStorage
 
-	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
-	}
-
-	keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
-	keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
-
+	// create the update object with the default values
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
@@ -131,9 +114,30 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 						Enabled: utils.Bool(enableFileEncryption),
 					}},
 				KeySource:          storage.KeySource(encryptionSource),
-				KeyVaultProperties: keyVaultProperties,
+				KeyVaultProperties: &storage.KeyVaultProperties{},
 			},
 		},
+	}
+
+	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
+		opts.Encryption.Services.Blob.Enabled = utils.Bool(d.Get("enable_blob_encryption").(bool))
+		opts.Encryption.Services.File.Enabled = utils.Bool(d.Get("enable_file_encryption").(bool))
+	}
+
+	if keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d); keyVaultProperties.KeyName != utils.String("") {
+		if v, ok := d.GetOk("key_vault.0.key_vault_id"); ok {
+			// Get the key vault base URL from the key vault
+			keyVaultId := v.(string)
+			pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+
+			if err != nil {
+				return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
+			}
+
+			keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
+			opts.Encryption.KeyVaultProperties = keyVaultProperties
+			opts.Encryption.KeySource = storage.KeySource(storage.MicrosoftKeyvault)
+		}
 	}
 
 	_, err = client.Update(ctx, resourceGroupName, storageAccountName, opts)
@@ -179,10 +183,12 @@ func resourceArmStorageAccountEncryptionSettingsRead(d *schema.ResourceData, met
 					d.Set("enable_file_encryption", file.Enabled)
 				}
 			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
 
 			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil {
-				if err := d.Set("key_vault_properties", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties)); err != nil {
+				keyVaultId := d.Get("key_vault.0.key_vault_id").(string)
+				keyVaultPolicyId := d.Get("key_vault.0.key_vault_policy_id").(string)
+
+				if err := d.Set("key_vault", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties, keyVaultId, keyVaultPolicyId)); err != nil {
 					return fmt.Errorf("Error flattening `key_vault_properties`: %+v", err)
 				}
 			}
@@ -227,7 +233,7 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 }
 
 func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *storage.KeyVaultProperties {
-	vs := d.Get("key_vault_properties").([]interface{})
+	vs := d.Get("key_vault").([]interface{})
 	if vs == nil || len(vs) == 0 {
 		return &storage.KeyVaultProperties{}
 	}
@@ -242,12 +248,20 @@ func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *stor
 	}
 }
 
-func flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties *storage.KeyVaultProperties) []interface{} {
+func flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties *storage.KeyVaultProperties, keyVaultId string, keyVaultPolicyId string) []interface{} {
 	if keyVaultProperties == nil {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
+	if keyVaultId != "" {
+		result["key_vault_id"] = keyVaultId
+	}
+
+	if keyVaultPolicyId != "" {
+		result["key_vault_policy_id"] = keyVaultPolicyId
+	}
+
 	if keyVaultProperties.KeyName != nil {
 		result["key_name"] = *keyVaultProperties.KeyName
 	}
