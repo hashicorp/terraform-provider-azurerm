@@ -147,6 +147,10 @@ A `node_type` block supports the following:
 
 * `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
 
+* `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
+
+* `capacities` - (Optional) The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has.
+
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
 * `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
