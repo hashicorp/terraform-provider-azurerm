@@ -59,7 +59,7 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsSrvRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("v"),
+				ExpectError: testRequiresImportError("azurerm_dns_srv_record"),
 			},
 		},
 	})

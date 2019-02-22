@@ -1,7 +1,7 @@
-// Package devices implements the Azure ARM Devices service API version 2018-04-01.
+// Package media implements the Azure ARM Media service API version 2018-07-01.
 //
-// Use this API to manage the IoT hubs in your Azure subscription.
-package devices
+//
+package media
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Devices
+	// DefaultBaseURI is the default URI used for the service Media
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Devices.
+// BaseClient is the base client for Media.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string
