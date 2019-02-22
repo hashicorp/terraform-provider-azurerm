@@ -47,7 +47,7 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						// This attribute is not used, it was only added
-						// to  create a dependancy between this resource
+						// to  create a dependency between this resource
 						// and the key vault policy
 						"key_vault_policy_id": {
 							Type:         schema.TypeString,
@@ -100,7 +100,6 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 	// set default values for the attributes
 	enableBlobEncryption := true
 	enableFileEncryption := true
-	encryptionSource := storage.MicrosoftStorage
 
 	// create the update object with the default values
 	opts := storage.AccountUpdateParameters{
@@ -113,7 +112,7 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 					File: &storage.EncryptionService{
 						Enabled: utils.Bool(enableFileEncryption),
 					}},
-				KeySource:          storage.KeySource(encryptionSource),
+				KeySource:          storage.MicrosoftStorage,
 				KeyVaultProperties: &storage.KeyVaultProperties{},
 			},
 		},
@@ -136,7 +135,7 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 
 			keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
 			opts.Encryption.KeyVaultProperties = keyVaultProperties
-			opts.Encryption.KeySource = storage.KeySource(storage.MicrosoftKeyvault)
+			opts.Encryption.KeySource = storage.MicrosoftKeyvault
 		}
 	}
 
@@ -219,7 +218,7 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
-				KeySource: storage.KeySource(storage.MicrosoftStorage),
+				KeySource: storage.MicrosoftStorage,
 			},
 		},
 	}
@@ -234,7 +233,7 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 
 func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *storage.KeyVaultProperties {
 	vs := d.Get("key_vault").([]interface{})
-	if vs == nil || len(vs) == 0 {
+	if len(vs) == 0 {
 		return &storage.KeyVaultProperties{}
 	}
 
