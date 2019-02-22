@@ -37,32 +37,6 @@ func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMediaServicesAccount_complete(t *testing.T) {
-	resourceName := "azurerm_media_services_account.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMediaServicesAccount_complete(ri, rs, testLocation()),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
 	resourceName := "azurerm_media_services_account.test"
 	ri := tf.AccRandTimeInt()
@@ -79,7 +53,6 @@ func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMMediaServicesAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 			{
@@ -186,28 +159,6 @@ resource "azurerm_media_services_account" "test" {
 `, template, rString)
 }
 
-func testAccAzureRMMediaServicesAccount_complete(rInt int, rString, location string) string {
-	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_services_account" "test" {
-  name                = "acctestmsa%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  storage_account {
-    id         = "${azurerm_storage_account.first.id}"
-    is_primary = true
-  }
-
-  tags {
-    "Hello" = "World"
-  }
-}
-`, template, rString)
-}
-
 func testAccAzureRMMediaServicesAccount_multipleAccounts(rInt int, rString, location string) string {
 	template := testAccAzureRMMediaServicesAccount_template(rInt, rString, location)
 	return fmt.Sprintf(`
@@ -234,10 +185,6 @@ resource "azurerm_media_services_account" "test" {
   storage_account {
     id         = "${azurerm_storage_account.second.id}"
     is_primary = false
-  }
-
-  tags {
-    "Hello" = "World"
   }
 }
 `, template, rString, rString)
@@ -269,10 +216,6 @@ resource "azurerm_media_services_account" "test" {
   storage_account {
     id         = "${azurerm_storage_account.first.id}"
     is_primary = true
-  }
-
-  tags {
-    "Hello" = "World"
   }
 }
 `, template, rString, rString)

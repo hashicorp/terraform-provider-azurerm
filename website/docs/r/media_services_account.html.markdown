@@ -50,8 +50,6 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` blocks as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ---
 
 A `storage_account` block supports the following:

@@ -58,7 +58,9 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			// TODO: support Tags when this bug is fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5249
+			//"tags": tagsSchema(),
 		},
 	}
 }
@@ -69,7 +71,6 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 
 	accountName := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
@@ -83,7 +84,6 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 			StorageAccounts: storageAccounts,
 		},
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
 	}
 
 	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters); e != nil {
@@ -135,7 +135,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	//flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
