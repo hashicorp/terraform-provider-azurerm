@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for `path` within the `backend_http_settings` block [GH-2879]
 * `azurerm_iothub` - support for the `fallback_route` property [GH-2764]
 * `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block [GH-2887]
+* `azurerm_service_fabric_cluster` - support for setting `capacities` and `placement_properties` [GH-2936]
 
 BUG FIXES:
 
