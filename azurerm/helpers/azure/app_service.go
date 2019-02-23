@@ -22,7 +22,7 @@ func SchemaAppServiceCorsSettings() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"allowed_origins": {
-					Type:     schema.TypeList,
+					Type:     schema.TypeSet,
 					Required: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
