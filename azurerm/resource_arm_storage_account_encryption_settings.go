@@ -18,7 +18,7 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 		Delete: resourceArmStorageAccountEncryptionSettingsDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceArmStorageAccountEncryptionSettingsImportState,
 		},
 		SchemaVersion: 2,
 
@@ -229,6 +229,58 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 	}
 
 	return nil
+}
+
+func resourceArmStorageAccountEncryptionSettingsImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).storageServiceClient
+
+	id := d.Id()
+
+	d.Set("storage_account_id", id)
+
+	saId, err := parseAzureResourceID(id)
+	if err != nil {
+		return nil, err
+	}
+	name := saId.Path["storageAccounts"]
+	resGroup := saId.ResourceGroup
+
+	resp, err := client.GetProperties(ctx, resGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil, nil
+		}
+		return nil, fmt.Errorf("Error importing the state of AzureRM Storage Account %q: %+v", name, err)
+	}
+
+	if props := resp.AccountProperties; props != nil {
+		if encryption := props.Encryption; encryption != nil {
+			if services := encryption.Services; services != nil {
+				if blob := services.Blob; blob != nil {
+					d.Set("enable_blob_encryption", blob.Enabled)
+				}
+				if file := services.File; file != nil {
+					d.Set("enable_file_encryption", file.Enabled)
+				}
+			}
+
+			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil {
+				if err := d.Set("key_vault", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties, "", "")); err != nil {
+					return nil, fmt.Errorf("Error flattening `key_vault_properties` on import: %+v", err)
+				}
+			}
+		}
+	}
+
+	resourceId := fmt.Sprintf("%s/encryptionSettings", id)
+	d.SetId(resourceId)
+
+	results := make([]*schema.ResourceData, 1)
+
+	results[0] = d
+	return results, nil
 }
 
 func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *storage.KeyVaultProperties {
