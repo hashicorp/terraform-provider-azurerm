@@ -407,11 +407,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"backend_address_pool_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ConflictsWith: []string{"redirect_configuration_name"},
 						},
 
 						"backend_http_settings_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ConflictsWith: []string{"redirect_configuration_name"},
 						},
 
 						"url_path_map_name": {
@@ -422,6 +424,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"redirect_configuration_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ConflictsWith: []string{
+								"backend_address_pool_name",
+								"backend_http_settings_name"},
 						},
 
 						"backend_address_pool_id": {
@@ -481,16 +486,19 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"target_listener_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ConflictsWith: []string{"target_url"},
 						},
 
 						"target_url": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ConflictsWith: []string{"target_listener_name"},
 						},
 
 						"include_path": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							ConflictsWith: []string{"target_url"},
 						},
 
 						"include_query_string": {
