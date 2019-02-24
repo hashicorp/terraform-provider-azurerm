@@ -471,10 +471,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Permanent",
-								"Temporary",
-								"Found",
-								"SeeOther",
+								string(network.Permanent),
+								string(network.Temporary),
+								string(network.Found),
+								string(network.SeeOther),
 							}, true),
 						},
 
