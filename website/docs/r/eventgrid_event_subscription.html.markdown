@@ -1,0 +1,105 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_eventgrid_event_subscription"
+sidebar_current: "docs-azurerm-resource-messaging-eventgrid-event-subscription"
+description: |-
+  Manages an EventGrid Event Subscription
+
+---
+
+# azurerm_eventgrid_event_subscription
+
+Manages an EventGrid Event Subscription
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "default" {
+  name     = "defaultResourceGroup"
+  location = "West US 2"
+}
+
+resource "azurerm_storage_account" "default" {
+	name                     = "defaultStorageAccount"
+	resource_group_name      = "${azurerm_resource_group.default.name}"
+	location                 = "${azurerm_resource_group.default.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+  
+	tags {
+	  environment = "staging"
+	}
+  }
+  
+  resource "azurerm_storage_queue" "default" {
+	name                 = defaultStorageQueue"
+	resource_group_name  = "${azurerm_resource_group.default.name}"
+	storage_account_name = "${azurerm_storage_account.default.name}"
+  }
+
+resource "azurerm_eventgrid_event_subscription" "default" {
+  name                = "defaultEventSubscription"
+  scope = "${azurerm_resource_group.default.id}"
+  storage_queue_endpoint {
+	  storage_account_id = "${azurerm_storage_account.default.id}"
+	  queue_name = "${azurerm_storage_queue.default.name}"
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the EventGrid Event Subscription resource. Changing this forces a new resource to be created.
+
+* `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
+
+* `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
+
+* `eventhub_endpoint` - (Optional) A `eventhub_endpoint` block as defined below.
+
+* `hybrid_connection_endpoint` - (Optional) A `hybrid_connection_endpoint` block as defined below.
+
+* `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
+
+---
+
+A `storage_queue_endpoint` supports the following:
+
+* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located. Changing this forces a new resource to be created.
+
+* `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
+
+---
+
+A `eventhub_endpoint` supports the following: 
+
+* `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.
+
+---
+
+A `hybrid_connection_endpoint` supports the following: 
+
+* `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
+
+A `webhook_endpoint` supports the following:
+
+* `url` - (Required) Specifies the url of the webhook where the Event Subscription will recieve events. 
+
+---
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the EventGrid Event Subscription.
+
+## Import
+
+EventGrid Domain's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_eventgrid_event_subscription.eventSubscription1 
+/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
+```
