@@ -64,7 +64,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			"capacity": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4}),
+				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4, 8}),
 			},
 
 			"default_primary_connection_string": {
@@ -130,14 +130,20 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		Tags: expandTags(tags),
 	}
 
-	if capacity, ok := d.GetOk("capacity"); ok {
+	if capacity := d.Get("capacity"); capacity != nil {
 		if !strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) > 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
+			// Capacity can't be set for non-premium SKUs, so just pass 0
+			parameters.Sku.Capacity = utils.Int32(0)
+			d.Set("capacity", 0)
 		}
 		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2 or 4", sku)
+			// The minimum/default capacity for premium SKUs is 1
+			parameters.Sku.Capacity = utils.Int32(1)
+			d.Set("capacity", 1)
 		}
-		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
+		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) > 0 {
+			parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
