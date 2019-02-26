@@ -54,6 +54,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Shared Image Gallery.
 
+* `unique_name` - The Unique Name for this Shared Image Gallery.
+
 ## Import
 
 Shared Image Galleries can be imported using the `resource id`, e.g.
