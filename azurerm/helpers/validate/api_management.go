@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func ApiManagementProductName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// from the portal: `The field may contain only numbers, letters, and dash (-) sign when preceded and followed by number or a letter.`

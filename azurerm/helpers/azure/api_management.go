@@ -22,19 +22,19 @@ func SchemaApiManagementDataSourceName() *schema.Schema {
 	}
 }
 
-func SchemaApiManagementProductName() *schema.Schema {
+func SchemaApiManagementChildName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validate.ApiManagementProductName,
+		ValidateFunc: validate.ApiManagementChildName,
 	}
 }
 
-func SchemaApiManagementProductDataSourceName() *schema.Schema {
+func SchemaApiManagementChildDataSourceName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validate.ApiManagementProductName,
+		ValidateFunc: validate.ApiManagementChildName,
 	}
 }

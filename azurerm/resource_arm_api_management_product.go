@@ -23,7 +23,7 @@ func resourceArmApiManagementProduct() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"product_id": azure.SchemaApiManagementProductName(),
+			"product_id": azure.SchemaApiManagementChildName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
