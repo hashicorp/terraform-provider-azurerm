@@ -67,10 +67,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Group.
 
-
 ## Import
 
-API Management Group can be imported using the `resource id`, e.g.
+API Management Groups can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_api_management_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/groups/example-apimg

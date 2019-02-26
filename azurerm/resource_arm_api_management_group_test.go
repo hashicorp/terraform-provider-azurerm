@@ -140,21 +140,15 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 		}
 
 		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for API Management Group: %q", name)
-		}
-		serviceName, hasServiceName := rs.Primary.Attributes["api_management_name"]
-		if !hasServiceName {
-			return fmt.Errorf("Bad: no API Management Service name found in state for API Management Group: %q", name)
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).apiManagementGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Group %q (resource group: %q, API Management Service %q) does not exist", name, resourceGroup, serviceName)
+				return fmt.Errorf("Bad: API Management Group %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
 			return fmt.Errorf("Bad: Get on apiManagementGroupClient: %+v", err)
 		}

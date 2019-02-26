@@ -7,36 +7,27 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAPIManagementGroup() *schema.Resource {
+func resourceArmApiManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAPIManagementGroupCreateUpdate,
-		Read:   resourceArmAPIManagementGroupRead,
-		Update: resourceArmAPIManagementGroupCreateUpdate,
-		Delete: resourceArmAPIManagementGroupDelete,
+		Create: resourceArmApiManagementGroupCreateUpdate,
+		Read:   resourceArmApiManagementGroupRead,
+		Update: resourceArmApiManagementGroupCreateUpdate,
+		Delete: resourceArmApiManagementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
+			"name": azure.SchemaApiManagementChildName(),
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"api_management_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
+			"api_management_name": azure.SchemaApiManagementName(),
 
 			"display_name": {
 				Type:         schema.TypeString,
@@ -69,7 +60,7 @@ func resourceArmAPIManagementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmAPIManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -92,22 +83,22 @@ func resourceArmAPIManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating API Management Group %q (resource group %q, API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("Error creating or updating Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
-		return fmt.Errorf("Error getting API Management Group %q (resource group %q, API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("Error retrieving Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read API Management Group %q (resource group %q, API Management Service %q) ID", name, resourceGroup, serviceName)
+		return fmt.Errorf("Cannot read ID for Group %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmAPIManagementGroupRead(d, meta)
+	return resourceArmApiManagementGroupRead(d, meta)
 }
 
-func resourceArmAPIManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -122,11 +113,12 @@ func resourceArmAPIManagementGroupRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Management Group %q (resource group %q, API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+			log.Printf("[DEBUG] Group %q (Resource Group %q / API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request for API Management Group %q (resource group %q, API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+
+		return fmt.Errorf("Error making Read request for Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -143,7 +135,7 @@ func resourceArmAPIManagementGroupRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmAPIManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -157,7 +149,7 @@ func resourceArmAPIManagementGroupDelete(d *schema.ResourceData, meta interface{
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for API Management Group %q (resource group %q, API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("Error deleting Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
 	}
 
