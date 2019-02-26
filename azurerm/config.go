@@ -489,9 +489,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	amg := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&amg.Client, auth)
-	c.apiManagementGroupClient = amg
+	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
+	c.apiManagementGroupClient = groupsClient
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)
