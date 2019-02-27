@@ -38,6 +38,11 @@ func TestAccAzureRMApiManagementUser_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementUser_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_api_management_user.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -77,25 +82,25 @@ func TestAccAzureRMApiManagementUser_update(t *testing.T) {
 					testCheckAzureRMApiManagementUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "first_name", "Acceptance"),
 					resource.TestCheckResourceAttr(resourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(resourceName, "state", "pending"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementUser_updated(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "first_name", "Acceptance Updated"),
-					resource.TestCheckResourceAttr(resourceName, "last_name", "Test Updated"),
 					resource.TestCheckResourceAttr(resourceName, "state", "active"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementUser_basic(ri, location),
+				Config: testAccAzureRMApiManagementUser_updatedBlocked(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementUserExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "first_name", "Acceptance Updated"),
+					resource.TestCheckResourceAttr(resourceName, "last_name", "Test Updated"),
+					resource.TestCheckResourceAttr(resourceName, "state", "blocked"),
+				),
+			},
+			{
+				Config: testAccAzureRMApiManagementUser_updatedActive(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "first_name", "Acceptance"),
 					resource.TestCheckResourceAttr(resourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(resourceName, "state", "pending"),
+					resource.TestCheckResourceAttr(resourceName, "state", "active"),
 				),
 			},
 		},
@@ -325,7 +330,24 @@ resource "azurerm_api_management_user" "test" {
 `, template, rInt, rInt)
 }
 
-func testAccAzureRMApiManagementUser_updated(rInt int, location string) string {
+func testAccAzureRMApiManagementUser_updatedActive(rInt int, location string) string {
+	template := testAccAzureRMApiManagementUser_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_user" "test" {
+  user_id               = "acctestuser%d"
+  api_management_name   = "${azurerm_api_management.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  first_name            = "Acceptance"
+  last_name             = "Test"
+  email                 = "azure-acctest%d@example.com"
+  state                 = "active"
+}
+`, template, rInt, rInt)
+}
+
+func testAccAzureRMApiManagementUser_updatedBlocked(rInt int, location string) string {
 	template := testAccAzureRMApiManagementUser_template(rInt, location)
 	return fmt.Sprintf(`
 %s
