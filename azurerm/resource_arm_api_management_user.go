@@ -36,27 +36,16 @@ func resourceArmApiManagementUser() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"last_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"email": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.UserStateActive),
-					string(apimanagement.UserStateBlocked),
-					string(apimanagement.UserStatePending),
-				}, false),
+			"last_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"confirmation": {
@@ -78,6 +67,17 @@ func resourceArmApiManagementUser() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+			},
+
+			"state": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.UserStateActive),
+					string(apimanagement.UserStateBlocked),
+					string(apimanagement.UserStatePending),
+				}, false),
 			},
 		},
 	}

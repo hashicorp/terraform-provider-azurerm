@@ -24,22 +24,22 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 				Computed: true,
 			},
 
-			"last_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"email": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"state": {
+			"last_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"note": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"state": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
