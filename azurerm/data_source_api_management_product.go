@@ -14,7 +14,7 @@ func dataSourceApiManagementProduct() *schema.Resource {
 		Read: dataSourceApiManagementProductRead,
 
 		Schema: map[string]*schema.Schema{
-			"product_id": azure.SchemaApiManagementProductDataSourceName(),
+			"product_id": azure.SchemaApiManagementChildDataSourceName(),
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
