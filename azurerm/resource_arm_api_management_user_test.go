@@ -285,7 +285,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
 }
 `, template, rInt, rInt)
 }
@@ -318,7 +318,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "active"
   password              = "3991bb15-282d-4b9b-9de3-3d5fc89eb530"
 }
@@ -336,7 +336,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance Updated"
   last_name             = "Test Updated"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "blocked"
 }
 `, template, rInt, rInt)
@@ -353,7 +353,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test User"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "blocked"
   confirmation          = "invite"
 }
@@ -371,7 +371,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test User"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "blocked"
   confirmation          = "signup"
 }
@@ -389,7 +389,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "active"
   confirmation          = "signup"
   note                  = "Used for testing in dimension C-137."

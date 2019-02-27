@@ -60,7 +60,7 @@ resource "azurerm_api_management_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   first_name            = "Acceptance"
   last_name             = "Test"
-  email                 = "azure-acctest%d@hashicorptest.com"
+  email                 = "azure-acctest%d@example.com"
   state                 = "active"
   note                  = "Used for testing in dimension C-137."
 }
