@@ -42,3 +42,20 @@ func SchemaApiManagementChildDataSourceName() *schema.Schema {
 		ValidateFunc: validate.ApiManagementChildName,
 	}
 }
+
+func SchemaApiManagementUserName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.ApiManagementUserName,
+	}
+}
+
+func SchemaApiManagementUserDataSourceName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validate.ApiManagementUserName,
+	}
+}
