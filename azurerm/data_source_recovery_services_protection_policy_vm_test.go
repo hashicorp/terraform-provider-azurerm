@@ -22,7 +22,6 @@ func TestAccDataSourceAzureRMRecoveryServicesProtectionPolicyVm_basic(t *testing
 					testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "recovery_vault_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 				),
@@ -35,7 +34,7 @@ func testAccDataSourceRecoveryServicesProtectionPolicyVm_basic(rInt int, locatio
 	return fmt.Sprintf(` 
 %s
 
-data "azurerm_recovery_services_vault" "test" {
+data "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "${azurerm_recovery_services_protection_policy_vm.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

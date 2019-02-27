@@ -40,7 +40,7 @@ func dataSourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData,
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 
-	log.Printf("[DEBUG] Reading Recovery Service Protection Policy Vm %q (resource group %q)", name, resourceGroup)
+	log.Printf("[DEBUG] Reading Recovery Service Protection Policy %q (resource group %q)", name, resourceGroup)
 
 	protectionPolicy, err := client.Get(ctx, vaultName, resourceGroup, name)
 	if err != nil {
