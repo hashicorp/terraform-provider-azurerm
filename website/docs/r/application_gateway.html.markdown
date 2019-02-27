@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
 * `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
