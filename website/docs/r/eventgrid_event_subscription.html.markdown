@@ -63,11 +63,19 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
+* `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
+
+* `subject_filter` - (Optional) A `subject_filter` block as defined below.
+
+* `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
+
+* `retry_policy` - (Optional) A `retry_policy` block as defined below.
+
 ---
 
 A `storage_queue_endpoint` supports the following:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located. 
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
 
@@ -88,6 +96,30 @@ A `webhook_endpoint` supports the following:
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will recieve events. 
 
 ---
+
+A `subject_filter` supports the following:
+
+* `subject_begins_with` - (Optional) A string to filter events for an event subscription based on a resource path prefix.
+
+* `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
+
+* `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive.
+
+---
+
+A `storage_blob_dead_letter_destination` supports the following:
+
+* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located. 
+
+* `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events
+
+---
+
+A `retry_policy` supports the following: 
+
+* `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
+
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events.
 
 ## Attributes Reference
 

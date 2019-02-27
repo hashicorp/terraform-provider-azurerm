@@ -30,6 +30,10 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "storage_queue_endpoint.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_blob_dead_letter_destination.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "All"),
+					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.max_delivery_attempts", "11"),
+					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.event_time_to_live", "11"),
 				),
 			},
 			{
@@ -72,7 +76,6 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 	resourceName := "azurerm_eventgrid_event_subscription.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,6 +96,37 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "storage_queue_endpoint.#", "1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
+	resourceName := "azurerm_eventgrid_event_subscription.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_filter(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
+					resource.TestCheckResourceAttr(resourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
+					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_ends_with", ".jpg"),
+					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_begins_with", "test/test"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -181,12 +215,40 @@ resource "azurerm_storage_queue" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name = "herpderp1.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+
+  type = "page"
+  size = 5120
+}
+
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                = "acctesteg-%d"
   scope = "${azurerm_resource_group.test.id}"
   storage_queue_endpoint {
 	  storage_account_id = "${azurerm_storage_account.test.id}"
 	  queue_name = "${azurerm_storage_queue.test.name}"
+  }
+
+  storage_blob_dead_letter_destination {
+	  storage_account_id = "${azurerm_storage_account.test.id}"
+	  storage_blob_container_name = "${azurerm_storage_container.test.name}"
+  }
+
+  retry_policy {
+	  event_time_to_live = 11
+	  max_delivery_attempts = 11
   }
 }
 `, rInt, location, rString, rInt, rInt)
@@ -198,6 +260,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -221,4 +284,47 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMEventGridEventSubscription_filter(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  
+  tags {
+    environment = "staging"
+  }
+}
+  
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                = "acctesteg-%d"
+  scope = "${azurerm_resource_group.test.id}"
+  storage_queue_endpoint {
+	  storage_account_id = "${azurerm_storage_account.test.id}"
+	  queue_name = "${azurerm_storage_queue.test.name}"
+  }
+
+  included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
+
+  subject_filter {
+	  subject_begins_with = "test/test"
+	  subject_ends_with = ".jpg"
+  }
+}
+`, rInt, location, rString, rInt, rInt)
 }

@@ -98,6 +98,74 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 					},
 				},
 			},
+
+			"included_event_types": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"subject_filter": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subject_begins_with": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"subject_ends_with": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"case_sensitive": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"storage_blob_dead_letter_destination": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_account_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_blob_container_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"retry_policy": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"max_delivery_attempts": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"event_time_to_live": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -128,8 +196,12 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 	}
 
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
-		Destination: destination,
+		Destination:           destination,
+		Filter:                expandEventGridEventSubscriptionFilter(d),
+		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
+		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
 	}
+
 	eventSubscription := eventgrid.EventSubscription{
 		EventSubscriptionProperties: &eventSubscriptionProperties,
 	}
@@ -204,6 +276,28 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
+
+		if filter := props.Filter; filter != nil {
+			d.Set("included_event_types", filter.IncludedEventTypes)
+			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
+				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+			}
+		}
+
+		if props.DeadLetterDestination != nil {
+			if storageBlobDeadLetterDestination, ok := props.DeadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
+				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
+					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				}
+			}
+		}
+
+		if retryPolicy := props.RetryPolicy; retryPolicy != nil {
+			if err := d.Set("retry_policy", flattenEventGridEventSubscriptionRetryPolicy(retryPolicy)); err != nil {
+				return fmt.Errorf("Error setting `retry_policy` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+			}
+		}
+
 	}
 
 	return nil
@@ -320,7 +414,7 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.Resource
 }
 
 func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("hybrid_connection_endpoint").([]interface{})[0].(map[string]interface{})
+	props := d.Get("webhook_endpoint").([]interface{})[0].(map[string]interface{})
 	url := props["url"].(string)
 
 	webhookEndpoint := eventgrid.WebHookEventSubscriptionDestination{
@@ -330,6 +424,61 @@ func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eve
 		},
 	}
 	return webhookEndpoint
+}
+
+func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.EventSubscriptionFilter {
+	filter := &eventgrid.EventSubscriptionFilter{}
+
+	if includedEvents, ok := d.GetOk("included_event_types"); ok {
+		includedEventsOutput := make([]string, 0)
+		config := includedEvents.([]interface{})
+		for _, event := range config {
+			includedEventsOutput = append(includedEventsOutput, event.(string))
+		}
+		filter.IncludedEventTypes = &includedEventsOutput
+	}
+
+	if subjectFilter, ok := d.GetOk("subject_filter"); ok {
+		config := subjectFilter.([]interface{})[0].(map[string]interface{})
+		subjectBeginsWith := config["subject_begins_with"].(string)
+		subjectEndsWith := config["subject_ends_with"].(string)
+		caseSensitive := config["case_sensitive"].(bool)
+
+		filter.SubjectBeginsWith = &subjectBeginsWith
+		filter.SubjectEndsWith = &subjectEndsWith
+		filter.IsSubjectCaseSensitive = &caseSensitive
+	}
+
+	return filter
+}
+
+func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *schema.ResourceData) eventgrid.BasicDeadLetterDestination {
+	if v, ok := d.GetOk("storage_blob_dead_letter_destination"); ok {
+		dest := v.([]interface{})[0].(map[string]interface{})
+		resourceID := dest["storage_account_id"].(string)
+		blobName := dest["storage_blob_container_name"].(string)
+		return eventgrid.StorageBlobDeadLetterDestination{
+			EndpointType: eventgrid.EndpointTypeStorageBlob,
+			StorageBlobDeadLetterDestinationProperties: &eventgrid.StorageBlobDeadLetterDestinationProperties{
+				ResourceID:        &resourceID,
+				BlobContainerName: &blobName,
+			},
+		}
+	}
+	return nil
+}
+
+func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventgrid.RetryPolicy {
+	if v, ok := d.GetOk("retry_policy"); ok {
+		dest := v.([]interface{})[0].(map[string]interface{})
+		maxDeliveryAttempts := dest["max_delivery_attempts"].(int)
+		eventTimeToLive := dest["event_time_to_live"].(int)
+		return &eventgrid.RetryPolicy{
+			MaxDeliveryAttempts:      utils.Int32(int32(maxDeliveryAttempts)),
+			EventTimeToLiveInMinutes: utils.Int32(int32(eventTimeToLive)),
+		}
+	}
+	return nil
 }
 
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {
@@ -382,6 +531,58 @@ func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.WebHookEv
 
 	if input.EndpointURL != nil {
 		result["url"] = *input.EndpointURL
+	}
+
+	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {
+	if (filter.SubjectBeginsWith != nil && *filter.SubjectBeginsWith == "") && (filter.SubjectEndsWith != nil && *filter.SubjectEndsWith == "") {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if filter.SubjectBeginsWith != nil {
+		result["subject_begins_with"] = *filter.SubjectBeginsWith
+	}
+
+	if filter.SubjectEndsWith != nil {
+		result["subject_ends_with"] = *filter.SubjectEndsWith
+	}
+
+	if filter.IsSubjectCaseSensitive != nil {
+		result["case_sensitive"] = *filter.IsSubjectCaseSensitive
+	}
+
+	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(dest *eventgrid.StorageBlobDeadLetterDestination) []interface{} {
+	if dest == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if dest.ResourceID != nil {
+		result["storage_account_id"] = *dest.ResourceID
+	}
+
+	if dest.BlobContainerName != nil {
+		result["storage_blob_container_name"] = *dest.BlobContainerName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionRetryPolicy(retryPolicy *eventgrid.RetryPolicy) []interface{} {
+	result := make(map[string]interface{})
+
+	if v := retryPolicy.EventTimeToLiveInMinutes; v != nil {
+		result["event_time_to_live"] = int(*v)
+	}
+
+	if v := retryPolicy.MaxDeliveryAttempts; v != nil {
+		result["max_delivery_attempts"] = int(*v)
 	}
 
 	return []interface{}{result}
