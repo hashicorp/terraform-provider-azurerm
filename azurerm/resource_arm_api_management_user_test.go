@@ -392,7 +392,7 @@ resource "azurerm_api_management_user" "test" {
   email                 = "azure-acctest%d@hashicorptest.com"
   state                 = "active"
   confirmation          = "signup"
-  notes                 = "Used for testing in dimension C-137."
+  note                  = "Used for testing in dimension C-137."
 }
 `, template, rInt, rInt)
 }
