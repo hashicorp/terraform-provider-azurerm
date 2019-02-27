@@ -22,6 +22,8 @@ func SchemaApiManagementDataSourceName() *schema.Schema {
 	}
 }
 
+// SchemaApiManagementChildName returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
 func SchemaApiManagementChildName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
@@ -31,6 +33,8 @@ func SchemaApiManagementChildName() *schema.Schema {
 	}
 }
 
+// SchemaApiManagementChildDataSourceName returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
 func SchemaApiManagementChildDataSourceName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
