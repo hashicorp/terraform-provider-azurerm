@@ -13,7 +13,7 @@ Manages the encryption settings of an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_storage_account_encryption_settings" "custom" {
+resource "azurerm_storage_account_encryption_settings" "tfex" {
   storage_account_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.Storage/storageAccounts/tfexstorageaccount"
 
   key_vault {
@@ -82,7 +82,7 @@ resource "azurerm_storage_account" "tfex" {
   }
 }
 
-resource "azurerm_storage_account_encryption_settings" "custom" {
+resource "azurerm_storage_account_encryption_settings" "tfex" {
   storage_account_id     = "${azurerm_storage_account.tfex.id}"
 
   key_vault {
