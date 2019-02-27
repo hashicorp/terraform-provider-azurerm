@@ -230,7 +230,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
-					resource.TestCheckResourceAttr(resourceName, "connection_strings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "connection_strings.#", "4"),
 				),
 			},
 			{

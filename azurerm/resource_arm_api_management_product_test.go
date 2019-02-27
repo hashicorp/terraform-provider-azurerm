@@ -322,9 +322,9 @@ resource "azurerm_api_management_product" "test" {
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   display_name          = "Test Updated Product"
-  subscription_required = false
-  approval_required     = false
-  published             = false
+  subscription_required = true
+  approval_required     = true
+  published             = true
 }
 `, rInt, location, rInt)
 }

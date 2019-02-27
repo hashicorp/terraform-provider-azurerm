@@ -2,8 +2,10 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_api_management_product` [GH-2953]
 * **New Data Source:** `azurerm_availability_set` [GH-2850]
 * **New Data Source:** `azurerm_network_watcher` [GH-2791]
+* **New Resource**: `azurerm_api_management_product` [GH-2953]
 * **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
 * **New Resource:** `azurerm_lb_outbound_rule` [GH-2912]
 * **New Resource:** `azurerm_media_service_account` [GH-2711]
@@ -20,6 +22,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - switching to use API version `2018-01-01` rather than `2018-06-01-preview` [GH-2958]
 * `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
 * `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist [GH-2922]
 * `azurerm_policy_definition` - making the `metadata` field to computed [GH-2939]
