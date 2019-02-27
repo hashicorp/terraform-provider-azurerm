@@ -401,19 +401,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"http_listener_name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"backend_address_pool_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ConflictsWith: []string{"redirect_configuration_name"},
 						},
 
 						"backend_http_settings_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ConflictsWith: []string{"redirect_configuration_name"},
 						},
 
 						"url_path_map_name": {
@@ -424,9 +422,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"redirect_configuration_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"backend_address_pool_name",
-								"backend_http_settings_name"},
 						},
 
 						"backend_address_pool_id": {
@@ -485,20 +480,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"target_listener_name": {
 							Type:     schema.TypeString,
-							Required: true,
-							ConflictsWith: []string{"target_url"},
+							Optional: true,
 						},
 
 						"target_url": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ConflictsWith: []string{"target_listener_name"},
 						},
 
 						"include_path": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ConflictsWith: []string{"target_url"},
 						},
 
 						"include_query_string": {
@@ -777,12 +769,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 									"backend_address_pool_name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"backend_http_settings_name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+									},
+
+									"redirect_configuration_name": {
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 
 									"backend_address_pool_id": {
@@ -1912,17 +1909,19 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 
 		name := v["name"].(string)
 		ruleType := v["rule_type"].(string)
-		httpListenerName := v["http_listener_name"].(string)
-		httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
 
 		rule := network.ApplicationGatewayRequestRoutingRule{
 			Name: utils.String(name),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				RuleType: network.ApplicationGatewayRequestRoutingRuleType(ruleType),
-				HTTPListener: &network.SubResource{
-					ID: utils.String(httpListenerID),
-				},
 			},
+		}
+
+		if httpListenerName := v["http_listener_name"].(string); httpListenerName != "" {
+			httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener = &network.SubResource{
+				ID: utils.String(httpListenerID),
+			}
 		}
 
 		if backendAddressPoolName := v["backend_address_pool_name"].(string); backendAddressPoolName != "" {
@@ -1967,6 +1966,22 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
+
+			if props.HTTPListener == nil && props.RedirectConfiguration == nil {
+				return nil, fmt.Errorf("[ERROR] Specify either `redirect_configuration_name` or `http_listener_name`")
+			}
+
+			if props.HTTPListener != nil && props.RedirectConfiguration != nil {
+				return nil, fmt.Errorf("[ERROR] Conflict between `http_listener_name` and `redirect_configuration_name` (targer listener not applicable when redirection specified)")
+			}
+
+			if props.BackendAddressPool != nil && props.RedirectConfiguration != nil {
+				return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+			}
+
+			if props.BackendHTTPSettings != nil && props.RedirectConfiguration != nil {
+				return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+			}
 
 			output := map[string]interface{}{
 				"rule_type": string(props.RuleType),
@@ -2096,6 +2111,17 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
 
+			if config.TargetListener == nil && config.TargetURL == nil {
+				return nil, fmt.Errorf("[ERROR] Specify either `target_listener_name` or `target_url`")
+			}
+			if props.TargetListener != nil && config.TargetURL != nil {
+				return nil, fmt.Errorf("[ERROR] Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
+			}
+
+			if config.TargetURL != nil && config.IncludePath != nil {
+				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is specified")
+			}
+
 			output := map[string]interface{}{
 				"redirect_type": string(props.RedirectType),
 			}
@@ -2131,8 +2157,6 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 			if config.IncludeQueryString != nil {
 				output["include_query_string"] = *config.IncludeQueryString
 			}
-
-			// TODO: Do we need/want to return the collections of referencing []SubResource ?
 
 			results = append(results, output)
 		}
@@ -2389,7 +2413,17 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						ruleOutput["name"] = *rule.Name
 					}
 
+					// TODO: Note below: ruleProps versus props - bug?
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
+
+						if ruleProps.BackendAddressPool != nil && ruleProps.RedirectConfiguration != nil {
+							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+						}
+
+						if ruleProps.BackendHTTPSettings != nil && ruleProps.RedirectConfiguration != nil {
+							return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+						}
+
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
 							poolId, err := parseAzureResourceID(*pool.ID)
 							if err != nil {
