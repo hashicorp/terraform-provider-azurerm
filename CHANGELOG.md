@@ -3,11 +3,13 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_api_management_group` [GH-2809]
-* **New Data Source**: `azurerm_api_management_product` [GH-2953]
+* **New Data Source:** `azurerm_api_management_product` [GH-2953]
+* **New Data Source:** `azurerm_api_management_user` [GH-2954]
 * **New Data Source:** `azurerm_availability_set` [GH-2850]
 * **New Data Source:** `azurerm_network_watcher` [GH-2791]
 * **New Resource:** `azurerm_api_management_group` [GH-2809]
-* **New Resource**: `azurerm_api_management_product` [GH-2953]
+* **New Resource:** `azurerm_api_management_product` [GH-2953]
+* **New Resource:** `azurerm_api_management_user` [GH-2954]
 * **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
 * **New Resource:** `azurerm_lb_outbound_rule` [GH-2912]
 * **New Resource:** `azurerm_media_service_account` [GH-2711]
