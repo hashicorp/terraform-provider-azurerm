@@ -62,7 +62,7 @@ func dataSourceApiManagementProductRead(d *schema.ResourceData, meta interface{}
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("service_name").(string)
+	serviceName := d.Get("api_management_name").(string)
 	productId := d.Get("product_id").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
