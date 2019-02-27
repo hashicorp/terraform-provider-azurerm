@@ -200,29 +200,6 @@ func testCheckAzureRMStorageAccountEncryptionSettingsExists(resourceName string)
 	}
 }
 
-func testCheckAzureRMStorageAccountDelete(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		storageAccount := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-
-		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
-			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
 func testCheckAzureRMStorageAccountDestroyed(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
@@ -257,18 +234,6 @@ func testCheckAzureRMStorageAccountEncryptionSettingsDestroyed(resourceName stri
 
 		return fmt.Errorf("Found: %s", resourceName)
 	}
-}
-
-func testCheckAzureRMStorageAccountEncryptionSettingsDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_account_encryption_settings" {
-			continue
-		}
-
-		return fmt.Errorf("Storage Account Encryption Settings still exists\n")
-	}
-
-	return nil
 }
 
 func testAccAzureRMStorageAccountEncryptionSettings_basic(rInt int, rString string, location string) string {
@@ -373,17 +338,4 @@ resource "azurerm_storage_account_encryption_settings" "custom" {
   enable_blob_encryption = false"
 }
 `, rInt, location, rString)
-}
-
-func testAccAzureRMStorageAccountEncryptionSettings_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageAccountEncryptionSettings_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_encryption_settings" "import" {
-  storage_account_id       = "${azurerm_storage_account.testrg.id}"
-	enable_blob_encryption   = "true"
-	enable_file_encryption   = "true"
-}
-`, template)
 }
