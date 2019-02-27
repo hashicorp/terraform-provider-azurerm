@@ -401,7 +401,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"http_listener_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 
 						"backend_address_pool_name": {
@@ -1909,19 +1909,17 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 
 		name := v["name"].(string)
 		ruleType := v["rule_type"].(string)
+		httpListenerName := v["http_listener_name"].(string)
+		httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
 
 		rule := network.ApplicationGatewayRequestRoutingRule{
 			Name: utils.String(name),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				RuleType: network.ApplicationGatewayRequestRoutingRuleType(ruleType),
+				HTTPListener: &network.SubResource{
+					ID: utils.String(httpListenerID),
+				},
 			},
-		}
-
-		if httpListenerName := v["http_listener_name"].(string); httpListenerName != "" {
-			httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
-			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener = &network.SubResource{
-				ID: utils.String(httpListenerID),
-			}
 		}
 
 		if backendAddressPoolName := v["backend_address_pool_name"].(string); backendAddressPoolName != "" {
@@ -1966,14 +1964,6 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
-
-			if props.HTTPListener == nil && props.RedirectConfiguration == nil {
-				return nil, fmt.Errorf("[ERROR] Specify either `redirect_configuration_name` or `http_listener_name`")
-			}
-
-			if props.HTTPListener != nil && props.RedirectConfiguration != nil {
-				return nil, fmt.Errorf("[ERROR] Conflict between `http_listener_name` and `redirect_configuration_name` (targer listener not applicable when redirection specified)")
-			}
 
 			if props.BackendAddressPool != nil && props.RedirectConfiguration != nil {
 				return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
