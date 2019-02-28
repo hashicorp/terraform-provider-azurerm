@@ -191,7 +191,7 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `cors` - (Optional) CORS settings
+* `cors` - A `cors` block as defined below.
 
 ---
 
