@@ -35,7 +35,7 @@ resource "azurerm_app_service" "main" {
     linux_fx_version = "COMPOSE|${base64encode(file("docker-compose.yml"))}"
   }
 
-  app_settings {
+  app_settings = {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
   }
 }

@@ -35,7 +35,7 @@ resource "azurerm_app_service" "main" {
     linux_fx_version = "KUBE|${base64encode(file("kubernetes.yml"))}"
   }
 
-  app_settings {
+  app_settings = {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
   }
 }

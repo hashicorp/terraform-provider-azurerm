@@ -562,12 +562,12 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    environment_variables {
+    environment_variables = {
       "foo"  = "bar"
       "foo1" = "bar1"
     }
 
-    secure_environment_variables {
+    secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
     }
@@ -636,12 +636,12 @@ resource "azurerm_container_group" "test" {
       storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
     }
 
-    environment_variables {
+    environment_variables = {
       "foo" = "bar"
       "foo1" = "bar1"
     }
 
-    secure_environment_variables {
+    secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
     }
