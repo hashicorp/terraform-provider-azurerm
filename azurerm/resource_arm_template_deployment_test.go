@@ -680,7 +680,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -804,7 +804,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -873,7 +873,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     storageAccountType = "Standard_GRS"
   }
 
