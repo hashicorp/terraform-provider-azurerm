@@ -1335,6 +1335,8 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
 				output["pick_host_name_from_backend_address"] = *pickHostNameFromBackendAddress
 			}
+			
+			output["protocol"] = string(props.Protocol)
 
 			if timeout := props.RequestTimeout; timeout != nil {
 				output["request_timeout"] = int(*timeout)
