@@ -86,7 +86,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
     url = "https://this.url.fails"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("your_cert.pfx"))}"
+      pfx      = "${filebase64("your_cert.pfx")}"
       password = "cert_password"
     }
   }

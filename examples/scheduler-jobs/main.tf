@@ -106,7 +106,7 @@ resource "azurerm_scheduler_job" "web-recurring_weekly-auth_cert" {
     method = "get"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("../../azurerm/testdata/application_gateway_test.pfx"))}"
+      pfx      = "${filebase64("../../azurerm/testdata/application_gateway_test.pfx")}"
       password = "terraform"
     }
   }

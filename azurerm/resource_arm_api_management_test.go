@@ -273,13 +273,13 @@ resource "azurerm_api_management" "test" {
   }
 
   certificate {
-    encoded_certificate  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
   }
 
   certificate {
-    encoded_certificate  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
     certificate_password = "terraform"
     store_name           = "Root"
   }
@@ -291,7 +291,7 @@ resource "azurerm_api_management" "test" {
   hostname_configuration {
     proxy {
       host_name                    = "api.terraform.io"
-      certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+      certificate                  = "${filebase64("testdata/api_management_api_test.pfx")}"
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -299,14 +299,14 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api2.terraform.io"
-      certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+      certificate                  = "${filebase64("testdata/api_management_api2_test.pfx")}"
       certificate_password         = "terraform"
       negotiate_client_certificate = true
     }
 
     portal {
       host_name            = "portal.terraform.io"
-      certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+      certificate          = "${filebase64("testdata/api_management_portal_test.pfx"))}"
       certificate_password = "terraform"
     }
   }

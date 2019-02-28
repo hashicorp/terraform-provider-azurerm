@@ -32,7 +32,7 @@ resource "azurerm_app_service" "main" {
 
   site_config {
     app_command_line = ""
-    linux_fx_version = "COMPOSE|${base64encode(file("docker-compose.yml"))}"
+    linux_fx_version = "COMPOSE|${filebase64("docker-compose.yml")}"
   }
 
   app_settings = {
