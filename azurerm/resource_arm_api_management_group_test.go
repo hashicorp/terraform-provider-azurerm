@@ -37,6 +37,37 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_api_management_group.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAPIManagementGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAPIManagementGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Group"),
+					resource.TestCheckResourceAttr(resourceName, "type", "custom"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAPIManagementGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_api_management_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
@@ -184,6 +215,20 @@ resource "azurerm_api_management_group" "test" {
   display_name        = "Test Group"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAPIManagementGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAPIManagementGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_group" "import" {
+  name                = "${azurerm_api_management_group.test.name}"
+  resource_group_name = "${azurerm_api_management_group.test.resource_group_name}"
+  api_management_name = "${azurerm_api_management_group.test.api_management_name}"
+  display_name        = "${azurerm_api_management_group.test.display_name}"
+}
+`, template)
 }
 
 func testAccAzureRMAPIManagementGroup_complete(rInt int, location string, displayName, description string) string {

@@ -126,10 +126,11 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementGroupClient    apimanagement.GroupClient
-	apiManagementProductsClient apimanagement.ProductClient
-	apiManagementServiceClient  apimanagement.ServiceClient
-	apiManagementUsersClient    apimanagement.UserClient
+	apiManagementGroupClient      apimanagement.GroupClient
+	apiManagementGroupUsersClient apimanagement.GroupUserClient
+	apiManagementProductsClient   apimanagement.ProductClient
+	apiManagementServiceClient    apimanagement.ServiceClient
+	apiManagementUsersClient      apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -493,6 +494,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&groupsClient.Client, auth)
 	c.apiManagementGroupClient = groupsClient
+
+	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupUsersClient.Client, auth)
+	c.apiManagementGroupUsersClient = groupUsersClient
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)
