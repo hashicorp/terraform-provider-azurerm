@@ -22,7 +22,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 					testAzureRMClientConfigAttr(dataSourceName, "name", "a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 					testAzureRMClientConfigAttr(dataSourceName, "display_name", "Allowed resource types"),
 					testAzureRMClientConfigAttr(dataSourceName, "type", "Microsoft.Authorization/policyDefinitions"),
-					testAzureRMClientConfigAttr(dataSourceName, "description", "This policy enables you to specify the resource types that your organization can deploy."),
+					testAzureRMClientConfigAttr(dataSourceName, "description", "This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
 				),
 			},
 		},
