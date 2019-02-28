@@ -819,20 +819,20 @@ resource "azurerm_scheduler_job" "test" {
     frequency = "month"
     count     = 100
 
-    monthly_occurrences = [
-      {
-        day        = "sunday"
-        occurrence = 1
-      },
-      {
-        day        = "sunday"
-        occurrence = 3
-      },
-      {
-        day        = "sunday"
-        occurrence = -1
-      },
-    ]
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 1
+	}
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 3
+    }
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = -1
+    }
   }
 }
 `, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
