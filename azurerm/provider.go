@@ -169,6 +169,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_api_management":                         resourceArmApiManagementService(),
 			"azurerm_api_management_group":                   resourceArmApiManagementGroup(),
+			"azurerm_api_management_group_user":              resourceArmApiManagementGroupUser(),
 			"azurerm_api_management_product":                 resourceArmApiManagementProduct(),
 			"azurerm_api_management_user":                    resourceArmApiManagementUser(),
 			"azurerm_app_service_active_slot":                resourceArmAppServiceActiveSlot(),
@@ -226,6 +227,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_dns_txt_record":                         resourceArmDnsTxtRecord(),
 			"azurerm_dns_zone":                               resourceArmDnsZone(),
 			"azurerm_eventgrid_domain":                       resourceArmEventGridDomain(),
+			"azurerm_eventgrid_event_subscription":           resourceArmEventGridEventSubscription(),
 			"azurerm_eventgrid_topic":                        resourceArmEventGridTopic(),
 			"azurerm_eventhub_authorization_rule":            resourceArmEventHubAuthorizationRule(),
 			"azurerm_eventhub_consumer_group":                resourceArmEventHubConsumerGroup(),

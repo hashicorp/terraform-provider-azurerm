@@ -15,7 +15,7 @@ Use this data source to access information about an existing API Management Grou
 ```hcl
 data "azurerm_api_management_group" "test" {
   name                = "my-group"
-  api_management_name = "example-apim
+  api_management_name = "example-apim"
   resource_group_name = "search-service"
 }
 
