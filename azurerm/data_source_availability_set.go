@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -70,8 +71,12 @@ func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
 	}
 	if props := resp.AvailabilitySetProperties; props != nil {
-		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
-		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+		if v := props.PlatformUpdateDomainCount; v != nil {
+			d.Set("platform_update_domain_count", strconv.Itoa(int(*v)))
+		}
+		if v := props.PlatformFaultDomainCount; v != nil {
+			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
+		}
 	}
 	flattenAndSetTags(d, resp.Tags)
 

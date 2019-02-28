@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
@@ -136,18 +137,25 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on Azure Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	availSet := *resp.AvailabilitySetProperties
+
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
-	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
-
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
 	}
+
+	if props := resp.AvailabilitySetProperties; props != nil {
+		if v := props.PlatformUpdateDomainCount; v != nil {
+			d.Set("platform_update_domain_count", strconv.Itoa(int(*v)))
+		}
+		if v := props.PlatformFaultDomainCount; v != nil {
+			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
+		}
+	}
+
 
 	flattenAndSetTags(d, resp.Tags)
 
