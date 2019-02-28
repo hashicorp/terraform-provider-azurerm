@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
@@ -147,12 +146,8 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if props := resp.AvailabilitySetProperties; props != nil {
-		if v := props.PlatformUpdateDomainCount; v != nil {
-			d.Set("platform_update_domain_count", strconv.Itoa(int(*v)))
-		}
-		if v := props.PlatformFaultDomainCount; v != nil {
-			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
-		}
+			d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
