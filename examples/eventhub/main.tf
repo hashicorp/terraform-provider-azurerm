@@ -16,7 +16,7 @@ resource "azurerm_eventhub_namespace" "example" {
   sku      = "Standard"
   capacity = 2
 
-  tags {
+  tags = {
     environment = "Examples"
   }
 }

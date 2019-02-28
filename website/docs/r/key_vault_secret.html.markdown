@@ -58,7 +58,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -68,7 +68,7 @@ resource "azurerm_key_vault_secret" "test" {
   value    = "szechuan"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

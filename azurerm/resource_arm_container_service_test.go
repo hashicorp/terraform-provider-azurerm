@@ -349,7 +349,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     you = "me"
   }
 }

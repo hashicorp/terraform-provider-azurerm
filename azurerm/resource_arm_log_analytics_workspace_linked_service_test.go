@@ -164,7 +164,7 @@ func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location s
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  resource_id         = "${azurerm_automation_account.test.id}"}
+  resource_id         = "${azurerm_automation_account.test.id}"
 `, template)
 }
 
@@ -211,7 +211,7 @@ resource "azurerm_automation_account" "test" {
     name = "Basic"
   }
 
-  tags {
+  tags = {
     Environment = "Test"
   }
 }

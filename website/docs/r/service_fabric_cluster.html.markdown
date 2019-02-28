@@ -87,7 +87,7 @@ A `azure_active_directory` block supports the following:
 
 * `tenant_id` - (Required) The Azure Active Directory Tenant ID. Changing this forces a new resource to be created.
 
-* `cluster_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Cluster Application. Changing this forces a new resource to be created.
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID. Changing this forces a new resource to be created.
 
 * `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
 
@@ -146,6 +146,10 @@ A `fabric_settings` block supports the following:
 A `node_type` block supports the following:
 
 * `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
+
+* `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
+
+* `capacities` - (Optional) The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has.
 
 * `instance_count` - (Required) The number of nodes for this Node Type.
 

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -231,6 +230,14 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
+						},
+						"placement_properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+						},
+						"capacities": {
+							Type:     schema.TypeMap,
+							Optional: true,
 						},
 						"instance_count": {
 							Type:     schema.TypeInt,
@@ -918,6 +925,25 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			HTTPGatewayEndpointPort:      utils.Int32(int32(httpEndpointPort)),
 			DurabilityLevel:              servicefabric.DurabilityLevel(durabilityLevel),
 		}
+
+		if props, ok := node["placement_properties"]; ok {
+			placementProperties := make(map[string]*string)
+			for key, value := range props.(map[string]interface{}) {
+				placementProperties[key] = utils.String(value.(string))
+			}
+
+			result.PlacementProperties = placementProperties
+		}
+
+		if caps, ok := node["capacities"]; ok {
+			capacities := make(map[string]*string)
+			for key, value := range caps.(map[string]interface{}) {
+				capacities[key] = utils.String(value.(string))
+			}
+
+			result.Capacities = capacities
+		}
+
 		if v := int32(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
 			result.ReverseProxyEndpointPort = utils.Int32(v)
 		}
@@ -968,6 +994,14 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 			output["name"] = *name
 		}
 
+		if placementProperties := v.PlacementProperties; placementProperties != nil {
+			output["placement_properties"] = placementProperties
+		}
+
+		if capacities := v.Capacities; capacities != nil {
+			output["capacities"] = capacities
+		}
+
 		if count := v.VMInstanceCount; count != nil {
 			output["instance_count"] = int(*count)
 		}
@@ -1003,7 +1037,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 		}
 		output["application_ports"] = applicationPorts
 
-		ephermeralPorts := make([]interface{}, 0)
+		ephemeralPorts := make([]interface{}, 0)
 		if ports := v.EphemeralPorts; ports != nil {
 			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
@@ -1012,9 +1046,9 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 			if end := ports.EndPort; end != nil {
 				r["end_port"] = int(*end)
 			}
-			ephermeralPorts = append(ephermeralPorts, r)
+			ephemeralPorts = append(ephemeralPorts, r)
 		}
-		output["ephemeral_ports"] = ephermeralPorts
+		output["ephemeral_ports"] = ephemeralPorts
 
 		results = append(results, output)
 	}

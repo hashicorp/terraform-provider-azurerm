@@ -89,6 +89,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
+    path         = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -143,6 +144,8 @@ The following arguments are supported:
 
 * `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
 * `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
@@ -191,6 +194,8 @@ A `backend_http_settings` block supports the following:
 
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
 
+* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
+
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
 * `probe_name` - (Required) The name of an associated HTTP Probe.
@@ -203,8 +208,19 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
+* `connection_draining` - (Optional) A `connection_draining` block as defined below.
+
 ---
 
+A `connection_draining` block supports the following:
+
+* `enabled` - (Required) If connection draining is enabled or not.
+
+* `drain_timeout_sec` - (Required) The number of seconds connection draining is active. Acceptable values are from `1` second to `3600` seconds.
+
+---
+
+      
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.

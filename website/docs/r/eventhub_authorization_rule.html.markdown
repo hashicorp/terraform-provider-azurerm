@@ -25,7 +25,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
   capacity            = 2
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

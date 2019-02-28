@@ -569,7 +569,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -606,7 +606,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -628,8 +628,100 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_blob_encryption   = true
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_blob_encryption   = false
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileEncryption(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_file_encryption   = true
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileEncryptionDisabled(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_file_encryption   = false
+
+  tags = {
+    environment = "production"
   }
 }
 `, rInt, location, rString)
@@ -651,7 +743,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -674,7 +766,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type  = "LRS"
   enable_https_traffic_only = false
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -697,7 +789,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -721,7 +813,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   access_tier              = "Cool"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -744,7 +836,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -768,7 +860,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   access_tier              = "Cool"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -789,7 +881,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "standard"
   account_replication_type = "lrs"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -815,7 +907,7 @@ resource "azurerm_storage_account" "testsa" {
     type = "SystemAssigned"
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -856,7 +948,7 @@ resource "azurerm_storage_account" "testsa" {
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -897,7 +989,7 @@ resource "azurerm_storage_account" "testsa" {
     bypass   = ["Logging", "Metrics"]
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

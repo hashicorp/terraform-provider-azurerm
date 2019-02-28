@@ -351,7 +351,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -379,7 +379,7 @@ resource "azurerm_express_route_circuit" "import" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -409,7 +409,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -439,7 +439,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -469,7 +469,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = %s
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

@@ -391,7 +391,7 @@ resource "azurerm_local_network_gateway" "test" {
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
-  tags {
+  tags = {
     environment = "acctest"
   }
 }

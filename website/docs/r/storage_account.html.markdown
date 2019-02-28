@@ -1,3 +1,4 @@
+
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
@@ -25,7 +26,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -67,7 +68,7 @@ resource "azurerm_storage_account" "testsa" {
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -139,21 +140,51 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The storage account Resource ID.
+
 * `primary_location` - The primary location of the storage account.
+
 * `secondary_location` - The secondary location of the storage account.
+
 * `primary_blob_endpoint` - The endpoint URL for blob storage in the primary location.
+
+* `primary_blob_host` - The hostname with port if applicable for blob storage in the primary location.
+
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_host` - The hostname with port if applicable for blob storage in the secondary location.
+
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
+
+* `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
+
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
+
+* `secondary_queue_host` - The hostname with port if applicable for queue storage in the secondary location.
+
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
+
+* `primary_table_host` - The hostname with port if applicable for table storage in the primary location.
+
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
+
+* `secondary_table_host` - The hostname with port if applicable for table storage in the secondary location.
+
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
-* `primary_access_key` - The primary access key for the storage account
-* `secondary_access_key` - The secondary access key for the storage account
-* `primary_connection_string` - The connection string associated with the primary location
-* `secondary_connection_string` - The connection string associated with the secondary location
-* `primary_blob_connection_string` - The connection string associated with the primary blob location
-* `secondary_blob_connection_string` - The connection string associated with the secondary blob location
+
+* `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
+
+* `primary_access_key` - The primary access key for the storage account.
+
+* `secondary_access_key` - The secondary access key for the storage account.
+
+* `primary_connection_string` - The connection string associated with the primary location.
+
+* `secondary_connection_string` - The connection string associated with the secondary location.
+
+* `primary_blob_connection_string` - The connection string associated with the primary blob location.
+
+* `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
+
 * `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
 
 ---

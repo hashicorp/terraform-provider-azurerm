@@ -82,7 +82,7 @@ resource "azurerm_dev_test_lab" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   storage_type        = "Standard"
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }

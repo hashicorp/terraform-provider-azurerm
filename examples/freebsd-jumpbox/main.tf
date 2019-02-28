@@ -53,7 +53,7 @@ resource "azurerm_network_security_group" "mgmt-nsg" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "Management"
   }
 }
@@ -76,7 +76,7 @@ resource "azurerm_network_security_group" "web-nsg" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "Web"
   }
 }
@@ -95,7 +95,7 @@ resource "azurerm_network_interface" "nic" {
     public_ip_address_id          = "${azurerm_public_ip.pip.id}"
   }
 
-  tags {
+  tags = {
     environment = "Management"
   }
 }
@@ -108,7 +108,7 @@ resource "azurerm_public_ip" "pip" {
   allocation_method = "Dynamic"
   domain_name_label            = "${var.dns_name}"
 
-  tags {
+  tags = {
     environment = "Management"
   }
 }
@@ -181,7 +181,7 @@ resource "azurerm_virtual_machine" "vm" {
     storage_uri = "${azurerm_storage_account.stor.primary_blob_endpoint}"
   }
 
-  tags {
+  tags = {
     environment = "Management"
   }
 }
