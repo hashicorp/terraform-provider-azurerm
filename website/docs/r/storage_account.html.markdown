@@ -25,7 +25,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -67,7 +67,7 @@ resource "azurerm_storage_account" "testsa" {
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

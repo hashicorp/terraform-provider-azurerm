@@ -326,7 +326,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -366,7 +366,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

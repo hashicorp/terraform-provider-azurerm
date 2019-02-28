@@ -652,7 +652,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -689,7 +689,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -711,7 +711,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -734,7 +734,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   enable_blob_encryption   = true
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -757,7 +757,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   enable_blob_encryption   = false
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -780,7 +780,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   enable_file_encryption   = true
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -803,7 +803,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   enable_file_encryption   = false
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -826,7 +826,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -849,7 +849,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type  = "LRS"
   enable_https_traffic_only = false
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -872,7 +872,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -896,7 +896,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   access_tier              = "Cool"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -919,7 +919,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -943,7 +943,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   access_tier              = "Cool"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -964,7 +964,7 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "standard"
   account_replication_type = "lrs"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -990,7 +990,7 @@ resource "azurerm_storage_account" "testsa" {
     type = "SystemAssigned"
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -1031,7 +1031,7 @@ resource "azurerm_storage_account" "testsa" {
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -1072,7 +1072,7 @@ resource "azurerm_storage_account" "testsa" {
     bypass   = ["Logging", "Metrics"]
   }
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

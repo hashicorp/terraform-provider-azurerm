@@ -468,7 +468,7 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -502,7 +502,7 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

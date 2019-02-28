@@ -159,7 +159,7 @@ resource "azurerm_search_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -175,7 +175,7 @@ resource "azurerm_search_service" "import" {
   location            = "${azurerm_search_service.test.location}"
   sku                 = "${azurerm_search_service.test.sku}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -196,7 +196,7 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
   replica_count       = 2
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

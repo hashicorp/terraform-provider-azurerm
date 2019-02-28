@@ -331,7 +331,7 @@ resource "azurerm_container_group" "test" {
     port   = 80
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -358,7 +358,7 @@ resource "azurerm_container_group" "import" {
     port   = "80"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -407,7 +407,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -451,7 +451,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -493,7 +493,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -529,7 +529,7 @@ resource "azurerm_container_group" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -575,7 +575,7 @@ resource "azurerm_container_group" "test" {
     commands = ["cmd.exe", "echo", "hi"]
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -649,7 +649,7 @@ resource "azurerm_container_group" "test" {
     commands = ["/bin/bash", "-c", "ls"]
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }

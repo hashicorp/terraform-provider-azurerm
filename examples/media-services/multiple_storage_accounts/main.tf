@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "testsa2" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

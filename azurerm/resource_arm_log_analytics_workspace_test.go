@@ -228,7 +228,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
- tags {
+ tags = {
     Environment = "Test"
   }
 }

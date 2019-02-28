@@ -308,7 +308,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -344,7 +344,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
