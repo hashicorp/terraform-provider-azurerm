@@ -420,8 +420,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"redirect_configuration_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"backend_address_pool_id": {
@@ -463,8 +464,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"redirect_type": {
@@ -479,13 +481,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"target_listener_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"target_url": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"include_path": {
@@ -745,8 +749,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"default_redirect_configuration_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"path_rule": {
@@ -778,8 +783,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"redirect_configuration_name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"backend_address_pool_id": {
