@@ -137,7 +137,6 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on Azure Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -155,7 +154,6 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
 		}
 	}
-
 
 	flattenAndSetTags(d, resp.Tags)
 
