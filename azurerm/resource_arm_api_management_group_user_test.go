@@ -35,6 +35,35 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_api_management_group_user.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAPIManagementGroupUser_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAPIManagementGroupUserExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAPIManagementGroupUser_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_api_management_group_user"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).apiManagementGroupUsersClient
 	for _, rs := range s.RootModule().Resources {
@@ -129,4 +158,18 @@ resource "azurerm_api_management_group_user" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAPIManagementGroupUser_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAPIManagementGroupUser_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_group_user" "import" {
+  user_id               = "${azurerm_api_management_group_user.test.user_id}"
+  group_name            = "${azurerm_api_management_group_user.test.group_name}"
+  api_management_name   = "${azurerm_api_management_group_user.test.api_management_name}"
+  resource_group_name   = "${azurerm_api_management_group_user.test.resource_group_name}"
+}
+`, template)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,6 +39,21 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	serviceName := d.Get("api_management_name").(string)
 	groupName := d.Get("group_name").(string)
 	userId := d.Get("user_id").(string)
+
+	if requireResourcesToBeImported {
+		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Error checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(resp) {
+			subscriptionId := meta.(*ArmClient).subscriptionId
+			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/groups/%s/users/%s", subscriptionId, resourceGroup, serviceName, groupName, userId)
+			return tf.ImportAsExistsError("azurerm_api_management_group_user", resourceId)
+		}
+	}
 
 	resp, err := client.Create(ctx, resourceGroup, serviceName, groupName, userId)
 	if err != nil {
