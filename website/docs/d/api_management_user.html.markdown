@@ -15,7 +15,7 @@ Use this data source to access information about an existing API Management User
 ```hcl
 data "azurerm_api_management_user" "test" {
   user_id             = "my-user"
-  api_management_name = "example-apim
+  api_management_name = "example-apim"
   resource_group_name = "search-service"
 }
 
