@@ -819,20 +819,20 @@ resource "azurerm_scheduler_job" "test" {
     frequency = "month"
     count     = 100
 
-    monthly_occurrences = [
-      {
-        day        = "sunday"
-        occurrence = 1
-      },
-      {
-        day        = "sunday"
-        occurrence = 3
-      },
-      {
-        day        = "sunday"
-        occurrence = -1
-      },
-    ]
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 1
+	}
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 3
+    }
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = -1
+    }
   }
 }
 `, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
@@ -913,7 +913,7 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-  action_storage_queue = {
+  action_storage_queue {
     storage_account_name = "${azurerm_storage_account.test.name}"
     storage_queue_name   = "${azurerm_storage_queue.test.name}"
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"
@@ -950,7 +950,7 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
   }
 
-  error_action_storage_queue = {
+  error_action_storage_queue {
     storage_account_name = "${azurerm_storage_account.test.name}"
     storage_queue_name   = "${azurerm_storage_queue.test.name}"
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"

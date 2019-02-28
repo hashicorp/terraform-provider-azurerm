@@ -176,6 +176,26 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 
+						"connection_draining": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+
+									"drain_timeout_sec": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 3600),
+									},
+								},
+							},
+						},
+
 						"probe_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -1247,6 +1267,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 				Port:                           utils.Int32(port),
 				Protocol:                       network.ApplicationGatewayProtocol(protocol),
 				RequestTimeout:                 utils.Int32(requestTimeout),
+				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
 		}
 
@@ -1305,13 +1326,18 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 			if path := props.Path; path != nil {
 				output["path"] = *path
 			}
+			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
+
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
 			}
+
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
 				output["pick_host_name_from_backend_address"] = *pickHostNameFromBackendAddress
 			}
+
 			output["protocol"] = string(props.Protocol)
+
 			if timeout := props.RequestTimeout; timeout != nil {
 				output["request_timeout"] = int(*timeout)
 			}
@@ -1355,6 +1381,37 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 	}
 
 	return results, nil
+}
+
+func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *network.ApplicationGatewayConnectionDraining {
+	connectionsRaw := d["connection_draining"].([]interface{})
+
+	if len(connectionsRaw) <= 0 {
+		return nil
+	}
+
+	connectionRaw := connectionsRaw[0].(map[string]interface{})
+
+	return &network.ApplicationGatewayConnectionDraining{
+		Enabled:           utils.Bool(connectionRaw["enabled"].(bool)),
+		DrainTimeoutInSec: utils.Int32(int32(connectionRaw["drain_timeout_sec"].(int))),
+	}
+}
+
+func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatewayConnectionDraining) []interface{} {
+	result := map[string]interface{}{}
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if v := input.Enabled; v != nil {
+		result["enabled"] = *v
+	}
+	if v := input.DrainTimeoutInSec; v != nil {
+		result["drain_timeout_sec"] = *v
+	}
+
+	return []interface{}{result}
 }
 
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {

@@ -2046,7 +2046,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 }

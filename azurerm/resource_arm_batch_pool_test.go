@@ -324,7 +324,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1",
+  vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
   

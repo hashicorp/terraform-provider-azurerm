@@ -208,8 +208,19 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
+* `connection_draining` - (Optional) A `connection_draining` block as defined below.
+
 ---
 
+A `connection_draining` block supports the following:
+
+* `enabled` - (Required) If connection draining is enabled or not.
+
+* `drain_timeout_sec` - (Required) The number of seconds connection draining is active. Acceptable values are from `1` second to `3600` seconds.
+
+---
+
+      
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
