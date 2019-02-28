@@ -771,7 +771,7 @@ func testAccAzureRMCosmosDBAccount_capabilityGremlin(rInt int, location string) 
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
 
-        capabilities = {
+        capabilities {
           name = "EnableGremlin"
         }
     `)
@@ -781,7 +781,7 @@ func testAccAzureRMCosmosDBAccount_capabilityTable(rInt int, location string) st
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
 
-        capabilities = {
+        capabilities {
           name = "EnableTable"
         }
     `)
@@ -791,7 +791,7 @@ func testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt int, location string
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
 
-        capabilities = {
+        capabilities {
           name = "EnableCassandra"
         }
     `)
@@ -801,7 +801,7 @@ func testAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(rInt int, locat
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
 
-        capabilities = {
+        capabilities {
           name = "EnableAggregationPipeline"
         }
     `)
@@ -811,7 +811,7 @@ func testAccAzureRMCosmosDBAccount_capabilityMongo34(rInt int, location string) 
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "MongoDB"
 
-        capabilities = {
+        capabilities {
           name = "MongoDBv3.4"
         }
     `)
@@ -821,7 +821,7 @@ func testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(rInt int, location stri
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "MongoDB"
 
-        capabilities = {
+        capabilities {
           name = "mongoEnableDocLevelTTL"
         }
     `)
