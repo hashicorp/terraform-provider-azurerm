@@ -1006,7 +1006,7 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_D1_v2"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 

@@ -87,7 +87,7 @@ resource "azurerm_template_deployment" "test" {
 DEPLOY
 
   # these key-value pairs are passed into the ARM Template's `parameters` block
-  parameters {
+  parameters = {
     "storageAccountType" = "Standard_GRS"
   }
 

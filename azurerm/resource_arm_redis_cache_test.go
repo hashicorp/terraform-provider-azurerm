@@ -635,7 +635,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-  redis_configuration = {}
+  redis_configuration {}
 
   tags = {
     environment = "production"
@@ -739,7 +739,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "c"
   sku_name            = "basic"
   enable_non_ssl_port = false
-  redis_configuration = {}
+  redis_configuration {}
 }
 `, ri, location, ri)
 }
@@ -899,7 +899,7 @@ resource "azurerm_redis_cache" "test" {
   sku_name            = "Premium"
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration = {}
+  redis_configuration {}
 }
 `, ri, location, ri, ri)
 }
@@ -970,7 +970,7 @@ resource "azurerm_redis_cache" "test" {
   sku_name            = "Premium"
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration = {}
+  redis_configuration {}
   zones               = ["1"]
 }
 `, ri, location, ri, ri)

@@ -51,9 +51,9 @@ resource "azurerm_monitor_metric_alert" "test" {
     threshold        = 50
 
     dimension {
-      "name"     = "ApiName"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "ApiName"
+      operator = "Include"
+      values   = ["*"]
     }
   }
 

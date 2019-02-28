@@ -53,7 +53,7 @@ resource "azurerm_container_group" "aci-helloworld" {
       port     = 80
       protocol = "TCP"
     }
-    ports = {
+    ports {
       port     = 443
       protocol = "TCP" 
     }

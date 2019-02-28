@@ -32,27 +32,27 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
 
   timezone = "UTC"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday"]
     weeks    = ["Last"]

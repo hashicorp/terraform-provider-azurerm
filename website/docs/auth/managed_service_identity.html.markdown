@@ -36,7 +36,7 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_virtual_machine" "test" {
   # ...
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 }

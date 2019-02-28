@@ -433,7 +433,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = {
+    ports  {
       port = 80
     }
   }
@@ -477,10 +477,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = {
+    ports  {
       port     = 80
     }
-    ports  = {
+    ports {
       port     = 5443
       protocol = "UDP"
     }
@@ -519,11 +519,11 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
-    ports  = {
+    ports {
       port     = 443
       protocol = "TCP"
     }
@@ -557,7 +557,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -621,7 +621,7 @@ resource "azurerm_container_group" "test" {
     cpu    = "1"
     memory = "1.5"
 
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
