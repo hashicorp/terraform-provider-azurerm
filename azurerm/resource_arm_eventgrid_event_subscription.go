@@ -8,8 +8,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,15 +27,17 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"event_delivery_schema": {
@@ -62,12 +66,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"queue_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -81,8 +87,9 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"eventhub_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -96,8 +103,9 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"hybrid_connection_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -111,8 +119,9 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.URLIsHTTPS,
 						},
 					},
 				},
@@ -156,12 +165,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"storage_blob_container_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -175,12 +186,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"max_delivery_attempts": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 30),
 						},
 						"event_time_to_live": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 1440),
 						},
 					},
 				},
@@ -227,7 +240,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 		Filter:                expandEventGridEventSubscriptionFilter(d),
 		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
 		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
-		Labels:                expandEventGridEventSubscriptionLabels(d),
+		Labels:                utils.ExpandStringArray(d.Get("labels").([]interface{})),
 		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
 	}
 
@@ -474,12 +487,7 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.E
 	filter := &eventgrid.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
-		includedEventsOutput := make([]string, 0)
-		config := includedEvents.([]interface{})
-		for _, event := range config {
-			includedEventsOutput = append(includedEventsOutput, event.(string))
-		}
-		filter.IncludedEventTypes = &includedEventsOutput
+		filter.IncludedEventTypes = utils.ExpandStringArray(includedEvents.([]interface{}))
 	}
 
 	if subjectFilter, ok := d.GetOk("subject_filter"); ok {
@@ -521,18 +529,6 @@ func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventg
 			MaxDeliveryAttempts:      utils.Int32(int32(maxDeliveryAttempts)),
 			EventTimeToLiveInMinutes: utils.Int32(int32(eventTimeToLive)),
 		}
-	}
-	return nil
-}
-
-func expandEventGridEventSubscriptionLabels(d *schema.ResourceData) *[]string {
-	if v, ok := d.GetOk("labels"); ok {
-		labels := make([]string, 0)
-
-		for _, label := range v.([]interface{}) {
-			labels = append(labels, label.(string))
-		}
-		return &labels
 	}
 	return nil
 }

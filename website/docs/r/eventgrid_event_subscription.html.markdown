@@ -38,7 +38,7 @@ resource "azurerm_storage_account" "default" {
   }
 
 resource "azurerm_eventgrid_event_subscription" "default" {
-  name                = "defaultEventSubscription"
+  name  = "defaultEventSubscription"
   scope = "${azurerm_resource_group.default.id}"
   storage_queue_endpoint {
 	  storage_account_id = "${azurerm_storage_account.default.id}"
@@ -66,6 +66,8 @@ The following arguments are supported:
 * `hybrid_connection_endpoint` - (Optional) A `hybrid_connection_endpoint` block as defined below.
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
+
+~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -109,7 +111,7 @@ A `subject_filter` supports the following:
 
 * `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
 
-* `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive.
+* `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value defaults to `false`.
 
 ---
 
