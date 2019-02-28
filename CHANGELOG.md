@@ -23,6 +23,7 @@ IMPROVEMENTS:
 * `azurerm_iothub` - support for the `fallback_route` property [GH-2764]
 * `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block [GH-2887]
 * `azurerm_service_fabric_cluster` - support for setting `capacities` and `placement_properties` [GH-2936]
+* `azurerm_storage_account` - exposing primary/secondary `_host` attributes [GH-2792]
 
 BUG FIXES:
 
