@@ -9,6 +9,7 @@ FEATURES:
 * **New Data Source:** `azurerm_network_watcher` [GH-2791]
 * **New Data Source:** `azurerm_recovery_services_protection_policy_vm` [GH-2974]
 * **New Resource:** `azurerm_api_management_group` [GH-2809]
+* **New Resource:** `azurerm_api_management_group_user` [GH-2972]
 * **New Resource:** `azurerm_api_management_product` [GH-2953]
 * **New Resource:** `azurerm_api_management_user` [GH-2954]
 * **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
