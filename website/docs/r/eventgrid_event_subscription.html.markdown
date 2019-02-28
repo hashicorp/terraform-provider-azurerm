@@ -42,7 +42,7 @@ resource "azurerm_eventgrid_event_subscription" "default" {
   scope = "${azurerm_resource_group.default.id}"
   storage_queue_endpoint {
 	  storage_account_id = "${azurerm_storage_account.default.id}"
-	  queue_name = "${azurerm_storage_queue.default.name}"
+	  queue_name         = "${azurerm_storage_queue.default.name}"
   }
 }
 ```
