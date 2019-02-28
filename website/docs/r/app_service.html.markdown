@@ -45,7 +45,7 @@ resource "azurerm_app_service" "test" {
     scm_type                 = "LocalGit"
   }
 
-  app_settings {
+  app_settings = {
     "SOME_KEY" = "some-value"
   }
 
