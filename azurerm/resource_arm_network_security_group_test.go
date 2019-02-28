@@ -34,6 +34,34 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_security_group.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkSecurityGroup_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_security_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
 	rInt := tf.AccRandTimeInt()
@@ -314,6 +342,19 @@ resource "azurerm_network_security_group" "test" {
 `, rInt, location)
 }
 
+func testAccAzureRMNetworkSecurityGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkSecurityGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "${azurerm_network_security_group.test.name}"
+  location            = "${azurerm_network_security_group.test.location}"
+  resource_group_name = "${azurerm_network_security_group.test.resource_group_name}"
+}
+`, template)
+}
+
 func testAccAzureRMNetworkSecurityGroup_singleRule(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -404,7 +445,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -436,7 +477,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

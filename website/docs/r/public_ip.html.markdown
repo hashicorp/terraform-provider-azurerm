@@ -24,7 +24,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

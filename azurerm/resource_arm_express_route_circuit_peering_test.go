@@ -16,7 +16,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -50,7 +50,7 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -74,7 +74,7 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -173,7 +173,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -230,7 +230,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

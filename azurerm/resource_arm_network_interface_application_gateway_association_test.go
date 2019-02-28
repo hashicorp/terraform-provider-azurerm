@@ -30,6 +30,35 @@ func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociati
 	})
 }
 
+func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_interface_application_gateway_backend_address_pool_association.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface_application_gateway_backend_address_pool_association"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_application_gateway_backend_address_pool_association.test"
 	ri := tf.AccRandTimeInt()
@@ -275,4 +304,17 @@ resource "azurerm_network_interface_application_gateway_backend_address_pool_ass
   backend_address_pool_id = "${azurerm_application_gateway.test.backend_address_pool.0.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "import" {
+  network_interface_id    = "${azurerm_network_interface_application_gateway_backend_address_pool_association.test.network_interface_id}"
+  ip_configuration_name   = "${azurerm_network_interface_application_gateway_backend_address_pool_association.test.ip_configuration_name}"
+  backend_address_pool_id = "${azurerm_network_interface_application_gateway_backend_address_pool_association.test.backend_address_pool_id}"
+}
+`, template)
 }

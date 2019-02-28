@@ -206,6 +206,34 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	config := testAccAzureRMFunctionApp_linuxFxVersion(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
@@ -242,7 +270,8 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	configBase := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 	configUpdate1 := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
 	configUpdate2 := testAccAzureRMFunctionApp_appSettingsAlwaysOn(ri, rs, testLocation())
-	configUpdate3 := testAccAzureRMFunctionApp_appSettingsAlwaysOnConnectionStrings(ri, rs, testLocation())
+	configUpdate3 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(ri, rs, testLocation())
+	configUpdate4 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(ri, rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -277,9 +306,22 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 				Config: configUpdate3,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.hello", "world"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
+				),
+			},
+			{
+				Config: configUpdate4,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "app_settings.hello", "world"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
@@ -755,7 +797,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -795,7 +837,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  tags {
+  tags = {
     environment = "production"
     hello       = "Berlin"
   }
@@ -873,7 +915,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 }
@@ -915,6 +957,52 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     always_on = true
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMFunctionApp_linuxFxVersion(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "Linux"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+  
+  properties {
+    reserved = true
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  
+  site_config {
+    linux_fx_version = "DOCKER|(golang:latest)"
   }
 }
 `, rInt, location, rString)
@@ -995,7 +1083,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 
@@ -1006,7 +1094,7 @@ resource "azurerm_function_app" "test" {
 `, rInt, location, rString)
 }
 
-func testAccAzureRMFunctionApp_appSettingsAlwaysOnConnectionStrings(rInt int, rString, location string) string {
+func testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -1024,27 +1112,85 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
+  kind                = "Linux"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
     tier = "Standard"
     size = "S1"
   }
+  
+  properties {
+    reserved = true
+  }
 }
 
 resource "azurerm_function_app" "test" {
   name                      = "acctest-%[1]d-func"
   location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-
-  app_settings {
+  
+  app_settings = {
     "hello" = "world"
   }
 
   site_config {
-    always_on = true
+    always_on        = true
+    linux_fx_version = "DOCKER|(golang:latest)"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "Linux"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+
+  properties {
+    reserved = true
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  version                   = "~2"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  
+  app_settings = {
+    "hello" = "world"
+  }
+
+  site_config {
+    always_on        = true
+    linux_fx_version = "DOCKER|(golang:latest)"
   }
 
   connection_string {

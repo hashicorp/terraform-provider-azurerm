@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -293,6 +295,19 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		return fmt.Errorf("Error generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
+
+	if requireResourcesToBeImported {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
+		if err2 != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_protection_policy_vm", *existing.ID)
+		}
+	}
 
 	policy := backup.ProtectionPolicyResource{
 		Tags: expandTags(tags),

@@ -32,7 +32,7 @@ resource "azurerm_container_group" "aci-example" {
     memory = "1.5"
   }
 
-  tags {
+  tags = {
     environment = "testing"
   }
 }

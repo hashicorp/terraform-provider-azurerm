@@ -40,6 +40,36 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *t
 	})
 }
 
+func TestAccAzureRMVirtualMachine_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_machine.test"
+	var vm compute.VirtualMachine
+
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachine_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
@@ -641,7 +671,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -725,7 +755,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -745,7 +775,7 @@ resource "azurerm_resource_group" "test" {
   name     = "${var.prefix}-resources"
   location = "%s"
 
-  tags {
+  tags = {
     source = "TestAccAzureRMVirtualMachine_winRMCerts"
   }
 }
@@ -1005,7 +1035,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1082,7 +1112,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1155,12 +1185,57 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine" "import" {
+  name                  = "${azurerm_virtual_machine.test.name}"
+  location              = "${azurerm_virtual_machine.test.location}"
+  resource_group_name   = "${azurerm_virtual_machine.test.resource_group_name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_D1_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "osd-%d"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "50"
+    managed_disk_type = "StandardSSD_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "Production"
+    cost-center = "Ops"
+  }
+}
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(rInt int, location string) string {
@@ -1227,7 +1302,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1300,7 +1375,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1398,7 +1473,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1481,7 +1556,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1563,7 +1638,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1714,7 +1789,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1793,7 +1868,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1876,7 +1951,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1968,7 +2043,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -2038,7 +2113,7 @@ resource "azurerm_virtual_machine" "test" {
 
   os_profile_windows_config {}
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }

@@ -77,6 +77,36 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_storage_queue.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageQueue_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageQueueExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageQueue_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_queue"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -167,7 +197,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -178,4 +208,17 @@ resource "azurerm_storage_queue" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMStorageQueue_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageQueue_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "import" {
+  name                 = "${azurerm_storage_queue.test.name}"
+  resource_group_name  = "${azurerm_storage_queue.test.resource_group_name}"
+  storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
+}
+`, template)
 }

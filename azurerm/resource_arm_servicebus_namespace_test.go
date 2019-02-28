@@ -35,6 +35,32 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespace_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_servicebus_namespace"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
@@ -190,6 +216,19 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "basic"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_namespace" "import" {
+  name                = "${azurerm_servicebus_namespace.test.name}"
+  location            = "${azurerm_servicebus_namespace.test.location}"
+  resource_group_name = "${azurerm_servicebus_namespace.test.resource_group_name}"
+  sku                 = "${azurerm_servicebus_namespace.test.sku}"
+}
+`, testAccAzureRMServiceBusNamespace_basic(rInt, location))
 }
 
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {

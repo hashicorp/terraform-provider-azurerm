@@ -59,11 +59,9 @@ func TestSnapshotName_validation(t *testing.T) {
 		}
 	}
 }
-
 func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +69,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
@@ -81,6 +79,32 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"source_uri"},
+			},
+		},
+	})
+}
+func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_snapshot.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSnapshotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSnapshot_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_snapshot"),
 			},
 		},
 	})
@@ -282,6 +306,20 @@ resource "azurerm_snapshot" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMSnapshot_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_snapshot" "import" {
+  name                = "${azurerm_snapshot.test.name}"
+  location            = "${azurerm_snapshot.test.location}"
+  resource_group_name = "${azurerm_snapshot.test.resource_group_name}"
+  create_option       = "${azurerm_snapshot.test.create_option}"
+  source_uri          = "${azurerm_snapshot.test.source_uri}"
+}
+`, testAccAzureRMSnapshot_fromManagedDisk(rInt, location))
+}
+
 func testAccAzureRMSnapshot_fromManagedDiskUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -305,7 +343,7 @@ resource "azurerm_snapshot" "test" {
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -508,7 +546,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -552,7 +590,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

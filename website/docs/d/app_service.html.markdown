@@ -47,6 +47,8 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
+* `client_cert_enabled` - Does the App Service require client certificates for incoming requests?
+
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.

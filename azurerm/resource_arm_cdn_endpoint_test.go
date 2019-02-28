@@ -430,7 +430,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -465,7 +465,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -500,7 +500,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -628,7 +628,7 @@ resource "azurerm_cdn_endpoint" "test" {
     country_codes = ["GB"]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

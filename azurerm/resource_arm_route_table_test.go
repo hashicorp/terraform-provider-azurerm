@@ -28,6 +28,41 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_route_table.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRouteTable_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "false"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRouteTable_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_route_table"),
+			},
 		},
 	})
 }
@@ -48,6 +83,11 @@ func TestAccAzureRMRouteTable_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "true"),
 					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -374,6 +414,18 @@ resource "azurerm_route_table" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMRouteTable_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route_table" "import" {
+  name                = "${azurerm_route_table.test.name}"
+  location            = "${azurerm_route_table.test.location}"
+  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+}
+`, testAccAzureRMRouteTable_basic(rInt, location))
+}
+
 func testAccAzureRMRouteTable_basicAppliance(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -501,7 +553,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -527,7 +579,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -540,7 +592,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -551,7 +603,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -575,7 +627,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -588,7 +640,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }
@@ -600,7 +652,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }
@@ -625,7 +677,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }

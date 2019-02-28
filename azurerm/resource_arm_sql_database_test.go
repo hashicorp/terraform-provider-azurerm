@@ -35,6 +35,32 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlDatabase_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_database"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
@@ -144,7 +170,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	timeToRestore := time.Now().Add(15 * time.Minute)
-	formattedTime := string(timeToRestore.UTC().Format(time.RFC3339))
+	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
 	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(ri, formattedTime, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -399,6 +425,23 @@ resource "azurerm_sql_database" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMSqlDatabase_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_database" "import" {
+  name                             = "${azurerm_sql_database.test.name}"
+  resource_group_name              = "${azurerm_sql_database.test.resource_group_name}"
+  server_name                      = "${azurerm_sql_database.test.server_name}"
+  location                         = "${azurerm_sql_database.test.location}"
+  edition                          = "${azurerm_sql_database.test.edition}"
+  collation                        = "${azurerm_sql_database.test.collation}"
+  max_size_bytes                   = "${azurerm_sql_database.test.max_size_bytes}"
+  requested_service_objective_name = "${azurerm_sql_database.test.requested_service_objective_name}"
+}
+`, testAccAzureRMSqlDatabase_basic(rInt, location))
+}
+
 func testAccAzureRMSqlDatabase_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -425,7 +468,7 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -459,7 +502,7 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

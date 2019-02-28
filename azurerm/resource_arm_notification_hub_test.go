@@ -12,9 +12,7 @@ import (
 
 func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	resourceName := "azurerm_notification_hub.test"
-
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +20,7 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, location),
+				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -33,6 +31,36 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_notification_hub.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+				),
+			},
+			{
+				Config:      testAccAzureRMNotificationHub_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_notification_hub"),
 			},
 		},
 	})
@@ -117,4 +145,17 @@ resource "azurerm_notification_hub" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, ri, location, ri, ri)
+}
+
+func testAccAzureRMNotificationHub_requiresImport(ri int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub" "import" {
+  name                = "${azurerm_notification_hub.test.name}"
+  namespace_name      = "${azurerm_notification_hub.test.namespace_name}"
+  resource_group_name = "${azurerm_notification_hub.test.resource_group_name}"
+  location            = "${azurerm_notification_hub.test.location}"
+}
+`, testAccAzureRMNotificationHub_basic(ri, location))
 }

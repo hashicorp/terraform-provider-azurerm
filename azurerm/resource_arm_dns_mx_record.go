@@ -90,24 +90,19 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
-	records, err := expandAzureRmDnsMxRecords(d)
-	if err != nil {
-		return err
-	}
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:  expandTags(tags),
 			TTL:       &ttl,
-			MxRecords: &records,
+			MxRecords: expandAzureRmDnsMxRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -204,7 +199,7 @@ func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{
 // expand creates an array of dns.MxRecord, that is, the array needed
 // by azure-sdk-for-go to manipulate azure resources, hence Preference
 // is an int32
-func expandAzureRmDnsMxRecords(d *schema.ResourceData) ([]dns.MxRecord, error) {
+func expandAzureRmDnsMxRecords(d *schema.ResourceData) *[]dns.MxRecord {
 	recordStrings := d.Get("record").(*schema.Set).List()
 	records := make([]dns.MxRecord, len(recordStrings))
 
@@ -221,7 +216,7 @@ func expandAzureRmDnsMxRecords(d *schema.ResourceData) ([]dns.MxRecord, error) {
 		}
 	}
 
-	return records, nil
+	return &records
 }
 
 func resourceArmDnsMxRecordHash(v interface{}) int {

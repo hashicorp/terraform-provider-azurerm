@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
@@ -142,6 +144,19 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_packet_capture", *existing.ID)
+		}
+	}
 
 	storageLocation, err := expandArmPacketCaptureStorageLocation(d)
 	if err != nil {

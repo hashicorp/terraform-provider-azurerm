@@ -92,24 +92,19 @@ func resourceArmDnsNsRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
-	records, err := expandAzureRmDnsNsRecords(d)
-	if err != nil {
-		return err
-	}
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:  expandTags(tags),
 			TTL:       &ttl,
-			NsRecords: &records,
+			NsRecords: expandAzureRmDnsNsRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -216,7 +211,7 @@ func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []string {
 	return results
 }
 
-func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
+func expandAzureRmDnsNsRecords(d *schema.ResourceData) *[]dns.NsRecord {
 	var records []dns.NsRecord
 
 	//TODO: remove this once we remove the `record` attribute
@@ -247,5 +242,5 @@ func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
 			}
 		}
 	}
-	return records, nil
+	return &records
 }

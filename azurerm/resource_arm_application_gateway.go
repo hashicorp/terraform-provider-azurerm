@@ -50,21 +50,46 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						// TODO: ditch the suffix `_list` in the future
-						"fqdn_list": {
+						"fqdns": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
 
-						// TODO: ditch the suffix `_list` in the future
-						"ip_address_list": {
+						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.IPv4Address,
+							},
+						},
+
+						// TODO: remove in 2.0
+						"fqdn_list": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "`fqdn_list` has been deprecated in favour of the `fqdns` field",
+							MinItems:   1,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						// TODO: remove in 2.0
+						"ip_address_list": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "`ip_address_list` has been deprecated in favour of the `ip_addresses` field",
+							MinItems:   1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -88,6 +113,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+
+						"path": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 
 						"port": {
@@ -141,6 +171,26 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"id": {
 										Type:     schema.TypeString,
 										Computed: true,
+									},
+								},
+							},
+						},
+
+						"connection_draining": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+
+									"drain_timeout_sec": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 3600),
 									},
 								},
 							},
@@ -322,6 +372,33 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ssl_certificate_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"custom_error_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"status_code": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.HTTPStatus403),
+											string(network.HTTPStatus502),
+										}, false),
+									},
+
+									"custom_error_page_url": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -737,6 +814,33 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"custom_error_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status_code": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.HTTPStatus403),
+								string(network.HTTPStatus502),
+							}, false),
+						},
+
+						"custom_error_page_url": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -785,6 +889,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sku := expandApplicationGatewaySku(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
+	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
 
 	gateway := network.ApplicationGateway{
@@ -805,6 +910,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			Sku:                           sku,
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     sslPolicy,
+			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
 		},
 	}
@@ -941,6 +1047,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `ssl_certificate`: %+v", setErr)
 		}
 
+		if setErr := d.Set("custom_error_configuration", flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)); setErr != nil {
+			return fmt.Errorf("Error setting `custom_error_configuration`: %+v", setErr)
+		}
+
 		urlPathMaps, err := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
 		if err != nil {
 			return fmt.Errorf("Error flattening `url_path_map`: %+v", err)
@@ -1050,12 +1160,24 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 		v := raw.(map[string]interface{})
 		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
 
-		for _, ip := range v["ip_address_list"].([]interface{}) {
+		for _, ip := range v["fqdns"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				Fqdn: utils.String(ip.(string)),
+			})
+		}
+		for _, ip := range v["ip_addresses"].([]interface{}) {
 			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
 				IPAddress: utils.String(ip.(string)),
 			})
 		}
 
+		// TODO: remove in 2.0
+		for _, ip := range v["ip_address_list"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				IPAddress: utils.String(ip.(string)),
+			})
+		}
+		// TODO: remove in 2.0
 		for _, ip := range v["fqdn_list"].([]interface{}) {
 			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
 				Fqdn: utils.String(ip.(string)),
@@ -1099,6 +1221,10 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 		}
 
 		output := map[string]interface{}{
+			"fqdns":        fqdnList,
+			"ip_addresses": ipAddressList,
+
+			// TODO: deprecated - remove in 2.0
 			"ip_address_list": ipAddressList,
 			"fqdn_list":       fqdnList,
 		}
@@ -1125,6 +1251,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
+		path := v["path"].(string)
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
@@ -1135,10 +1262,12 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				Path:                           utils.String(path),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
 				Port:                           utils.Int32(port),
 				Protocol:                       network.ApplicationGatewayProtocol(protocol),
 				RequestTimeout:                 utils.Int32(requestTimeout),
+				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
 		}
 
@@ -1193,13 +1322,22 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+
+			if path := props.Path; path != nil {
+				output["path"] = *path
+			}
+			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
+
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
 			}
+
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
 				output["pick_host_name_from_backend_address"] = *pickHostNameFromBackendAddress
 			}
+
 			output["protocol"] = string(props.Protocol)
+
 			if timeout := props.RequestTimeout; timeout != nil {
 				output["request_timeout"] = int(*timeout)
 			}
@@ -1245,6 +1383,37 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 	return results, nil
 }
 
+func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *network.ApplicationGatewayConnectionDraining {
+	connectionsRaw := d["connection_draining"].([]interface{})
+
+	if len(connectionsRaw) <= 0 {
+		return nil
+	}
+
+	connectionRaw := connectionsRaw[0].(map[string]interface{})
+
+	return &network.ApplicationGatewayConnectionDraining{
+		Enabled:           utils.Bool(connectionRaw["enabled"].(bool)),
+		DrainTimeoutInSec: utils.Int32(int32(connectionRaw["drain_timeout_sec"].(int))),
+	}
+}
+
+func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatewayConnectionDraining) []interface{} {
+	result := map[string]interface{}{}
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if v := input.Enabled; v != nil {
+		result["enabled"] = *v
+	}
+	if v := input.DrainTimeoutInSec; v != nil {
+		result["drain_timeout_sec"] = *v
+	}
+
+	return []interface{}{result}
+}
+
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
 	vs := d.Get("disabled_ssl_protocols").([]interface{})
 	results := make([]network.ApplicationGatewaySslProtocol, 0)
@@ -1287,6 +1456,8 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
 
+		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
+
 		listener := network.ApplicationGatewayHTTPListener{
 			Name: utils.String(name),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
@@ -1298,6 +1469,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 				},
 				Protocol:                    network.ApplicationGatewayProtocol(protocol),
 				RequireServerNameIndication: utils.Bool(requireSNI),
+				CustomErrorConfigurations:   customErrorConfigurations,
 			},
 		}
 
@@ -1382,6 +1554,8 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 			if sni := props.RequireServerNameIndication; sni != nil {
 				output["require_sni"] = *sni
 			}
+
+			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)
 		}
 
 		results = append(results, output)
@@ -2140,6 +2314,45 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	}
 
 	results = append(results, output)
+
+	return results
+}
+
+func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {
+	results := make([]network.ApplicationGatewayCustomError, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+		statusCode := v["status_code"].(string)
+		customErrorPageUrl := v["custom_error_page_url"].(string)
+
+		output := network.ApplicationGatewayCustomError{
+			StatusCode:         network.ApplicationGatewayCustomErrorStatusCode(statusCode),
+			CustomErrorPageURL: utils.String(customErrorPageUrl),
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.ApplicationGatewayCustomError) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		output["status_code"] = string(v.StatusCode)
+
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
+		}
+
+		results = append(results, output)
+	}
 
 	return results
 }

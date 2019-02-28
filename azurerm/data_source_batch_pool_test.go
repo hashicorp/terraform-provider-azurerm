@@ -37,6 +37,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.resize_timeout", "PT15M"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(dataSourceName, "max_tasks_per_node", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.max_task_retry_count", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.environment.%", "1"),
@@ -73,7 +74,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -85,6 +86,7 @@ resource "azurerm_batch_pool" "test" {
   display_name           = "Test Acc Pool"
   vm_size                = "Standard_A1"
   node_agent_sku_id      = "batch.node.ubuntu 16.04"
+  max_tasks_per_node     = 2
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -103,7 +105,7 @@ resource "azurerm_batch_pool" "test" {
     max_task_retry_count = 1
     wait_for_success     = true
 
-    environment {
+    environment = {
       env = "TEST"
     }
 

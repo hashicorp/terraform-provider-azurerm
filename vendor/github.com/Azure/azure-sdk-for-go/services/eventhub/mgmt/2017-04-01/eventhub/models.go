@@ -703,6 +703,8 @@ type CaptureDescription struct {
 	SizeLimitInBytes *int32 `json:"sizeLimitInBytes,omitempty"`
 	// Destination - Properties of Destination where capture will be stored. (Storage Account, Blob Names)
 	Destination *Destination `json:"destination,omitempty"`
+	// SkipEmptyArchives - A value that indicates whether to Skip Empty Archives
+	SkipEmptyArchives *bool `json:"skipEmptyArchives,omitempty"`
 }
 
 // CheckNameAvailabilityParameter parameter supplied to check Namespace name availability operation

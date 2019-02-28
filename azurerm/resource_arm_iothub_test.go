@@ -113,6 +113,33 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_fallbackRoute(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.source", "DeviceMessages"),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.endpoint_names.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -185,7 +212,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -208,7 +235,7 @@ resource "azurerm_iothub" "import" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -233,7 +260,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -292,9 +319,40 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
 `, rInt, location, rStr, rInt)
+}
+
+func testAccAzureRMIotHub_fallbackRoute(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                  = "acctestIoTHub-%d"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  fallback_route {
+    source         = "DeviceMessages"
+    endpoint_names = ["events"]
+    enabled        = true
+  }
+
+	tags = {
+    "purpose" = "testing"
+  }
+}
+`, rInt, location, rInt)
 }

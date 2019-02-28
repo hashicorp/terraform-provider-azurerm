@@ -286,7 +286,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     backend_port = 3389
   }
 
-  tags {
+  tags = {
     "Acceptance" = "Test"
   }
 }

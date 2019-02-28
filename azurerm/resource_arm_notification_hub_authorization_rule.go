@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,10 +85,23 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	manage := d.Get("manage").(bool)
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
-	rights := expandNotificationHubAuthorizationRuleRights(manage, send, listen)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", *existing.ID)
+		}
+	}
+
 	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
 		Properties: &notificationhubs.SharedAccessAuthorizationRuleProperties{
-			Rights: rights,
+			Rights: expandNotificationHubAuthorizationRuleRights(manage, send, listen),
 		},
 	}
 

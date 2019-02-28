@@ -311,7 +311,7 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -332,7 +332,7 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

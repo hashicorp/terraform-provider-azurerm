@@ -24,7 +24,7 @@ resource "azurerm_servicebus_namespace" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
@@ -48,7 +48,7 @@ The following arguments are supported:
 * `namespace_name` - (Required) The name of the ServiceBus Namespace to create
     this queue in. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
+* `location` - (Optional / **Deprecated**) Specifies the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to

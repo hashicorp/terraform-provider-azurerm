@@ -52,7 +52,6 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-
 	value := d.Get("value").(string)
 
 	properties := postgresql.Configuration{
