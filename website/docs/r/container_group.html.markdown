@@ -86,7 +86,7 @@ resource "azurerm_container_group" "aci-helloworld" {
     memory = "1.5"
   }
 
-  tags {
+  tags = {
     environment = "testing"
   }
 }

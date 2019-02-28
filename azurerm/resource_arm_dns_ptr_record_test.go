@@ -268,7 +268,7 @@ resource "azurerm_dns_ptr_record" "test" {
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 
-  tags {
+  tags = {
     environment = "Dev"
     cost_center = "Ops"
   }
@@ -295,7 +295,7 @@ resource "azurerm_dns_ptr_record" "test" {
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 
-  tags {
+  tags = {
     environment = "Stage"
   }
 }

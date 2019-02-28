@@ -29,7 +29,7 @@ resource "azurerm_cognitive_account" "test" {
     tier = "Standard"
   }
 
-  tags {
+  tags = {
     Acceptance = "Test"
   }
 }

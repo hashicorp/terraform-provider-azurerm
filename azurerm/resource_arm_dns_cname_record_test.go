@@ -313,7 +313,7 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.com"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -340,7 +340,7 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.com"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -394,7 +394,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -449,7 +449,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -524,7 +524,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -583,7 +583,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -642,7 +642,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -662,7 +662,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }
@@ -706,7 +706,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

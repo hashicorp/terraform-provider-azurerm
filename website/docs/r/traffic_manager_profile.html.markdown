@@ -44,7 +44,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

@@ -791,7 +791,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }

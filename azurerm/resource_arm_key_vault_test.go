@@ -567,7 +567,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
 
-  tags {
+  tags = {
     environment = "Staging"
   }
 }
@@ -611,7 +611,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

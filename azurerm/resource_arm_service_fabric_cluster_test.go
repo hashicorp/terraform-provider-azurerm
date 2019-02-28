@@ -1246,7 +1246,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
 		http_endpoint_port   = 80
   }
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -1277,7 +1277,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 80
 	}
 	
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }

@@ -42,7 +42,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
   domain_name_label   = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -157,7 +157,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -192,7 +192,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

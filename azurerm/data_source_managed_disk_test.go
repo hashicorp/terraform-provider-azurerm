@@ -54,7 +54,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "10"
   zones                = ["2"]
 
-  tags {
+  tags = {
     environment = "acctest"
   }
 }

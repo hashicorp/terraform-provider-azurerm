@@ -637,7 +637,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   redis_configuration = {}
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -781,7 +781,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -849,7 +849,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
