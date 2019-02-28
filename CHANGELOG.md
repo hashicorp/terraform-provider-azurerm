@@ -7,6 +7,7 @@ FEATURES:
 * **New Data Source:** `azurerm_api_management_user` [GH-2954]
 * **New Data Source:** `azurerm_availability_set` [GH-2850]
 * **New Data Source:** `azurerm_network_watcher` [GH-2791]
+* **New Data Source:** `azurerm_recovery_services_protection_policy_vm` [GH-2974]
 * **New Resource:** `azurerm_api_management_group` [GH-2809]
 * **New Resource:** `azurerm_api_management_product` [GH-2953]
 * **New Resource:** `azurerm_api_management_user` [GH-2954]
