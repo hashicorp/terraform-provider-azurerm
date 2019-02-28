@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// Once Microsoft adds support for `supports_credentials` in their SDK we should add that to this schema.
 func SchemaAppServiceCorsSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
