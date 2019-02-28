@@ -99,7 +99,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   subscription_name   = "${azurerm_servicebus_subscription.example.name}"
   filter_type         = "CorrelationFilter"
 
-  correlation_filter = {
+  correlation_filter {
     correlation_id = "high"
     label          = "red"
   }

@@ -345,7 +345,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   action {
     action_group_id = "${azurerm_monitor_action_group.test2.id}"
 
-    webhook_properties {
+    webhook_properties = {
       from = "terraform test"
       to   = "microsoft azure"
     }
