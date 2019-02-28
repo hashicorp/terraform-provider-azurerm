@@ -51,7 +51,7 @@ resource "azurerm_app_service" "test" {
     dotnet_framework_version = "v4.0"
   }
 
-  app_settings {
+  app_settings = {
     "SOME_KEY" = "some-value"
   }
 
@@ -73,7 +73,7 @@ resource "azurerm_app_service_slot" "test" {
     dotnet_framework_version = "v4.0"
   }
 
-  app_settings {
+  app_settings = {
     "SOME_KEY" = "some-value"
   }
 

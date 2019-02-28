@@ -854,7 +854,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -899,7 +899,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -945,7 +945,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -995,7 +995,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -1052,7 +1052,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -1130,7 +1130,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "None"
     }
 	}
@@ -1234,10 +1234,10 @@ resource "azurerm_service_fabric_cluster" "test" {
   management_endpoint = "http://example:80"
   node_type {
 		name                 = "first"
-		placement_properties {
+		placement_properties = {
 			"HasSSD" = "true"
 		}
-		capacities {
+		capacities = {
 			"ClientConnections" = "20000"
 			"MemoryGB" = "8"
 		}
