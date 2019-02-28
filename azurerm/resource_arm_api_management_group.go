@@ -73,6 +73,8 @@ func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 	externalID := d.Get("external_id").(string)
 	groupType := d.Get("type").(string)
 
+	// TODO: support for Requiring Imports
+
 	parameters := apimanagement.GroupCreateParameters{
 		GroupCreateParametersProperties: &apimanagement.GroupCreateParametersProperties{
 			DisplayName: utils.String(displayName),
