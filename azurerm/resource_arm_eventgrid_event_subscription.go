@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -33,6 +34,24 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"event_delivery_schema": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(eventgrid.EventGridSchema),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(eventgrid.CloudEventV01Schema),
+					string(eventgrid.CustomInputSchema),
+					string(eventgrid.EventGridSchema),
+				}, false),
+			},
+
+			"topic_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"storage_queue_endpoint": {
@@ -166,6 +185,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 					},
 				},
 			},
+
+			"labels": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -200,6 +227,12 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 		Filter:                expandEventGridEventSubscriptionFilter(d),
 		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
 		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
+		Labels:                expandEventGridEventSubscriptionLabels(d),
+		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
+	}
+
+	if v, ok := d.GetOk("topic_name"); ok {
+		eventSubscriptionProperties.Topic = utils.String(v.(string))
 	}
 
 	eventSubscription := eventgrid.EventSubscription{
@@ -256,6 +289,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	d.Set("scope", scope)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
+		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
+
+		if props.Topic != nil && *props.Topic != "" {
+			d.Set("topic_name", *props.Topic)
+		}
+
 		if storageQueueEndpoint, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(storageQueueEndpoint)); err != nil {
 				return fmt.Errorf("Error setting `storage_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
@@ -298,6 +337,11 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 		}
 
+		if labels := props.Labels; labels != nil {
+			if err := d.Set("labels", *labels); err != nil {
+				return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+			}
+		}
 	}
 
 	return nil
@@ -477,6 +521,18 @@ func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventg
 			MaxDeliveryAttempts:      utils.Int32(int32(maxDeliveryAttempts)),
 			EventTimeToLiveInMinutes: utils.Int32(int32(eventTimeToLive)),
 		}
+	}
+	return nil
+}
+
+func expandEventGridEventSubscriptionLabels(d *schema.ResourceData) *[]string {
+	if v, ok := d.GetOk("labels"); ok {
+		labels := make([]string, 0)
+
+		for _, label := range v.([]interface{}) {
+			labels = append(labels, label.(string))
+		}
+		return &labels
 	}
 	return nil
 }

@@ -55,6 +55,10 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
+* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventV01Schema`, `CustomInputSchema`.
+
+* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
 * `eventhub_endpoint` - (Optional) A `eventhub_endpoint` block as defined below.
@@ -70,6 +74,8 @@ The following arguments are supported:
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
+
+* `labels` - (Optional) A list of labels to assign to the event subscription.
 
 ---
 
