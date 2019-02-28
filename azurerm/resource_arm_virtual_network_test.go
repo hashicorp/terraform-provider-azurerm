@@ -351,7 +351,7 @@ resource "azurerm_virtual_network" "test" {
     address_prefix = "10.0.1.0/24"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -377,7 +377,7 @@ resource "azurerm_virtual_network" "test" {
     address_prefix = "10.0.1.0/24"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -405,7 +405,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["${var.network_cidr}"]
   location            = "${azurerm_resource_group.test.location}"
 
-  tags {
+  tags = {
     environment = "${var.environment}"
   }
 }
@@ -443,7 +443,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "${var.environment}"
   }
 }

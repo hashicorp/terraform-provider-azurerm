@@ -53,7 +53,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -102,7 +102,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -146,7 +146,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

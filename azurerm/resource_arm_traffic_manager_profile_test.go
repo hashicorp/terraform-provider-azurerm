@@ -540,7 +540,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -571,7 +571,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

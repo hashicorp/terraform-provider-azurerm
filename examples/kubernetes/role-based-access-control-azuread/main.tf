@@ -35,7 +35,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

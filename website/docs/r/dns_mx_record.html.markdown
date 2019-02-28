@@ -39,7 +39,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

@@ -616,7 +616,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -636,7 +636,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 	}
 SETTINGS
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

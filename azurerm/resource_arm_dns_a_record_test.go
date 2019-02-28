@@ -267,7 +267,7 @@ resource "azurerm_dns_a_record" "test" {
   ttl                 = 300
   records             = ["1.2.3.4", "1.2.4.5"]
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -294,7 +294,7 @@ resource "azurerm_dns_a_record" "test" {
   ttl                 = 300
   records             = ["1.2.3.4", "1.2.4.5"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -26,7 +26,7 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = 1
   kafka_enabled       = false
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

@@ -37,7 +37,7 @@ resource "azurerm_container_group" "aci-test" {
     memory = "1.5"
   }
 
-  tags {
+  tags = {
     environment = "testing"
   }
 }

@@ -288,7 +288,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -332,7 +332,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -384,7 +384,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -435,7 +435,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -488,7 +488,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -543,7 +543,7 @@ resource "azurerm_virtual_machine" "test" {
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }

@@ -536,7 +536,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Classic"
   storage_account_id  = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -566,7 +566,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Classic"
   storage_account_id  = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

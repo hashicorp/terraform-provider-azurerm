@@ -476,7 +476,7 @@ resource "azurerm_virtual_machine" "bastion" {
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
 
-  tags {
+  tags = {
     displayName = "${var.openshift_cluster_prefix}-bastion VM Creation"
   }
 
@@ -525,7 +525,7 @@ resource "azurerm_virtual_machine" "master" {
   count                            = "${var.master_instance_count}"
   depends_on                       = ["azurerm_virtual_machine.infra", "azurerm_virtual_machine.node"]
 
-  tags {
+  tags = {
     displayName = "${var.openshift_cluster_prefix}-master VM Creation"
   }
 
@@ -607,7 +607,7 @@ resource "azurerm_virtual_machine" "infra" {
   delete_data_disks_on_termination = true
   count                            = "${var.infra_instance_count}"
 
-  tags {
+  tags = {
     displayName = "${var.openshift_cluster_prefix}-infra VM Creation"
   }
 
@@ -684,7 +684,7 @@ resource "azurerm_virtual_machine" "node" {
   delete_data_disks_on_termination = true
   count                            = "${var.node_instance_count}"
 
-  tags {
+  tags = {
     displayName = "${var.openshift_cluster_prefix}-node VM Creation"
   }
 

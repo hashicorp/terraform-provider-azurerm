@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

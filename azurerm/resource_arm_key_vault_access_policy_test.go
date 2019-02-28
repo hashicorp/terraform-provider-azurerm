@@ -399,7 +399,7 @@ resource "azurerm_key_vault" "test" {
     name = "premium"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -425,7 +425,7 @@ resource "azurerm_key_vault" "test" {
     name = "standard"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
