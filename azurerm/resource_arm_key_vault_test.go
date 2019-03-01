@@ -671,21 +671,21 @@ resource "azurerm_key_vault" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string) string {
-	
+func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string, rs string) string {
+
 	var storageAccountConfigs string
 	var accessPoliciesConfigs string
 	var dependsString string
-        var maxPolicies = 68
+	rs := acctest.RandString(10)
 
-	for i := 50; i <= maxPolicies; i++ {
-		storageAccountConfigs += testAccAzureRMKeyVault_generateStorageAccountConfigs(i)
+	for i := 1; i <= 20; i++ {
+		storageAccountConfigs += testAccAzureRMKeyVault_generateStorageAccountConfigs(i, rs)
 		accessPoliciesConfigs += testAccAzureRMKeyVault_generateAccessPolicyConfigs(i)
 		dependsString += fmt.Sprintf(`"azurerm_storage_account.testsa%d"`, i)
-		if i < maxPolicies {
-		dependsString += ", "
+		if i < 20 {
+			dependsString += ", "
 		}
-		
+
 	}
 
 	return fmt.Sprintf(`
@@ -713,10 +713,10 @@ resource "azurerm_key_vault" "test" {
 `, rInt, location, rInt, accessPoliciesConfigs, dependsString, storageAccountConfigs)
 }
 
-func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int) string {
+func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_account" "testsa%d" {
-    name                      = "testsa%d"
+    name                      = "testsa%d%s"
     resource_group_name       = "${azurerm_resource_group.test.name}"
     location                  = "${azurerm_resource_group.test.location}"
     account_tier              = "Standard"
@@ -730,7 +730,7 @@ resource "azurerm_storage_account" "testsa%d" {
       environment = "testing"
     }
 }
-`, accountNum, accountNum)
+`, accountNum, accountNum, rs)
 }
 
 func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
@@ -744,4 +744,3 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
   }
 `, accountNum)
 }
-
