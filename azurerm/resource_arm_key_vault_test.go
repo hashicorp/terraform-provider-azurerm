@@ -672,11 +672,20 @@ resource "azurerm_key_vault" "test" {
 }
 
 func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string) string {
+	
+	var storageAccountConfigs string
+	var accessPoliciesConfigs string
+	var dependsString string
+        var maxPolicies = 68
 
-	var storageAccountConfig string
-
-	for i := 50; i < 68; i++ {
-		storageAccountConfig += testAccAzureRMKeyVault_generateConfig(i)
+	for i := 50; i <= maxPolicies; i++ {
+		storageAccountConfigs += testAccAzureRMKeyVault_generateStorageAccountConfigs(i)
+		accessPoliciesConfigs += testAccAzureRMKeyVault_generateAccessPolicyConfigs(i)
+		dependsString += fmt.Sprintf(`"azurerm_storage_account.testsa%d"`, i)
+		if i < maxPolicies {
+		dependsString += ", "
+		}
+		
 	}
 
 	return fmt.Sprintf(`
@@ -696,39 +705,43 @@ resource "azurerm_key_vault" "test" {
   sku {
     name = "premium"
   }
+%s
+  depends_on = [%s]
 }
 
 %s
-`, rInt, location, rInt, storageAccountConfig)
+`, rInt, location, rInt, accessPoliciesConfigs, dependsString, storageAccountConfigs)
 }
 
-func testAccAzureRMKeyVault_generateConfig(accountNum int) string {
+func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_account" "testsa%d" {
-  name                      = "testsa%d"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  location                  = "${azurerm_resource_group.test.location}"
-  account_tier              = "Standard"
-  account_replication_type  = "GRS"
+    name                      = "testsa%d"
+    resource_group_name       = "${azurerm_resource_group.test.name}"
+    location                  = "${azurerm_resource_group.test.location}"
+    account_tier              = "Standard"
+    account_replication_type  = "GRS"
 
-  identity {
-    type = "SystemAssigned"
+    identity {
+      type = "SystemAssigned"
+      }
+	
+    tags {
+      environment = "testing"
+    }
+}
+`, accountNum, accountNum)
+}
+
+func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
+	return fmt.Sprintf(`
+  access_policy {
+    tenant_id          = "${data.azurerm_client_config.current.tenant_id}"
+    object_id          = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
+	
+    key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
+    secret_permissions = ["get"]
   }
-
-  tags {
-    environment = "testing"
-  }
+`, accountNum)
 }
 
-resource "azurerm_key_vault_access_policy" "policy%d" {
-  key_vault_id       = "${azurerm_key_vault.test.id}"
-  tenant_id          = "${data.azurerm_client_config.current.tenant_id}"
-  object_id          = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
-
-  key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
-  secret_permissions = ["get"]
-
-  depends_on = ["azurerm_storage_account.testsa%d"]
-}
-`, accountNum, accountNum, accountNum, accountNum, accountNum)
-}
