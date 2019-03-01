@@ -466,7 +466,7 @@ resource "azurerm_key_vault" "test-kv" {
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  "sku" {
+  sku {
     name = "standard"
   }
 
@@ -495,7 +495,7 @@ resource "azurerm_key_vault_secret" "test-secret" {
 }
 
 locals {
-  "templated-file" = <<TPL
+  templated-file = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
