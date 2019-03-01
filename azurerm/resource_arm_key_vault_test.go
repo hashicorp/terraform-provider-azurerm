@@ -710,7 +710,7 @@ resource "azurerm_key_vault" "test" {
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_account" "testsa%d" {
-    name                      = "testsa%d%s"
+    name                      = "testsa%s%d"
     resource_group_name       = "${azurerm_resource_group.test.name}"
     location                  = "${azurerm_resource_group.test.location}"
     account_tier              = "Standard"
@@ -724,7 +724,7 @@ resource "azurerm_storage_account" "testsa%d" {
       environment = "testing"
     }
 }
-`, accountNum, accountNum, rs)
+`, accountNum, rs, accountNum)
 }
 
 func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
