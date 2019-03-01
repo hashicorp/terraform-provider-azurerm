@@ -516,6 +516,8 @@ type AccountProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 	// InternalID - The internal identifier.
 	InternalID *string `json:"internalId,omitempty"`
+	// CustomSubDomainName - Optional subdomain name used for token-based authentication.
+	CustomSubDomainName *string `json:"customSubDomainName,omitempty"`
 }
 
 // AccountUpdateParameters the parameters to provide for the account.

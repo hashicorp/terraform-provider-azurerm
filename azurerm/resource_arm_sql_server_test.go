@@ -247,7 +247,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -270,7 +270,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

@@ -241,7 +241,7 @@ resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -260,7 +260,7 @@ resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

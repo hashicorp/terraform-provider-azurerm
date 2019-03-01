@@ -49,7 +49,7 @@ resource "azurerm_key_vault" "test" {
     bypass         = "AzureServices"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

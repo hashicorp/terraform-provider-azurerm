@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "test" {
 
   enabled_for_disk_encryption = true
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

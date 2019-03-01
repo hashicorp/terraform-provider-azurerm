@@ -59,6 +59,7 @@ func resourceArmBatchPool() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
+				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"fixed_scale": {

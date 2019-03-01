@@ -1,4 +1,52 @@
 ## 1.23.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_api_management_group` [GH-2809]
+* **New Data Source:** `azurerm_api_management_product` [GH-2953]
+* **New Data Source:** `azurerm_api_management_user` [GH-2954]
+* **New Data Source:** `azurerm_availability_set` [GH-2850]
+* **New Data Source:** `azurerm_network_watcher` [GH-2791]
+* **New Data Source:** `azurerm_recovery_services_protection_policy_vm` [GH-2974]
+* **New Resource:** `azurerm_api_management_group` [GH-2809]
+* **New Resource:** `azurerm_api_management_group_user` [GH-2972]
+* **New Resource:** `azurerm_api_management_product` [GH-2953]
+* **New Resource:** `azurerm_api_management_user` [GH-2954]
+* **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
+* **New Resource:** `azurerm_eventgrid_event_subscription` [GH-2967]
+* **New Resource:** `azurerm_lb_outbound_rule` [GH-2912]
+* **New Resource:** `azurerm_media_service_account` [GH-2711]
+* **New Resource:** `azurerm_network_watcher` [GH-2791]
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to v25.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-2886]
+* dependencies: upgrading to v11.4.0 of `github.com/Azure/go-autorest` [GH-2886]
+* `azurerm_application_gateway` - support for setting `path` within the `backend_http_settings` block [GH-2879]
+* `azurerm_application_gateway` - support for setting `connection_draining` to the `backend_http_settings` [GH-2778]
+* `azurerm_iothub` - support for the `fallback_route` property [GH-2764]
+* `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block [GH-2887]
+* `azurerm_service_fabric_cluster` - support for setting `capacities` and `placement_properties` [GH-2936]
+* `azurerm_storage_account` - exposing primary/secondary `_host` attributes [GH-2792]
+
+BUG FIXES:
+
+* `azurerm_api_management` - switching to use API version `2018-01-01` rather than `2018-06-01-preview` [GH-2958]
+* `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
+* `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist [GH-2922]
+* `azurerm_policy_definition` - making the `metadata` field to computed [GH-2939]
+* `azurerm_redis_firewall_rule` - allowing underscores in the `name` field [GH-2906]
+
+## 1.22.1 (February 14, 2019)
+
+BUG FIXES:
+
+* `azurerm_key_vault_access_policy` - will no longer fail to find the Key Vault if `key_vault_id` is empty ([#2874](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2874))
+* `azurerm_key_vault_certificate` - will no longer fail to find the Key Vault if `key_vault_id` is ([#2874](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2874))
+* `azurerm_key_vault_key` - will no longer fail to find the Key Vault if `key_vault_id` is ([#2874](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2874))
+* `azurerm_key_vault_secret` - will no longer fail to find the Key Vault if `key_vault_id` is ([#2874](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2874))
+* `azurerm_storage_container` - support for large numbers of containers within a storage account ([#2873](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2873))
+
 ## 1.22.0 (February 11, 2019)
 
 UPGRADE NOTES:
@@ -20,7 +68,6 @@ FEATURES:
 * **New Resource:** `azurerm_network_interface_application_security_group_association` ([#2789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2789))
 
 DEPRECATIONS:
-
 
 * Data Source `azurerm_key_vault_key` - deprecating the `vault_uri` property in favour of `key_vault_id` ([#2820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2820))
 * Data Source `azurerm_key_vault_secret` - deprecating the `vault_uri` property in favour of `key_vault_id` ([#2820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2820))

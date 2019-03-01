@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Azure Active Directory: Migrating to a renamed resource
+# Azure Provider: Migrating to a renamed resource
 
 In v1.22 of the AzureRM Provider several resources have been deprecated in favour of a renamed version - this guide covers how to migrate from the old resource to the new one and is applicable for the following resources:
 

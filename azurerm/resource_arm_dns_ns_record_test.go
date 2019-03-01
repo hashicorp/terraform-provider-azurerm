@@ -472,7 +472,7 @@ resource "azurerm_dns_ns_record" "test" {
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -507,7 +507,7 @@ resource "azurerm_dns_ns_record" "test" {
     nsdname = "ns2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -535,7 +535,7 @@ resource "azurerm_dns_ns_record" "test" {
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -569,7 +569,7 @@ resource "azurerm_dns_ns_record" "test" {
     nsdname = "ns2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

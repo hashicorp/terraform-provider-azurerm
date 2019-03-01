@@ -324,15 +324,15 @@ resource "azurerm_monitor_metric_alert" "test" {
     threshold        = 99
 
     dimension {
-      "name"     = "GeoType"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = GeoType
+      operator = Include
+      values   = ["*"]
     }
 
     dimension {
-      "name"     = "ApiName"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "ApiName"
+      operator = "Include"
+      values   = ["*"]
     }
   }
 

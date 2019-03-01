@@ -83,6 +83,20 @@ func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network
 	return nil, -1, false
 }
 
+func findLoadBalancerOutboundRuleByName(lb *network.LoadBalancer, name string) (*network.OutboundRule, int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.OutboundRules == nil {
+		return nil, -1, false
+	}
+
+	for i, or := range *lb.LoadBalancerPropertiesFormat.OutboundRules {
+		if or.Name != nil && *or.Name == name {
+			return &or, i, true
+		}
+	}
+
+	return nil, -1, false
+}
+
 func findLoadBalancerNatRuleByName(lb *network.LoadBalancer, name string) (*network.InboundNatRule, int, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.InboundNatRules == nil {
 		return nil, -1, false

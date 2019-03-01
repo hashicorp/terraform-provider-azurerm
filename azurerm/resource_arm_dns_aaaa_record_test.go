@@ -267,7 +267,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -294,7 +294,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

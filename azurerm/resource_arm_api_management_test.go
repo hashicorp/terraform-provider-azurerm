@@ -316,7 +316,7 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 
-  tags {
+  tags = {
     "Acceptance" = "Test"
   }
 

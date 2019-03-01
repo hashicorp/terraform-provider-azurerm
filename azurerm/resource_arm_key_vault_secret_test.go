@@ -39,6 +39,32 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault_secret.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -311,7 +337,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -320,6 +346,53 @@ resource "azurerm_key_vault_secret" "test" {
   name      = "secret-%s"
   value     = "rick-and-morty"
   key_vault_id  = "${azurerm_key_vault.test.id}"
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultSecret_basicClasic(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name      = "secret-%s"
+  value     = "rick-and-morty"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
 `, rString, location, rString, rString)
 }
@@ -371,7 +444,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -382,7 +455,7 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id     = "${azurerm_key_vault.test.id}"
   content_type = "application/xml"
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }
@@ -423,7 +496,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

@@ -442,7 +442,6 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
-  sku                 = "Basic"
   kafka_enabled       = true
 }
 `, rInt, location, rInt)
@@ -513,7 +512,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

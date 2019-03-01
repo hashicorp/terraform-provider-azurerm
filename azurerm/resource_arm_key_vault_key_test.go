@@ -95,7 +95,33 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
+func TestAccAzureRMKeyVaultKey_basicECClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicECClassic(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -456,18 +482,71 @@ resource "azurerm_storage_account" "testsa%d" {
     type = "SystemAssigned"
   }
 
-  tags {
-    environment = "testing"
+  tags = {
+    environment = "Production"
   }
 }
 
-resource "azurerm_key_vault_access_policy" "policy%d" {
-  key_vault_id       = "${azurerm_key_vault.test.id}"
-  tenant_id          = "${data.azurerm_client_config.current.tenant_id}"
-  object_id          = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "EC"
+  key_size     = 2048
 
-  key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
-  secret_permissions = ["get"]
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_basicECClassic(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name      = "key-%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_type  = "EC"
+  key_size  = 2048
 
   depends_on = ["azurerm_storage_account.testsa%d"]
 }
@@ -568,10 +647,8 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  network_acls {
-    default_action             = "Deny"
-    bypass                     = "None"
-    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}", "${azurerm_subnet.test_b.id}"]
+  tags = {
+    environment = "Production"
   }
 }
 `, template, rInt)
@@ -605,11 +682,8 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  network_acls {
-    default_action             = "Allow"
-    bypass                     = "AzureServices"
-    ip_rules                   = ["10.0.0.102/32"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
+  tags = {
+    environment = "Production"
   }
 }
 `, template, rInt)
@@ -647,12 +721,28 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  enabled_for_deployment          = true
-  enabled_for_disk_encryption     = true
-  enabled_for_template_deployment = true
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name          = "key-%s"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
+  key_type      = "RSA"
+  key_size      = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
   tags = {
-    environment = "Staging"
+    "hello" = "world"
   }
 }
 `, rInt, location, rInt)
