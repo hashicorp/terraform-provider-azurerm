@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -675,17 +676,11 @@ func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string, rs
 
 	var storageAccountConfigs string
 	var accessPoliciesConfigs string
-	var dependsString string
 	rs := acctest.RandString(10)
 
 	for i := 1; i <= 20; i++ {
 		storageAccountConfigs += testAccAzureRMKeyVault_generateStorageAccountConfigs(i, rs)
 		accessPoliciesConfigs += testAccAzureRMKeyVault_generateAccessPolicyConfigs(i)
-		dependsString += fmt.Sprintf(`"azurerm_storage_account.testsa%d"`, i)
-		if i < 20 {
-			dependsString += ", "
-		}
-
 	}
 
 	return fmt.Sprintf(`
@@ -706,11 +701,10 @@ resource "azurerm_key_vault" "test" {
     name = "premium"
   }
 %s
-  depends_on = [%s]
 }
 
 %s
-`, rInt, location, rInt, accessPoliciesConfigs, dependsString, storageAccountConfigs)
+`, rInt, location, rInt, accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
@@ -724,7 +718,7 @@ resource "azurerm_storage_account" "testsa%d" {
 
     identity {
       type = "SystemAssigned"
-      }
+    }
 	
     tags {
       environment = "testing"
