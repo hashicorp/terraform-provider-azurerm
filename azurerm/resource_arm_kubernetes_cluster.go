@@ -749,10 +749,7 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		return nil
 	}
 
-	profile, ok := profiles[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
+	profile := profiles[0].(map[string]interface{})
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
 	httpApplicationRouting := profile["http_application_routing"].([]interface{})
