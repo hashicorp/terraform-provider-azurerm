@@ -1313,7 +1313,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_certificate {
     name     = "${local.ssl_certificate_name}"
-    data     = "${file("testdata/application_gateway_test.pfx")}"
+    data     = "${filebase64("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 }
@@ -1392,7 +1392,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_certificate {
     name     = "${local.ssl_certificate_name}"
-    data     = "${file("testdata/application_gateway_test_2.pfx")}"
+    data     = "${filebase64("testdata/application_gateway_test_2.pfx")}"
     password = "hello-world"
   }
 }

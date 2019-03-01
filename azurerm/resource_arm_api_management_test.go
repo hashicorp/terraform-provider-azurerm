@@ -306,7 +306,7 @@ resource "azurerm_api_management" "test" {
 
     portal {
       host_name            = "portal.terraform.io"
-      certificate          = "${filebase64("testdata/api_management_portal_test.pfx"))}"
+      certificate          = "${filebase64("testdata/api_management_portal_test.pfx")}"
       certificate_password = "terraform"
     }
   }
