@@ -153,7 +153,7 @@ resource "azurerm_api_management_group" "test" {
 }
 
 resource "azurerm_api_management_product_group" "test" {
-  product_id          = "${azurerm_api_management_product.test.product_id}"
+  product_id            = "${azurerm_api_management_product.test.product_id}"
   group_name            = "${azurerm_api_management_group.test.name}"
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
