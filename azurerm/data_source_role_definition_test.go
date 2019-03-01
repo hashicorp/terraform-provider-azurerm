@@ -76,7 +76,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Contributor"),
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
@@ -103,7 +103,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Owner"),
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
@@ -125,7 +125,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Reader"),
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
@@ -147,7 +147,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t 
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("VirtualMachineContributor"),
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
