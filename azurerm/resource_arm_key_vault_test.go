@@ -165,7 +165,8 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 func TestAccAzureRMKeyVault_accessPolicyUpperLimit(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_accessPolicyUpperLimit(ri, testLocation())
+	rs := acctest.RandString(10)
+	config := testAccAzureRMKeyVault_accessPolicyUpperLimit(ri, testLocation(), rs)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -676,7 +677,6 @@ func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string, rs
 
 	var storageAccountConfigs string
 	var accessPoliciesConfigs string
-	rs := acctest.RandString(10)
 
 	for i := 1; i <= 20; i++ {
 		storageAccountConfigs += testAccAzureRMKeyVault_generateStorageAccountConfigs(i, rs)
