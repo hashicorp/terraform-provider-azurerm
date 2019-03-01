@@ -121,9 +121,9 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Group %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
+				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementGroupClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagementPropertyClient: %+v", err)
 		}
 
 		return nil

@@ -158,7 +158,7 @@ func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interfa
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("Error deleting Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
 	}
 
