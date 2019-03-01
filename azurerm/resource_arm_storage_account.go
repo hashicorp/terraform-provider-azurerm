@@ -916,34 +916,6 @@ func validateArmStorageAccountType(v interface{}, _ string) (warnings []string, 
 	return warnings, errors
 }
 
-func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
-	identities := d.Get("identity").([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &storage.Identity{
-		Type: &identityType,
-	}
-}
-
-func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
-
-	return []interface{}{result}
-}
-
 func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
 	var endpoint string
 	if blobEndpoint != nil {
