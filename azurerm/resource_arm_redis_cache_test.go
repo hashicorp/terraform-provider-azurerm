@@ -935,7 +935,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port       = false
   subnet_id                 = "${azurerm_subnet.test.id}"
   private_static_ip_address = "10.0.1.20"
-  redis_configuration       = {}
+  redis_configuration {}
 }
 `, ri, location, ri, ri)
 }

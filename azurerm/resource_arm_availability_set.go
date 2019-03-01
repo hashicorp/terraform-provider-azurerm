@@ -146,8 +146,8 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if props := resp.AvailabilitySetProperties; props != nil {
-			d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
-			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
