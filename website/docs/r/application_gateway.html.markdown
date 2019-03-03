@@ -204,6 +204,8 @@ A `backend_http_settings` block supports the following:
 
 * `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
 
+* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+
 * `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.

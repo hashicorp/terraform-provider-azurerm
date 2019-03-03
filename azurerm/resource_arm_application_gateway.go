@@ -146,6 +146,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"host_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"pick_host_name_from_backend_address": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -1255,14 +1260,20 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
+		hostName := v["host_name"].(string)
 		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int32(v["request_timeout"].(int))
+
+		if hostName != "" && pickHostNameFromBackendAddress {
+			return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_http_settings` can be set")
+		}
 
 		setting := network.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
 				Path:                           utils.String(path),
+				HostName:                       utils.String(hostName),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
 				Port:                           utils.Int32(port),
 				Protocol:                       network.ApplicationGatewayProtocol(protocol),
@@ -1330,6 +1341,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
+			}
+
+			if hostName := props.HostName; hostName != nil {
+				output["host_name"] = *hostName
 			}
 
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
