@@ -477,7 +477,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 								string(network.Temporary),
 								string(network.Found),
 								string(network.SeeOther),
-							}, true),
+							}, false),
 						},
 
 						"target_listener_name": {
@@ -2107,14 +2107,14 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
 
-			if config.TargetListener == nil && config.TargetURL == nil {
+			if config.TargetListener == nil && validate.NilOrEmpty(config.TargetURL) {
 				return nil, fmt.Errorf("[ERROR] Specify either `target_listener_name` or `target_url`")
 			}
-			if props.TargetListener != nil && config.TargetURL != nil {
+			if props.TargetListener != nil && !validate.NilOrEmpty(config.TargetURL) {
 				return nil, fmt.Errorf("[ERROR] Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 			}
 
-			if config.TargetURL != nil && config.IncludePath != nil {
+			if !validate.NilOrEmpty(config.TargetURL) && config.IncludePath != nil {
 				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is specified")
 			}
 
