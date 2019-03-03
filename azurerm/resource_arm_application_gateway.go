@@ -920,6 +920,16 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
+	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
+		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
+		hostName := *backendHttpSettingsProperties.HostName
+		pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+
+		if hostName != "" && pick {
+			return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+		}
+	}
+
 	for _, probe := range *probes {
 		probeProperties := *probe.ApplicationGatewayProbePropertiesFormat
 		host := *probeProperties.Host
@@ -1263,10 +1273,6 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		hostName := v["host_name"].(string)
 		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int32(v["request_timeout"].(int))
-
-		if hostName != "" && pickHostNameFromBackendAddress {
-			return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_http_settings` can be set")
-		}
 
 		setting := network.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,

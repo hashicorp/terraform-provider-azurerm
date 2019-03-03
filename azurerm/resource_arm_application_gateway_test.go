@@ -1243,7 +1243,7 @@ resource "azurerm_application_gateway" "test" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    host_name             = %s
+    host_name             = "%s"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
