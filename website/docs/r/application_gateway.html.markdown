@@ -380,9 +380,9 @@ A `redirect_configuration` block supports the following:
 
 * `redirect_type` - (Required) The type of redirect. Possible values are `Permanent`, `Temporary`, `Found` and `SeeOther`
 
-* `target_listener_name` - (Optional) The name of the listener to redirect to. This parameter is mutually exclusive with `target_url`.
+* `target_listener_name` - (Optional) The name of the listener to redirect to. This field cannot be set when `target_url` is set.
 
-* `target_url` - (Optional) The Url to redirect the request to. This parameter is mutually exclusive with `target_listener_name`.
+* `target_url` - (Optional) The Url to redirect the request to. This field cannot be set when `target_listener_name` is set.
 
 * `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
 
