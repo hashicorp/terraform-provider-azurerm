@@ -2409,8 +2409,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						ruleOutput["name"] = *rule.Name
 					}
 
-					// TODO: Note below: ruleProps versus props - bug?
-					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
+					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 
 						if ruleProps.BackendAddressPool != nil && ruleProps.RedirectConfiguration != nil {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
