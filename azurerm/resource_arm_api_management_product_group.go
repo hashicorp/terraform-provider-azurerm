@@ -99,7 +99,7 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementGroupUsersClient
+	client := meta.(*ArmClient).apiManagementProductGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
