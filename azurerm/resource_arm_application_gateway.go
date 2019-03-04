@@ -1971,11 +1971,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
 
-			if props.BackendAddressPool != nil && props.RedirectConfiguration != nil {
+			if applicationGatewayHasSubResource(props.BackendAddressPool) && applicationGatewayHasSubResource(props.RedirectConfiguration) {
 				return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
 			}
 
-			if props.BackendHTTPSettings != nil && props.RedirectConfiguration != nil {
+			if applicationGatewayHasSubResource(props.BackendHTTPSettings) && applicationGatewayHasSubResource(props.RedirectConfiguration) {
 				return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
 			}
 
@@ -2058,6 +2058,10 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
+func applicationGatewayHasSubResource(subResource *network.SubResource) bool {
+	return subResource != nil && subResource.ID != nil && *subResource.ID != ""
+}
+
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRedirectConfiguration {
 
 	vs := d.Get("redirect_configuration").([]interface{})
@@ -2107,15 +2111,15 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
 
-			if config.TargetListener == nil && validate.NilOrEmpty(config.TargetURL) {
-				return nil, fmt.Errorf("[ERROR] Specify either `target_listener_name` or `target_url`")
+			if !applicationGatewayHasSubResource(config.TargetListener) && validate.NilOrEmpty(config.TargetURL) {
+				return nil, fmt.Errorf("[ERROR] Set either `target_listener_name` or `target_url`")
 			}
-			if props.TargetListener != nil && !validate.NilOrEmpty(config.TargetURL) {
+			if applicationGatewayHasSubResource(config.TargetListener) && !validate.NilOrEmpty(config.TargetURL) {
 				return nil, fmt.Errorf("[ERROR] Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 			}
 
 			if !validate.NilOrEmpty(config.TargetURL) && config.IncludePath != nil {
-				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is specified")
+				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is set")
 			}
 
 			output := map[string]interface{}{
