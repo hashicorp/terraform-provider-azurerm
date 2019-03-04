@@ -52,6 +52,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management Group Users can be imported using the `resource id`, e.g.
 
 ```shell
-
 terraform import azurerm_api_management_group_user.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/groups/groupId/users/user123
 ```
