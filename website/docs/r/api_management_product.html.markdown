@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product"
-sidebar_current: "docs-azurerm-resource-api-management-product"
+sidebar_current: "docs-azurerm-resource-api-management-product-x"
 description: |-
   Manages an API Management Product.
 ---
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `subscriptions_limit` - (Optional) The number of subscriptions a user can have to this Product at the same time.
 
--> **NOTE:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`. 
+-> **NOTE:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`.
 
 * `terms` - (Optional) The Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.
 
