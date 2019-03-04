@@ -165,6 +165,7 @@ resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
   resource_id         = "${azurerm_automation_account.test.id}"
+}
 `, template)
 }
 

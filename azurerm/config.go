@@ -113,11 +113,12 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
-	eventGridDomainsClient      eventgrid.DomainsClient
-	eventGridTopicsClient       eventgrid.TopicsClient
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
+	eventGridDomainsClient            eventgrid.DomainsClient
+	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
+	eventGridTopicsClient             eventgrid.TopicsClient
+	eventHubClient                    eventhub.EventHubsClient
+	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient          eventhub.NamespacesClient
 
 	solutionsClient operationsmanagement.SolutionsClient
 
@@ -126,12 +127,13 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementGroupClient      apimanagement.GroupClient
-	apiManagementGroupUsersClient apimanagement.GroupUserClient
-	apiManagementProductsClient   apimanagement.ProductClient
-	apiManagementPropertyClient   apimanagement.PropertyClient
-	apiManagementServiceClient    apimanagement.ServiceClient
-	apiManagementUsersClient      apimanagement.UserClient
+	apiManagementGroupClient         apimanagement.GroupClient
+	apiManagementGroupUsersClient    apimanagement.GroupUserClient
+	apiManagementProductsClient      apimanagement.ProductClient
+	apiManagementProductGroupsClient apimanagement.ProductGroupClient
+	apiManagementPropertyClient      apimanagement.PropertyClient
+	apiManagementServiceClient       apimanagement.ServiceClient
+	apiManagementUsersClient         apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -508,6 +510,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&productsClient.Client, auth)
 	c.apiManagementProductsClient = productsClient
 
+	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productGroupsClient.Client, auth)
+	c.apiManagementProductGroupsClient = productGroupsClient
+
 	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&propertiesClient.Client, auth)
 	c.apiManagementPropertyClient = propertiesClient
@@ -872,6 +878,10 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egdc.Client, auth)
 	c.eventGridDomainsClient = egdc
+
+	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egesc.Client, auth)
+	c.eventGridEventSubscriptionsClient = egesc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
