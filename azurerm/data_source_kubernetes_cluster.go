@@ -618,7 +618,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 	values["network_plugin"] = profile.NetworkPlugin
 
 	if profile.NetworkPolicy != "" {
-		values["network_policy"] = profile.NetworkPolicy
+		values["network_policy"] = string(profile.NetworkPolicy)
 	}
 
 	if profile.ServiceCidr != nil {

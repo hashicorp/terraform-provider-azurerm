@@ -43,12 +43,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 					return nil
 				}
 
-				networkPolicy := profile["network_policy"].(string)
-
-				if networkPolicy != "calico" {
-					return nil
-				}
-
 				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
@@ -1069,7 +1063,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	values["network_plugin"] = profile.NetworkPlugin
 
 	if profile.NetworkPolicy != "" {
-		values["network_policy"] = profile.NetworkPolicy
+		values["network_policy"] = string(profile.NetworkPolicy)
 	}
 
 	if profile.ServiceCidr != nil {

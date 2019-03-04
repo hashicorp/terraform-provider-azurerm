@@ -1224,7 +1224,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin = "%s"
-		network_policy = "%s"
+    network_policy = "%s"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin, networkPolicy)
@@ -1301,8 +1301,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-		network_plugin     = "%s"
-		network_policy     = "%s"
+    network_plugin     = "%s"
+    network_policy     = "%s"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
