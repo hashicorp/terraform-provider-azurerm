@@ -2415,11 +2415,11 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 
-						if ruleProps.BackendAddressPool != nil && ruleProps.RedirectConfiguration != nil {
+						if applicationGatewayHasSubResource(ruleProps.BackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
 						}
 
-						if ruleProps.BackendHTTPSettings != nil && ruleProps.RedirectConfiguration != nil {
+						if applicationGatewayHasSubResource(ruleProps.BackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
 						}
 
@@ -2448,8 +2448,8 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							if err != nil {
 								return nil, err
 							}
-							redirectConfigurationName := redirectId.Path["redirectConfigurations"]
-							ruleOutput["redirect_configuration_name"] = redirectConfigurationName
+							redirectConfigurationName2 := redirectId.Path["redirectConfigurations"]
+							ruleOutput["redirect_configuration_name"] = redirectConfigurationName2
 							ruleOutput["redirect_configuration_id"] = *redirect.ID
 						}
 
