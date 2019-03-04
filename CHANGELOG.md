@@ -12,6 +12,7 @@ FEATURES:
 * **New Resource:** `azurerm_api_management_group_user` [GH-2972]
 * **New Resource:** `azurerm_api_management_product` [GH-2953]
 * **New Resource:** `azurerm_api_management_product_group` [GH-2984]
+* **New Resource:** `azurerm_api_management_property` [GH-2986]
 * **New Resource:** `azurerm_api_management_user` [GH-2954]
 * **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
 * **New Resource:** `azurerm_eventgrid_event_subscription` [GH-2967]
