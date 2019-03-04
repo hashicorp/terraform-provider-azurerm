@@ -141,7 +141,7 @@ resource "azurerm_api_management_product" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   display_name          = "Test Product"
   subscription_required = true
-  approval_required     = true
+  approval_required     = false
   published             = true
 }
 
