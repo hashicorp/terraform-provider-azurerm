@@ -1010,6 +1010,7 @@ func testAccAzureRMApplicationGateway_pathBasedRoutingRedirect(rInt int, locatio
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
   frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
@@ -1020,7 +1021,7 @@ locals {
   url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
   redirect_configuration_name    = "${azurerm_virtual_network.test.name}-PathRedirect"
   redirect_configuration_name2   = "${azurerm_virtual_network.test.name}-PathRedirect2"
-  target_url            		 = "http://www.example.com"
+  target_url            		     = "http://www.example.com"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1042,6 +1043,11 @@ resource "azurerm_application_gateway" "test" {
   frontend_port {
     name = "${local.frontend_port_name}"
     port = 80
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name2}"
+    port = 8888
   }
 
   frontend_ip_configuration {
@@ -1110,7 +1116,7 @@ resource "azurerm_application_gateway" "test" {
   redirect_configuration {
     name                 = "${local.redirect_configuration_name}"
     redirect_type        = "Found"
-    target_url 			 = "${local.target_url}"
+    target_url 			     = "${local.target_url}"
     include_query_string = true
   }
 
