@@ -100,7 +100,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error retrieving Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Group %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
+		return fmt.Errorf("Cannot read ID for Property %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 
