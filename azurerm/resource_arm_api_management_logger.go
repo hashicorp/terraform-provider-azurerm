@@ -13,9 +13,9 @@ import (
 
 func resourceArmApiManagementLogger() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementLoggerCreateUpdate,
+		Create: resourceArmApiManagementLoggerCreate,
 		Read:   resourceArmApiManagementLoggerRead,
-		Update: resourceArmApiManagementLoggerCreateUpdate,
+		Update: resourceArmApiManagementLoggerUpdate,
 		Delete: resourceArmApiManagementLoggerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -82,10 +82,19 @@ func resourceArmApiManagementLogger() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			_, hasEventHub := d.GetOk("eventhub")
+			_, hasAppInsights := d.GetOk("application_insights")
+			if !hasEventHub && !hasAppInsights {
+				return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+			}
+			return nil
+		},
 	}
 }
 
-func resourceArmApiManagementLoggerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementLoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -95,9 +104,6 @@ func resourceArmApiManagementLoggerCreateUpdate(d *schema.ResourceData, meta int
 
 	eventHubRaw, hasEventHub := d.GetOk("eventhub")
 	appInsightsRaw, hasAppInsights := d.GetOk("application_insights")
-	if !hasEventHub && !hasAppInsights {
-		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
-	}
 
 	parameters := apimanagement.LoggerContract{
 		LoggerContractProperties: &apimanagement.LoggerContractProperties{
@@ -172,6 +178,43 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).apiManagementLoggerClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return fmt.Errorf("Error parsing API Management Logger ID %q: %+v", d.Id(), err)
+	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["loggers"]
+
+	eventHubRaw, hasEventHub := d.GetOk("eventhub")
+	appInsightsRaw, hasAppInsights := d.GetOk("application_insights")
+
+	parameters := apimanagement.LoggerUpdateContract{
+		LoggerUpdateParameters: &apimanagement.LoggerUpdateParameters{
+			IsBuffered:  utils.Bool(d.Get("buffered").(bool)),
+			Description: utils.String(d.Get("description").(string)),
+		},
+	}
+
+	if hasEventHub {
+		parameters.LoggerType = apimanagement.AzureEventHub
+		parameters.Credentials = expandArmApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+	} else if hasAppInsights {
+		parameters.LoggerType = apimanagement.ApplicationInsights
+		parameters.Credentials = expandArmApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
+	}
+
+	if _, err := client.Update(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
+		return fmt.Errorf("Error updating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	}
+
+	return resourceArmApiManagementLoggerRead(d, meta)
 }
 
 func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
