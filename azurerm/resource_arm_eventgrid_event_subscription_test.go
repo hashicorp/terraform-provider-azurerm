@@ -222,7 +222,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -288,7 +288,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -393,7 +393,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   
-  tags {
+  tags = {
     environment = "staging"
   }
 }
