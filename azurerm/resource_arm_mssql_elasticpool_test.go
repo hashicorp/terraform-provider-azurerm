@@ -345,7 +345,7 @@ func testAccAzureRMMsSqlElasticPool_requiresImport(rInt int, location string) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mssql_elasticpool" "test" {
+resource "azurerm_mssql_elasticpool" "import" {
   name                  = "${azurerm_mssql_elasticpool.test.name}"
   resource_group_name   = "${azurerm_mssql_elasticpool.test.resource_group_name}"
   location              = "${azurerm_mssql_elasticpool.test.location}"
