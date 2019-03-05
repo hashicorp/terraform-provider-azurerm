@@ -216,7 +216,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_32"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
