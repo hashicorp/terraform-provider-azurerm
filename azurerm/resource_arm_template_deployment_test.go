@@ -151,8 +151,8 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 					// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
 					// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
 					// at a later date these may return the expected 'true' / 'false' and should be changed back
-					resource.TestCheckOutput("tfFalseOutput", "0"),
-					resource.TestCheckOutput("tfTrueOutput", "1"),
+					resource.TestCheckOutput("tfFalseOutput", "false"),
+					resource.TestCheckOutput("tfTrueOutput", "true"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.stringOutput", "Standard_GRS"),
 				),
 			},

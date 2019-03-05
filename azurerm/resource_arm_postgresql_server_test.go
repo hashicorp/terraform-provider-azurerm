@@ -264,7 +264,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen4_2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_2"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
@@ -397,7 +397,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
@@ -430,7 +430,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
@@ -463,7 +463,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
@@ -493,7 +493,7 @@ resource "azurerm_postgresql_server" "import" {
   resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
@@ -526,7 +526,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
@@ -592,7 +592,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen4"
