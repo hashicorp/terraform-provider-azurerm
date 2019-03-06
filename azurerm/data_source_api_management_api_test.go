@@ -20,19 +20,41 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceApiManagementApi_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "display_name", "api1"),
+					resource.TestCheckResourceAttr(dataSourceName, "path", "api1"),
+					resource.TestCheckResourceAttr(dataSourceName, "protocols.%", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "protocols.0", "https"),
+					resource.TestCheckResourceAttr(dataSourceName, "soap_pass_through", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "is_current", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "is_online", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctestAMA-%d", rInt)),
-					resource.TestCheckResourceAttr(dataSourceName, "path", "api1"),
-					resource.TestCheckResourceAttr(dataSourceName, "protocols.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "protocols.0", "https"),
-					resource.TestCheckResourceAttr(dataSourceName, "service_name", fmt.Sprintf("acctestAM-%d", rInt)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
+	dataSourceName := "data.azurerm_api_management_api.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceApiManagementApi_complete(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "display_name", "Butter Parser"),
+					resource.TestCheckResourceAttr(dataSourceName, "path", "butter-parser"),
+					resource.TestCheckResourceAttr(dataSourceName, "protocols.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "description", "What is my purpose? You pass butter."),
+					resource.TestCheckResourceAttr(dataSourceName, "service_url", "https://example.com/foo/bar"),
 					resource.TestCheckResourceAttr(dataSourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.header", "Ocp-Apim-Subscription-Key"),
-					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.query", "subscription-key"),
-					resource.TestCheckResourceAttr(dataSourceName, "api_version", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "api_version_set_id", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.header", "X-Butter-Robot-API-Key"),
+					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.query", "location"),
+					resource.TestCheckResourceAttr(dataSourceName, "is_current", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "is_online", "false"),
 				),
 			},
 		},
@@ -40,45 +62,29 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 }
 
 func testAccDataSourceApiManagementApi_basic(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_basic(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "amtestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name            = "acctestAM-%d"
-  publisher_name  = "pub1"
-  publisher_email = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_api_management_api" "test" {
-  name         = "acctestAMA-%d"
-	display_name = "api1"
-  service_name = "${azurerm_api_management.test.name}"
-  path         = "api1"
-  protocols    = ["https"]
-
-  import {
-    content_value  = "${file("testdata/api_management_api_swagger.json")}"
-    content_format = "swagger-json"
-  }
-
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
+%s
 
 data "azurerm_api_management_api" "test" {
   name                = "${azurerm_api_management_api.test.name}"
-  service_name        = "${azurerm_api_management.test.name}"
+  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
   resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
+  revision            = "${azurerm_api_management_api.test.revision}"
 }
-`, rInt, location, rInt, rInt)
+`, template)
+}
+
+func testAccDataSourceApiManagementApi_complete(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_complete(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_api_management_api" "test" {
+  name                = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
+  revision            = "${azurerm_api_management_api.test.revision}"
+}
+`, template)
 }

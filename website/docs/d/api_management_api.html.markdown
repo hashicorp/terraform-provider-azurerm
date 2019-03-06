@@ -15,8 +15,9 @@ Use this data source to access information about an existing API Management API.
 ```hcl
 data "azurerm_api_management_api" "test" {
   name                = "search-api"
-  service_name        = "search-api-management"
+  api_management_name = "search-api-management"
   resource_group_name = "search-service"
+  revision            = 2
 }
 
 output "api_management_api_id" {
@@ -28,40 +29,50 @@ output "api_management_api_id" {
 
 * `name` - (Required) The name of the API Management API.
 
-* `service_name` - (Required) The name of the API Management service which the API Management API belongs to.
+* `api_management_name` - (Required) The name of the API Management Service in which the API Management API exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management API exists.
+* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+
+* `revision` - (Required) The Revision number of the API Management API.
 
 ## Attributes Reference
 
 * `id` - The ID of the API Management API.
 
-* `path` - Relative URL uniquely identifying this API and all of its resource paths within the API Management service instance. It is appended to the API endpoint base URL specified during the service instance creation to form a public URL for this API. The path cannot start or end with `/`.
+* `description` - A description of the API Management API, which may include HTML formatting tags.
+
+* `display_name` - The display name of the API.
+
+* `is_current` - Is this the current API Revision?
+
+* `is_online` - Is this API Revision online/accessible via the Gateway?
+
+* `path` - The Path for this API Management API.
+
+* `protocols` - A list of protocols the operations in this API can be invoked.
 
 * `service_url` - Absolute URL of the backend service implementing this API.
 
-* `description` - Description of the API. May include HTML formatting tags.
+* `soap_pass_through` - Should this API expose a SOAP frontend, rather than a HTTP frontend?
 
-* `protocols` - Describes on which protocols the operations in this API can be invoked.
+* `subscription_key_parameter_names` - A `subscription_key_parameter_names` block as documented below.
 
-* `subscription_key_parameter_names` - Describes the names of the header and query parameter names used to send in the subscription key. The `subscription_key_parameter_names` block is defined below.
+* `version` - The Version number of this API, if this API is versioned.
 
-* `soap_pass_through` - Make API Management expose a SOAP front end, instead of a HTTP front end.
-
-* `revision` - Describes the Revision of the Api.
-
-* `version` - Indicates the Version identifier of the API if the API is versioned.
-
-* `version_set_id` - A resource identifier for the related ApiVersionSet.
-
-* `is_current` - Indicates if the API revision is current api revision.
-
-* `is_online` - Indicates if the API revision is accessible via the gateway.
+* `version_set_id` - The ID of the Version Set which this API is associated with.
 
 ---
 
 A `subscription_key_parameter_names` block exports the following:
 
-* `header` - Subscription key header name.
+* `header` - The name of the HTTP Header which should be used for the Subscription Key.
 
-* `query` - Subscription key query string parameter name.
+* `query` - The name of the QueryString parameter which should be used for the Subscription Key.
+
+---
+
+A `wsdl_selector` block exports the following:
+
+* `service_name` - The name of service to import from WSDL.
+
+* `endpoint_name` - The name of endpoint (port) to import from WSDL.

@@ -2,9 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,28 +16,19 @@ func dataSourceApiManagementApi() *schema.Resource {
 		Read: dataSourceApiManagementApiRead,
 
 		Schema: map[string]*schema.Schema{
-			"service_name": {
-				Type:     schema.TypeString,
-				Required: true,
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.ApiManagementApiName,
 			},
 
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
-
-			"path": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"service_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"revision": {
+				Type:     schema.TypeInt,
+				Required: true,
 			},
 
 			"description": {
@@ -42,18 +36,47 @@ func dataSourceApiManagementApi() *schema.Resource {
 				Computed: true,
 			},
 
+			"display_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"is_current": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"is_online": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"protocols": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+
+			"service_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"soap_pass_through": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"subscription_key_parameter_names": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"header": {
@@ -68,35 +91,13 @@ func dataSourceApiManagementApi() *schema.Resource {
 				},
 			},
 
-			"soap_pass_through": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"revision": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  nil,
-				Computed: true,
-			},
-
-			"api_version": {
+			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"api_version_set_id": {
+			"version_set_id": {
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"is_current": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"is_online": {
-				Type:     schema.TypeBool,
 				Computed: true,
 			},
 		},
@@ -104,48 +105,88 @@ func dataSourceApiManagementApi() *schema.Resource {
 }
 
 func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiClient
 	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).apiManagementApiClient
 
-	resGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("service_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
-	revision := int32(d.Get("revision").(int))
+	revision := d.Get("revision").(int)
 
 	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
-
-	resp, err := client.Get(ctx, resGroup, serviceName, apiId)
-
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("API Management API %q (Service %q / Resource Group %q) was not found", name, serviceName, resGroup)
+			return fmt.Errorf("API %q Revision %q (API Management Service %q / Resource Group %q) does not exist!", name, revision, serviceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving API Management API %q (Service %q / Resource Group %q): %+v", name, serviceName, resGroup, err)
+		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
+	d.Set("api_management_name", serviceName)
 	d.Set("name", name)
-	d.Set("service_name", serviceName)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.APIContractProperties; props != nil {
-		d.Set("service_url", props.ServiceURL)
-		d.Set("path", props.Path)
 		d.Set("description", props.Description)
-		d.Set("revision", props.APIRevision)
-		d.Set("api_version", props.APIVersion)
-		d.Set("api_version_set_id", props.APIVersionSetID)
+		d.Set("display_name", props.DisplayName)
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
-		d.Set("protocols", props.Protocols)
+		d.Set("path", props.Path)
+		d.Set("service_url", props.ServiceURL)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("version", props.APIVersion)
+		d.Set("version_set_id", props.APIVersionSetID)
 
-		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+		if apiR := props.APIRevision; apiR != nil {
+			i, err := strconv.Atoi(*apiR)
+			if err != nil {
+				return fmt.Errorf("Error casting %q to an integer: %s", *apiR, err)
+			}
+
+			d.Set("revision", i)
+		}
+
+		if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
+			return fmt.Errorf("Error setting `protocols`: %s", err)
+		}
+
+		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
 			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
 		}
 	}
 
 	return nil
+}
+
+func flattenApiManagementApiDataSourceProtocols(input *[]apimanagement.Protocol) []string {
+	if input == nil {
+		return []string{}
+	}
+
+	results := make([]string, 0)
+	for _, v := range *input {
+		results = append(results, string(v))
+	}
+
+	return results
+}
+func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
+	if paramNames == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	if paramNames.Header != nil {
+		result["header"] = *paramNames.Header
+	}
+
+	if paramNames.Query != nil {
+		result["query"] = *paramNames.Query
+	}
+
+	return []interface{}{result}
 }

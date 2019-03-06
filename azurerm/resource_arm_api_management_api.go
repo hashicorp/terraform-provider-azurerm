@@ -3,11 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,19 +33,14 @@ func resourceArmApiManagementApi() *schema.Resource {
 				ValidateFunc: validate.ApiManagementApiName,
 			},
 
+			"api_management_name": azure.SchemaApiManagementName(),
+
+			"resource_group_name": resourceGroupNameSchema(),
+
 			"display_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
-			"service_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementServiceName,
-			},
-
-			"resource_group_name": resourceGroupNameSchema(),
 
 			"path": {
 				Type:         schema.TypeString,
@@ -51,7 +49,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 			},
 
 			"protocols": {
-				Type: schema.TypeList,
+				Type:     schema.TypeSet,
+				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -59,19 +58,15 @@ func resourceArmApiManagementApi() *schema.Resource {
 						string(apimanagement.ProtocolHTTPS),
 					}, false),
 				},
+			},
+
+			"revision": {
+				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 
-			"api_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"service_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
+			// Optional
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -122,6 +117,12 @@ func resourceArmApiManagementApi() *schema.Resource {
 				},
 			},
 
+			"service_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"subscription_key_parameter_names": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -131,13 +132,11 @@ func resourceArmApiManagementApi() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"header": {
 							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 						"query": {
 							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 					},
 				},
@@ -149,11 +148,15 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Optional: true,
 			},
 
-			"revision": {
-				Type:     schema.TypeInt,
-				Optional: true,
+			// Computed
+			"is_current": {
+				Type:     schema.TypeBool,
 				Computed: true,
-				Default:  nil,
+			},
+
+			"is_online": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"version": {
@@ -165,16 +168,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"is_current": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"is_online": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -183,109 +176,165 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).apiManagementApiClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM API Management API creation.")
-
-	resGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("service_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
 	revision := int32(d.Get("revision").(int))
-
+	path := d.Get("path").(string)
 	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
-	d.Set("api_id", apiId)
 
-	var properties *apimanagement.APICreateOrUpdateProperties
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+			}
+		}
 
-	_, hasImport := d.GetOk("import")
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_api_management_api", *existing.ID)
+		}
+	}
 
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
-	if hasImport {
-		properties = expandApiManagementImportProperties(d)
-		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, properties.ContentFormat)
+	if vs, hasImport := d.GetOk("import"); hasImport {
+		importVs := vs.([]interface{})
+		importV := importVs[0].(map[string]interface{})
+		contentFormat := importV["content_format"].(string)
+		contentValue := importV["content_value"].(string)
 
+		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
-			APICreateOrUpdateProperties: properties,
+			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+				ContentFormat: apimanagement.ContentFormat(contentFormat),
+				ContentValue:  utils.String(contentValue),
+				Path:          utils.String(path),
+			},
+		}
+		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+		if len(wsdlSelectorVs) > 0 {
+			wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
+			wSvcName := wsdlSelectorV["service_name"].(string)
+			wEndpName := wsdlSelectorV["endpoint_name"].(string)
+
+			apiParams.APICreateOrUpdateProperties.WsdlSelector = &apimanagement.APICreateOrUpdatePropertiesWsdlSelector{
+				WsdlServiceName:  utils.String(wSvcName),
+				WsdlEndpointName: utils.String(wEndpName),
+			}
 		}
 
-		log.Printf("[DEBUG] Calling api with resource group %q, service name %q, api id %q", resGroup, serviceName, apiId)
-		_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, apiParams, "")
-		if err != nil {
-			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
+			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	updateParams := apimanagement.APICreateOrUpdateParameter{
-		APICreateOrUpdateProperties: expandApiManagementApiProperties(d),
+	description := d.Get("description").(string)
+	displayName := d.Get("display_name").(string)
+	serviceUrl := d.Get("service_url").(string)
+
+	protocolsRaw := d.Get("protocols").(*schema.Set).List()
+	protocols := expandApiManagementApiProtocols(protocolsRaw)
+
+	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
+	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
+
+	var apiType apimanagement.APIType
+	soapPassThrough := d.Get("soap_pass_through").(bool)
+	if soapPassThrough {
+		apiType = apimanagement.APIType(apimanagement.SoapPassThrough)
+	} else {
+		apiType = apimanagement.APIType(apimanagement.SoapToRest)
 	}
 
-	log.Printf("[DEBUG] Calling api with resource group %q, service name %q, api id %q", resGroup, serviceName, apiId)
-	_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, updateParams, "")
-
-	if err != nil {
-		return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+	params := apimanagement.APICreateOrUpdateParameter{
+		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+			APIType:                       apiType,
+			Description:                   utils.String(description),
+			DisplayName:                   utils.String(displayName),
+			Path:                          utils.String(path),
+			Protocols:                     protocols,
+			ServiceURL:                    utils.String(serviceUrl),
+			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+		},
 	}
 
-	read, err := client.Get(ctx, resGroup, serviceName, apiId)
+	revisionStr := strconv.Itoa(int(revision))
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
+		return fmt.Errorf("Error creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revisionStr, serviceName, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revisionStr, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for API Management API %q (Resource Group %q)", name, resGroup)
+		return fmt.Errorf("Cannot read ID for API %q / Revision %q (API Management Service %q / Resource Group %q)", name, revisionStr, serviceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
-
 	return resourceArmApiManagementApiRead(d, meta)
 }
 
 func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	apiManagementApiClient := meta.(*ArmClient).apiManagementApiClient
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).apiManagementApiClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
 	apiid := id.Path["apis"]
 
 	name := apiid
+	revision := ""
 	if strings.Contains(apiid, ";") {
 		name = strings.Split(apiid, ";")[0]
+		revision = strings.Split(apiid, "=")[1]
 	}
 
-	ctx := client.StopContext
-	resp, err := apiManagementApiClient.Get(ctx, resGroup, serviceName, apiid)
-
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiid)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Management API %q (Service %q / Resource Group %q) does not exist - removing from state!", name, serviceName, resGroup)
+			log.Printf("[DEBUG] API %q Revision %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", name, revision, serviceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on API Management API %q on service %q (Resource Group %q): %+v", apiid, serviceName, resGroup, err)
+
+		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
-	d.Set("api_id", apiid)
+	d.Set("api_management_name", serviceName)
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("service_name", serviceName)
+	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.APIContractProperties; props != nil {
-		d.Set("display_name", props.DisplayName)
-		d.Set("service_url", props.ServiceURL)
-		d.Set("path", props.Path)
 		d.Set("description", props.Description)
-		d.Set("revision", props.APIRevision)
-		d.Set("version", props.APIVersion)
-		d.Set("version_set_id", props.APIVersionSetID)
+		d.Set("display_name", props.DisplayName)
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
-		d.Set("protocols", props.Protocols)
+		d.Set("path", props.Path)
+		d.Set("service_url", props.ServiceURL)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("version", props.APIVersion)
+		d.Set("version_set_id", props.APIVersionSetID)
+
+		if apiR := props.APIRevision; apiR != nil {
+			i, err := strconv.Atoi(*apiR)
+			if err != nil {
+				return fmt.Errorf("Error casting %q to an integer: %s", *apiR, err)
+			}
+
+			d.Set("revision", i)
+		}
+
+		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
+			return fmt.Errorf("Error setting `protocols`: %s", err)
+		}
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
 			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
@@ -304,124 +353,63 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
 	apiid := id.Path["apis"]
 
-	log.Printf("[DEBUG] Deleting api management api %s: %s", resGroup, apiid)
-
-	resp, err := client.Delete(ctx, resGroup, serviceName, apiid, "*", utils.Bool(true))
-
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
+	name := apiid
+	revision := ""
+	if strings.Contains(apiid, ";") {
+		name = strings.Split(apiid, ";")[0]
+		revision = strings.Split(apiid, "=")[1]
 	}
 
-	return nil
-}
-
-func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.APICreateOrUpdateProperties {
-	displayName := d.Get("display_name").(string)
-	path := d.Get("path").(string)
-	serviceUrl := d.Get("service_url").(string)
-	description := d.Get("description").(string)
-
-	props := &apimanagement.APICreateOrUpdateProperties{
-		Description:                   &description,
-		DisplayName:                   &displayName,
-		Path:                          &path,
-		Protocols:                     expandApiManagementApiProtocols(d),
-		ServiceURL:                    &serviceUrl,
-		SubscriptionKeyParameterNames: expandApiManagementApiSubscriptionKeyParamNames(d),
-	}
-
-	if v, ok := d.GetOk("soap_pass_through"); ok {
-		soapPassThrough := v.(bool)
-
-		if soapPassThrough {
-			props.APIType = apimanagement.APIType(apimanagement.SoapPassThrough)
-		} else {
-			props.APIType = apimanagement.APIType(apimanagement.SoapToRest)
-		}
-	}
-
-	return props
-}
-
-func expandApiManagementApiSubscriptionKeyParamNames(d *schema.ResourceData) *apimanagement.SubscriptionKeyParameterNamesContract {
-	vs := d.Get("subscription_key_parameter_names").([]interface{})
-
-	if len(vs) > 0 {
-		v := vs[0].(map[string]interface{})
-		contract := apimanagement.SubscriptionKeyParameterNamesContract{}
-
-		query := v["query"].(string)
-		header := v["header"].(string)
-
-		if query != "" {
-			contract.Query = utils.String(query)
-		}
-
-		if header != "" {
-			contract.Header = utils.String(header)
-		}
-
-		if query != "" || header != "" {
-			return &contract
+	deleteRevisions := utils.Bool(true)
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", deleteRevisions); err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
 		}
 	}
 
 	return nil
 }
 
-func expandApiManagementApiProtocols(d *schema.ResourceData) *[]apimanagement.Protocol {
-	protos := make([]apimanagement.Protocol, 0)
+func expandApiManagementApiProtocols(input []interface{}) *[]apimanagement.Protocol {
+	results := make([]apimanagement.Protocol, 0)
 
-	if p, ok := d.GetOk("protocols"); ok {
-		protocolsConfig := p.([]interface{})
-		for _, v := range protocolsConfig {
-			protos = append(protos, apimanagement.Protocol(v.(string)))
-		}
-	} else {
-		// If not specified, set default to https
-		protos = append(protos, apimanagement.ProtocolHTTPS)
+	for _, v := range input {
+		results = append(results, apimanagement.Protocol(v.(string)))
 	}
 
-	return &protos
+	return &results
 }
 
-func expandApiManagementImportProperties(d *schema.ResourceData) *apimanagement.APICreateOrUpdateProperties {
-	path := d.Get("path").(string)
-
-	props := &apimanagement.APICreateOrUpdateProperties{
-		Path: &path,
+func flattenApiManagementApiProtocols(input *[]apimanagement.Protocol) []string {
+	if input == nil {
+		return []string{}
 	}
 
-	importVs := d.Get("import").([]interface{})
-	importV := importVs[0].(map[string]interface{})
-
-	props.ContentFormat = apimanagement.ContentFormat(importV["content_format"].(string))
-
-	cVal := importV["content_value"].(string)
-	props.ContentValue = &cVal
-
-	wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
-
-	if len(wsdlSelectorVs) > 0 {
-		wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
-		props.WsdlSelector = &apimanagement.APICreateOrUpdatePropertiesWsdlSelector{}
-
-		wSvcName := wsdlSelectorV["service_name"].(string)
-		wEndpName := wsdlSelectorV["endpoint_name"].(string)
-
-		props.WsdlSelector.WsdlServiceName = &wSvcName
-		props.WsdlSelector.WsdlEndpointName = &wEndpName
+	results := make([]string, 0)
+	for _, v := range *input {
+		results = append(results, string(v))
 	}
 
-	return props
+	return results
+}
+
+func expandApiManagementApiSubscriptionKeyParamNames(input []interface{}) *apimanagement.SubscriptionKeyParameterNamesContract {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	query := v["query"].(string)
+	header := v["header"].(string)
+	contract := apimanagement.SubscriptionKeyParameterNamesContract{
+		Query:  utils.String(query),
+		Header: utils.String(header),
+	}
+	return &contract
 }
 
 func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
