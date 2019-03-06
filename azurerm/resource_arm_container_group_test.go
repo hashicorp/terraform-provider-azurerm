@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -218,11 +217,11 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.log_type", string(containerinstance.ContainerInsights)),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.metadata.%", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_key"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
 				),
 			},
 			{
@@ -234,7 +233,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					"container.0.secure_environment_variables.%",
 					"container.0.secure_environment_variables.secureFoo",
 					"container.0.secure_environment_variables.secureFoo1",
-					"log_analytics.0.workspace_key",
+					"diagnostics.0.log_analytics.0.workspace_key",
 				},
 			},
 		},
@@ -300,11 +299,11 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.log_type", string(containerinstance.ContainerInsights)),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.metadata.%", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics.0.workspace_key"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
 				),
 			},
 			{
@@ -315,7 +314,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					"container.0.secure_environment_variables.%",
 					"container.0.secure_environment_variables.secureFoo",
 					"container.0.secure_environment_variables.secureFoo1",
-					"log_analytics.0.workspace_key",
+					"diagnostics.0.log_analytics.0.workspace_key",
 				},
 			},
 		},
@@ -608,12 +607,14 @@ resource "azurerm_container_group" "test" {
     commands = ["cmd.exe", "echo", "hi"]
   }
 
-  log_analytics {
-    workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-    workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
-    log_type      = "ContainerInsights"
-    metadata {
-      "node-name" = "acctestContainerGroup"
+  diagnostics {
+    log_analytics {
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      log_type      = "ContainerInsights"
+      metadata {
+        "node-name" = "acctestContainerGroup"
+      }
     }
   }
 
@@ -711,12 +712,14 @@ resource "azurerm_container_group" "test" {
     commands = ["/bin/bash", "-c", "ls"]
   }
 
+  diagnostics {
   log_analytics {
-    workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-    workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
-    log_type      = "ContainerInsights"
-    metadata {
-      "node-name" = "acctestContainerGroup"
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      log_type      = "ContainerInsights"
+      metadata {
+        "node-name" = "acctestContainerGroup"
+      }
     }
   }
 
