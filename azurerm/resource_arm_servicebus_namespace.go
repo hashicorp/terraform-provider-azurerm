@@ -63,7 +63,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 
 			"capacity": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				Default:      0,
 				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4}),
 			},
