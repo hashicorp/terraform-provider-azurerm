@@ -809,6 +809,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 500),
+							Default:      100,
 						},
 					},
 				},
