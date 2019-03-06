@@ -144,8 +144,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"soap_pass_through": {
 				Type:     schema.TypeBool,
-				Default:  false,
 				Optional: true,
+				Default:  false,
 			},
 
 			// Computed
