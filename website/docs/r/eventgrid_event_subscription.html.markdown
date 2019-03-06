@@ -26,7 +26,7 @@ resource "azurerm_storage_account" "default" {
 	account_tier             = "Standard"
 	account_replication_type = "LRS"
   
-	tags {
+	tags = {
 	  environment = "staging"
 	}
   }
