@@ -740,12 +740,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"default_backend_address_pool_name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"default_backend_http_settings_name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"default_redirect_configuration_name": {
@@ -2073,27 +2073,30 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 		name := v["name"].(string)
 		redirectType := v["redirect_type"].(string)
 
-		targetListenerName := v["target_listener_name"].(string)
-		targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
-
-		targetUrl := v["target_url"].(string)
-
-		includePath := v["include_path"].(bool)
-		includeQueryString := v["include_query_string"].(bool)
-
 		output := network.ApplicationGatewayRedirectConfiguration{
 			Name: utils.String(name),
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType: network.ApplicationGatewayRedirectType(redirectType),
-
-				TargetListener: &network.SubResource{
-					ID: utils.String(targetListenerID),
-				},
-				TargetURL: utils.String(targetUrl),
-
-				IncludePath:        utils.Bool(includePath),
-				IncludeQueryString: utils.Bool(includeQueryString),
 			},
+		}
+
+		if includePath := v["include_path"].(bool); includePath {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
+		}
+
+		if includeQueryString := v["include_query_string"].(bool); includeQueryString {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludeQueryString = utils.Bool(includeQueryString)
+		}
+
+		if targetListenerName := v["target_listener_name"].(string); targetListenerName != "" {
+			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
+				ID: utils.String(targetListenerID),
+			}
+		}
+
+		if targetUrl := v["target_url"].(string); targetUrl != "" {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetURL = utils.String(targetUrl)
 		}
 
 		results = append(results, output)
@@ -2280,13 +2283,6 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
-		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
-		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
-
-		defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
-		defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
-		defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
 
 		pathRules := make([]network.ApplicationGatewayPathRule, 0)
 		for _, ruleConfig := range v["path_rule"].([]interface{}) {
@@ -2333,17 +2329,33 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 		output := network.ApplicationGatewayURLPathMap{
 			Name: utils.String(name),
 			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-				DefaultBackendAddressPool: &network.SubResource{
-					ID: utils.String(defaultBackendAddressPoolID),
-				},
-				DefaultBackendHTTPSettings: &network.SubResource{
-					ID: utils.String(defaultBackendHTTPSettingsID),
-				},
-				DefaultRedirectConfiguration: &network.SubResource{
-					ID: utils.String(defaultRedirectConfigurationID),
-				},
 				PathRules: &pathRules,
 			},
+		}
+
+		// treating these three as optional as seems necessary when redirection is also an alternative. Not explicit in the documentation, though
+		// see https://docs.microsoft.com/en-us/rest/api/application-gateway/applicationgateways/createorupdate#applicationgatewayurlpathmap
+		// see also az docs https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/url-path-map?view=azure-cli-latest#az-network-application-gateway-url-path-map-create
+
+		if defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string); defaultBackendAddressPoolName != "" {
+			defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool = &network.SubResource{
+				ID: utils.String(defaultBackendAddressPoolID),
+			}
+		}
+
+		if defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string); defaultBackendHTTPSettingsName != "" {
+			defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings = &network.SubResource{
+				ID: utils.String(defaultBackendHTTPSettingsID),
+			}
+		}
+
+		if defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string); defaultRedirectConfigurationName != "" {
+			defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultRedirectConfiguration = &network.SubResource{
+				ID: utils.String(defaultRedirectConfigurationID),
+			}
 		}
 
 		results = append(results, output)
@@ -2415,8 +2427,16 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 
+						if applicationGatewayHasSubResource(props.DefaultBackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_address_pool_name` and `redirect_configuration_name` (default back-end pool not applicable when redirection specified)")
+						}
+
 						if applicationGatewayHasSubResource(ruleProps.BackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+						}
+
+						if applicationGatewayHasSubResource(props.DefaultBackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_http_settings_name` and `redirect_configuration_name` (default back-end settings not applicable when redirection specified)")
 						}
 
 						if applicationGatewayHasSubResource(ruleProps.BackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {

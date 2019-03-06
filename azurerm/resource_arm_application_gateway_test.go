@@ -162,7 +162,7 @@ func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationGateway_httpListenerRedirect(t *testing.T) {
+func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
 
@@ -172,7 +172,7 @@ func TestAccAzureRMApplicationGateway_httpListenerRedirect(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_httpListenerRedirect(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "redirect_configuration.0.name"),
@@ -191,7 +191,7 @@ func TestAccAzureRMApplicationGateway_httpListenerRedirect(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationGateway_pathBasedRoutingRedirect(t *testing.T) {
+func TestAccAzureRMApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
 
@@ -201,12 +201,12 @@ func TestAccAzureRMApplicationGateway_pathBasedRoutingRedirect(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_pathBasedRoutingRedirect(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "redirect_configuration.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "redirect_configuration.0.redirect_type", "Found"),
-					resource.TestCheckResourceAttr(resourceName, "redirect_configuration.0.target_url", "http://www/example.com"),
+					resource.TestCheckResourceAttr(resourceName, "redirect_configuration.0.target_url", "http://www.example.com"),
 					resource.TestCheckResourceAttr(resourceName, "redirect_configuration.0.include_query_string", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "redirect_configuration.1.name"),
 					resource.TestCheckResourceAttr(resourceName, "redirect_configuration.1.redirect_type", "Permanent"),
@@ -906,7 +906,7 @@ resource "azurerm_application_gateway" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMApplicationGateway_httpListenerRedirect(rInt int, location string) string {
+func testAccAzureRMApplicationGateway_routingRedirect_httpListener(rInt int, location string) string {
 	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -1001,7 +1001,7 @@ resource "azurerm_application_gateway" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMApplicationGateway_pathBasedRoutingRedirect(rInt int, location string) string {
+func testAccAzureRMApplicationGateway_routingRedirect_pathBased(rInt int, location string) string {
 	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -1090,13 +1090,11 @@ resource "azurerm_application_gateway" "test" {
 
   url_path_map {
     name                               = "${local.url_path_map_name}"
-    default_backend_address_pool_name  = "${local.backend_address_pool_name}"
-    default_backend_http_settings_name = "${local.http_setting_name}"
+    default_redirect_configuration_name = "${local.redirect_configuration_name}"
 
     path_rule {
       name                        = "${local.path_rule_name}"
       redirect_configuration_name = "${local.redirect_configuration_name}"
-
       paths = [
         "/test",
       ]
