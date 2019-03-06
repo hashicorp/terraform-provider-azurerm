@@ -337,12 +337,12 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 }
@@ -358,12 +358,12 @@ resource "azurerm_recovery_services_protection_policy_vm" "import" {
   resource_group_name = "${azurerm_recovery_services_protection_policy_vm.test.resource_group_name}"
   recovery_vault_name = "${azurerm_recovery_services_protection_policy_vm.test.recovery_vault_name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 }
@@ -391,13 +391,13 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday"]
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
@@ -427,27 +427,27 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
@@ -487,24 +487,24 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
     weeks    = ["First", "Last"]
@@ -544,24 +544,24 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday"]
     weeks    = ["Last"]

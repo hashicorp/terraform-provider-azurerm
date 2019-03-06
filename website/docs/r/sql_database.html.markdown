@@ -33,7 +33,7 @@ resource "azurerm_sql_database" "test" {
   location            = "West US"
   server_name         = "${azurerm_sql_server.test.name}"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

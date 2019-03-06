@@ -445,7 +445,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -477,7 +477,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

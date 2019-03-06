@@ -34,7 +34,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -70,7 +70,7 @@ EOF
     max_task_retry_count = 1
     wait_for_success     = true
 
-    environment {
+    environment = {
       env = "TEST"
     }
 

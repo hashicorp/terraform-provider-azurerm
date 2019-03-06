@@ -24,7 +24,7 @@ resource "azurerm_databricks_workspace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

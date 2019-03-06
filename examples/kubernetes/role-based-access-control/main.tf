@@ -26,7 +26,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     enabled = true
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

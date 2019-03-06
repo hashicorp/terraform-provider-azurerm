@@ -41,7 +41,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "00000000000000000000000000000000"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

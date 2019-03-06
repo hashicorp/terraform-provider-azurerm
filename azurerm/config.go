@@ -10,6 +10,7 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -27,19 +28,19 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
@@ -112,11 +113,12 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
-	eventGridDomainsClient      eventgrid.DomainsClient
-	eventGridTopicsClient       eventgrid.TopicsClient
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
+	eventGridDomainsClient            eventgrid.DomainsClient
+	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
+	eventGridTopicsClient             eventgrid.TopicsClient
+	eventHubClient                    eventhub.EventHubsClient
+	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient          eventhub.NamespacesClient
 
 	solutionsClient operationsmanagement.SolutionsClient
 
@@ -125,7 +127,13 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementServiceClient apimanagement.ServiceClient
+	apiManagementGroupClient         apimanagement.GroupClient
+	apiManagementGroupUsersClient    apimanagement.GroupUserClient
+	apiManagementProductsClient      apimanagement.ProductClient
+	apiManagementProductGroupsClient apimanagement.ProductGroupClient
+	apiManagementPropertyClient      apimanagement.PropertyClient
+	apiManagementServiceClient       apimanagement.ServiceClient
+	apiManagementUsersClient         apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -228,6 +236,9 @@ type ArmClient struct {
 	// Management Groups
 	managementGroupsClient             managementgroups.Client
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
+
+	// Media
+	mediaServicesClient media.MediaservicesClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -458,6 +469,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
+	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
@@ -482,9 +494,33 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ams.Client, auth)
-	c.apiManagementServiceClient = ams
+	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
+	c.apiManagementGroupClient = groupsClient
+
+	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupUsersClient.Client, auth)
+	c.apiManagementGroupUsersClient = groupUsersClient
+
+	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&serviceClient.Client, auth)
+	c.apiManagementServiceClient = serviceClient
+
+	productsClient := apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productsClient.Client, auth)
+	c.apiManagementProductsClient = productsClient
+
+	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productGroupsClient.Client, auth)
+	c.apiManagementProductGroupsClient = productGroupsClient
+
+	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&propertiesClient.Client, auth)
+	c.apiManagementPropertyClient = propertiesClient
+
+	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&usersClient.Client, auth)
+	c.apiManagementUsersClient = usersClient
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -587,6 +623,12 @@ func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, aut
 	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
+}
+
+func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	mediaServicesClient := media.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mediaServicesClient.Client, auth)
+	c.mediaServicesClient = mediaServicesClient
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -836,6 +878,10 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egdc.Client, auth)
 	c.eventGridDomainsClient = egdc
+
+	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egesc.Client, auth)
+	c.eventGridEventSubscriptionsClient = egesc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

@@ -53,16 +53,16 @@ resource "azurerm_container_group" "aci-helloworld" {
       port     = 80
       protocol = "TCP"
     }
-    ports = {
+    ports {
       port     = 443
       protocol = "TCP" 
     }
 
-    environment_variables {
+    environment_variables = {
       "NODE_ENV" = "testing"
     }
 
-    secure_environment_variables {
+    secure_environment_variables = {
       "ACCESS_KEY" = "secure_testing"
     }
 
@@ -86,7 +86,7 @@ resource "azurerm_container_group" "aci-helloworld" {
     memory = "1.5"
   }
 
-  tags {
+  tags = {
     environment = "testing"
   }
 }

@@ -108,7 +108,7 @@ resource "azurerm_app_service_plan" "test" {
     per_site_scaling = true
   }
 
-  tags {
+  tags = {
     environment = "Test"
   }
 }

@@ -37,7 +37,7 @@ resource "azurerm_dns_txt_record" "test" {
     value = "more site information here"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

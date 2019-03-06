@@ -341,7 +341,7 @@ resource "azurerm_data_lake_store" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -361,7 +361,7 @@ resource "azurerm_data_lake_store" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

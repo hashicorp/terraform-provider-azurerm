@@ -190,7 +190,7 @@ resource "azurerm_shared_image_gallery" "test" {
   location            = "${azurerm_resource_group.test.location}"
   description         = "Shared images and things."
 
-  tags {
+  tags = {
     Hello = "There"
     World = "Example"
   }

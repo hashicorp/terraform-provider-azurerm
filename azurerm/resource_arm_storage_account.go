@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -196,7 +197,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -206,7 +217,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -216,13 +237,28 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			// NOTE: The API does not appear to expose a secondary file endpoint
 			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -676,40 +712,25 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			d.Set("primary_blob_endpoint", endpoints.Blob)
-			d.Set("primary_queue_endpoint", endpoints.Queue)
-			d.Set("primary_table_endpoint", endpoints.Table)
-			d.Set("primary_file_endpoint", endpoints.File)
-
-			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
-			d.Set("primary_blob_connection_string", pscs)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
+			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if endpoints := props.SecondaryEndpoints; endpoints != nil {
-			if blob := endpoints.Blob; blob != nil {
-				d.Set("secondary_blob_endpoint", blob)
-				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-					*blob, *resp.Name, *accessKeys[1].Value)
-				d.Set("secondary_blob_connection_string", sscs)
-			} else {
-				d.Set("secondary_blob_endpoint", "")
-				d.Set("secondary_blob_connection_string", "")
-			}
-
-			if endpoints.Queue != nil {
-				d.Set("secondary_queue_endpoint", endpoints.Queue)
-			} else {
-				d.Set("secondary_queue_endpoint", "")
-			}
-
-			if endpoints.Table != nil {
-				d.Set("secondary_table_endpoint", endpoints.Table)
-			} else {
-				d.Set("secondary_table_endpoint", "")
-			}
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
 		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
+			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		}
+
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
 		networkRules := props.NetworkRuleSet
 		if networkRules != nil {
@@ -976,4 +997,140 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 
 	return []interface{}{result}
+}
+
+func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
+	var endpoint string
+	if blobEndpoint != nil {
+		endpoint = *blobEndpoint
+	}
+
+	var name string
+	if acctName != nil {
+		name = *acctName
+	}
+
+	var key string
+	if acctKey != nil {
+		key = *acctKey
+	}
+
+	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
+}
+
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
+	var blobEndpoint, blobHost string
+	if primary != nil {
+		if v := primary.Blob; v != nil {
+			blobEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			}
+			blobHost = u.Host
+		}
+	}
+	d.Set("primary_blob_endpoint", blobEndpoint)
+	d.Set("primary_blob_host", blobHost)
+
+	var queueEndpoint, queueHost string
+	if primary != nil {
+		if v := primary.Queue; v != nil {
+			queueEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
+			}
+			queueHost = u.Host
+		}
+	}
+	d.Set("primary_queue_endpoint", queueEndpoint)
+	d.Set("primary_queue_host", queueHost)
+
+	var tableEndpoint, tableHost string
+	if primary != nil {
+		if v := primary.Table; v != nil {
+			tableEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
+			}
+			tableHost = u.Host
+		}
+	}
+	d.Set("primary_table_endpoint", tableEndpoint)
+	d.Set("primary_table_host", tableHost)
+
+	var fileEndpoint, fileHost string
+	if primary != nil {
+		if v := primary.File; v != nil {
+			fileEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
+			}
+			fileHost = u.Host
+		}
+	}
+	d.Set("primary_file_endpoint", fileEndpoint)
+	d.Set("primary_file_host", fileHost)
+
+	if primary == nil {
+		return fmt.Errorf("primary endpoints should not be empty")
+	}
+
+	return nil
+}
+
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
+	var blobEndpoint, blobHost string
+	if secondary != nil {
+		if v := secondary.Blob; v != nil {
+			blobEndpoint = *v
+
+			if u, err := url.Parse(*v); err == nil {
+				blobHost = u.Host
+			} else {
+				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
+			}
+		}
+	}
+	d.Set("secondary_blob_endpoint", blobEndpoint)
+	d.Set("secondary_blob_host", blobHost)
+
+	var queueEndpoint, queueHost string
+	if secondary != nil {
+		if v := secondary.Queue; v != nil {
+			queueEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
+			}
+			queueHost = u.Host
+		}
+	}
+	d.Set("secondary_queue_endpoint", queueEndpoint)
+	d.Set("secondary_queue_host", queueHost)
+
+	var tableEndpoint, tableHost string
+	if secondary != nil {
+		if v := secondary.Table; v != nil {
+			tableEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
+			}
+			tableHost = u.Host
+		}
+	}
+	d.Set("secondary_table_endpoint", tableEndpoint)
+	d.Set("secondary_table_host", tableHost)
+
+	return nil
 }

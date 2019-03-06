@@ -63,6 +63,30 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
+	resourceName := "azurerm_policy_definition.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_computedMetadata(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	resourceName := "azurerm_policy_definition.test"
 	mgmtGroupName := "azurerm_management_group.test"
@@ -204,6 +228,7 @@ PARAMETERS
 }
 
 func testAzureRMPolicyDefinition_requiresImport(ri int) string {
+	template := testAzureRMPolicyDefinition_basic(ri)
 	return fmt.Sprintf(`
 %s
 
@@ -215,7 +240,41 @@ resource "azurerm_policy_definition" "import" {
   policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
   parameters   = "${azurerm_policy_definition.test.parameters}"
 }
-`, testAzureRMPolicyDefinition_basic(ri))
+`, template)
+}
+
+func testAzureRMPolicyDefinition_computedMetadata(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_policy_definition" "test" {
+  name         = "acctest-%d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "DefaultTags"
+
+  policy_rule = <<POLICY_RULE
+    {
+  "if": {
+    "field": "tags",
+    "exists": "false"
+  },
+  "then": {
+    "effect": "append",
+    "details": [
+      {
+        "field": "tags",
+        "value": {
+          "environment": "D-137",
+          "owner": "Rick",
+          "application": "Portal",
+          "implementor": "Morty"
+        }
+      }
+    ]
+  }
+  }
+POLICY_RULE
+}
+`, rInt)
 }
 
 func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {

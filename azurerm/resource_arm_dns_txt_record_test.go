@@ -297,7 +297,7 @@ resource "azurerm_dns_txt_record" "test" {
     value = "Another test txt string"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -331,7 +331,7 @@ resource "azurerm_dns_txt_record" "test" {
     value = "Another test txt string"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

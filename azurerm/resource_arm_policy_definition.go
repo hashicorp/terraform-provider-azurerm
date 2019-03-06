@@ -86,6 +86,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateFunc:     validation.ValidateJsonString,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
