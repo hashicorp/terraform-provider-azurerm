@@ -922,11 +922,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
 		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
-		hostName := *backendHttpSettingsProperties.HostName
-		pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+		if backendHttpSettingsProperties.HostName != nil {
+			hostName := *backendHttpSettingsProperties.HostName
+			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
 
-		if hostName != "" && pick {
-			return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			if hostName != "" && pick {
+				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			}
 		}
 	}
 
@@ -1270,7 +1272,6 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
-		hostName := v["host_name"].(string)
 		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int32(v["request_timeout"].(int))
 
@@ -1279,13 +1280,17 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
 				Path:                           utils.String(path),
-				HostName:                       utils.String(hostName),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
 				Port:                           utils.Int32(port),
 				Protocol:                       network.ApplicationGatewayProtocol(protocol),
 				RequestTimeout:                 utils.Int32(requestTimeout),
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
+		}
+
+		hostName := v["host_name"].(string)
+		if hostName != "" {
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
 		}
 
 		if v["authentication_certificate"] != nil {
