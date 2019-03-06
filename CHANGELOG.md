@@ -39,6 +39,8 @@ BUG FIXES:
 * `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist [GH-2922]
 * `azurerm_policy_definition` - making the `metadata` field to computed [GH-2939]
 * `azurerm_redis_firewall_rule` - allowing underscores in the `name` field [GH-2906]
+* `azurerm_iothub` - marking the `connection_string` property as sensitive [GH-3007]
+* `azurerm_iothub` - ensuring the `type` property is alwaysa set [GH-3007]
 
 ## 1.22.1 (February 14, 2019)
 
