@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -271,7 +272,7 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostName(t *testing.T) 
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, testLocation(), hostName),
+				Config: testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, testLocation(), hostName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.host_name", hostName),
@@ -281,6 +282,23 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostName(t *testing.T) 
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	hostName := "example.com"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, testLocation(), hostName, true),
+				ExpectError: regexp.MustCompile("Only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
 			},
 		},
 	})
@@ -1195,7 +1213,7 @@ resource "azurerm_application_gateway" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMApplicationGateway_backendHttpSettingsHostName(rInt int, location string, hostName string) string {
+func testAccAzureRMApplicationGateway_backendHttpSettingsHostName(rInt int, location string, hostName string, pick bool) string {
 	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -1247,6 +1265,7 @@ resource "azurerm_application_gateway" "test" {
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
+    pick_host_name_from_backend_address = %t
   }
 
   http_listener {
@@ -1264,7 +1283,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-`, template, rInt, hostName)
+`, template, rInt, hostName, pick)
 }
 
 func testAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(rInt int, location string) string {
