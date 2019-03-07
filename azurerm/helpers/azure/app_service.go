@@ -172,6 +172,9 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.ScmTypeOneDrive),
 						string(web.ScmTypeTfs),
 						string(web.ScmTypeVSO),
+						// Not in the specs, but is set by Azure Pipelines
+						// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
+						"VSTSRM",
 					}, false),
 				},
 

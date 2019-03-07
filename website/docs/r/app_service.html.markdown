@@ -163,6 +163,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
   * `OneDrive`
   * `Tfs`
   * `VSO`
+  * `VSTSRM`
 
 ~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
