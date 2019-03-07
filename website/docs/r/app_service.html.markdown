@@ -149,7 +149,20 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 
-* `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service. Defaults to `None`. Possible values are:
+  * `BitbucketGit`
+  * `BitbucketHg`
+  * `CodePlexGit`
+  * `CodePlexHg`
+  * `Dropbox`
+  * `ExternalGit`
+  * `ExternalHg`
+  * `GitHub`
+  * `LocalGit`
+  * `None`
+  * `OneDrive`
+  * `Tfs`
+  * `VSO`
 
 ~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
