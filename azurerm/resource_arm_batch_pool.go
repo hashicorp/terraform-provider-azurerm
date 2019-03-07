@@ -177,6 +177,7 @@ func resourceArmBatchPool() *schema.Resource {
 						"store_location": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "CurrentUser",
 							ValidateFunc: validation.StringInSlice([]string{
 								"CurrentUser",
 								"LocalMachine",
