@@ -1,49 +1,49 @@
-## 1.23.0 (Unreleased)
+## 1.23.0 (March 08, 2019)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_api_management_group` [GH-2809]
-* **New Data Source:** `azurerm_api_management_product` [GH-2953]
-* **New Data Source:** `azurerm_api_management_user` [GH-2954]
-* **New Data Source:** `azurerm_availability_set` [GH-2850]
-* **New Data Source:** `azurerm_network_watcher` [GH-2791]
-* **New Data Source:** `azurerm_recovery_services_protection_policy_vm` [GH-2974]
-* **New Resource:** `azurerm_api_management_group` [GH-2809]
-* **New Resource:** `azurerm_api_management_group_user` [GH-2972]
-* **New Resource:** `azurerm_api_management_product` [GH-2953]
-* **New Resource:** `azurerm_api_management_product_group` [GH-2984]
-* **New Resource:** `azurerm_api_management_property` [GH-2986]
-* **New Resource:** `azurerm_api_management_user` [GH-2954]
-* **New Resource:** `azurerm_connection_monitor` [GH-2791]
-* **New Resource:** `azurerm_eventgrid_domain` [GH-2884]
-* **New Resource:** `azurerm_eventgrid_event_subscription` [GH-2967]
-* **New Resource:** `azurerm_lb_outbound_rule` [GH-2912]
-* **New Resource:** `azurerm_media_service_account` [GH-2711]
+* **New Data Source:** `azurerm_api_management_group` ([#2809](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2809))
+* **New Data Source:** `azurerm_api_management_product` ([#2953](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2953))
+* **New Data Source:** `azurerm_api_management_user` ([#2954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2954))
+* **New Data Source:** `azurerm_availability_set` ([#2850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2850))
+* **New Data Source:** `azurerm_network_watcher` ([#2791](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2791))
+* **New Data Source:** `azurerm_recovery_services_protection_policy_vm` ([#2974](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2974))
+* **New Resource:** `azurerm_api_management_group` ([#2809](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2809))
+* **New Resource:** `azurerm_api_management_group_user` ([#2972](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2972))
+* **New Resource:** `azurerm_api_management_product` ([#2953](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2953))
+* **New Resource:** `azurerm_api_management_product_group` ([#2984](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2984))
+* **New Resource:** `azurerm_api_management_property` ([#2986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2986))
+* **New Resource:** `azurerm_api_management_user` ([#2954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2954))
+* **New Resource:** `azurerm_connection_monitor` ([#2791](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2791))
+* **New Resource:** `azurerm_eventgrid_domain` ([#2884](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2884))
+* **New Resource:** `azurerm_eventgrid_event_subscription` ([#2967](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2967))
+* **New Resource:** `azurerm_lb_outbound_rule` ([#2912](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2912))
+* **New Resource:** `azurerm_media_service_account` ([#2711](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2711))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v25.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-2886]
-* dependencies: upgrading to v11.4.0 of `github.com/Azure/go-autorest` [GH-2886]
-* `azurerm_application_gateway` - support for setting `path` within the `backend_http_settings` block [GH-2879]
-* `azurerm_application_gateway` - support for setting `connection_draining` to the `backend_http_settings` [GH-2778]
-* `azurerm_container_group` - support for specifying the `diagnostics` block [GH-2763]
-* `azurerm_iothub` - support for the `fallback_route` property [GH-2764]
-* `azurerm_key_vault` - support for 1024 `access_policy` blocks [GH-2866]
-* `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block [GH-2887]
-* `azurerm_servicebus_namespace` - allowing `capacity` to be set to `0` for non-Premium SKU's [GH-2920]
-* `azurerm_service_fabric_cluster` - support for setting `capacities` and `placement_properties` [GH-2936]
-* `azurerm_storage_account` - exposing primary/secondary `_host` attributes [GH-2792]
+* dependencies: upgrading to v25.1.0 of `github.com/Azure/azure-sdk-for-go` ([#2886](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2886))
+* dependencies: upgrading to v11.4.0 of `github.com/Azure/go-autorest` ([#2886](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2886))
+* `azurerm_application_gateway` - support for setting `path` within the `backend_http_settings` block ([#2879](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2879))
+* `azurerm_application_gateway` - support for setting `connection_draining` to the `backend_http_settings` ([#2778](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2778))
+* `azurerm_container_group` - support for specifying the `diagnostics` block ([#2763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2763))
+* `azurerm_iothub` - support for the `fallback_route` property ([#2764](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2764))
+* `azurerm_key_vault` - support for 1024 `access_policy` blocks ([#2866](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2866))
+* `azurerm_redis_cache` - support for configuring the `maxfragmentationmemory_reserved` in the `redis_configuration` block ([#2887](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2887))
+* `azurerm_servicebus_namespace` - allowing `capacity` to be set to `0` for non-Premium SKU's ([#2920](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2920))
+* `azurerm_service_fabric_cluster` - support for setting `capacities` and `placement_properties` ([#2936](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2936))
+* `azurerm_storage_account` - exposing primary/secondary `_host` attributes ([#2792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2792))
 
 BUG FIXES:
 
-* `azurerm_api_management` - switching to use API version `2018-01-01` rather than `2018-06-01-preview` [GH-2958]
-* `azurerm_application_gateway` - updating the default value for `file_upload_limit_mb` within the `waf_configuration` block to be `100` to match the documentation [GH-3012]
-* `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew [GH-2856]
-* `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist [GH-2922]
-* `azurerm_policy_definition` - making the `metadata` field to computed [GH-2939]
-* `azurerm_redis_firewall_rule` - allowing underscores in the `name` field [GH-2906]
-* `azurerm_iothub` - marking the `connection_string` property as sensitive [GH-3007]
-* `azurerm_iothub` - ensuring the `type` property is alwaysa set [GH-3007]
+* `azurerm_api_management` - switching to use API version `2018-01-01` rather than `2018-06-01-preview` ([#2958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2958))
+* `azurerm_application_gateway` - updating the default value for `file_upload_limit_mb` within the `waf_configuration` block to be `100` to match the documentation ([#3012](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3012))
+* `azurerm_batch_pool` - updating `max_tasks_per_node` to be ForceNew ([#2856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2856))
+* `azurerm_key_vault_access_policy` - no longer silenty fails on creation of the `key_vault_id` property is invalid/doesn't exist ([#2922](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2922))
+* `azurerm_policy_definition` - making the `metadata` field to computed ([#2939](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2939))
+* `azurerm_redis_firewall_rule` - allowing underscores in the `name` field ([#2906](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2906))
+* `azurerm_iothub` - marking the `connection_string` property as sensitive ([#3007](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3007))
+* `azurerm_iothub` - ensuring the `type` property is alwaysa set ([#3007](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3007))
 
 ## 1.22.1 (February 14, 2019)
 
