@@ -23,7 +23,9 @@ import (
 
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
-		return d.Get("type").(string) != t
+		path := strings.Split(k, ".")
+		path[len(path)-1] = "type"
+		return d.Get(strings.Join(path, ".")).(string) != t
 	}
 }
 
