@@ -1,11 +1,7 @@
-variable "resource_group_name" {
-  type        = "string"
-  description = "Name of the azure resource group."
-  default     = "tfex-automation_account"
+variable "prefix" {
+  description = "The prefix which should be used for all resources in this example"
 }
 
-variable "resource_group_location" {
-  type        = "string"
-  description = "Location of the azure resource group."
-  default     = "west europe"
+variable "location" {
+  description = "The Azure Region in which all resources in this example should be created."
 }
