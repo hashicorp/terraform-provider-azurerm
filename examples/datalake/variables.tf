@@ -1,9 +1,7 @@
-variable "resource_group" {
-  description = "The name of the resource group in which to create the Data Lake"
-  default     = "tfex-datalake"
+variable "prefix" {
+  description = "The Prefix used for all resources in this example"
 }
 
 variable "location" {
-  description = "The location/region where the Data Lake is created. Changing this forces a new resource to be created."
-  default     = "westeurope"
+  description = "The Azure Region in which all resources in this example should be created."
 }
