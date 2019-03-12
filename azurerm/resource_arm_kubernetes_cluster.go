@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -591,6 +595,15 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
+	if addonProfiles != nil && *addonProfiles["omsagent"].Enabled {
+		log.Printf("[INFO] adding role assignment for visualization of custom metrics in Azure Monitor.")
+		// clients needed to assign
+		if err := azureMonitorRoleAssignment(d, meta); err != nil {
+			log.Printf("[INFO] Error adding azure monitor role assignment: %+v", err)
+			return fmt.Errorf("Error adding azure monitor role assignment Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
 	return resourceArmKubernetesClusterRead(d, meta)
 }
 
@@ -713,6 +726,119 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error {
+	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+
+	// Get the root roleDefinitionID full path (i.e. providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb)
+	rootRoleDefinitionID := getRootRoleDefinitionID(meta)
+
+	if rootRoleDefinitionID == "" {
+		log.Printf("[INFO] Unable to locate 'Monitoring Metrics Publisher' Root Role Definition Id\n")
+		return nil
+	}
+
+	// Set the scope to the AKS cluster (i.e. subscriptions/<subscription id>/resourcegroups/<resource group name>/providers/Microsoft.ContainerService/managedClusters/<resource name>)
+	scope := strings.TrimPrefix(d.Id(), "/")
+	log.Printf("[INFO] Role Assignment Scope is: %s\n", scope)
+
+	// UUID Name of the Role Assignment in this scope
+	name := "3913510d-42f4-4e42-8a64-420c390055eb"
+
+	// Build the roleDefinitionID for this subscription (i.e. subscriptions/<subscription id>/providers/Microsoft.Authorization/roleDefinitions/<Role Assignment Name>)
+	roleDefinitionID := fmt.Sprintf("subscriptions/%s%s", *servicePrincipalProfile.ClientID, rootRoleDefinitionID)
+	log.Printf("[INFO] Role Definition ID: %s\n", roleDefinitionID)
+
+	clientServicePrincipalObjectId := getServicePrincipalObjectID(*servicePrincipalProfile.ClientID, meta)
+	log.Printf("[INFO] Service Principal Object ID: %s\n", clientServicePrincipalObjectId)
+
+	if clientServicePrincipalObjectId == nil {
+		log.Printf("[DEBUG] Unable to lookup Service Principal Object ID\n")
+		return nil
+	}
+
+	properties := authorization.RoleAssignmentCreateParameters{
+		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
+			// Monitoring Metrics Publisher Role
+			RoleDefinitionID: utils.String(roleDefinitionID),
+			PrincipalID:      utils.String(clientServicePrincipalObjectId), //"b218e0c1-118b-4d8a-bebe-3e31a3c3ec37"
+		},
+	}
+
+	if err := resource.Retry(300*time.Second, retryAzureMonitorRoleAssignment(scope, name, properties, meta)); err != nil {
+		log.Printf("[DEBUG] Error adding Role Assignment to AKS cluster: %+v\n", err)
+	}
+
+	return nil
+}
+
+func getServicePrincipalObjectID(applicationId string, meta interface{}) string {
+	client := meta.(*ArmClient).servicePrincipalsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	var servicePrincipal *graphrbac.ServicePrincipal
+
+	filter := fmt.Sprintf("appId eq '%s'", applicationId)
+	log.Printf("[DEBUG] Looking up Service Principal objectID Using filter %q\n", filter)
+
+	apps, err := client.ListComplete(ctx, filter)
+	if err != nil {
+		log.Printf("[DEBUG] Error listing Service Principals: %+v\n", err)
+		return ""
+	}
+
+	for _, app := range *apps.Response().Value {
+		if app.AppID == nil {
+			continue
+		}
+
+		if *app.AppID == applicationId {
+			servicePrincipal = &app
+			break
+		}
+	}
+
+	if servicePrincipal == nil {
+		return ""
+	}
+
+	return *servicePrincipal.ObjectID
+}
+
+func getRootRoleDefinitionID(meta interface{}) string {
+	roleDefinitionsClient := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	roleDefinitions, err := roleDefinitionsClient.List(ctx, "", "roleName eq 'Monitoring Metrics Publisher'")
+
+	if err != nil || len(roleDefinitions.Values()) != 1 {
+		return ""
+	}
+
+	return *roleDefinitions.Values()[0].ID
+}
+
+func retryAzureMonitorRoleAssignment(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
+		ctx := meta.(*ArmClient).StopContext
+
+		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
+		if err != nil {
+			log.Printf("roleAssignmentsClient.Create: %+v\n", err)
+			if utils.ResponseErrorIsRetryable(err) {
+				return resource.RetryableError(err)
+			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+				// When waiting for service principal to become available
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	}
 }
 
 func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
