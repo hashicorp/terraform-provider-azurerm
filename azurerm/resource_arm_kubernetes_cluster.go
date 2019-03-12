@@ -760,7 +760,7 @@ func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error 
 		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			// Monitoring Metrics Publisher Role
 			RoleDefinitionID: utils.String(roleDefinitionID),
-			PrincipalID:      utils.String(clientServicePrincipalObjectId), //"b218e0c1-118b-4d8a-bebe-3e31a3c3ec37"
+			PrincipalID:      utils.String(clientServicePrincipalObjectId),
 		},
 	}
 
