@@ -597,10 +597,8 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	if addonProfiles != nil && *addonProfiles["omsagent"].Enabled {
 		log.Printf("[INFO] adding role assignment for visualization of custom metrics in Azure Monitor.")
-		// clients needed to assign
 		if err := azureMonitorRoleAssignment(d, meta); err != nil {
-			log.Printf("[INFO] Error adding azure monitor role assignment: %+v", err)
-			return fmt.Errorf("Error adding azure monitor role assignment Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+			log.Printf("[INFO] Error adding Azure Monitor Role Assignment: %+v", err)
 		}
 	}
 
