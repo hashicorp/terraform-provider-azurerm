@@ -55,7 +55,7 @@ github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric
-github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage
+github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
 github.com/Azure/azure-sdk-for-go/storage
@@ -147,8 +147,8 @@ github.com/hashicorp/go-azure-helpers/response
 # github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab
-github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
+github.com/hashicorp/go-getter
 # github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0

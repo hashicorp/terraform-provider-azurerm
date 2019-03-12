@@ -1,4 +1,3 @@
-
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
@@ -103,6 +102,9 @@ The following arguments are supported:
 * `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+    for more information.
+    
+* `is_hns_enabled` - (Optional) Boolean flag which controls if hierarchical namespace is enabled. Used for Azure Data Lake Storage Gen 2, see [here](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)
     for more information.
 
 * `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
