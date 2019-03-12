@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -35,6 +36,51 @@ func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(rInt, testLocation()),
+				ExpectError: regexp.MustCompile("registry_read key must be set to true when registry_write is set to true"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_iothub_shared_access_policy.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHubSharedAccessPolicy_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_iothub_shared_access_policy"),
 			},
 		},
 	})
@@ -69,6 +115,55 @@ resource "azurerm_iothub_shared_access_policy" "test" {
   key_name            = "acctest"
 
   registry_read  = true
+  registry_write = true
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHubSharedAccessPolicy_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMIotHubSharedAccessPolicy_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_shared_access_policy" "import" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iothub_name         = "${azurerm_iothub.test.name}"
+  key_name            = "acctest"
+
+  registry_read  = true
+  registry_write = true
+}
+`, template)
+}
+
+func testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "B1"
+    tier     = "Basic"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+
+resource "azurerm_iothub_shared_access_policy" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iothub_name         = "${azurerm_iothub.test.name}"
+  key_name            = "acctest"
+
   registry_write = true
 }
 `, rInt, location, rInt)
