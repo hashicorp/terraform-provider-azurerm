@@ -596,10 +596,8 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	d.SetId(*read.ID)
 
 	if addonProfiles != nil && *addonProfiles["omsagent"].Enabled {
-		log.Printf("[INFO] adding role assignment for visualization of custom metrics in Azure Monitor.")
-		if err := azureMonitorRoleAssignment(d, meta); err != nil {
-			log.Printf("[INFO] Error adding Azure Monitor Role Assignment: %+v", err)
-		}
+		log.Printf("[INFO] adding role assignment for visualization of custom metrics in Azure Monitor.\n")
+		azureMonitorRoleAssignment(d, meta)
 	}
 
 	return resourceArmKubernetesClusterRead(d, meta)
@@ -751,7 +749,7 @@ func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error 
 	clientServicePrincipalObjectId := getServicePrincipalObjectID(*servicePrincipalProfile.ClientID, meta)
 	log.Printf("[INFO] Service Principal Object ID: %s\n", clientServicePrincipalObjectId)
 
-	if clientServicePrincipalObjectId == nil {
+	if clientServicePrincipalObjectId == "" {
 		log.Printf("[DEBUG] Unable to lookup Service Principal Object ID\n")
 		return nil
 	}
