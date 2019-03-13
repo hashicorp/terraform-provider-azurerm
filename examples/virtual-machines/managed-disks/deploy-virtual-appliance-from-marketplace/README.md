@@ -10,18 +10,18 @@ https://docs.microsoft.com/en-us/powershell/module/azurerm.marketplaceordering/s
 
 A validation example:
 
-![GetAzureRmMarketPlaceTerms](https://raw.githubusercontent.com/shayshahak/terraform-provider-azurerm/master/examples/deploy-virtual-appliance-from-marketplace/images/GetAzureRmMarketPlaceTerms.JPG)
+![GetAzureRmMarketPlaceTerms](images/GetAzureRmMarketPlaceTerms.JPG)
 
 
 B. using GUI:
 
 Search and choose for the solution in Azure Marketplace. scroll down and click on "want to deploy programmatically?"
 
-![wanttodeployprogrammatically](https://github.com/shayshahak/terraform-provider-azurerm/blob/master/examples/deploy-virtual-appliance-from-marketplace/images/wanttodeployprogrammatically.jpg)
+![wanttodeployprogrammatically](images/wanttodeployprogrammatically.jpg)
 
 scroll down and click on "Enable" and then "Save"
 
-![configureprogrammaticdeployment](https://github.com/shayshahak/terraform-provider-azurerm/blob/master/examples/deploy-virtual-appliance-from-marketplace/images/configureprogrammaticdeployment.JPG)
+![configureprogrammaticdeployment](images/configureprogrammaticdeployment.JPG)
 
 further information on the GUI way can be found here:
 
