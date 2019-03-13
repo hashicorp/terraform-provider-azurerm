@@ -1,10 +1,3 @@
-# provider "azurerm" {
-#   subscription_id = "REPLACE-WITH-YOUR-SUBSCRIPTION-ID"
-#   client_id       = "REPLACE-WITH-YOUR-CLIENT-ID"
-#   client_secret   = "REPLACE-WITH-YOUR-CLIENT-SECRET"
-#   tenant_id       = "REPLACE-WITH-YOUR-TENANT-ID"
-# }
-
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}"
   location = "${var.location}"
@@ -147,7 +140,7 @@ resource "azurerm_template_deployment" "linux_vm" {
     "_artifactsLocationSasToken": {
       "type": "string",
       "defaultValue": "${var.artifacts_location_sas_token}"
-    }    
+    }
   },
   "variables": {
     "extensionName": "${var.extension_name}",
