@@ -724,7 +724,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error {
+func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) {
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 
 	// Get the root roleDefinitionID full path (i.e. providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb)
@@ -732,7 +732,7 @@ func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error 
 
 	if rootRoleDefinitionID == "" {
 		log.Printf("[INFO] Unable to locate 'Monitoring Metrics Publisher' Root Role Definition Id\n")
-		return nil
+		return
 	}
 
 	// Set the scope to the AKS cluster (i.e. subscriptions/<subscription id>/resourcegroups/<resource group name>/providers/Microsoft.ContainerService/managedClusters/<resource name>)
@@ -751,7 +751,7 @@ func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error 
 
 	if clientServicePrincipalObjectId == "" {
 		log.Printf("[DEBUG] Unable to lookup Service Principal Object ID\n")
-		return nil
+		return
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
@@ -765,8 +765,6 @@ func azureMonitorRoleAssignment(d *schema.ResourceData, meta interface{}) error 
 	if err := resource.Retry(300*time.Second, retryAzureMonitorRoleAssignment(scope, name, properties, meta)); err != nil {
 		log.Printf("[DEBUG] Error adding Role Assignment to AKS cluster: %+v\n", err)
 	}
-
-	return nil
 }
 
 func getServicePrincipalObjectID(applicationId string, meta interface{}) string {
