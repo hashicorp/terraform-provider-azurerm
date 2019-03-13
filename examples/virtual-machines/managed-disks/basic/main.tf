@@ -1,8 +1,8 @@
-resource "azurerm_virtual_machine" "test" {
+resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
   # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
@@ -36,6 +36,4 @@ resource "azurerm_virtual_machine" "test" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
-
-  tags = "${var.tags}"
 }
