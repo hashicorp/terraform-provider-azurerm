@@ -5,18 +5,14 @@ locals {
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "${local.virtual_machine_name}"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
   # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
   # NOTE: This may not be optimal in all cases.
   delete_os_disk_on_termination = true
-
-  # This means the Data Disk Disk will be deleted when Terraform destroys the Virtual Machine
-  # NOTE: This may not be optimal in all cases.
-  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -40,10 +36,10 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   os_profile_secrets {
-    source_vault_id = "${azurerm_key_vault.main.id}"
+    source_vault_id = "${azurerm_key_vault.example.id}"
 
     vault_certificates {
-      certificate_url   = "${azurerm_key_vault_certificate.main.secret_id}"
+      certificate_url   = "${azurerm_key_vault_certificate.example.secret_id}"
       certificate_store = "My"
     }
   }
@@ -86,6 +82,4 @@ resource "azurerm_virtual_machine" "example" {
       "dir",
     ]
   }
-
-  tags = "${var.tags}"
 }
