@@ -1,14 +1,13 @@
 locals {
-  storage_account_base_uri = "${azurerm_storage_account.main.primary_blob_endpoint}${azurerm_storage_container.disks.name}"
+  storage_account_base_uri = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
 }
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
-  tags                  = "${var.tags}"
 
   # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
   # NOTE: This may not be optimal in all cases.
