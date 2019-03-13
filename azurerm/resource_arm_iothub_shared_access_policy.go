@@ -34,7 +34,7 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				ValidateFunc:     validate.IoTHubName,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
-			"key_name": {
+			"name": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
@@ -69,6 +69,7 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Sensitive: true,
 				Computed:  true,
 			},
+
 			"secondary_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -128,7 +129,7 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	keyName := d.Get("key_name").(string)
+	keyName := d.Get("name").(string)
 
 	resourceId := fmt.Sprintf("%s/IotHubKeys/%s", *iothub.ID, keyName)
 
@@ -263,7 +264,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	_ = d.Set("key_name", keyName)
+	_ = d.Set("name", keyName)
 	_ = d.Set("iothub_name", iothubName)
 	_ = d.Set("resource_group_name", resourceGroup)
 

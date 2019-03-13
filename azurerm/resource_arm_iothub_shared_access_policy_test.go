@@ -29,7 +29,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "registry_write", "true"),
 					resource.TestCheckResourceAttr(resourceName, "service_connect", "false"),
 					resource.TestCheckResourceAttr(resourceName, "device_connect", "false"),
-					resource.TestCheckResourceAttr(resourceName, "key_name", "acctest"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctest"),
 				),
 			},
 			{
@@ -112,7 +112,7 @@ resource "azurerm_iothub" "test" {
 resource "azurerm_iothub_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
-  key_name            = "acctest"
+  name            = "acctest"
 
   registry_read  = true
   registry_write = true
@@ -128,7 +128,7 @@ func testAccAzureRMIotHubSharedAccessPolicy_requiresImport(rInt int, location st
 resource "azurerm_iothub_shared_access_policy" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
-  key_name            = "acctest"
+  name                = "acctest"
 
   registry_read  = true
   registry_write = true
@@ -162,7 +162,7 @@ resource "azurerm_iothub" "test" {
 resource "azurerm_iothub_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
-  key_name            = "acctest"
+  name                = "acctest"
 
   registry_write = true
 }
@@ -211,7 +211,7 @@ func testCheckAzureRMIotHubSharedAccessPolicyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		keyName := rs.Primary.Attributes["key_name"]
+		keyName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
