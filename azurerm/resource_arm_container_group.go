@@ -557,9 +557,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 				gpuCount := v.(map[string]interface{})["gpu_count"]
 				gpuSku := v.(map[string]interface{})["gpu_sku"]
 
-				var gpus containerinstance.GpuResource
-
-				gpus = containerinstance.GpuResource{
+				gpus := containerinstance.GpuResource{
 					Count: utils.Int32(int32(gpuCount.(int))),
 					Sku:   containerinstance.GpuSku(gpuSku.(string)),
 				}
