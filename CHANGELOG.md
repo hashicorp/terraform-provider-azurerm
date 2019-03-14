@@ -1,5 +1,9 @@
 ## 1.24.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
+
 BUG FIXES:
 
 * `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
