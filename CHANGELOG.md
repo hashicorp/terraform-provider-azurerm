@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
+* `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
 
 BUG FIXES:
 
