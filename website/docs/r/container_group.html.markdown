@@ -55,7 +55,7 @@ resource "azurerm_container_group" "aci-helloworld" {
     }
     ports {
       port     = 443
-      protocol = "TCP" 
+      protocol = "TCP"
     }
 
     environment_variables = {
@@ -128,6 +128,10 @@ The `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
+~> **Note:** Gpu resources are currently only supported in Linux containers.
+
+* `gpu` - (Optional) Specify to deploy the container with a GPU resource.
+
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
@@ -169,6 +173,12 @@ The `ports` block supports:
 * `port` - (Required) The port number the container will expose.
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
+
+The `gpu` block supports:
+
+* `gpu_count` - (Required) The number of GPUs. Allowed values are 1, 2, or 4.
+
+* `gpu_sku` - (Required) The GPU SKU. Allowed values are K80, P100, or V100.
 
 ## Attributes Reference
 

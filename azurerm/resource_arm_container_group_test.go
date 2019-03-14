@@ -211,6 +211,9 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.gpu.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.gpu.0.gpu_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.gpu.0.gpu_sku", "K80"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
@@ -560,7 +563,7 @@ resource "azurerm_container_group" "test" {
     ports {
       port     = 80
       protocol = "TCP"
-    }
+		}
 
     environment_variables = {
       "foo"  = "bar"
@@ -624,7 +627,12 @@ resource "azurerm_container_group" "test" {
     ports {
       port     = 80
       protocol = "TCP"
-    }
+		}
+
+		gpu = {
+			gpu_count = 1
+			gpu_sku = "K80"
+		}
 
     volume {
       name       = "logs"

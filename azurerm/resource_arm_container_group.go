@@ -145,6 +145,28 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"gpu": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"gpu_count": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"gpu_sku": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -461,6 +483,22 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
+		if v, ok := data["gpu"]; ok {
+			gpu := v.([]interface{})
+			for _, v := range gpu {
+				gpuCount := v.(map[string]interface{})["gpu_count"]
+				gpuSku := v.(map[string]interface{})["gpu_sku"]
+
+				var gpus containerinstance.GpuResource
+
+				gpus = containerinstance.GpuResource{
+					Count: utils.Int32(int32(gpuCount.(int))),
+					Sku:   containerinstance.GpuSku(gpuSku.(string)),
+				}
+				container.Resources.Requests.Gpu = &gpus
+			}
+		}
+
 		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
 			for _, v := range v.List() {
@@ -710,6 +748,16 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				}
 				if v := resourceRequests.MemoryInGB; v != nil {
 					containerConfig["memory"] = *v
+				}
+				if v := resourceRequests.Gpu; v != nil {
+					gpus := make([]interface{}, 0)
+					gpu := make(map[string]interface{})
+
+					gpu["gpu_count"] = *v.Count
+					gpu["gpu_sku"] = v.Sku
+					gpus = append(gpus, gpu)
+
+					containerConfig["gpu"] = gpus
 				}
 			}
 		}
