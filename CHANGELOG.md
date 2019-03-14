@@ -1,4 +1,9 @@
 ## 1.24.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
+
 ## 1.23.0 (March 08, 2019)
 
 FEATURES:
