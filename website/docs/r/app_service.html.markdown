@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this App Service. Changing this forces a new resource to be created.
+* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this App Service.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
