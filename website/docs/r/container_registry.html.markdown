@@ -18,6 +18,8 @@ Manages an Azure Container Registry.
 
 ### Classic (unmanaged) Container Registry
 
+Warning : the Classic (unmanaged) SKU is deprecated in Azure since Mars 2019. Use Basic, Standard, or Premium for all new registries (see section below).
+
 When using the `Classic` SKU, you need to provide the Azure storage account.
 
 ```hcl
