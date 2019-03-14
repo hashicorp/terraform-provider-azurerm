@@ -102,23 +102,29 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
-
-* `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
-
-* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
-
-* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
-
-* `image_registry_credential` - (Optional) Set image registry credentials for the group as documented in the `image_registry_credential` block below
-
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
+* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+---
+
+* `diagnostics` - (Optional) A `diagnostics` block as documented below.
+
+* `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
+
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+
+* `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below.
+
+* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `container` block supports:
+---
+
+A `container` block supports:
 
 * `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
 
@@ -146,7 +152,53 @@ The `container` block supports:
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
-The `volume` block supports:
+---
+
+A `diagnostics` block supports:
+
+* `log_analytics` - (Required) A `log_analytics` block as defined below.
+
+---
+
+A `image_registry_credential` block supports:
+
+* `username` - (Required) The username with which to connect to the registry.
+
+* `password` - (Required) The password with which to connect to the registry.
+
+* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
+
+---
+
+A `log_analytics` block supports:
+
+* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`.
+
+* `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace.
+
+* `workspace_key` - (Required) The Workspace Key of the Log Analytics Workspace.
+
+* `metadata` - (Optional) Any metadata required for Log Analytics.
+
+---
+
+A `ports` block supports:
+
+* `port` - (Required) The port number the container will expose.
+
+* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
+
+--
+
+A `gpu` block supports:
+
+* `gpu_count` - (Required) The number of GPUs. Allowed values are 1, 2, or 4.
+
+* `gpu_sku` - (Required) The GPU SKU. Allowed values are K80, P100, or V100.
+
+---
+
+A `volume` block supports:
 
 * `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
 
@@ -159,26 +211,6 @@ The `volume` block supports:
 * `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
-
-The `image_registry_credential` block supports:
-
-* `username` - (Required) The username with which to connect to the registry.
-
-* `password` - (Required) The password with which to connect to the registry.
-
-* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
-
-The `ports` block supports:
-
-* `port` - (Required) The port number the container will expose.
-
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
-
-The `gpu` block supports:
-
-* `gpu_count` - (Required) The number of GPUs. Allowed values are 1, 2, or 4.
-
-* `gpu_sku` - (Required) The GPU SKU. Allowed values are K80, P100, or V100.
 
 ## Attributes Reference
 

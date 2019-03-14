@@ -165,6 +165,7 @@ func resourceArmIotHub() *schema.Resource {
 
 								return false
 							},
+							Sensitive: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
@@ -745,6 +746,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusQueue"
+
 				results = append(results, output)
 			}
 		}
@@ -760,6 +763,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusTopic"
+
 				results = append(results, output)
 			}
 		}
@@ -774,6 +779,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
 				}
+
+				output["type"] = "AzureIotHub.EventHub"
 
 				results = append(results, output)
 			}

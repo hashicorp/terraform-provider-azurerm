@@ -720,7 +720,7 @@ resource "azurerm_storage_account" "testsa%d" {
       type = "SystemAssigned"
     }
 	
-    tags {
+    tags = {
       environment = "testing"
     }
 }
