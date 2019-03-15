@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
+* `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
 * `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
 
