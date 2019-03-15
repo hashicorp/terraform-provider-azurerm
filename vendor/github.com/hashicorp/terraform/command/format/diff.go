@@ -29,6 +29,7 @@ import (
 // no color codes will be included.
 func ResourceChange(
 	change *plans.ResourceInstanceChangeSrc,
+	tainted bool,
 	schema *configschema.Block,
 	color *colorstring.Colorize,
 ) string {
@@ -56,7 +57,11 @@ func ResourceChange(
 	case plans.Update:
 		buf.WriteString(color.Color(fmt.Sprintf("[bold]  # %s[reset] will be updated in-place", dispAddr)))
 	case plans.CreateThenDelete, plans.DeleteThenCreate:
-		buf.WriteString(color.Color(fmt.Sprintf("[bold]  # %s[reset] must be [bold][red]replaced", dispAddr)))
+		if tainted {
+			buf.WriteString(color.Color(fmt.Sprintf("[bold]  # %s[reset] is tainted, so must be [bold][red]replaced", dispAddr)))
+		} else {
+			buf.WriteString(color.Color(fmt.Sprintf("[bold]  # %s[reset] must be [bold][red]replaced", dispAddr)))
+		}
 	case plans.Delete:
 		buf.WriteString(color.Color(fmt.Sprintf("[bold]  # %s[reset] will be [bold][red]destroyed", dispAddr)))
 	default:
@@ -121,6 +126,16 @@ func ResourceChange(
 		// loads of layers of encode/decode of the planned changes before now.
 		panic(fmt.Sprintf("failed to decode plan for %s while rendering diff: %s", addr, err))
 	}
+
+	// We currently have an opt-out that permits the legacy SDK to return values
+	// that defy our usual conventions around handling of nesting blocks. To
+	// avoid the rendering code from needing to handle all of these, we'll
+	// normalize first.
+	// (Ideally we'd do this as part of the SDK opt-out implementation in core,
+	// but we've added it here for now to reduce risk of unexpected impacts
+	// on other code in core.)
+	changeV.Change.Before = objchange.NormalizeObjectFromLegacySDK(changeV.Change.Before, schema)
+	changeV.Change.After = objchange.NormalizeObjectFromLegacySDK(changeV.Change.After, schema)
 
 	bodyWritten := p.writeBlockBodyDiff(schema, changeV.Before, changeV.After, 6, path)
 	if bodyWritten {
@@ -284,12 +299,8 @@ func (p *blockBodyDiffPrinter) writeNestedBlockDiffs(name string, blockS *config
 		// For the sake of handling nested blocks, we'll treat a null list
 		// the same as an empty list since the config language doesn't
 		// distinguish these anyway.
-		if old.IsNull() {
-			old = cty.ListValEmpty(old.Type().ElementType())
-		}
-		if new.IsNull() {
-			new = cty.ListValEmpty(new.Type().ElementType())
-		}
+		old = ctyNullBlockListAsEmpty(old)
+		new = ctyNullBlockListAsEmpty(new)
 
 		oldItems := ctyCollectionValues(old)
 		newItems := ctyCollectionValues(new)
@@ -343,12 +354,8 @@ func (p *blockBodyDiffPrinter) writeNestedBlockDiffs(name string, blockS *config
 		// For the sake of handling nested blocks, we'll treat a null set
 		// the same as an empty set since the config language doesn't
 		// distinguish these anyway.
-		if old.IsNull() {
-			old = cty.SetValEmpty(old.Type().ElementType())
-		}
-		if new.IsNull() {
-			new = cty.SetValEmpty(new.Type().ElementType())
-		}
+		old = ctyNullBlockSetAsEmpty(old)
+		new = ctyNullBlockSetAsEmpty(new)
 
 		oldItems := ctyCollectionValues(old)
 		newItems := ctyCollectionValues(new)
@@ -393,8 +400,56 @@ func (p *blockBodyDiffPrinter) writeNestedBlockDiffs(name string, blockS *config
 		}
 
 	case configschema.NestingMap:
-		// TODO: Implement this, once helper/schema is actually able to
-		// produce schemas containing nested map block types.
+		// For the sake of handling nested blocks, we'll treat a null map
+		// the same as an empty map since the config language doesn't
+		// distinguish these anyway.
+		old = ctyNullBlockMapAsEmpty(old)
+		new = ctyNullBlockMapAsEmpty(new)
+
+		oldItems := old.AsValueMap()
+		newItems := new.AsValueMap()
+		if (len(oldItems) + len(newItems)) == 0 {
+			// Nothing to do if both maps are empty
+			return
+		}
+
+		allKeys := make(map[string]bool)
+		for k := range oldItems {
+			allKeys[k] = true
+		}
+		for k := range newItems {
+			allKeys[k] = true
+		}
+		allKeysOrder := make([]string, 0, len(allKeys))
+		for k := range allKeys {
+			allKeysOrder = append(allKeysOrder, k)
+		}
+		sort.Strings(allKeysOrder)
+
+		if blankBefore {
+			p.buf.WriteRune('\n')
+		}
+
+		for _, k := range allKeysOrder {
+			var action plans.Action
+			oldValue := oldItems[k]
+			newValue := newItems[k]
+			switch {
+			case oldValue == cty.NilVal:
+				oldValue = cty.NullVal(newValue.Type())
+				action = plans.Create
+			case newValue == cty.NilVal:
+				newValue = cty.NullVal(oldValue.Type())
+				action = plans.Delete
+			case !newValue.RawEquals(oldValue):
+				action = plans.Update
+			default:
+				action = plans.NoOp
+			}
+
+			path := append(path, cty.IndexStep{Key: cty.StringVal(k)})
+			p.writeNestedBlockDiff(name, &k, &blockS.Block, action, oldValue, newValue, indent, path)
+		}
 	}
 }
 
@@ -441,7 +496,9 @@ func (p *blockBodyDiffPrinter) writeValue(val cty.Value, action plans.Action, in
 				// Special behavior for JSON strings containing array or object
 				src := []byte(val.AsString())
 				ty, err := ctyjson.ImpliedType(src)
-				if err == nil && !ty.IsPrimitiveType() {
+				// check for the special case of "null", which decodes to nil,
+				// and just allow it to be printed out directly
+				if err == nil && !ty.IsPrimitiveType() && val.AsString() != "null" {
 					jv, err := ctyjson.Unmarshal(src, ty)
 					if err == nil {
 						p.buf.WriteString("jsonencode(")
@@ -1085,4 +1142,47 @@ func ctyEnsurePathCapacity(path cty.Path, minExtra int) cty.Path {
 	newPath := make(cty.Path, len(path), newCap)
 	copy(newPath, path)
 	return newPath
+}
+
+// ctyNullBlockListAsEmpty either returns the given value verbatim if it is non-nil
+// or returns an empty value of a suitable type to serve as a placeholder for it.
+//
+// In particular, this function handles the special situation where a "list" is
+// actually represented as a tuple type where nested blocks contain
+// dynamically-typed values.
+func ctyNullBlockListAsEmpty(in cty.Value) cty.Value {
+	if !in.IsNull() {
+		return in
+	}
+	if ty := in.Type(); ty.IsListType() {
+		return cty.ListValEmpty(ty.ElementType())
+	}
+	return cty.EmptyTupleVal // must need a tuple, then
+}
+
+// ctyNullBlockMapAsEmpty either returns the given value verbatim if it is non-nil
+// or returns an empty value of a suitable type to serve as a placeholder for it.
+//
+// In particular, this function handles the special situation where a "map" is
+// actually represented as an object type where nested blocks contain
+// dynamically-typed values.
+func ctyNullBlockMapAsEmpty(in cty.Value) cty.Value {
+	if !in.IsNull() {
+		return in
+	}
+	if ty := in.Type(); ty.IsMapType() {
+		return cty.MapValEmpty(ty.ElementType())
+	}
+	return cty.EmptyObjectVal // must need an object, then
+}
+
+// ctyNullBlockSetAsEmpty either returns the given value verbatim if it is non-nil
+// or returns an empty value of a suitable type to serve as a placeholder for it.
+func ctyNullBlockSetAsEmpty(in cty.Value) cty.Value {
+	if !in.IsNull() {
+		return in
+	}
+	// Dynamically-typed attributes are not supported inside blocks backed by
+	// sets, so our result here is always a set.
+	return cty.SetValEmpty(in.Type().ElementType())
 }

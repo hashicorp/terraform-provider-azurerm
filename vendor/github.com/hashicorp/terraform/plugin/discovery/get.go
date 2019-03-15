@@ -270,6 +270,14 @@ func (i *ProviderInstaller) install(provider string, version Version, url string
 		// normal resolution machinery can find it.
 		filename := filepath.Base(cached)
 		targetPath := filepath.Join(i.Dir, filename)
+		// check if the target dir exists, and create it if not
+		var err error
+		if _, StatErr := os.Stat(i.Dir); os.IsNotExist(StatErr) {
+			err = os.Mkdir(i.Dir, 0700)
+		}
+		if err != nil {
+			return err
+		}
 
 		log.Printf("[DEBUG] installing %s %s to %s from local cache %s", provider, version, targetPath, cached)
 
@@ -383,11 +391,20 @@ func (i *ProviderInstaller) getProviderChecksum(urls *response.TerraformProvider
 		return "", fmt.Errorf("error fetching checksums signature: %s", err)
 	}
 
-	// Verify GPG signature.
+	// Verify the GPG signature returned from the Registry.
 	asciiArmor := urls.SigningKeys.GPGASCIIArmor()
 	signer, err := verifySig(shasums, signature, asciiArmor)
 	if err != nil {
 		log.Printf("[ERROR] error verifying signature: %s", err)
+		return "", fmt.Errorf(gpgVerificationError)
+	}
+
+	// Also verify the GPG signature against the HashiCorp public key. This is
+	// a temporary additional check until a more robust key verification
+	// process is added in a future release.
+	_, err = verifySig(shasums, signature, HashicorpPublicKey)
+	if err != nil {
+		log.Printf("[ERROR] error verifying signature against HashiCorp public key: %s", err)
 		return "", fmt.Errorf(gpgVerificationError)
 	}
 

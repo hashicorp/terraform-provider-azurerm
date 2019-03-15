@@ -203,6 +203,7 @@ func (n *EvalApply) Eval(ctx EvalContext) (interface{}, error) {
 				// on the planned value, and thus get a different result during the
 				// apply phase. This will usually lead to a "Provider produced invalid plan"
 				// error that incorrectly blames the downstream resource for the change.
+
 			} else {
 				for _, err := range errs {
 					diags = diags.Append(tfdiags.Sourceless(
