@@ -48,7 +48,7 @@ func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "display_name", "Butter Parser"),
 					resource.TestCheckResourceAttr(dataSourceName, "path", "butter-parser"),
 					resource.TestCheckResourceAttr(dataSourceName, "protocols.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "description", "What is my purpose? You pass butter."),
+					resource.TestCheckResourceAttr(dataSourceName, "description", "What is my purpose? You parse butter."),
 					resource.TestCheckResourceAttr(dataSourceName, "service_url", "https://example.com/foo/bar"),
 					resource.TestCheckResourceAttr(dataSourceName, "soap_pass_through", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.header", "X-Butter-Robot-API-Key"),

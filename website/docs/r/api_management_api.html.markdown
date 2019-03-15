@@ -35,7 +35,7 @@ resource "azurerm_api_management_api" "test" {
   name                = "example-api"
   resource_group_name = "${azurerm_resource_group.test.name}"
   api_management_name = "${azurerm_api_management.test.name}"
-  revision            = 1
+  revision            = "1"
   display_name        = "Example API"
   path                = "example"
   protocols           = ["https"]
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management API exists. Changing this forces a new resource to be created.
 
-* `revision` - (Required) The Revision number used for this API.
+* `revision` - (Required) The Revision which used for this API.
 
 * `display_name` - (Required) The display name of the API.
 

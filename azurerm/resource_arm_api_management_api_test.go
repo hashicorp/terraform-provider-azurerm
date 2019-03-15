@@ -38,6 +38,32 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_wordRevision(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "revision", "one-point-oh"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementApi_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -291,7 +317,24 @@ resource "azurerm_api_management_api" "test" {
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
-  revision            = 1
+  revision            = "1"
+}
+`, template, rInt)
+}
+
+func testAccAzureRMApiManagementApi_wordRevision(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "one-point-oh"
 }
 `, template, rInt)
 }
@@ -308,7 +351,7 @@ resource "azurerm_api_management_api" "test" {
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
-  revision            = 1
+  revision            = "1"
   soap_pass_through   = true
 }
 `, template, rInt)
@@ -343,7 +386,7 @@ resource "azurerm_api_management_api" "test" {
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
-  revision            = 1
+  revision            = "1"
 
   import {
     content_value  = "${file("testdata/api_management_api_swagger.json")}"
@@ -365,7 +408,7 @@ resource "azurerm_api_management_api" "test" {
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
-  revision            = 1
+  revision            = "1"
 
   import {
     content_value  = "${file("testdata/api_management_api_wsdl.xml")}"
@@ -392,8 +435,8 @@ resource "azurerm_api_management_api" "test" {
   display_name        = "Butter Parser"
   path                = "butter-parser"
   protocols           = ["https", "http"]
-  revision            = 3
-  description         = "What is my purpose? You pass butter."
+  revision            = "3"
+  description         = "What is my purpose? You parse butter."
   service_url         = "https://example.com/foo/bar"
 
   subscription_key_parameter_names {

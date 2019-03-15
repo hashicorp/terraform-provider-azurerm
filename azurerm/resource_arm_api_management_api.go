@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
@@ -38,8 +37,9 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"path": {
@@ -61,9 +61,10 @@ func resourceArmApiManagementApi() *schema.Resource {
 			},
 
 			"revision": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			// Optional
@@ -79,9 +80,11 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"content_value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"content_format": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -102,13 +105,15 @@ func resourceArmApiManagementApi() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"service_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"endpoint_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
@@ -131,12 +136,14 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"header": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"query": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -179,9 +186,9 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
-	revision := int32(d.Get("revision").(int))
+	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
-	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
+	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
@@ -259,18 +266,17 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	revisionStr := strconv.Itoa(int(revision))
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
-		return fmt.Errorf("Error creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revisionStr, serviceName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revisionStr, serviceName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for API %q / Revision %q (API Management Service %q / Resource Group %q)", name, revisionStr, serviceName, resourceGroup)
+		return fmt.Errorf("Cannot read ID for API %q / Revision %q (API Management Service %q / Resource Group %q)", name, revision, serviceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -319,18 +325,10 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("is_online", props.IsOnline)
 		d.Set("path", props.Path)
 		d.Set("service_url", props.ServiceURL)
+		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
-
-		if apiR := props.APIRevision; apiR != nil {
-			i, err := strconv.Atoi(*apiR)
-			if err != nil {
-				return fmt.Errorf("Error casting %q to an integer: %s", *apiR, err)
-			}
-
-			d.Set("revision", i)
-		}
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("Error setting `protocols`: %s", err)

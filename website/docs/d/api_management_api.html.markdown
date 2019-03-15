@@ -33,7 +33,7 @@ output "api_management_api_id" {
 
 * `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
 
-* `revision` - (Required) The Revision number of the API Management API.
+* `revision` - (Required) The Revision of the API Management API.
 
 ## Attributes Reference
 

@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -27,8 +26,9 @@ func dataSourceApiManagementApi() *schema.Resource {
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"revision": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"description": {
@@ -111,9 +111,9 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
-	revision := d.Get("revision").(int)
+	revision := d.Get("revision").(string)
 
-	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
+	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -135,19 +135,11 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
 		d.Set("path", props.Path)
+		d.Set("revision", props.APIRevision)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
-
-		if apiR := props.APIRevision; apiR != nil {
-			i, err := strconv.Atoi(*apiR)
-			if err != nil {
-				return fmt.Errorf("Error casting %q to an integer: %s", *apiR, err)
-			}
-
-			d.Set("revision", i)
-		}
 
 		if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("Error setting `protocols`: %s", err)
