@@ -1,5 +1,10 @@
 ## 1.24.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_api_management_api` [GH-3010]
+* **New Resource:** `azurerm_api_management_api` [GH-3010]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
