@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
 * `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
