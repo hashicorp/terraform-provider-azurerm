@@ -9,10 +9,10 @@ require (
 	github.com/hashicorp/go-azure-helpers v0.0.0-20190129193224-166dfd221bb2
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.0
-	github.com/hashicorp/terraform v0.12.0-alpha4.0.20190226230829-c2f653cf1a35
+	github.com/hashicorp/terraform v0.12.0-alpha4.0.20190315130058-0834813ed5bb
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
-	golang.org/x/crypto v0.0.0-20190222235706-ffb98f73852f
-	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	gopkg.in/yaml.v2 v2.2.2
 )
