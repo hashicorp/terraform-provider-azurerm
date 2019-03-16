@@ -152,16 +152,26 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"gpu_count": {
+									"count": {
 										Type:     schema.TypeInt,
 										Optional: true,
 										ForceNew: true,
+										ValidateFunc: validate.IntInSlice([]int{
+											1,
+											2,
+											4,
+										}),
 									},
 
-									"gpu_sku": {
+									"sku": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"K80",
+											"P100",
+											"V100",
+										}, false),
 									},
 								},
 							},
@@ -552,14 +562,15 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["gpu"]; ok {
-			gpu := v.([]interface{})
-			for _, v := range gpu {
-				gpuCount := v.(map[string]interface{})["gpu_count"]
-				gpuSku := v.(map[string]interface{})["gpu_sku"]
+			gpus := v.([]interface{})
+			for _, gpuRaw := range gpus {
+				v := gpuRaw.(map[string]interface{})
+				gpuCount := int32(v["count"].(int))
+				gpuSku := containerinstance.GpuSku(v["sku"].(string))
 
 				gpus := containerinstance.GpuResource{
-					Count: utils.Int32(int32(gpuCount.(int))),
-					Sku:   containerinstance.GpuSku(gpuSku.(string)),
+					Count: &gpuCount,
+					Sku:   gpuSku,
 				}
 				container.Resources.Requests.Gpu = &gpus
 			}
@@ -815,16 +826,17 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				if v := resourceRequests.MemoryInGB; v != nil {
 					containerConfig["memory"] = *v
 				}
+
+				gpus := make([]interface{}, 0)
 				if v := resourceRequests.Gpu; v != nil {
-					gpus := make([]interface{}, 0)
 					gpu := make(map[string]interface{})
-
-					gpu["gpu_count"] = *v.Count
-					gpu["gpu_sku"] = v.Sku
+					if v.Count != nil {
+						gpu["count"] = *v.Count
+					}
+					gpu["sku"] = string(v.Sku)
 					gpus = append(gpus, gpu)
-
-					containerConfig["gpu"] = gpus
 				}
+				containerConfig["gpu"] = gpus
 			}
 		}
 

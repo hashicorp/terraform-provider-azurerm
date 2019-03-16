@@ -134,9 +134,9 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-~> **Note:** Gpu resources are currently only supported in Linux containers.
+* `gpu` - (Optional) A `gpu` block as defined below.
 
-* `gpu` - (Optional) Specify to deploy the container with a GPU resource.
+~> **Note:** Gpu resources are currently only supported in Linux containers.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
@@ -192,9 +192,9 @@ A `ports` block supports:
 
 A `gpu` block supports:
 
-* `gpu_count` - (Required) The number of GPUs. Allowed values are 1, 2, or 4.
+* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`.
 
-* `gpu_sku` - (Required) The GPU SKU. Allowed values are K80, P100, or V100.
+* `sku` - (Required) The Sku which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 
