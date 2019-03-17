@@ -690,12 +690,12 @@ resource "azurerm_container_group" "test" {
     ports {
       port     = 80
       protocol = "TCP"
-		}
+    }
 
-		gpu = {
-			gpu_count = 1
-			gpu_sku = "K80"
-		}
+    gpu = {
+      count = 1
+      sku = "K80"
+    }
 
     volume {
       name       = "logs"
