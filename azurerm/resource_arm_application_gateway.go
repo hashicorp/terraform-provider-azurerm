@@ -2114,14 +2114,14 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
 
-			if !applicationGatewayHasSubResource(config.TargetListener) && validate.NilOrEmpty(config.TargetURL) {
+			if !applicationGatewayHasSubResource(config.TargetListener) && (config.TargetURL == nil || *config.TargetURL == "") {
 				return nil, fmt.Errorf("[ERROR] Set either `target_listener_name` or `target_url`")
 			}
-			if applicationGatewayHasSubResource(config.TargetListener) && !validate.NilOrEmpty(config.TargetURL) {
+			if applicationGatewayHasSubResource(config.TargetListener) && config.TargetURL != nil && *config.TargetURL != "" {
 				return nil, fmt.Errorf("[ERROR] Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 			}
 
-			if !validate.NilOrEmpty(config.TargetURL) && config.IncludePath != nil {
+			if config.TargetURL != nil && *config.TargetURL != "" && config.IncludePath != nil {
 				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is set")
 			}
 

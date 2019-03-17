@@ -18,7 +18,3 @@ func NoEmptyStrings(i interface{}, k string) ([]string, []error) {
 
 	return nil, nil
 }
-
-func NilOrEmpty(s *string) bool {
-	return s == nil || *s == ""
-}
