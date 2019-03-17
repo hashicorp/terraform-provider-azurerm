@@ -31,7 +31,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

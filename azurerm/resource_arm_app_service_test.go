@@ -108,6 +108,32 @@ func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_movingAppService(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMAppService_moved(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_freeTier(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -1310,6 +1336,44 @@ resource "azurerm_app_service" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMAppService_moved(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service_plan" "other" {
+  name                = "acctestASP2-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.other.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
 func testAccAzureRMAppService_sharedTier(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1572,7 +1636,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  app_settings {
+  app_settings = {
     "foo" = "bar"
   }
 }
@@ -1737,7 +1801,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 }
@@ -2057,7 +2121,7 @@ resource "azurerm_app_service" "test" {
     remote_debugging_version = "VS2015"
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -2088,7 +2152,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -2119,7 +2183,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  tags {
+  tags = {
     "Hello"     = "World"
     "Terraform" = "AcceptanceTests"
   }
@@ -2375,7 +2439,7 @@ resource "azurerm_app_service" "test" {
     linux_fx_version = "DOCKER|(golang:latest)"
   }
 
-  app_settings {
+  app_settings = {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
   }
 }

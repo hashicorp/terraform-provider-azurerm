@@ -83,14 +83,14 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "imported-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "imported-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("certificate-to-import.pfx"))}"
@@ -158,14 +158,14 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "generated-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "generated-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Certificate. Changing this forces a new resource to be created.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 

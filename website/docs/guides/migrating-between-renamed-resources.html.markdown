@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
-page_title: "Azure Active Directory: Migrating to a renamed resource"
+page_title: "Azure Provider: Migrating to a renamed resource"
 sidebar_current: "docs-azurerm-migrating-to-a-renamed-resource"
-description: | -
+description: |-
     This page documents how to migrate between two resources in the Azure Provider which have been renamed.
 
 ---
 
-# Azure Active Directory: Migrating to a renamed resource
+# Azure Provider: Migrating to a renamed resource
 
 In v1.22 of the AzureRM Provider several resources have been deprecated in favour of a renamed version - this guide covers how to migrate from the old resource to the new one and is applicable for the following resources:
 

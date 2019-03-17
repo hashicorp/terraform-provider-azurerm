@@ -108,3 +108,9 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_TEST_LOCATION_ALT`
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+
+Crosscompiling
+--------------
+```sh
+GOOS=windows GOARCH=amd64 make build
+```

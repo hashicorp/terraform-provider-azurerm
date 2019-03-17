@@ -27,6 +27,8 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 			{
@@ -54,6 +56,8 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "SpeechServices"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 			{
@@ -111,6 +115,8 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 			{
@@ -138,6 +144,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 					testCheckAzureRMCognitiveAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 			{
@@ -147,6 +155,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 		},
@@ -285,7 +295,7 @@ resource "azurerm_cognitive_account" "test" {
     tier = "Standard"
   }
 
-  tags {
+  tags = {
     Acceptance = "Test"
   }
 }

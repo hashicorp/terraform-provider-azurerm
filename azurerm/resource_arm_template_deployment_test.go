@@ -466,7 +466,7 @@ resource "azurerm_key_vault" "test-kv" {
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  "sku" {
+  sku {
     name = "standard"
   }
 
@@ -495,7 +495,7 @@ resource "azurerm_key_vault_secret" "test-secret" {
 }
 
 locals {
-  "templated-file" = <<TPL
+  templated-file = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
@@ -680,7 +680,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -804,7 +804,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -873,7 +873,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     storageAccountType = "Standard_GRS"
   }
 

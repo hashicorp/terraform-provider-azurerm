@@ -113,6 +113,16 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Set: schema.HashString,
 						},
 
+						"outbound_rules": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
+						},
+
 						"zones": singleZonesSchema(),
 					},
 				},
@@ -371,6 +381,15 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			}
 			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
+
+			outboundRules := make([]interface{}, 0)
+			if rules := props.OutboundRules; rules != nil {
+				for _, rule := range *rules {
+					outboundRules = append(outboundRules, *rule.ID)
+				}
+
+			}
+			ipConfig["outbound_rules"] = schema.NewSet(schema.HashString, outboundRules)
 		}
 
 		result = append(result, ipConfig)

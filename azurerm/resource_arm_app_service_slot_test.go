@@ -1114,7 +1114,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  app_settings {
+  app_settings = {
     "foo" = "bar"
   }
 }
@@ -1612,7 +1612,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -1651,7 +1651,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  tags {
+  tags = {
     "Hello"     = "World"
     "Terraform" = "AcceptanceTests"
   }
@@ -1696,7 +1696,7 @@ resource "azurerm_app_service_slot" "test" {
     remote_debugging_version = "VS2015"
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -2046,7 +2046,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 }

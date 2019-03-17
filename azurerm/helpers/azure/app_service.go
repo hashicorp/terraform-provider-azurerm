@@ -159,8 +159,23 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 					Default:  string(web.ScmTypeNone),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ScmTypeNone),
+						string(web.ScmTypeBitbucketGit),
+						string(web.ScmTypeBitbucketHg),
+						string(web.ScmTypeCodePlexGit),
+						string(web.ScmTypeCodePlexHg),
+						string(web.ScmTypeDropbox),
+						string(web.ScmTypeExternalGit),
+						string(web.ScmTypeExternalHg),
+						string(web.ScmTypeGitHub),
 						string(web.ScmTypeLocalGit),
+						string(web.ScmTypeNone),
+						string(web.ScmTypeOneDrive),
+						string(web.ScmTypeTfs),
+						string(web.ScmTypeVSO),
+						// Not in the specs, but is set by Azure Pipelines
+						// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
+						// upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/5345
+						"VSTSRM",
 					}, false),
 				},
 

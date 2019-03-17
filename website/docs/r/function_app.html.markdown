@@ -135,7 +135,9 @@ The following arguments are supported:
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
 ---
 
 `identity` supports the following:
@@ -152,6 +154,8 @@ The following attributes are exported:
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 

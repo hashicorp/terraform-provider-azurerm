@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via Managed Service Identity"
-sidebar_current: "docs-azurerm-authentication-managed-service-identity"
+sidebar_current: "docs-azurerm-guide-authentication-managed-service-identity"
 description: |-
   This guide will cover how to use Managed Service Identity as authentication for the Azure Provider.
 
@@ -36,7 +36,7 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_virtual_machine" "test" {
   # ...
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 }
@@ -72,7 +72,7 @@ Whilst a Provider block is _technically_ optional when using Environment Variabl
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.21.0"
+  version = "=1.22.0"
 }
 ```
 
@@ -87,7 +87,7 @@ It's also possible to configure Managed Service Identity within the Provider Blo
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.21.0"
+  version = "=1.22.0"
 
   use_msi = true
 }

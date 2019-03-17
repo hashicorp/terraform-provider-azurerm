@@ -24,7 +24,7 @@ resource "azurerm_servicebus_namespace" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
@@ -70,7 +70,7 @@ resource "azurerm_servicebus_namespace" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
@@ -99,7 +99,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   subscription_name   = "${azurerm_servicebus_subscription.example.name}"
   filter_type         = "CorrelationFilter"
 
-  correlation_filter = {
+  correlation_filter {
     correlation_id = "high"
     label          = "red"
   }

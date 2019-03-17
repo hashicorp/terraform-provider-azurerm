@@ -158,6 +158,8 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
 
+* `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
+
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's.
 * `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
@@ -183,13 +185,14 @@ redis_configuration {
 ```
 
 ## Default Redis Configuration Values
-| Redis Value        | Basic        | Standard     | Premium      |
-| ------------------ | ------------ | ------------ | ------------ |
-| maxmemory_reserved | 2            | 50           | 200          |
-| maxmemory_delta    | 2            | 50           | 200          |
-| maxmemory_policy   | volatile-lru | volatile-lru | volatile-lru |
+| Redis Value                     | Basic        | Standard     | Premium      |
+| ------------------------------- | ------------ | ------------ | ------------ |
+| maxmemory_reserved              | 2            | 50           | 200          |
+| maxfragmentationmemory_reserved | 2            | 50           | 200          |
+| maxmemory_delta                 | 2            | 50           | 200          |
+| maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
-_*Important*: The `maxmemory_reserved` and `maxmemory_delta` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+_*Important*: The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory-reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
 
 * `patch_schedule` supports the following:
 

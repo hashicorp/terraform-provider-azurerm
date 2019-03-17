@@ -671,7 +671,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -755,7 +755,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -775,7 +775,7 @@ resource "azurerm_resource_group" "test" {
   name     = "${var.prefix}-resources"
   location = "%s"
 
-  tags {
+  tags = {
     source = "TestAccAzureRMVirtualMachine_winRMCerts"
   }
 }
@@ -1006,7 +1006,7 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_D1_v2"
 
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
 
@@ -1035,7 +1035,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1112,7 +1112,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1185,7 +1185,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1230,7 +1230,7 @@ resource "azurerm_virtual_machine" "import" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1302,7 +1302,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1375,7 +1375,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1473,7 +1473,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1556,7 +1556,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1638,7 +1638,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1789,7 +1789,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1868,7 +1868,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -1951,7 +1951,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -2043,7 +2043,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }
@@ -2113,7 +2113,7 @@ resource "azurerm_virtual_machine" "test" {
 
   os_profile_windows_config {}
 
-  tags {
+  tags = {
     environment = "Production"
     cost-center = "Ops"
   }

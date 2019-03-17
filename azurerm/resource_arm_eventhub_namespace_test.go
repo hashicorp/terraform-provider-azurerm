@@ -228,7 +228,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "20"),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "100"),
 				),
 			},
 		},
@@ -250,7 +250,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "20"),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "100"),
 				),
 			},
 			{
@@ -311,7 +311,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
-					resource.TestCheckResourceAttr(resourceName, "maximum_throughput_units", "20"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_throughput_units", "100"),
 				),
 			},
 			{
@@ -442,7 +442,6 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
-  sku                 = "Basic"
   kafka_enabled       = true
 }
 `, rInt, location, rInt)
@@ -513,7 +512,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

@@ -106,7 +106,11 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
+					if requireResourcesToBeImported {
+						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
+					}
+
+					continue
 				}
 
 				rules = append(rules, existingRule)

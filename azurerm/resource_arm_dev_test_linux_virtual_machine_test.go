@@ -346,7 +346,7 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
     backend_port = 3389
   }
 
-  tags {
+  tags = {
     "Acceptance" = "Test"
   }
 }

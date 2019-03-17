@@ -29,7 +29,7 @@ resource "azurerm_cognitive_account" "test" {
     tier = "Standard"
   }
 
-  tags {
+  tags = {
     Acceptance = "Test"
   }
 }
@@ -66,6 +66,10 @@ The following attributes are exported:
 * `id` - The ID of the Cognitive Service Account.
 
 * `endpoint` - The endpoint used to connect to the Cognitive Service Account.
+
+* `primary_access_key` - A primary access key which can be used to connect to the Cognitive Service Account.
+
+* `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
 
 ## Import
 

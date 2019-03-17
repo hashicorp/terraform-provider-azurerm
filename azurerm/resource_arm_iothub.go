@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -165,6 +165,7 @@ func resourceArmIotHub() *schema.Resource {
 
 								return false
 							},
+							Sensitive: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
@@ -192,8 +193,9 @@ func resourceArmIotHub() *schema.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhub.Avro),
-								string(eventhub.AvroDeflate),
+								string(devices.Avro),
+								string(devices.AvroDeflate),
+								string(devices.JSON),
 							}, true),
 						},
 						"file_name_format": {
@@ -211,9 +213,12 @@ func resourceArmIotHub() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringLenBetween(0, 64),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+								"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
 						},
 						"source": {
 							Type:     schema.TypeString,
@@ -243,6 +248,50 @@ func resourceArmIotHub() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
+						},
+					},
+				},
+			},
+
+			"fallback_route": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"source": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "DeviceMessages",
+							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceJobLifecycleEvents",
+								"DeviceLifecycleEvents",
+								"DeviceMessages",
+								"Invalid",
+								"TwinChangeEvents",
+							}, false),
+						},
+						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "true",
+						},
+						"endpoint_names": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(0, 64),
+							},
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -292,6 +341,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
+	fallbackRoute := expandIoTHubFallbackRoute(d)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
@@ -306,8 +356,9 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
 			Routing: &devices.RoutingProperties{
-				Endpoints: endpoints,
-				Routes:    routes,
+				Endpoints:     endpoints,
+				Routes:        routes,
+				FallbackRoute: fallbackRoute,
 			},
 		},
 		Tags: expandTags(tags),
@@ -328,6 +379,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(*resp.ID)
+
 	return resourceArmIotHubRead(d, meta)
 }
 
@@ -392,6 +444,11 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
 			return fmt.Errorf("Error setting `route` in IoTHub %q: %+v", name, err)
+		}
+
+		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
+		if err := d.Set("fallback_route", fallbackRoute); err != nil {
+			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
 	}
 
@@ -479,10 +536,6 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 		condition := route["condition"].(string)
 
 		endpointNamesRaw := route["endpoint_names"].([]interface{})
-		endpointsNames := make([]string, 0)
-		for _, n := range endpointNamesRaw {
-			endpointsNames = append(endpointsNames, n.(string))
-		}
 
 		isEnabled := route["enabled"].(bool)
 
@@ -490,7 +543,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 			Name:          &name,
 			Source:        source,
 			Condition:     &condition,
-			EndpointNames: &endpointsNames,
+			EndpointNames: utils.ExpandStringArray(endpointNamesRaw),
 			IsEnabled:     &isEnabled,
 		})
 	}
@@ -532,7 +585,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				FileNameFormat:          &fileNameFormat,
 				BatchFrequencyInSeconds: &batchFrequencyInSeconds,
 				MaxChunkSizeInBytes:     &maxChunkSizeInBytes,
-				Encoding:                &encoding,
+				Encoding:                devices.Encoding(encoding),
 			}
 			storageContainerProperties = append(storageContainerProperties, storageContainer)
 
@@ -571,6 +624,26 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 		EventHubs:         &eventHubProperties,
 		StorageContainers: &storageContainerProperties,
 	}, nil
+}
+
+func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRouteProperties {
+	fallbackRouteList := d.Get("fallback_route").([]interface{})
+	if len(fallbackRouteList) == 0 {
+		return nil
+	}
+
+	fallbackRouteMap := fallbackRouteList[0].(map[string]interface{})
+
+	source := fallbackRouteMap["source"].(string)
+	condition := fallbackRouteMap["condition"].(string)
+	isEnabled := fallbackRouteMap["enabled"].(bool)
+
+	return &devices.FallbackRouteProperties{
+		Source:        &source,
+		Condition:     &condition,
+		EndpointNames: utils.ExpandStringArray(fallbackRouteMap["endpoint_names"].([]interface{})),
+		IsEnabled:     &isEnabled,
+	}
 }
 
 func expandIoTHubSku(d *schema.ResourceData) *devices.IotHubSkuInfo {
@@ -654,9 +727,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
 					output["max_chunk_size_in_bytes"] = *chunkSize
 				}
-				if encoding := container.Encoding; encoding != nil {
-					output["encoding"] = *encoding
-				}
+
+				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
 
 				results = append(results, output)
@@ -674,6 +746,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusQueue"
+
 				results = append(results, output)
 			}
 		}
@@ -689,6 +763,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusTopic"
+
 				results = append(results, output)
 			}
 		}
@@ -703,6 +779,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
 				}
+
+				output["type"] = "AzureIotHub.EventHub"
 
 				results = append(results, output)
 			}
@@ -738,6 +816,29 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	}
 
 	return results
+}
+
+func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} {
+	if input.FallbackRoute == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	route := input.FallbackRoute
+
+	if condition := route.Condition; condition != nil {
+		output["condition"] = *condition
+	}
+	if isEnabled := route.IsEnabled; isEnabled != nil {
+		output["enabled"] = *isEnabled
+	}
+	if source := route.Source; source != nil {
+		output["source"] = *source
+	}
+
+	output["endpoint_names"] = utils.FlattenStringArray(route.EndpointNames)
+
+	return []interface{}{output}
 }
 
 func validateIoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {

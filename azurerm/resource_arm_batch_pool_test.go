@@ -314,7 +314,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -324,7 +324,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1",
+  vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
   
@@ -364,7 +364,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -494,7 +494,7 @@ resource "azurerm_batch_pool" "test" {
     max_task_retry_count = 1
     wait_for_success     = true
 
-    environment {
+    environment = {
 			env = "TEST",
 			bu  = "Research&Dev"
     }

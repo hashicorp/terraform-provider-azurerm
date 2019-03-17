@@ -2,7 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -14,6 +17,33 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	resourceName := "azurerm_key_vault_certificate.test"
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -225,6 +255,16 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		// get the latest version
 		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
@@ -232,7 +272,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
-			return err
+			return fmt.Errorf("Bad: Get on keyVault certificate: %+v", err)
 		}
 
 		return fmt.Errorf("Key Vault Certificate still exists:\n%#v", resp)
@@ -243,16 +283,27 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
+
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
 		if err != nil {
@@ -260,7 +311,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 				return fmt.Errorf("Bad: Key Vault Certificate %q (resource group: %q) does not exist", name, vaultBaseUrl)
 			}
 
-			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
+			return fmt.Errorf("Bad: Get on keyVault certificate: %+v", err)
 		}
 
 		return nil
@@ -269,6 +320,9 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 
 func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -276,9 +330,16 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 		}
 		name := rs.Primary.Attributes["name"]
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
 
 		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
 		if err != nil {
@@ -294,6 +355,74 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 }
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFX(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    certificate_permissions = [
+      "delete",
+      "import",
+      "get",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name     = "acctestcert%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+
+  certificate {
+    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+  }
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -367,8 +496,8 @@ func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location s
 %s
 
 resource "azurerm_key_vault_certificate" "import" {
-  name      = "${azurerm_key_vault_certificate.test.name}"
-  vault_uri = "${azurerm_key_vault_certificate.test.vault_uri}"
+  name     = "${azurerm_key_vault_certificate.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
@@ -436,7 +565,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_vault_id  = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -523,8 +652,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "acctestcert%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -618,8 +747,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "acctestcert%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -662,7 +791,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }

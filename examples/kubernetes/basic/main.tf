@@ -22,7 +22,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "${var.kubernetes_client_secret}"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

@@ -237,7 +237,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -257,7 +257,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

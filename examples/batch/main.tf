@@ -57,7 +57,7 @@ resource "azurerm_batch_pool" "fixedpool" {
     max_task_retry_count = 1
     wait_for_success     = true
 
-    environment {
+    environment = {
       env = "TEST"
     }
 

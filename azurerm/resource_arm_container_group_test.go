@@ -217,6 +217,11 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
 				),
 			},
 			{
@@ -228,6 +233,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					"container.0.secure_environment_variables.%",
 					"container.0.secure_environment_variables.secureFoo",
 					"container.0.secure_environment_variables.secureFoo1",
+					"diagnostics.0.log_analytics.0.workspace_key",
 				},
 			},
 		},
@@ -293,6 +299,11 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
 				),
 			},
 			{
@@ -303,6 +314,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					"container.0.secure_environment_variables.%",
 					"container.0.secure_environment_variables.secureFoo",
 					"container.0.secure_environment_variables.secureFoo1",
+					"diagnostics.0.log_analytics.0.workspace_key",
 				},
 			},
 		},
@@ -331,7 +343,7 @@ resource "azurerm_container_group" "test" {
     port   = 80
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -358,7 +370,7 @@ resource "azurerm_container_group" "import" {
     port   = "80"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -407,7 +419,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -433,7 +445,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = {
+    ports  {
       port = 80
     }
   }
@@ -451,7 +463,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -477,10 +489,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = {
+    ports  {
       port     = 80
     }
-    ports  = {
+    ports {
       port     = 5443
       protocol = "UDP"
     }
@@ -493,7 +505,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -519,17 +531,17 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
-    ports  = {
+    ports {
       port     = 443
       protocol = "TCP"
     }
   }
 
-  tags {
+  tags = {
     environment = "Testing"
   }
 }
@@ -541,6 +553,26 @@ func testAccAzureRMContainerGroup_windowsComplete(ri int, location string) strin
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_container_group" "test" {
@@ -557,17 +589,17 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
 
-    environment_variables {
+    environment_variables = {
       "foo"  = "bar"
       "foo1" = "bar1"
     }
 
-    secure_environment_variables {
+    secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
     }
@@ -575,11 +607,22 @@ resource "azurerm_container_group" "test" {
     commands = ["cmd.exe", "echo", "hi"]
   }
 
-  tags {
+  diagnostics {
+    log_analytics {
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      log_type      = "ContainerInsights"
+      metadata {
+        "node-name" = "acctestContainerGroup"
+      }
+    }
+  }
+
+  tags = {
     environment = "Testing"
   }
 }
-`, ri, location, ri, ri)
+`, ri, location, ri, ri, ri)
 }
 
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
@@ -587,6 +630,26 @@ func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -621,7 +684,7 @@ resource "azurerm_container_group" "test" {
     cpu    = "1"
     memory = "1.5"
 
-    ports  = {
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -636,12 +699,12 @@ resource "azurerm_container_group" "test" {
       storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
     }
 
-    environment_variables {
+    environment_variables = {
       "foo" = "bar"
       "foo1" = "bar1"
     }
 
-    secure_environment_variables {
+    secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
     }
@@ -649,11 +712,22 @@ resource "azurerm_container_group" "test" {
     commands = ["/bin/bash", "-c", "ls"]
   }
 
-  tags {
+  diagnostics {
+  log_analytics {
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      log_type      = "ContainerInsights"
+      metadata {
+        "node-name" = "acctestContainerGroup"
+      }
+    }
+  }
+
+  tags = {
     environment = "Testing"
   }
 }
-`, ri, location, ri, ri, ri, ri)
+`, ri, location, ri, ri, ri, ri, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {

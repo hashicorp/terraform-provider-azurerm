@@ -32,12 +32,12 @@ resource "azurerm_recovery_services_protection_policy_vm" "simple" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 }
@@ -49,24 +49,24 @@ resource "azurerm_recovery_services_protection_policy_vm" "advanced" {
 
   timezone = "UTC"
 
-  backup = {
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Monday", "Wednesday"]
   }
 
-  retention_weekly = {
+  retention_weekly {
     weekdays = ["Monday", "Wednesday"]
     count    = 52
   }
 
-  retention_monthly = {
+  retention_monthly {
     weeks    = ["First", "Second"]
     weekdays = ["Monday", "Wednesday"]
     count    = 100
   }
 
-  retention_yearly = {
+  retention_yearly {
     months   = ["July"]
     weeks    = ["First", "Second"]
     weekdays = ["Monday", "Wednesday"]

@@ -125,6 +125,13 @@ func resourceArmRedisCache() *schema.Resource {
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
 						},
+
+						"maxfragmentationmemory_reserved": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+
 						"rdb_backup_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -575,6 +582,11 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["maxmemory-policy"] = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["maxfragmentationmemory-reserved"] = utils.String(delta)
+	}
+
 	// Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
@@ -656,6 +668,14 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	}
 	if v := input["maxmemory-policy"]; v != nil {
 		outputs["maxmemory_policy"] = *v
+	}
+
+	if v := input["maxfragmentationmemory-reserved"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+		}
+		outputs["maxfragmentationmemory_reserved"] = i
 	}
 
 	// delta, reserved, enabled, frequency,, count,

@@ -635,9 +635,9 @@ resource "azurerm_redis_cache" "test" {
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-  redis_configuration = {}
+  redis_configuration {}
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -661,7 +661,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
+	maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
@@ -688,6 +689,7 @@ resource "azurerm_redis_cache" "test" {
 
   redis_configuration {
     maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
@@ -714,6 +716,7 @@ resource "azurerm_redis_cache" "test" {
 
   redis_configuration {
     maxmemory_reserved = 2
+	maxfragmentationmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
@@ -736,7 +739,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "c"
   sku_name            = "basic"
   enable_non_ssl_port = false
-  redis_configuration = {}
+  redis_configuration {}
 }
 `, ri, location, ri)
 }
@@ -778,7 +781,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -846,7 +849,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -896,7 +899,7 @@ resource "azurerm_redis_cache" "test" {
   sku_name            = "Premium"
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration = {}
+  redis_configuration {}
 }
 `, ri, location, ri, ri)
 }
@@ -932,7 +935,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port       = false
   subnet_id                 = "${azurerm_subnet.test.id}"
   private_static_ip_address = "10.0.1.20"
-  redis_configuration       = {}
+  redis_configuration {}
 }
 `, ri, location, ri, ri)
 }
@@ -967,7 +970,7 @@ resource "azurerm_redis_cache" "test" {
   sku_name            = "Premium"
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration = {}
+  redis_configuration {}
   zones               = ["1"]
 }
 `, ri, location, ri, ri)
