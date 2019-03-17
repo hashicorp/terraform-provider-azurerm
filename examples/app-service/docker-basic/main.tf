@@ -1,11 +1,3 @@
-provider "azurerm" {
-  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:
-  # subscription_id = "..."
-  # client_id       = "..."
-  # client_secret   = "..."
-  # tenant_id       = "..."
-}
-
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -36,7 +28,7 @@ resource "azurerm_app_service" "main" {
   }
 
   app_settings = {
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false",
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
     "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
   }
 }
