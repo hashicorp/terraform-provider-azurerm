@@ -89,14 +89,16 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"contents": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 					},
 				},
