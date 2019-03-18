@@ -33,9 +33,6 @@ func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta inter
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if id == nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
-	}
 
 	d.Set("key_vault_id", kvid)
 
