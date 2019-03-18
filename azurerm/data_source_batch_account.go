@@ -29,12 +29,12 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"primary_shared_key": {
+			"primary_access_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
-			"secondary_shared_key": {
+			"secondary_access_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,
@@ -76,8 +76,8 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 			return err
 		}
 
-		d.Set("primary_shared_key", keys.Primary)
-		d.Set("secondary_shared_key", keys.Secondary)
+		d.Set("primary_access_key", keys.Primary)
+		d.Set("secondary_access_key", keys.Secondary)
 	}
 
 	if location := resp.Location; location != nil {

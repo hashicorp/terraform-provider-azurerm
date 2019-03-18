@@ -62,8 +62,8 @@ The following attributes are exported:
 
 * `id` - The Batch account ID.
 
-* `primary_shared_key` - The Batch account primary shared key.
+* `primary_access_key` - The Batch account primary access key.
 
-* `secondary_shared_key` - The Batch account secondary shared key.
+* `secondary_access_key` - The Batch account secondary access key.
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
