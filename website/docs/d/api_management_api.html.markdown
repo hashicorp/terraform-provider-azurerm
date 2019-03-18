@@ -17,7 +17,7 @@ data "azurerm_api_management_api" "test" {
   name                = "search-api"
   api_management_name = "search-api-management"
   resource_group_name = "search-service"
-  revision            = 2
+  revision            = "2"
 }
 
 output "api_management_api_id" {

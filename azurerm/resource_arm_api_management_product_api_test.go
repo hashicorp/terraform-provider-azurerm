@@ -71,13 +71,13 @@ func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
 			continue
 		}
 
-		apiId := rs.Primary.Attributes["api_id"]
+		apiName := rs.Primary.Attributes["api_name"]
 		productId := rs.Primary.Attributes["product_id"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiId)
+		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return err
@@ -96,17 +96,17 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		apiId := rs.Primary.Attributes["api_id"]
+		apiName := rs.Primary.Attributes["api_name"]
 		productId := rs.Primary.Attributes["product_id"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).apiManagementProductApisClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiId)
+		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: API %q / Product %q (API Management Service %q / Resource Group %q) does not exist", apiId, productId, serviceName, resourceGroup)
+				return fmt.Errorf("Bad: API %q / Product %q (API Management Service %q / Resource Group %q) does not exist", apiName, productId, serviceName, resourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on apiManagementProductApisClient: %+v", err)
 		}
@@ -158,7 +158,7 @@ resource "azurerm_api_management_api" "test" {
 
 resource "azurerm_api_management_product_api" "test" {
   product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_id                = "${azurerm_api_management_api.test.id}"
+  api_name              = "${azurerm_api_management_api.test.name}"
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
 }
@@ -171,7 +171,7 @@ func testAccAzureRMAPIManagementProductApi_requiresImport(rInt int, location str
 %s
 
 resource "azurerm_api_management_product_api" "import" {
-  api_id              = "${azurerm_api_management_product_api.test.api_id}"
+  api_name            = "${azurerm_api_management_product_api.test.api_name}"
   product_id          = "${azurerm_api_management_product_api.test.product_id}"
   api_management_name = "${azurerm_api_management_product_api.test.api_management_name}"
   resource_group_name = "${azurerm_api_management_product_api.test.resource_group_name}"
