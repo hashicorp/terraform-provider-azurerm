@@ -151,17 +151,6 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error reading the state of Batch account %q: %+v", name, err)
 	}
 
-	if d.Get("pool_allocation_mode") == string(batch.BatchService) {
-		keys, err := client.GetKeys(ctx, resourceGroupName, name)
-
-		if err != nil {
-			return err
-		}
-
-		d.Set("primary_access_key", keys.Primary)
-		d.Set("secondary_access_key", keys.Secondary)
-	}
-
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroupName)
 	d.Set("account_endpoint", resp.AccountEndpoint)
@@ -175,6 +164,17 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 			d.Set("storage_account_id", autoStorage.StorageAccountID)
 		}
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
+	}
+
+	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
+		keys, err := client.GetKeys(ctx, resourceGroupName, name)
+
+		if err != nil {
+			return err
+		}
+
+		d.Set("primary_access_key", keys.Primary)
+		d.Set("secondary_access_key", keys.Secondary)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
