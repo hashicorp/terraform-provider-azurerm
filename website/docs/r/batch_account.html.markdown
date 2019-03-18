@@ -68,4 +68,4 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-~> **NOTE:** When `pool_allocation_mode` is set to `BatchService`, primary and secondary access keys can be retrieved after the batch account has been created. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
