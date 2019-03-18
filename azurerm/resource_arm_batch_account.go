@@ -48,6 +48,20 @@ func resourceArmBatchAccount() *schema.Resource {
 					string(batch.UserSubscription),
 				}, false),
 			},
+			"primary_shared_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+			"secondary_shared_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+			"account_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tagsSchema(),
 		},
 	}
@@ -137,8 +151,20 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error reading the state of Batch account %q: %+v", name, err)
 	}
 
+	if d.Get("pool_allocation_mode") == string(batch.BatchService) {
+		keys, err := client.GetKeys(ctx, resourceGroupName, name)
+
+		if err != nil {
+			return err
+		}
+
+		d.Set("primary_shared_key", keys.Primary)
+		d.Set("secondary_shared_key", keys.Secondary)
+	}
+
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroupName)
+	d.Set("account_endpoint", resp.AccountEndpoint)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))

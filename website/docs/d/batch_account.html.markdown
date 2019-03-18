@@ -44,4 +44,10 @@ The following attributes are exported:
 
 * `storage_account_id` - The ID of the Storage Account used for this Batch account.
 
+* `primary_shared_key` - The Batch account primary shared key.
+
+* `secondary_shared_key` - The Batch account secondary shared key.
+
+* `account_endpoint` - The account endpoint used to interact with the Batch service.
+
 * `tags` - A map of tags assigned to the Batch account.

@@ -61,3 +61,9 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch account ID.
+
+* `primary_shared_key` - The Batch account primary shared key.
+
+* `secondary_shared_key` - The Batch account secondary shared key.
+
+* `account_endpoint` - The account endpoint used to interact with the Batch service.
