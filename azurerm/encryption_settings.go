@@ -119,7 +119,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 
 		keys["key_url"] = *key.KeyURL
 
-		if vault := key.SourceVault; key != nil {
+		if vault := key.SourceVault; vault != nil {
 			keys["source_vault_id"] = *vault.ID
 		}
 
