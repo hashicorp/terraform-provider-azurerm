@@ -70,7 +70,18 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Computed:  true,
 			},
 
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+
 			"secondary_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,
@@ -261,6 +272,11 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
+		return fmt.Errorf("Error loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+	}
+
+	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	if err != nil {
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
@@ -269,7 +285,9 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	_ = d.Set("resource_group_name", resourceGroup)
 
 	_ = d.Set("primary_key", accessPolicy.PrimaryKey)
+	_ = d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey))
 	_ = d.Set("secondary_key", accessPolicy.SecondaryKey)
+	_ = d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey))
 
 	rights := flattenAccessRights(accessPolicy.Rights)
 	_ = d.Set("registry_read", rights.registryRead)
@@ -278,6 +296,10 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	_ = d.Set("service_connect", rights.serviceConnect)
 
 	return nil
+}
+
+func getSharedAccessPolicyConnectionString(iothubHostName string, keyName string, key string) string {
+	return fmt.Sprintf("HostName=%s;SharedAccessKeyName=%s;SharedAccessKey=%s", iothubHostName, keyName, key)
 }
 
 func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
