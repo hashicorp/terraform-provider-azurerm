@@ -145,40 +145,6 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerOutboundRule_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
-
-	deleteOutboundRuleState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_outbound_rule.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					deleteOutboundRuleState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()

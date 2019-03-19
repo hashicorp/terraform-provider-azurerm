@@ -243,40 +243,6 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerRule_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
-
-	deleteRuleState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_rule.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
-					deleteRuleState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
