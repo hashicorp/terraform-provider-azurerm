@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `eventhub` - (Optional) An `eventhub` block as documented below.
 
-* `application_insights` - (Optional) An `application_insights` block is documented below.
+* `application_insights` - (Optional) An `application_insights` block as documented below.
 
 * `buffered` - (Optional) Indicates whether records are buffered in the Logger before publishing. Defaults to `true`.
 
