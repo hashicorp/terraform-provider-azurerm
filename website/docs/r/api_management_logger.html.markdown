@@ -82,7 +82,7 @@ An `eventhub` block supports the following:
 
 An `application_insights` block supports the following:
 
-* `instrumentation_key` - (Required) The instrumentation key of an `azurerm_application_insights`.
+* `instrumentation_key` - (Required) The instrumentation key used to push data to Application Insights.
 
 
 ## Attributes Reference
