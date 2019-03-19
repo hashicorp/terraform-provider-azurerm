@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `eventhub` - (Optional) An `eventhub` block is documented below.
+* `eventhub` - (Optional) An `eventhub` block as documented below.
 
 * `application_insights` - (Optional) An `application_insights` block is documented below.
 
