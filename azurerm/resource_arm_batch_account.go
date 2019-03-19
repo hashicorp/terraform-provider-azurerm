@@ -170,7 +170,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		keys, err := client.GetKeys(ctx, resourceGroupName, name)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroupName, err)
 		}
 
 		d.Set("primary_access_key", keys.Primary)
