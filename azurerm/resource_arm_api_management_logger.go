@@ -155,7 +155,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Logger %q (Resource Group %q / API Management Name %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("Error reading Logger %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
