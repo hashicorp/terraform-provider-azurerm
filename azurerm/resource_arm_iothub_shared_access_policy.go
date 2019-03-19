@@ -254,15 +254,15 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubId.ResourceGroup
-	iothubName := parsedIothubId.Path["IotHubs"]
-	keyName := parsedIothubId.Path["IotHubKeys"]
+	resourceGroup := parsedIothubSAPId.ResourceGroup
+	iothubName := parsedIothubSAPId.Path["IotHubs"]
+	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
 	accessPolicy, err := client.GetKeysForKeyName(ctx, resourceGroup, iothubName, keyName)
 	if err != nil {
@@ -306,15 +306,15 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubId.ResourceGroup
-	iothubName := parsedIothubId.Path["IotHubs"]
-	keyName := parsedIothubId.Path["IotHubKeys"]
+	resourceGroup := parsedIothubSAPId.ResourceGroup
+	iothubName := parsedIothubSAPId.Path["IotHubs"]
+	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
 	azureRMLockByName(iothubName, iothubResourceName)
 	defer azureRMUnlockByName(iothubName, iothubResourceName)
