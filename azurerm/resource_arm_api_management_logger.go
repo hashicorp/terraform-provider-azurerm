@@ -142,7 +142,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing API Management Logger ID %q: %+v", d.Id(), err)
+		return err
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
