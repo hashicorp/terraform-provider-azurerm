@@ -286,7 +286,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 					testCheckAzureRMEventHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.encoding", "Avro"),
-					resource.TestCheckResourceAttr(resourceName, "capture_description.0.skip_empty_archives", "true"),
+					resource.TestCheckResourceAttr(resourceName, "capture_description.0.skip_empty_archives", "false"),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.size_limit_in_bytes", "10485760"),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.interval_in_seconds", "60"),
 				),
@@ -308,7 +308,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 	captureDescription := testDefaultCaptureDescription()
 	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, captureDescription)
-	updateCaptureDescription = := testDefaultCaptureDescription()
+	updatedCaptureDescription := testDefaultCaptureDescription()
 	updatedCaptureDescription.enabled = false
 	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, updatedCaptureDescription)
 
@@ -343,7 +343,7 @@ func TestAccAzureRMEventHub_captureDescriptionSkipEmptyArchivesEnabled(t *testin
 
 	captureDescription := testDefaultCaptureDescription()
 	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, captureDescription)
-	updateCaptureDescription = := testDefaultCaptureDescription()
+	updatedCaptureDescription := testDefaultCaptureDescription()
 	updatedCaptureDescription.skip_empty_archives = true
 	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, updatedCaptureDescription)
 
@@ -596,7 +596,6 @@ resource "azurerm_eventhub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
   message_retention   = 7
-
   %s
 }
 `, rInt, location, rString, rInt, rInt, testDefaultCaptureDescriptionString(captureDescription))
@@ -608,11 +607,11 @@ func testDefaultCaptureDescription() *captureDescription {
 		encoding:            "Avro",
 		interval_in_seconds: 60,
 		size_limit_in_bytes: 10485760,
-		skip_empty_archives: true,
+		skip_empty_archives: false,
 
 		destination: &captureDestination{
 			name:                "EventHubArchive.AzureBlockBlob",
-			archive_name_format: "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			archive_name_format: `Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}`,
 			blob_container_name: "${azurerm_storage_container.test.name}",
 			storage_account_id:  "${azurerm_storage_account.test.id}",
 		},
@@ -621,21 +620,21 @@ func testDefaultCaptureDescription() *captureDescription {
 
 func testDefaultCaptureDescriptionString(cd *captureDescription) string {
 	return fmt.Sprintf(`
-	capture_description {
-    enabled             = %t
-    encoding            = "%s"
-    interval_in_seconds = %d
-		size_limit_in_bytes = %d
-		skip_empty_archives = %t
-
-    destination {
-      name                = "%s"
-      archive_name_format = "%s"
-      blob_container_name = "%s"
-      storage_account_id  = "%s"
-    }
+capture_description {
+  enabled             = %t
+  encoding            = "%s"
+  interval_in_seconds = %d
+  size_limit_in_bytes = %d
+  skip_empty_archives = %t  
+	
+  destination {
+    name                = "%s"
+    archive_name_format = "%s"
+    blob_container_name = "%s"
+    storage_account_id  = "%s"
   }
-	`, cd.enabled, cd.encoding, cd.interval_in_seconds, cd.size_limit_in_bytes, cd.skip_empty_archives, cd.destination.name, cd.destination.archive_name_format, cd.destination.blob_container_name, cd.destination.storage_account_id)
+}
+`, cd.enabled, cd.encoding, cd.interval_in_seconds, cd.size_limit_in_bytes, cd.skip_empty_archives, cd.destination.name, cd.destination.archive_name_format, cd.destination.blob_container_name, cd.destination.storage_account_id)
 }
 
 func testAccAzureRMEventHub_messageRetentionUpdate(rInt int, location string) string {
