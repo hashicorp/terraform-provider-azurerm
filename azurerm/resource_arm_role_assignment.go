@@ -170,7 +170,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error loading Role Definition %q: %+v", *roleId, err)
 			}
 
-			if roleProps := roleResp.RoleDefinitionProperties; props != nil {
+			if roleProps := roleResp.RoleDefinitionProperties; roleProps != nil {
 				d.Set("role_definition_name", roleProps.RoleName)
 			}
 		}

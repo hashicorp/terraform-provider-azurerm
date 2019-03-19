@@ -254,14 +254,12 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	}
 
 	result := make(map[string]interface{})
-	if input != nil {
-		if input.Enabled != nil {
-			result["enabled"] = *input.Enabled
-		}
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
+	}
 
-		if input.Days != nil {
-			result["days"] = *input.Days
-		}
+	if input.Days != nil {
+		result["days"] = *input.Days
 	}
 
 	return []interface{}{result}

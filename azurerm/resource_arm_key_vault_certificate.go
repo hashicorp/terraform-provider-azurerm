@@ -33,9 +33,6 @@ func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta inter
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if id == nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate the Resource ID for the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
 
 	d.Set("key_vault_id", kvid)
 
@@ -89,14 +86,16 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"contents": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 					},
 				},

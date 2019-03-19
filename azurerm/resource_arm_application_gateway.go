@@ -1060,7 +1060,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `url_path_map`: %+v", setErr)
 		}
 
-		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); err != nil {
+		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
 		}
 	}
@@ -2227,7 +2227,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						ruleOutput["name"] = *rule.Name
 					}
 
-					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
+					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
 							poolId, err := parseAzureResourceID(*pool.ID)
 							if err != nil {

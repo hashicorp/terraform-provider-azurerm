@@ -1911,7 +1911,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 						return "", fmt.Errorf("Error obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
 					}
 
-					if pipProps := pip.PublicIPAddressPropertiesFormat; props != nil {
+					if pipProps := pip.PublicIPAddressPropertiesFormat; pipProps != nil {
 						if ip := pipProps.IPAddress; ip != nil {
 							return *ip, nil
 						}

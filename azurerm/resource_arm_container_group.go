@@ -145,6 +145,38 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"gpu": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"count": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validate.IntInSlice([]int{
+											1,
+											2,
+											4,
+										}),
+									},
+
+									"sku": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"K80",
+											"P100",
+											"V100",
+										}, false),
+									},
+								},
+							},
+						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -529,6 +561,21 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
+		if v, ok := data["gpu"]; ok {
+			gpus := v.([]interface{})
+			for _, gpuRaw := range gpus {
+				v := gpuRaw.(map[string]interface{})
+				gpuCount := int32(v["count"].(int))
+				gpuSku := containerinstance.GpuSku(v["sku"].(string))
+
+				gpus := containerinstance.GpuResource{
+					Count: &gpuCount,
+					Sku:   gpuSku,
+				}
+				container.Resources.Requests.Gpu = &gpus
+			}
+		}
+
 		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
 			for _, v := range v.List() {
@@ -779,6 +826,17 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				if v := resourceRequests.MemoryInGB; v != nil {
 					containerConfig["memory"] = *v
 				}
+
+				gpus := make([]interface{}, 0)
+				if v := resourceRequests.Gpu; v != nil {
+					gpu := make(map[string]interface{})
+					if v.Count != nil {
+						gpu["count"] = *v.Count
+					}
+					gpu["sku"] = string(v.Sku)
+					gpus = append(gpus, gpu)
+				}
+				containerConfig["gpu"] = gpus
 			}
 		}
 

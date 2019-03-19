@@ -1,4 +1,30 @@
 ## 1.24.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_api_management_api` [GH-3010]
+* **New Resource:** `azurerm_api_management_api` [GH-3010]
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_storage_account` - exposing the Hierarchical Namespace state [GH-3032]
+* `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
+* `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
+* `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
+* `azurerm_container_group` - support for attaching GPU's [GH-3053]
+* `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
+* `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
+* `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
+* `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
+* `azurerm_virtual_machine` - support for managed disks up to 32TB [GH-3062]
+* `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
+
+BUG FIXES:
+
+* `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
+* `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
+* `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
+
 ## 1.23.0 (March 08, 2019)
 
 FEATURES:

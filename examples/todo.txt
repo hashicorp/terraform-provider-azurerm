@@ -1,0 +1,10 @@
+Refactor:
+  ./virtual-machines/2vms-loadbalancer-lbrules
+  ./virtual-machines/encrypt-running-linux-vm
+  ./virtual-machines/openshift-origin
+  ./virtual-machines/spark-and-cassandra-on-centos
+  ./virtual-machines/vm-joined-to-active-directory
+
+Additional examples for:
+  - API Management
+  - Load Balancers
