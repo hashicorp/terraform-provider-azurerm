@@ -190,7 +190,9 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["loggers"]
+	resourceGroup := d.Get("resource_group_name").(string)
+	serviceName := d.Get("api_management_name").(string)
+	name := d.Get("name").(string)
 
 	eventHubRaw, hasEventHub := d.GetOk("eventhub")
 	appInsightsRaw, hasAppInsights := d.GetOk("application_insights")
