@@ -22,7 +22,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.6.3 // indirect
 	github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363
 	github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7 // indirect
-	github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab // indirect
+	github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab
 	github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-plugin v0.0.0-20170816151819-a5174f84d7f8 // indirect
