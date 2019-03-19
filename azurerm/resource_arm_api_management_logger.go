@@ -151,7 +151,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Logger %q (Resource Group %q / API Management Name %q) was not found - removing from state", name, resourceGroup, serviceName)
+			log.Printf("[INFO] Logger %q (API Management Service %q / Resource Group %q) was not found - removing from state", name, serviceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
