@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "default" {
   }
   
   resource "azurerm_storage_queue" "default" {
-	name                 = defaultStorageQueue"
+	name                 = "defaultStorageQueue"
 	resource_group_name  = "${azurerm_resource_group.default.name}"
 	storage_account_name = "${azurerm_storage_account.default.name}"
   }
