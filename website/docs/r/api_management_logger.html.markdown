@@ -76,7 +76,7 @@ An `eventhub` block supports the following:
 
 * `name` - (Required) The name of an EventHub.
 
-* `connection_string` - (Required) The connection string of an `azurerm_eventhub_namespace`.
+* `connection_string` - (Required) The connection string of an EventHub Namespace.
 
 ---
 
