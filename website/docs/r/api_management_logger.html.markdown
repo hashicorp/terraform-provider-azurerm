@@ -74,7 +74,7 @@ The following arguments are supported:
 
 An `eventhub` block supports the following:
 
-* `name` - (Required) The name of an `azurerm_eventhub`.
+* `name` - (Required) The name of an EventHub.
 
 * `connection_string` - (Required) The connection string of an `azurerm_eventhub_namespace`.
 
