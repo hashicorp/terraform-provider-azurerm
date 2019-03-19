@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
@@ -310,7 +311,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	captureDescription := testDefaultCaptureDescription()
 	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, captureDescription)
 	updatedCaptureDescription := testDefaultCaptureDescription()
-	updatedCaptureDescription.enabled = false
+	updatedCaptureDescription.Enabled = utils.Bool(false)
 	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, updatedCaptureDescription)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -345,7 +346,7 @@ func TestAccAzureRMEventHub_captureDescriptionSkipEmptyArchivesEnabled(t *testin
 	captureDescription := testDefaultCaptureDescription()
 	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, captureDescription)
 	updatedCaptureDescription := testDefaultCaptureDescription()
-	updatedCaptureDescription.skip_empty_archives = true
+	updatedCaptureDescription.SkipEmptyArchives = utils.Bool(true)
 	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, updatedCaptureDescription)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -587,18 +588,18 @@ resource "azurerm_eventhub" "test" {
 
 func testDefaultCaptureDescription() *eventhub.CaptureDescription {
 	return &eventhub.CaptureDescription{
-		Enabled:           true,
+		Enabled:           utils.Bool(true),
 		Encoding:          "Avro",
-		IntervalInSeconds: 60,
-		SizeLimitInBytes:  10485760,
-		SkipEmptyArchives: false,
+		IntervalInSeconds: utils.Int32(60),
+		SizeLimitInBytes:  utils.Int32(10485760),
+		SkipEmptyArchives: utils.Bool(false),
 
 		Destination: &eventhub.Destination{
-			Name: "EventHubArchive.AzureBlockBlob",
+			Name: utils.String("EventHubArchive.AzureBlockBlob"),
 			DestinationProperties: &eventhub.DestinationProperties{
-				ArchiveNameFormat:        `Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}`,
-				BlobContainer:            "${azurerm_storage_container.test.name}",
-				StorageAccountResourceID: "${azurerm_storage_account.test.id}",
+				ArchiveNameFormat:        utils.String(`Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}`),
+				BlobContainer:            utils.String("${azurerm_storage_container.test.name}"),
+				StorageAccountResourceID: utils.String("${azurerm_storage_account.test.id}"),
 			},
 		},
 	}
@@ -620,7 +621,7 @@ capture_description {
     storage_account_id  = "%s"
   }
 }
-`, cd.Enabled, cd.Encoding, cd.IntervalInSeconds, cd.SizeLimitInBytes, cd.SkipEmptyArchives, cd.Destination.Name, cd.Destination.DestinationProperties.ArchiveNameFormat, cd.Destination.DestinationProperties.BlobContainer, cd.Destination.DestinationProperties.StorageAccountResourceID)
+`, *cd.Enabled, cd.Encoding, *cd.IntervalInSeconds, *cd.SizeLimitInBytes, *cd.SkipEmptyArchives, *cd.Destination.Name, *cd.Destination.DestinationProperties.ArchiveNameFormat, *cd.Destination.DestinationProperties.BlobContainer, *cd.Destination.DestinationProperties.StorageAccountResourceID)
 }
 
 func testAccAzureRMEventHub_messageRetentionUpdate(rInt int, location string) string {
