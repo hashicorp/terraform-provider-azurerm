@@ -24,8 +24,67 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("TestDescription1")),
+					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription1"),
 					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "versioning_schema", "Segment"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
+	resourceName := "azurerm_api_management_api_version_set.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagementApiVersionSet_header(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription1"),
+					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "versioning_schema", "Header"),
+					resource.TestCheckResourceAttr(resourceName, "version_header_name", "Header1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
+	resourceName := "azurerm_api_management_api_version_set.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagementApiVersionSet_query(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription1"),
+					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "versioning_schema", "Query"),
+					resource.TestCheckResourceAttr(resourceName, "version_query_name", "Query1"),
 				),
 			},
 			{
@@ -52,7 +111,7 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("TestDescription1")),
+					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription1"),
 					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", ri)),
 				),
 			},
@@ -60,7 +119,7 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("TestDescription2")),
+					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription2"),
 					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet2%d", ri)),
 				),
 			},
@@ -150,6 +209,70 @@ resource "azurerm_api_management_api_version_set" "test" {
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_schema   = "Segment"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMApiManagementApiVersionSet_header(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+
+resource "azurerm_api_management_api_version_set" "test" {
+  name                = "acctestAMAVS-%d"
+  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  description         = "TestDescription1"
+  display_name        = "TestApiVersionSet1%d"
+  versioning_schema   = "Header"
+  version_header_name = "Header1"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMApiManagementApiVersionSet_query(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+
+resource "azurerm_api_management_api_version_set" "test" {
+  name                = "acctestAMAVS-%d"
+  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  description         = "TestDescription1"
+  display_name        = "TestApiVersionSet1%d"
+  versioning_schema   = "Query"
+  version_query_name  = "Query1"
 }
 `, rInt, location, rInt, rInt, rInt)
 }
