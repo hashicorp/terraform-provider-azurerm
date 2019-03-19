@@ -39,8 +39,8 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`\S{1,64}`), ""+
-					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name must not contain whitespace characters."),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9!._-]{1,64}`), ""+
+					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
 			},
 
 			"registry_read": {
