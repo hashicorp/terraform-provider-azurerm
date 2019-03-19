@@ -728,6 +728,14 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc:     validation.ValidateJsonString,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
+
+						"provision_after_extensions": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Optional: true,
+						},
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetExtensionHash,
@@ -1472,6 +1480,10 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				}
 				e["settings"] = settingsJson
 			}
+
+			if properties.ProvisionAfterExtensions != nil {
+				e["provision_after_extensions"] = *properties.ProvisionAfterExtensions
+			}
 		}
 
 		result = append(result, e)
@@ -1565,6 +1577,12 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		if v, ok := m["provision_after_extensions"]; ok {
+			for _, ext := range v.([]interface{}) {
+				buf.WriteString(fmt.Sprintf("%s-", ext.(string)))
+			}
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -2165,6 +2183,14 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 				return nil, fmt.Errorf("unable to parse protected_settings: %+v", err)
 			}
 			extension.VirtualMachineScaleSetExtensionProperties.ProtectedSettings = &protectedSettings
+		}
+		if p := config["provision_after_extensions"]; p != nil {
+			provisionAfterExtensionsRaw := p.([]interface{})
+			provisionAfterExtensions := make([]string, 0)
+			for _, pa := range provisionAfterExtensionsRaw {
+				provisionAfterExtensions = append(provisionAfterExtensions, pa.(string))
+			}
+			extension.ProvisionAfterExtensions = &provisionAfterExtensions
 		}
 
 		resources = append(resources, extension)

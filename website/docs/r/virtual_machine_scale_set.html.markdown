@@ -491,6 +491,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
+* `provision_after_extensions` - (Optional) A list of extension names that must be provisioned before this extension. Makes extension sequencing possible.
 
 `plan` supports the following:
 
