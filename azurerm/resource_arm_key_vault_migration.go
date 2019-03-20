@@ -164,10 +164,6 @@ func migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is *terraform.InstanceState
 					break
 				}
 			}
-
-			if len(outputStoragePermissions) > 0 {
-				policy["storage_permissions"] = outputStoragePermissions
-			}
 		}
 
 		outputAccessPolicies = append(outputAccessPolicies, policy)

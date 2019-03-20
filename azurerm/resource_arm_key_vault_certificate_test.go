@@ -390,10 +390,6 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
-
-    storage_permissions = [
-      "set",
-    ]
   }
 }
 
