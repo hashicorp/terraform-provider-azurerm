@@ -28,7 +28,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-					resource.TestCheckNoResourceAttr(resourceName, "application_insights.#"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "0"),
 				),
 			},
 			{
@@ -58,7 +58,7 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 			{
@@ -89,7 +89,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHubAppInsightsUpdate(t *testing
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-					resource.TestCheckNoResourceAttr(resourceName, "application_insights.#"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "0"),
 				),
 			},
 			{
@@ -99,7 +99,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHubAppInsightsUpdate(t *testing
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 			{
@@ -110,7 +110,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHubAppInsightsUpdate(t *testing
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-					resource.TestCheckNoResourceAttr(resourceName, "application_insights.#"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "0"),
 				),
 			},
 		},
@@ -135,7 +135,7 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 			{
@@ -166,7 +166,7 @@ func TestAccAzureRMApiManagementLogger_completeUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 			{
@@ -177,7 +177,7 @@ func TestAccAzureRMApiManagementLogger_completeUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 			{
@@ -188,7 +188,7 @@ func TestAccAzureRMApiManagementLogger_completeUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
 					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
-					resource.TestCheckNoResourceAttr(resourceName, "eventhub.#"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
 				),
 			},
 		},
