@@ -141,6 +141,35 @@ func migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is *terraform.InstanceState
 			}
 		}
 
+		if v, ok := policy["storage_permissions"]; ok {
+			inputStoragePermissions := v.([]interface{})
+			outputStoragePermissions := make([]string, 0)
+			for _, p := range inputStoragePermissions {
+				permission := p.(string)
+				if strings.ToLower(permission) == "all" {
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsBackup))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsDelete))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsDeletesas))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsGet))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsGetsas))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsList))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsListsas))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsPurge))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsRecover))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsRegeneratekey))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsRestore))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsSet))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsSetsas))
+					outputStoragePermissions = append(outputStoragePermissions, string(keyvault.StoragePermissionsUpdate))
+					break
+				}
+			}
+
+			if len(outputStoragePermissions) > 0 {
+				policy["storage_permissions"] = outputStoragePermissions
+			}
+		}
+
 		outputAccessPolicies = append(outputAccessPolicies, policy)
 	}
 
