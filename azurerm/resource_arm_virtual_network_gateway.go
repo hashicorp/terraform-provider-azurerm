@@ -298,9 +298,9 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	gateway := network.VirtualNetworkGateway{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
+		Name:                                  &name,
+		Location:                              &location,
+		Tags:                                  expandTags(tags),
 		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 

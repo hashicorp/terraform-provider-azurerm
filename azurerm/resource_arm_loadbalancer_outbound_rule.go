@@ -344,7 +344,7 @@ func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.L
 	}
 
 	return &network.OutboundRule{
-		Name: utils.String(d.Get("name").(string)),
+		Name:                         utils.String(d.Get("name").(string)),
 		OutboundRulePropertiesFormat: &properties,
 	}, nil
 }

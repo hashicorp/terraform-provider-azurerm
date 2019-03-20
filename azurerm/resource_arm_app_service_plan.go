@@ -174,10 +174,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	properties := expandAppServicePlanProperties(d)
 
 	appServicePlan := web.AppServicePlan{
-		Location: &location,
-		Kind:     &kind,
-		Sku:      &sku,
-		Tags:     expandTags(tags),
+		Location:                 &location,
+		Kind:                     &kind,
+		Sku:                      &sku,
+		Tags:                     expandTags(tags),
 		AppServicePlanProperties: properties,
 	}
 

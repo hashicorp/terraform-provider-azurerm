@@ -1264,13 +1264,13 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		setting := network.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				CookieBasedAffinity: network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
-				Path:                utils.String(path),
+				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				Path:                           utils.String(path),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
-				Port:               utils.Int32(port),
-				Protocol:           network.ApplicationGatewayProtocol(protocol),
-				RequestTimeout:     utils.Int32(requestTimeout),
-				ConnectionDraining: expandApplicationGatewayConnectionDraining(v),
+				Port:                           utils.Int32(port),
+				Protocol:                       network.ApplicationGatewayProtocol(protocol),
+				RequestTimeout:                 utils.Int32(requestTimeout),
+				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
 		}
 
