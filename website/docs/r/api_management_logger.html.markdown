@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_api_management_logger
 
-Manages an API Management Logger.
+Manages a Logger within an API Management Service.
 
 
 ## Example Usage
