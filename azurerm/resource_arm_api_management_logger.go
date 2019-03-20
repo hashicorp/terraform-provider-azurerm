@@ -172,12 +172,6 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).apiManagementLoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return fmt.Errorf("Error parsing API Management Logger ID %q: %+v", d.Id(), err)
-	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
