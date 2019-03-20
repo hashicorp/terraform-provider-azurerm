@@ -60,7 +60,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}

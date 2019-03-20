@@ -118,7 +118,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	permissions := expandRoleDefinitionPermissions(d)
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, roleDefinitionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
