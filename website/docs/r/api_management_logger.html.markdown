@@ -62,13 +62,13 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `eventhub` - (Optional) An `eventhub` block as documented below.
-
 * `application_insights` - (Optional) An `application_insights` block as documented below.
 
 * `buffered` - (Optional) Indicates whether records are buffered in the Logger before publishing. Defaults to `true`.
 
 * `description` - (Optional) A description of this Logger.
+
+* `eventhub` - (Optional) An `eventhub` block as documented below.
 
 ---
 

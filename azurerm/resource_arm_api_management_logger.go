@@ -82,15 +82,6 @@ func resourceArmApiManagementLogger() *schema.Resource {
 				Optional: true,
 			},
 		},
-
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			_, hasEventHub := d.GetOk("eventhub")
-			_, hasAppInsights := d.GetOk("application_insights")
-			if !hasEventHub && !hasAppInsights {
-				return fmt.Errorf("Either `eventhub` or `application_insights` is required")
-			}
-			return nil
-		},
 	}
 }
 
@@ -102,8 +93,12 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 
-	eventHubRaw, hasEventHub := d.GetOk("eventhub")
-	appInsightsRaw, hasAppInsights := d.GetOk("application_insights")
+	eventHubRaw := d.Get("eventhub").([]interface{})
+	appInsightsRaw := d.Get("application_insights").([]interface{})
+
+	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
+		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+	}
 
 	parameters := apimanagement.LoggerContract{
 		LoggerContractProperties: &apimanagement.LoggerContractProperties{
@@ -112,12 +107,12 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	if hasEventHub {
+	if len(eventHubRaw) > 0 {
 		parameters.LoggerType = apimanagement.AzureEventHub
-		parameters.Credentials = expandArmApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
-	} else if hasAppInsights {
+		parameters.Credentials = expandArmApiManagementLoggerEventHub(eventHubRaw)
+	} else if len(appInsightsRaw) > 0 {
 		parameters.LoggerType = apimanagement.ApplicationInsights
-		parameters.Credentials = expandArmApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
+		parameters.Credentials = expandArmApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
@@ -165,15 +160,8 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 	if properties := resp.LoggerContractProperties; properties != nil {
 		d.Set("buffered", properties.IsBuffered)
 		d.Set("description", properties.Description)
-
-		if properties.LoggerType == apimanagement.AzureEventHub {
-			if err := d.Set("eventhub", flattenArmApiManagementLoggerEventHub(d, properties.Credentials)); err != nil {
-				return fmt.Errorf("Error setting `eventhub` for Logger %q (Resource Group %q / API Management Name %q): %s", name, resourceGroup, serviceName, err)
-			}
-		} else if properties.LoggerType == apimanagement.ApplicationInsights {
-			if err := d.Set("application_insights", flattenArmApiManagementLoggerApplicationInsights(d, properties.Credentials)); err != nil {
-				return fmt.Errorf("Error setting `application_insights` for Logger %q (Resource Group %q / API Management Name %q): %s", name, resourceGroup, serviceName, err)
-			}
+		if err := d.Set("eventhub", flattenArmApiManagementLoggerEventHub(d, properties)); err != nil {
+			return fmt.Errorf("Error setting `eventhub` for Logger %q (Resource Group %q / API Management Name %q): %s", name, resourceGroup, serviceName, err)
 		}
 	}
 
@@ -253,21 +241,20 @@ func expandArmApiManagementLoggerApplicationInsights(input []interface{}) map[st
 	return credentials
 }
 
-func flattenArmApiManagementLoggerEventHub(d *schema.ResourceData, credentials map[string]*string) []interface{} {
+func flattenArmApiManagementLoggerEventHub(d *schema.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
+	if properties.LoggerType != apimanagement.AzureEventHub {
+		return []interface{}{}
+	}
 	eventHub := make(map[string]interface{})
-	if name := credentials["name"]; name != nil {
+	if name := properties.Credentials["name"]; name != nil {
 		eventHub["name"] = *name
 	}
-	if conn, ok := d.GetOk("eventhub.0.connection_string"); ok {
-		eventHub["connection_string"] = conn.(string)
+	if existing := d.Get("eventhub").([]interface{}); len(existing) > 0 {
+		existingEventHub := existing[0].(map[string]interface{})
+		if conn, ok := existingEventHub["connection_string"]; ok {
+			eventHub["connection_string"] = conn.(string)
+		}
 	}
-	return []interface{}{eventHub}
-}
 
-func flattenArmApiManagementLoggerApplicationInsights(d *schema.ResourceData, credentials map[string]*string) []interface{} {
-	appInsights := make(map[string]interface{})
-	if conn, ok := d.GetOk("application_insights.0.instrumentation_key"); ok {
-		appInsights["instrumentation_key"] = conn.(string)
-	}
-	return []interface{}{appInsights}
+	return []interface{}{eventHub}
 }
