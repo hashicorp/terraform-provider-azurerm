@@ -34,6 +34,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{"eventhub.0.connection_string"},
 			},
 		},
 	})
@@ -61,6 +62,7 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{"application_insights.0.instrumentation_key"},
 			},
 		},
 	})
@@ -131,6 +133,7 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{"application_insights.0.instrumentation_key"},
 			},
 		},
 	})
