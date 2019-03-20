@@ -1172,19 +1172,6 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 			})
 		}
 
-		// TODO: remove in 2.0
-		for _, ip := range v["ip_address_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				IPAddress: utils.String(ip.(string)),
-			})
-		}
-		// TODO: remove in 2.0
-		for _, ip := range v["fqdn_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				Fqdn: utils.String(ip.(string)),
-			})
-		}
-
 		name := v["name"].(string)
 		output := network.ApplicationGatewayBackendAddressPool{
 			Name: utils.String(name),
@@ -1262,13 +1249,13 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		setting := network.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
-				Path:                           utils.String(path),
+				CookieBasedAffinity: network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				Path:                utils.String(path),
 				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
-				Port:                           utils.Int32(port),
-				Protocol:                       network.ApplicationGatewayProtocol(protocol),
-				RequestTimeout:                 utils.Int32(requestTimeout),
-				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
+				Port:               utils.Int32(port),
+				Protocol:           network.ApplicationGatewayProtocol(protocol),
+				RequestTimeout:     utils.Int32(requestTimeout),
+				ConnectionDraining: expandApplicationGatewayConnectionDraining(v),
 			},
 		}
 
