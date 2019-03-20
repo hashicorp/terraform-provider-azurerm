@@ -170,7 +170,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			// TODO: 2.0 - we should be able to make this a List to be able to detect changes in the Client Secret
 			"service_principal": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
