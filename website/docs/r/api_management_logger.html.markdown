@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Logger, which must be unique within the API Management Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
