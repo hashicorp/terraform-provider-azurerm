@@ -68,7 +68,7 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_basicEventHubAppInsightsUpdate(t *testing.T) {
+func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
