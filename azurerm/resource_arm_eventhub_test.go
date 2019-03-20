@@ -546,8 +546,8 @@ resource "azurerm_eventhub" "test" {
     enabled             = %s
     encoding            = "Avro"
     interval_in_seconds = 60
-		size_limit_in_bytes = 10485760
-		skip_empty_archives = true
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
 
     destination {
       name                = "EventHubArchive.AzureBlockBlob"
