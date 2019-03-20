@@ -110,7 +110,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHubAppInsightsUpdate(t *testing
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-					resource.TestCheckNoResourceAttr(resourceName, "application_insights.#"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "0"),
 				),
 			},
 		},
