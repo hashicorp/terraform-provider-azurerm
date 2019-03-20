@@ -112,7 +112,7 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 		Name:                  &name,
 		Location:              &location,
 		ElasticPoolProperties: getArmSqlElasticPoolProperties(d),
-		Tags:                  expandTags(tags),
+		Tags: expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, elasticPool)

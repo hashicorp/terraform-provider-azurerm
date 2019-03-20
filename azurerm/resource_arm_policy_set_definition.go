@@ -164,7 +164,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	definition := policy.SetDefinition{
-		Name:                    utils.String(name),
+		Name: utils.String(name),
 		SetDefinitionProperties: &properties,
 	}
 

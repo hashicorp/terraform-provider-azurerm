@@ -112,7 +112,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"certificate", // not returned from API, sensitive
+					"certificate",                                            // not returned from API, sensitive
 					"hostname_configuration.0.portal.0.certificate",          // not returned from API, sensitive
 					"hostname_configuration.0.portal.0.certificate_password", // not returned from API, sensitive
 					"hostname_configuration.0.proxy.0.certificate",           // not returned from API, sensitive

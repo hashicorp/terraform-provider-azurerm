@@ -146,7 +146,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 		Name:                           &name,
 		Location:                       &location,
 		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags:                           expandTags(tags),
+		Tags: expandTags(tags),
 	}
 
 	networkSecurityGroupNames := make([]string, 0)

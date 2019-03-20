@@ -844,12 +844,12 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:                             &name,
-		Location:                         &location,
-		Tags:                             expandTags(tags),
-		Sku:                              sku,
+		Name:     &name,
+		Location: &location,
+		Tags:     expandTags(tags),
+		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones:                            zones,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {

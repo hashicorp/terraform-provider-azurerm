@@ -179,7 +179,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:                    preConfig,
+				Config: preConfig,
 				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),

@@ -97,7 +97,7 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	peer := network.VirtualNetworkPeering{
-		Name:                                  &name,
+		Name: &name,
 		VirtualNetworkPeeringPropertiesFormat: getVirtualNetworkPeeringProperties(d),
 	}
 

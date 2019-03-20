@@ -192,7 +192,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	properties.Delegations = &delegations
 
 	subnet := network.Subnet{
-		Name:                   &name,
+		Name: &name,
 		SubnetPropertiesFormat: &properties,
 	}
 
