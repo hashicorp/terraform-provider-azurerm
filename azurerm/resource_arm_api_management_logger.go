@@ -161,7 +161,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 		d.Set("buffered", properties.IsBuffered)
 		d.Set("description", properties.Description)
 		if err := d.Set("eventhub", flattenArmApiManagementLoggerEventHub(d, properties)); err != nil {
-			return fmt.Errorf("Error setting `eventhub` for Logger %q (Resource Group %q / API Management Name %q): %s", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("Error setting `eventhub`: %s", err)
 		}
 	}
 
