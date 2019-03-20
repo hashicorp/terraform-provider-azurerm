@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -18,6 +19,9 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA", subscriptionID, ri, rs)
+
 	config := testAccAzureRMBatchCertificatePfx(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,6 +33,7 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Pfx"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "SHA1"),
@@ -44,6 +49,9 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34", subscriptionID, ri, rs)
+
 	config := testAccAzureRMBatchCertificateCer(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,6 +63,7 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Cer"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "SHA1"),
@@ -87,7 +96,7 @@ resource "azurerm_batch_certificate" "test" {
 	password             = "terraform"
 	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	thumbprint_algorithm = "SHA1"
-  }
+}
 `, rInt, location, batchAccountSuffix)
 }
 
@@ -113,7 +122,7 @@ resource "azurerm_batch_certificate" "test" {
 	format               = "Cer"
 	thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
 	thumbprint_algorithm = "SHA1"
-  }
+}
 `, rInt, location, batchAccountSuffix)
 }
 

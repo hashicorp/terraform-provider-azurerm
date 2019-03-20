@@ -239,13 +239,14 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchPoolCertificate(t *testing.T) {
+func TestAccAzureRMBatchPoolCertificates(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
+	certificate0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, ri, rs)
+	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -253,19 +254,24 @@ func TestAccAzureRMBatchPoolCertificate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolCertificate(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPoolCertificates(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
-					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "certificate.0.id", certificateID),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.id", certificate0ID),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_location", "CurrentUser"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_name", ""),
-					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.0", "StartTask"),
-					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.1", "RemoteUser"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.id", certificate1ID),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.store_location", "CurrentUser"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.store_name", ""),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.0", "StartTask"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.1", "RemoteUser"),
 				),
 			},
 		},
@@ -544,7 +550,7 @@ resource "azurerm_batch_pool" "test" {
 `, rInt, location, rString, rString)
 }
 
-func testaccAzureRMBatchPoolCertificate(rInt int, rString string, location string) string {
+func testaccAzureRMBatchPoolCertificates(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -557,7 +563,16 @@ resource "azurerm_batch_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 
-resource "azurerm_batch_certificate" "test" {
+resource "azurerm_batch_certificate" "testcer" {
+	name                 = "SHA1-312d31a79fa0cef49c00f769afc2b73e9f4edf34"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
+	format               = "Cer"
+	thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
+	thumbprint_algorithm = "SHA1"
+}
+resource "azurerm_batch_certificate" "testpfx" {
 	name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
@@ -586,7 +601,11 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
 	}
 	certificate = {
-		id             = "${azurerm_batch_certificate.test.id}"
+		id             = "${azurerm_batch_certificate.testcer.id}"
+		visibility = [ "StartTask" ]
+	}
+	certificate = {
+		id             = "${azurerm_batch_certificate.testpfx.id}"
 		visibility = [ "StartTask", "RemoteUser" ]
 	}
 }

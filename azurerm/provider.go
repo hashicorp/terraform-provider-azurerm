@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_azuread_application":                    dataSourceArmAzureADApplication(),
 			"azurerm_azuread_service_principal":              dataSourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_batch_account":                          dataSourceArmBatchAccount(),
+			"azurerm_batch_certificate":                      dataSourceArmBatchCertificate(),
 			"azurerm_batch_pool":                             dataSourceArmBatchPool(),
 			"azurerm_builtin_role_definition":                dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_cdn_profile":                            dataSourceArmCdnProfile(),
