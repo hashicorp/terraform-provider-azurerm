@@ -71,7 +71,7 @@ The following arguments are supported:
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
-* `service_principal` - (Required) A `service_principal` block as documented below.
+* `service_principal` - (Optional) A `service_principal` block as documented below.  If not specified, a service principal will be auto-generated. For more details please visit [Service principals with Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/kubernetes-service-principal) 
 
 ---
 
