@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `application_insights` - (Optional) An `application_insights` block as documented below.
 
-* `buffered` - (Optional) Indicates whether records are buffered in the Logger before publishing. Defaults to `true`.
+* `buffered` - (Optional) Specifies whether records should be buffered in the Logger prior to publishing. Defaults to `true`.
 
 * `description` - (Optional) A description of this Logger.
 
