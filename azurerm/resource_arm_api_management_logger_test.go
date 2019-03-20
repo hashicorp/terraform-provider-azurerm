@@ -31,9 +31,9 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"eventhub.0.connection_string"},
 			},
 		},
@@ -56,55 +56,14 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 					testCheckAzureRMApiManagementLoggerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{"application_insights.0.instrumentation_key"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
-				),
 			},
 		},
 	})
@@ -127,60 +86,20 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
 					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{"application_insights.0.instrumentation_key"},
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_completeUpdate(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform update test", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform update test"),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementLogger_basicCompleteUpdate(t *testing.T) {
+func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -195,16 +114,10 @@ func TestAccAzureRMApiManagementLogger_basicCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementLoggerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
@@ -212,18 +125,54 @@ func TestAccAzureRMApiManagementLogger_basicCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementLoggerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
 				),
 			},
 			{
+				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementLoggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+				),
+			},
+			{
 				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform update test", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform update test"),
 					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform update test"),
 					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+				),
+			},
+			{
+				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementLoggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+				),
+			},
+			{
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementLoggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
 				),
 			},
 		},

@@ -238,19 +238,17 @@ func expandArmApiManagementLoggerApplicationInsights(input []interface{}) map[st
 }
 
 func flattenArmApiManagementLoggerEventHub(d *schema.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
-	if properties.LoggerType != apimanagement.AzureEventHub {
-		return []interface{}{}
-	}
-	eventHub := make(map[string]interface{})
+	result := make([]interface{}, 0)
 	if name := properties.Credentials["name"]; name != nil {
+		eventHub := make(map[string]interface{})
 		eventHub["name"] = *name
-	}
-	if existing := d.Get("eventhub").([]interface{}); len(existing) > 0 {
-		existingEventHub := existing[0].(map[string]interface{})
-		if conn, ok := existingEventHub["connection_string"]; ok {
-			eventHub["connection_string"] = conn.(string)
+		if existing := d.Get("eventhub").([]interface{}); len(existing) > 0 {
+			existingEventHub := existing[0].(map[string]interface{})
+			if conn, ok := existingEventHub["connection_string"]; ok {
+				eventHub["connection_string"] = conn.(string)
+			}
 		}
+		result = append(result, eventHub)
 	}
-
-	return []interface{}{eventHub}
+	return result
 }

@@ -43,7 +43,6 @@ resource "azurerm_api_management_logger" "example" {
   name                = "example-logger"
   api_management_name = "${azurerm_api_management.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  description         = "This logger is created by Terraform."
 
   application_insights {
     instrumentation_key = "${azurerm_application_insights.example.instrumentation_key}"
@@ -72,17 +71,17 @@ The following arguments are supported:
 
 ---
 
+An `application_insights` block supports the following:
+
+* `instrumentation_key` - (Required) The instrumentation key used to push data to Application Insights.
+
+---
+
 An `eventhub` block supports the following:
 
 * `name` - (Required) The name of an EventHub.
 
 * `connection_string` - (Required) The connection string of an EventHub Namespace.
-
----
-
-An `application_insights` block supports the following:
-
-* `instrumentation_key` - (Required) The instrumentation key used to push data to Application Insights.
 
 
 ## Attributes Reference
