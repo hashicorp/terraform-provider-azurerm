@@ -51,6 +51,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 					string(batch.Cer),
 					string(batch.Pfx),
 				}, false),
+				Default: string(batch.Pfx),
 			},
 			"password": {
 				Type:      schema.TypeString,
