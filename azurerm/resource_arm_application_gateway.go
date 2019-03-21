@@ -811,6 +811,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 500),
 							Default:      100,
 						},
+						"request_body_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"max_request_body_size_kb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 128),
+							Default:      128,
+						},
 					},
 				},
 			},
@@ -2278,13 +2289,17 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	ruleSetType := v["rule_set_type"].(string)
 	ruleSetVersion := v["rule_set_version"].(string)
 	fileUploadLimitInMb := v["file_upload_limit_mb"].(int)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:             utils.Bool(enabled),
-		FirewallMode:        network.ApplicationGatewayFirewallMode(mode),
-		RuleSetType:         utils.String(ruleSetType),
-		RuleSetVersion:      utils.String(ruleSetVersion),
-		FileUploadLimitInMb: utils.Int32(int32(fileUploadLimitInMb)),
+		Enabled:                utils.Bool(enabled),
+		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:            utils.String(ruleSetType),
+		RuleSetVersion:         utils.String(ruleSetVersion),
+		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
+		RequestBodyCheck:       utils.Bool(requestBodyCheck),
+		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
 	}
 }
 
@@ -2312,6 +2327,14 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.FileUploadLimitInMb != nil {
 		output["file_upload_limit_mb"] = int(*input.FileUploadLimitInMb)
+	}
+
+	if input.RequestBodyCheck != nil {
+		output["request_body_check"] = *input.RequestBodyCheck
+	}
+
+	if input.MaxRequestBodySizeInKb != nil {
+		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
 	}
 
 	results = append(results, output)

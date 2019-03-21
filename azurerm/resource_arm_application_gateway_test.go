@@ -351,6 +351,8 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_type", "OWASP"),
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_version", "3.0"),
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.max_request_body_size_kb", "100"),
 				),
 			},
 		},
@@ -1435,6 +1437,8 @@ resource "azurerm_application_gateway" "test" {
     rule_set_type    = "OWASP"
     rule_set_version = "3.0"
     file_upload_limit_mb = 100
+    request_body_check = true
+    max_request_body_size_kb = 100
   }
 
   gateway_ip_configuration {
