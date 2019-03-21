@@ -377,6 +377,10 @@ A `waf_configuration` block supports the following:
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
 
+* `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
+
+* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
+
 ---
 
 A `custom_error_configuration` block supports the following:
