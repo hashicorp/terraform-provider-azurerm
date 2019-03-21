@@ -23,7 +23,8 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
 
 BUG FIXES:
-
+Application Gateway: fixing the permanent AGW tf update problem (fqdns) #3085
+* `azurerm_application_gateway` - correctly populating backend addresses from both new and deprecated properties `fqdns`/`fqdn_list` [GH-3085]
 * `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
 * `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
 * `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
