@@ -296,7 +296,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
