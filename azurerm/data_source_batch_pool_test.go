@@ -51,7 +51,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.id", certificateID),
+					resource.TestCheckResourceAttrSet(dataSourceName, "certificate.0.id"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_location", "CurrentUser"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_name", ""),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.#", "2"),

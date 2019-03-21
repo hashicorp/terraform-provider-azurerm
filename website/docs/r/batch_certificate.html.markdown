@@ -55,7 +55,7 @@ resource "azurerm_batch_certificate" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The identifier for the certificate. This must be made up of algorithm and thumbprint separated by a dash, and must match the certificate data in the request. For example SHA1-a3d1c5.
+* `name` - (Required) The identifier for the certificate. This must be made up of algorithm and thumbprint separated by a dash, and must match the certificate data in the request. For example `SHA1-a3d1c5`. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) Specifies the name of the Batch account. Changing this forces a new resource to be created.
 
@@ -63,9 +63,9 @@ The following arguments are supported:
 
 * `certificate` - (Required) The base64-encoded contents of the certificate.
 
-* `format` - (Optional) The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx.
+* `format` - (Required) The format of the certificate. Possible values are `Cer` or `Pfx`.
 
-* `password` - The password to access the certificate's private key. This is required if the certificate format is pfx and must be omitted if the certificate format is cer.
+* `password` - (Optional) The password to access the certificate's private key. This must and can only be specified when `format` is `Pfx`.
 
 * `thumbprint` - (Required) The thumbprint of the certificate. This must match the thumbprint from the name.
 

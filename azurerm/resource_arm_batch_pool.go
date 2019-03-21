@@ -189,7 +189,7 @@ func resourceArmBatchPool() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"visibility": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -355,7 +355,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
-		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("Error expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
@@ -454,7 +454,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
-		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("Error expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 

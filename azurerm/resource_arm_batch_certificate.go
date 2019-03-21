@@ -66,7 +66,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 			"thumbprint_algorithm": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validateAzureRMBatchCertificateThumbprint,
+				ValidateFunc: validation.StringInSlice([]string{"SHA1"}), false)
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
@@ -92,7 +92,7 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroupName, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Batch Certificate %q (Resource Group %q, Account %q): %s", name, resourceGroupName, accountName, err)
+				return fmt.Errorf("Error checking for presence of existing Batch Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroupName, err)
 			}
 		}
 
@@ -116,20 +116,20 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroupName, accountName, name, parameters, "", "")
 	if err != nil {
-		return fmt.Errorf("Error creating Batch certificate %q (Resource Group %q, Account %q): %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error creating Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Batch certificate %q (Resource Group %q, Account %q): %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error waiting for creation of Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch certificate %q (Resource Group %q), Account %q: %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error retrieving Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch certificate %q (Resource Group %q, Account %q) ID", name, resourceGroupName, accountName)
+		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account %q / Resource Group %q) ID", name, accountName, resourceGroupName)
 	}
 
 	d.SetId(*read.ID)
@@ -153,10 +153,10 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Batch certificate %q was not found in Resource Group %q, Account %q - removing from state!", name, resourceGroupName, accountName)
+			log.Printf("[DEBUG] Batch certificate %q was not found in Account %q / Resource Group %q - removing from state!", name, accountName, resourceGroupName)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Batch certificate %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -211,12 +211,12 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, err = client.Update(ctx, resourceGroupName, accountName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error updating Batch certificate %q (Resource Group %q, Account %q): %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error updating Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch certificate %q (Resource Group %q), Account %q: %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	if read.ID == nil {
@@ -242,12 +242,12 @@ func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, resourceGroupName, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Batch certificate %q (Resource Group %q, Account %q): %+v", name, resourceGroupName, accountName, err)
+		return fmt.Errorf("Error deleting Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Batch certificate %q (Resource Group %q, Account %q): %+v", name, resourceGroupName, accountName, err)
+			return fmt.Errorf("Error waiting for deletion of Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 		}
 	}
 

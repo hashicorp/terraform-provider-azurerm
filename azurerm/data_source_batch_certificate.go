@@ -58,7 +58,7 @@ func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroupName, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch certificate %q (Resource Group %q) was not found", name, resourceGroupName)
+			return fmt.Errorf("Error: Batch certificate %q (Account %q / Resource Group %q) was not found", name, accountName, resourceGroupName)
 		}
 		return fmt.Errorf("Error making Read request on AzureRM Batch certificate %q: %+v", name, err)
 	}
