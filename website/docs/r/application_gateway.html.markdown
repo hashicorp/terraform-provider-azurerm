@@ -54,6 +54,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
@@ -103,11 +104,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
-    rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    name                        = "${local.request_routing_rule_name}"
+    rule_type                   = "Basic"
+    http_listener_name          = "${local.listener_name}"
+    backend_address_pool_name   = "${local.backend_address_pool_name}"
+    backend_http_settings_name  = "${local.http_setting_name}"
   }
 }
 ```
@@ -157,6 +158,8 @@ The following arguments are supported:
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 ---
 
@@ -289,9 +292,11 @@ A `path_rule` block supports the following:
 
 * `paths` - (Required) A list of Paths used in this Path Rule.
 
-* `backend_address_pool_name` - (Required) The Name of the Backend Address Pool to use for this Path Rule.
+* `backend_address_pool_name` - (Optional) The Name of the Backend Address Pool to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
 
-* `backend_http_settings_name` - (Required) The Name of the Backend HTTP Settings Collection to use for this Path Rule.
+* `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
+
+* `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
 
 ---
 
@@ -327,9 +332,11 @@ A `request_routing_rule` block supports the following:
 
 * `http_listener_name` - (Required) The Name of the HTTP Listener which should be used for this Routing Rule.
 
-* `backend_address_pool_name` - (Optional) The Name of the Backend Address Pool which should be used for this Routing Rule.
+* `backend_address_pool_name` - (Optional) The Name of the Backend Address Pool which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
 
-* `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection which should be used for this Routing Rule.
+* `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
+
+* `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
@@ -359,9 +366,11 @@ A `url_path_map` block supports the following:
 
 * `name` - (Required) The Name of the URL Path Map.
 
-* `default_backend_address_pool_name` - (Required) The Name of the Default Backend Address Pool which should be used for this URL Path Map.
+* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
 
-* `default_backend_http_settings_name` - (Required) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map.
+* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
+
+* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if there are path_rules with Backend Address Pool or HTTP Settings set.
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
 
@@ -390,6 +399,22 @@ A `custom_error_configuration` block supports the following:
 * `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
+
+---
+
+A `redirect_configuration` block supports the following:
+
+* `name` - (Required) Unique name of the redirect configuration block
+
+* `redirect_type` - (Required) The type of redirect. Possible values are `Permanent`, `Temporary`, `Found` and `SeeOther`
+
+* `target_listener_name` - (Optional) The name of the listener to redirect to. Cannot be set if `target_url` is set.
+
+* `target_url` - (Optional) The Url to redirect the request to. Cannot be set if `target_listener_name` is set.
+
+* `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
+
+* `include_query_string` - (Optional) Whether or not to include the query string in the redirected Url. Default to `false`
 
 ## Attributes Reference
 
@@ -423,6 +448,7 @@ The following attributes are exported:
 
 * `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
+* `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
 ---
 
 A `authentication_certificate` block exports the following:
@@ -489,6 +515,8 @@ A `path_rule` block exports the following:
 
 * `backend_http_settings_id` - The ID of the Backend HTTP Settings Collection used in this Path Rule.
 
+* `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
+
 ---
 
 A `probe` block exports the following:
@@ -506,6 +534,8 @@ A `request_routing_rule` block exports the following:
 * `backend_address_pool_id` - The ID of the associated Backend Address Pool.
 
 * `backend_http_settings_id` - The ID of the associated Backend HTTP Settings Configuration.
+
+* `redirect_configuration_id` - The ID of the associated Redirect Configuration.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
 
@@ -527,6 +557,8 @@ A `url_path_map` block exports the following:
 
 * `default_backend_http_settings_id` - The ID of the Default Backend HTTP Settings Collection.
 
+* `default_redirect_configuration_id` - The ID of the Default Redirect Configuration.
+
 * `path_rule` - A list of `path_rule` blocks as defined above.
 
 ---
@@ -534,6 +566,12 @@ A `url_path_map` block exports the following:
 A `custom_error_configuration` block exports the following:
 
 * `id` - The ID of the Custom Error Configuration.
+
+---
+
+A `redirect_configuration` block exports the following:
+
+* `id` - The ID of the Redirect Configuration.
 
 ## Import
 
