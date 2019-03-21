@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
 * `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
+* `azurerm_application_gateway` - support for WAF configuration properties `request_body_check` and `max_request_body_size_kb` [GH-3093]
 * `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties [GH-3071]
 * `azurerm_container_group` - support for attaching GPU's [GH-3053]
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
