@@ -147,7 +147,7 @@ A `linux_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
-* `ssh_key` - One or more `ssh_key` blocks as defined below.
+* `ssh_key` - An `ssh_key` block as defined below.
 
 ---
 

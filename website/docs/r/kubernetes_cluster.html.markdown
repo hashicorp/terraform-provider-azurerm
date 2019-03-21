@@ -136,7 +136,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) One or more `ssh_key` blocks. Changing this forces a new resource to be created.
+* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed.  Changing this forces a new resource to be created.
 
 ---
 
