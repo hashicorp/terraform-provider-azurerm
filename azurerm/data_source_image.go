@@ -40,6 +40,11 @@ func dataSourceArmImage() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
+			"zone_resilient": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"os_disk": {
 				Type:     schema.TypeList,
 				Computed: true,

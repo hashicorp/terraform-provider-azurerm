@@ -37,6 +37,7 @@ output "image_id" {
 * `location` - the Azure Location where this Image exists.
 * `os_disk` - a `os_disk` block as defined below.
 * `data_disk` - a collection of `data_disk` blocks as defined below.
+* `zone_resilient` - is zone resiliency enabled?
 * `tags` - a mapping of tags to assigned to the resource.
 
 `os_disk` supports the following:
