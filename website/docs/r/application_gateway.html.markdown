@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 
-* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
@@ -206,6 +206,8 @@ A `backend_http_settings` block supports the following:
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
 * `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 
 * `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
@@ -386,6 +388,10 @@ A `waf_configuration` block supports the following:
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
 
+* `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
+
+* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
+
 ---
 
 A `custom_error_configuration` block supports the following:
@@ -428,7 +434,7 @@ The following attributes are exported:
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
 
-* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 

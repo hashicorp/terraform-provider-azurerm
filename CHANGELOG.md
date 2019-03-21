@@ -4,19 +4,35 @@ FEATURES:
 
 * **New Data Source:** `azurerm_api_management_api` [GH-3010]
 * **New Resource:** `azurerm_api_management_api` [GH-3010]
+* **New Resource:** `azurerm_api_management_logger` [GH-2994]
+* **New Resource:** `azurerm_api_management_product_api` [GH-3066]
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_storage_account` - exposing the Hierarchical Namespace state [GH-3032]
 * `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
 * `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
-* `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
+* `azurerm_application_gateway` - support for WAF configuration properties `request_body_check` and `max_request_body_size_kb` [GH-3093]
+* `azurerm_application_gateway` - support for the `hostname` property [GH-2990]
+* `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties [GH-3071]
+* `azurerm_container_group` - support for attaching GPU's [GH-3053]
+* `azurerm_eventhub` - support for the `skip_empty_archives` property [GH-3074]
 * `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
+* `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
+* `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type [GH-3049]
+* `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
+* `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
+* `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
+* `azurerm_virtual_machine` - support for managed disks up to 32TB [GH-3062]
+* `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
 
 BUG FIXES:
-
-* `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
+Application Gateway: fixing the permanent AGW tf update problem (fqdns) #3085
+* `azurerm_application_gateway` - correctly populating backend addresses from both new and deprecated properties `fqdns`/`fqdn_list` [GH-3085]
+* `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
 * `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
+* `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
 
 ## 1.23.0 (March 08, 2019)
 

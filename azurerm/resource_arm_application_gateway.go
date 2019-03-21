@@ -146,6 +146,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"host_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"pick_host_name_from_backend_address": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -901,6 +906,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 500),
 							Default:      100,
 						},
+						"request_body_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"max_request_body_size_kb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 128),
+							Default:      128,
+						},
 					},
 				},
 			},
@@ -1006,6 +1022,18 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
 		},
+	}
+
+	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
+		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
+		if backendHttpSettingsProperties.HostName != nil {
+			hostName := *backendHttpSettingsProperties.HostName
+			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+
+			if hostName != "" && pick {
+				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			}
+		}
 	}
 
 	for _, probe := range *probes {
@@ -1160,7 +1188,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `url_path_map`: %+v", setErr)
 		}
 
-		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); err != nil {
+		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
 		}
 	}
@@ -1272,17 +1300,19 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 			})
 		}
 
-		// TODO: remove in 2.0
-		for _, ip := range v["ip_address_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				IPAddress: utils.String(ip.(string)),
-			})
-		}
-		// TODO: remove in 2.0
-		for _, ip := range v["fqdn_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				Fqdn: utils.String(ip.(string)),
-			})
+		if len(backendAddresses) == 0 {
+			// TODO: remove in 2.0
+			for _, ip := range v["ip_address_list"].([]interface{}) {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					IPAddress: utils.String(ip.(string)),
+				})
+			}
+			// TODO: remove in 2.0
+			for _, ip := range v["fqdn_list"].([]interface{}) {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					Fqdn: utils.String(ip.(string)),
+				})
+			}
 		}
 
 		name := v["name"].(string)
@@ -1372,6 +1402,11 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			},
 		}
 
+		hostName := v["host_name"].(string)
+		if hostName != "" {
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
+		}
+
 		if v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]network.SubResource, 0)
@@ -1431,6 +1466,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
+			}
+
+			if hostName := props.HostName; hostName != nil {
+				output["host_name"] = *hostName
 			}
 
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
@@ -2496,7 +2535,6 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 					}
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
-
 						if applicationGatewayHasSubResource(props.DefaultBackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_address_pool_name` and `redirect_configuration_name` (default back-end pool not applicable when redirection specified)")
 						}
@@ -2573,13 +2611,17 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	ruleSetType := v["rule_set_type"].(string)
 	ruleSetVersion := v["rule_set_version"].(string)
 	fileUploadLimitInMb := v["file_upload_limit_mb"].(int)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:             utils.Bool(enabled),
-		FirewallMode:        network.ApplicationGatewayFirewallMode(mode),
-		RuleSetType:         utils.String(ruleSetType),
-		RuleSetVersion:      utils.String(ruleSetVersion),
-		FileUploadLimitInMb: utils.Int32(int32(fileUploadLimitInMb)),
+		Enabled:                utils.Bool(enabled),
+		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:            utils.String(ruleSetType),
+		RuleSetVersion:         utils.String(ruleSetVersion),
+		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
+		RequestBodyCheck:       utils.Bool(requestBodyCheck),
+		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
 	}
 }
 
@@ -2607,6 +2649,14 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.FileUploadLimitInMb != nil {
 		output["file_upload_limit_mb"] = int(*input.FileUploadLimitInMb)
+	}
+
+	if input.RequestBodyCheck != nil {
+		output["request_body_check"] = *input.RequestBodyCheck
+	}
+
+	if input.MaxRequestBodySizeInKb != nil {
+		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
 	}
 
 	results = append(results, output)

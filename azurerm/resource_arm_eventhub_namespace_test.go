@@ -217,7 +217,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
+	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -238,7 +238,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
+	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
 	postConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 2)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -441,7 +441,7 @@ resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Basic"
+  sku                 = "Standard"
   kafka_enabled       = true
 }
 `, rInt, location, rInt)
@@ -494,7 +494,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
-  maximum_throughput_units = 20
+  maximum_throughput_units = 100
 }
 `, rInt, location, rInt)
 }

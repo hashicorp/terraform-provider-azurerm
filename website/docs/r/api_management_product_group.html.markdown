@@ -30,8 +30,8 @@ data "azurerm_api_management_group" "example" {
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
 }
 
-resource "azurerm_api_management_group_user" "example" {
-  user_id             = "${data.azurerm_api_management_user.example.id}"
+resource "azurerm_api_management_product_group" "example" {
+  product_id          = "${data.azurerm_api_management_user.example.id}"
   group_name          = "${data.azurerm_api_management_group.example.name}"
   api_management_name = "${data.azurerm_api_management.example.name}"
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
@@ -42,7 +42,7 @@ resource "azurerm_api_management_group_user" "example" {
 
 The following arguments are supported:
 
-* `user_id` - (Required) The ID of the API Management User which should be assigned to this API Management Group. Changing this forces a new resource to be created.
+* `product_id` - (Required) The ID of the API Management Product within the API Management Service. Changing this forces a new resource to be created.
 
 * `group_name` - (Required) The Name of the API Management Group within the API Management Service. Changing this forces a new resource to be created.
 

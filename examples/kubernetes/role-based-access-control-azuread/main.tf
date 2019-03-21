@@ -1,12 +1,12 @@
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-rbac-resources"
   location = "${var.location}"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "example" {
   name                = "${var.prefix}-rbac"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   dns_prefix          = "${var.prefix}-rbac"
 
   agent_pool_profile {
@@ -24,7 +24,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   role_based_access_control {
     enabled = true
-    
+
     azure_active_directory {
       # NOTE: in a Production environment these should be different values
       # but for the purposes of this example, this should be sufficient
