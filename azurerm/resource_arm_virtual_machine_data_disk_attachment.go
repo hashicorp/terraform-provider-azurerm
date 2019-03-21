@@ -142,7 +142,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	if d.IsNewResource() {
-		if requireResourcesToBeImported && d.IsNewResource() {
+		if requireResourcesToBeImported {
 			if existingIndex != -1 {
 				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
 			}
