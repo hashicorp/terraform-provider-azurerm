@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties [GH-3071]
 * `azurerm_container_group` - support for attaching GPU's [GH-3053]
 * `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
+* `azurerm_eventhub` - support for the `skip_empty_archives` property [GH-3074]
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
 * `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
