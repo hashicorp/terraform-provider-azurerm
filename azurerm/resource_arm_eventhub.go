@@ -68,6 +68,11 @@ func resourceArmEventHub() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+						"skip_empty_archives": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"encoding": {
 							Type:             schema.TypeString,
 							Required:         true,
@@ -310,12 +315,14 @@ func expandEventHubCaptureDescription(d *schema.ResourceData) (*eventhub.Capture
 	encoding := input["encoding"].(string)
 	intervalInSeconds := input["interval_in_seconds"].(int)
 	sizeLimitInBytes := input["size_limit_in_bytes"].(int)
+	skipEmptyArchives := input["skip_empty_archives"].(bool)
 
 	captureDescription := eventhub.CaptureDescription{
 		Enabled:           utils.Bool(enabled),
 		Encoding:          eventhub.EncodingCaptureDescription(encoding),
 		IntervalInSeconds: utils.Int32(int32(intervalInSeconds)),
 		SizeLimitInBytes:  utils.Int32(int32(sizeLimitInBytes)),
+		SkipEmptyArchives: utils.Bool(skipEmptyArchives),
 	}
 
 	if v, ok := input["destination"]; ok {
@@ -350,6 +357,10 @@ func flattenEventHubCaptureDescription(description *eventhub.CaptureDescription)
 
 		if enabled := description.Enabled; enabled != nil {
 			output["enabled"] = *enabled
+		}
+
+		if skipEmptyArchives := description.SkipEmptyArchives; skipEmptyArchives != nil {
+			output["skip_empty_archives"] = *skipEmptyArchives
 		}
 
 		output["encoding"] = string(description.Encoding)
