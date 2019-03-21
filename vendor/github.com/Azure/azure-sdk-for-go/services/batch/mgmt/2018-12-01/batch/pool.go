@@ -79,6 +79,8 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 						{Target: "parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration", Name: validation.Null, Rule: false,
+									Chain: []validation.Constraint{{Target: "parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration.Type", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 					}},
 					{Target: "parameters.PoolProperties.ScaleSettings", Name: validation.Null, Rule: false,
@@ -95,6 +97,15 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 					{Target: "parameters.PoolProperties.NetworkConfiguration", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.PoolProperties.NetworkConfiguration.EndpointConfiguration", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.PoolProperties.NetworkConfiguration.EndpointConfiguration.InboundNatPools", Name: validation.Null, Rule: true, Chain: nil}}},
+						}},
+					{Target: "parameters.PoolProperties.StartTask", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
+									Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
+										{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
+									}},
+							}},
 						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("batch.PoolClient", "Create", err.Error())
@@ -124,7 +135,7 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -225,7 +236,7 @@ func (client PoolClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -321,7 +332,7 @@ func (client PoolClient) DisableAutoScalePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,7 +423,7 @@ func (client PoolClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -514,7 +525,7 @@ func (client PoolClient) ListByBatchAccountPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -655,7 +666,7 @@ func (client PoolClient) StopResizePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -750,7 +761,7 @@ func (client PoolClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

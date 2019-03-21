@@ -102,7 +102,7 @@ func (client AccountClient) CreatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -189,7 +189,7 @@ func (client AccountClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -279,7 +279,7 @@ func (client AccountClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -366,7 +366,7 @@ func (client AccountClient) GetKeysPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -439,7 +439,7 @@ func (client AccountClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -552,7 +552,7 @@ func (client AccountClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -675,7 +675,7 @@ func (client AccountClient) RegenerateKeyPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -763,7 +763,7 @@ func (client AccountClient) SynchronizeAutoStorageKeysPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -848,7 +848,7 @@ func (client AccountClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

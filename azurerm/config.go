@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
