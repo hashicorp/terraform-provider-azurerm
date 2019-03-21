@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
-* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below.
+* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
