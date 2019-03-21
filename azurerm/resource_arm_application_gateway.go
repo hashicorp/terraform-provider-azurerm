@@ -146,6 +146,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"host_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"pick_host_name_from_backend_address": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -927,6 +932,18 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
+	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
+		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
+		if backendHttpSettingsProperties.HostName != nil {
+			hostName := *backendHttpSettingsProperties.HostName
+			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+
+			if hostName != "" && pick {
+				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			}
+		}
+	}
+
 	for _, probe := range *probes {
 		probeProperties := *probe.ApplicationGatewayProbePropertiesFormat
 		host := *probeProperties.Host
@@ -1285,6 +1302,11 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			},
 		}
 
+		hostName := v["host_name"].(string)
+		if hostName != "" {
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
+		}
+
 		if v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]network.SubResource, 0)
@@ -1344,6 +1366,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
+			}
+
+			if hostName := props.HostName; hostName != nil {
+				output["host_name"] = *hostName
 			}
 
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
