@@ -14,9 +14,7 @@ import (
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,7 +66,7 @@ func TestAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 				),
@@ -205,7 +203,7 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	initConfig := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
+	initConfig := testAccAzureRMKubernetesCluster_basic(ri, testLocation())
 	addAgentConfig := testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -508,7 +506,7 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -526,17 +524,12 @@ resource "azurerm_kubernetes_cluster" "test" {
     count   = "1"
     vm_size = "Standard_DS2_v2"
   }
-
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
-  }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMKubernetesCluster_requiresImport(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	template := testAccAzureRMKubernetesCluster_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
