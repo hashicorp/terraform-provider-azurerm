@@ -1,5 +1,9 @@
 ## 1.24.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_kubernetes_cluster` - `ssh_key` is now limited to a single element to reflect what the API expects [GH-3099]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_api_management_api` [GH-3010]
@@ -29,7 +33,6 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
 
 BUG FIXES:
-Application Gateway: fixing the permanent AGW tf update problem (fqdns) #3085
 * `azurerm_application_gateway` - correctly populating backend addresses from both new and deprecated properties `fqdns`/`fqdn_list` [GH-3085]
 * `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
 * `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
