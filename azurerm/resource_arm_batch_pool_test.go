@@ -265,13 +265,13 @@ func TestAccAzureRMBatchPoolCertificates(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_location", "CurrentUser"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.store_name", ""),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.0", "StartTask"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.visibility.3294600504", "StartTask"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.1.id", certificate1ID),
 					resource.TestCheckResourceAttr(resourceName, "certificate.1.store_location", "CurrentUser"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.1.store_name", ""),
 					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.0", "StartTask"),
-					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.1", "RemoteUser"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.3294600504", "StartTask"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.1.visibility.4077195354", "RemoteUser"),
 				),
 			},
 		},
@@ -602,10 +602,12 @@ resource "azurerm_batch_pool" "test" {
 	}
 	certificate = {
 		id             = "${azurerm_batch_certificate.testcer.id}"
+		store_location = "CurrentUser"
 		visibility = [ "StartTask" ]
 	}
 	certificate = {
 		id             = "${azurerm_batch_certificate.testpfx.id}"
+		store_location = "CurrentUser"
 		visibility = [ "StartTask", "RemoteUser" ]
 	}
 }

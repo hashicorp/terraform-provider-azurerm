@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,16 +13,13 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     validateAzureRMBatchCertificateName,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateAzureRMBatchCertificateName,
 			},
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
@@ -69,17 +65,11 @@ func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{})
 	d.Set("account_name", accountName)
 	d.Set("resource_group_name", resourceGroupName)
 
-	if format := resp.Format; format != "" {
-		d.Set("format", format)
-	}
-	if publicData := resp.PublicData; publicData != nil {
-		d.Set("public_data", publicData)
-	}
-	if thumbprint := resp.Thumbprint; thumbprint != nil {
-		d.Set("thumbprint", thumbprint)
-	}
-	if thumbprintAlgorithm := resp.ThumbprintAlgorithm; thumbprintAlgorithm != nil {
-		d.Set("thumbprint_algorithm", thumbprintAlgorithm)
+	if props := resp.CertificateProperties; props != nil {
+		d.Set("format", props.Format)
+		d.Set("public_data", props.PublicData)
+		d.Set("thumbprint", props.Thumbprint)
+		d.Set("thumbprint_algorithm", props.ThumbprintAlgorithm)
 	}
 
 	return nil

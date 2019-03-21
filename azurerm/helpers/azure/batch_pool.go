@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -137,18 +138,28 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 
 // FlattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
 func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
-	certificates := make([]interface{}, 0)
-	if armCertificates != nil {
-		for _, armCertificate := range *armCertificates {
-			certificate := map[string]interface{}{}
-			certificate["id"] = armCertificate.ID
-			certificate["store_location"] = armCertificate.StoreLocation
-			certificate["store_name"] = armCertificate.StoreName
-			certificate["visibility"] = armCertificate.Visibility
-			certificates = append(certificates, certificate)
-		}
+	if armCertificates == nil {
+		return []interface{}{}
 	}
-	return certificates
+	output := make([]interface{}, 0)
+	for _, armCertificate := range *armCertificates {
+		certificate := map[string]interface{}{}
+		certificate["id"] = armCertificate.ID
+		certificate["store_location"] = armCertificate.StoreLocation
+		certificate["store_name"] = armCertificate.StoreName
+		visibility := &schema.Set{F: schema.HashString}
+		if armCertificate.Visibility != nil {
+			for _, armVisibility := range *armCertificate.Visibility {
+				visibilityTemp := string(armVisibility)
+				visibility.Add(visibilityTemp)
+			}
+			certificate["visibility"] = visibility
+			foo := visibility.List()
+			_ = foo
+		}
+		output = append(output, certificate)
+	}
+	return output
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
@@ -197,9 +208,9 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 	id := ref["id"].(string)
 	storeLocation := ref["store_location"].(string)
 	storeName := ref["store_name"].(string)
-	visibilityRefs := ref["visibility"].([]interface{})
+	visibilityRefs := ref["visibility"].(*schema.Set)
 	visibility := []batch.CertificateVisibility{}
-	for _, visibilityRef := range visibilityRefs {
+	for _, visibilityRef := range visibilityRefs.List() {
 		visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
 	}
 

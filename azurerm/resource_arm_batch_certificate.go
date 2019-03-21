@@ -46,12 +46,11 @@ func resourceArmBatchCertificate() *schema.Resource {
 			},
 			"format": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(batch.Cer),
 					string(batch.Pfx),
 				}, false),
-				Default: string(batch.Pfx),
 			},
 			"password": {
 				Type:      schema.TypeString,
@@ -66,7 +65,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 			"thumbprint_algorithm": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc: validation.StringInSlice([]string{"SHA1"}), false)
+				ValidateFunc:     validation.StringInSlice([]string{"SHA1"}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
@@ -127,13 +126,7 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account %q / Resource Group %q) ID", name, accountName, resourceGroupName)
-	}
-
 	d.SetId(*read.ID)
-
 	return resourceArmBatchCertificateRead(d, meta)
 }
 
@@ -163,17 +156,11 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("account_name", accountName)
 	d.Set("resource_group_name", resourceGroupName)
 
-	if format := resp.Format; format != "" {
-		d.Set("format", format)
-	}
-	if publicData := resp.PublicData; publicData != nil {
-		d.Set("public_data", publicData)
-	}
-	if thumbprint := resp.Thumbprint; thumbprint != nil {
-		d.Set("thumbprint", thumbprint)
-	}
-	if thumbprintAlgorithm := resp.ThumbprintAlgorithm; thumbprintAlgorithm != nil {
-		d.Set("thumbprint_algorithm", thumbprintAlgorithm)
+	if props := resp.CertificateProperties; props != nil {
+		d.Set("format", props.Format)
+		d.Set("public_data", props.PublicData)
+		d.Set("thumbprint", props.Thumbprint)
+		d.Set("thumbprint_algorithm", props.ThumbprintAlgorithm)
 	}
 
 	return nil
@@ -220,7 +207,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch certificate %q (Resource Group %q, Account %q) ID", name, resourceGroupName, accountName)
+		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account: %q, Resource Group %q) ID", name, accountName, resourceGroupName)
 	}
 
 	d.SetId(*read.ID)
@@ -261,14 +248,5 @@ func validateAzureRMBatchCertificateName(v interface{}, k string) (warnings []st
 			"must be made up of algorithm and thumbprint separated by a dash in %q: %q", k, value))
 	}
 
-	return warnings, errors
-}
-func validateAzureRMBatchCertificateThumbprint(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	switch value {
-	case "SHA1":
-	default:
-		errors = append(errors, fmt.Errorf("currently required to be 'SHA1' in %q: %q", k, value))
-	}
 	return warnings, errors
 }
