@@ -22,8 +22,52 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
 	location := testLocation()
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS")
+
+	if !supportsZRS(location) {
+		t.Skip(fmt.Sprintf("Integration test skipped because location '%s' does not support zone-redundant storage", location))
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +119,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				//need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location),
+				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -83,7 +127,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location),
+				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
@@ -397,7 +441,7 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -444,7 +488,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
   tags = {
     environment = "Dev"
@@ -495,10 +539,10 @@ resource "azurerm_virtual_machine" "testsource" {
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password)
 }
 
-func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -545,7 +589,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
   tags = {
     environment = "Dev"
@@ -601,6 +645,7 @@ resource "azurerm_image" "test" {
   name                = "accteste"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_redundant      = %t
 
   os_disk {
     os_type  = "Linux"
@@ -615,11 +660,11 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password, storageType == "ZRS")
 }
 
 func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName string, password string, hostName string, location string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location)
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
 	return fmt.Sprintf(`
 %s
 
@@ -1387,4 +1432,14 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password, rInt, userName, password, rInt)
+}
+
+func supportsZRS(location string) bool {
+	zrsRegions := []string{"westus2", "westus", "southeastasia", "westeurope", "northeurope", "japaneast", "uksouth", "eastus", "eastus2", "centralus"}
+	for _, region := range zrsRegions {
+		if region == location {
+			return true
+		}
+	}
+	return false
 }
