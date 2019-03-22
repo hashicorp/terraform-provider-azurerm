@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -39,23 +40,15 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"location": locationSchema(),
 
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(notificationhubs.Basic),
-								string(notificationhubs.Free),
-								string(notificationhubs.Standard),
-							}, false),
-						},
-					},
-				},
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(notificationhubs.Basic),
+					string(notificationhubs.Free),
+					string(notificationhubs.Standard),
+				}, false),
 			},
 
 			"enabled": {
@@ -111,7 +104,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
 		Location: utils.String(location),
-		Sku:      expandNotificationHubNamespacesSku(d.Get("sku").([]interface{})),
+		Sku:      expandNotificationHubNamespacesSku(d),
 		NamespaceProperties: &notificationhubs.NamespaceProperties{
 			Region:        utils.String(location),
 			NamespaceType: notificationhubs.NamespaceType(namespaceType),
@@ -224,27 +217,22 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func expandNotificationHubNamespacesSku(input []interface{}) *notificationhubs.Sku {
-	v := input[0].(map[string]interface{})
+func expandNotificationHubNamespacesSku(d *schema.ResourceData) *notificationhubs.Sku {
+	v := d.Get("sku").(string)
 
-	skuName := v["name"].(string)
-
-	return &notificationhubs.Sku{
-		Name: notificationhubs.SkuName(skuName),
+	sku := notificationhubs.Sku{
+		Name: notificationhubs.SkuName(v),
 	}
+
+	return &sku
 }
 
-func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interface{} {
-	outputs := make([]interface{}, 0)
-	if input == nil {
-		return outputs
+func flattenNotificationHubNamespacesSku(sku *notificationhubs.Sku) string {
+	if sku == nil {
+		return ""
 	}
 
-	output := map[string]interface{}{
-		"name": string(input.Name),
-	}
-	outputs = append(outputs, output)
-	return outputs
+	return string(sku.Name)
 }
 
 func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {

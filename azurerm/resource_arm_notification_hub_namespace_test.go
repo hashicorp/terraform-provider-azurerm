@@ -126,9 +126,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub"
 
-  sku {
-    name = "Free"
-  }
+  sku = "Free"
 }
 `, ri, location, ri)
 }
@@ -143,9 +141,7 @@ resource "azurerm_notification_hub_namespace" "import" {
   location            = "${azurerm_notification_hub_namespace.test.location}"
   namespace_type      = "${azurerm_notification_hub_namespace.test.namespace_type}"
 
-  sku {
-    name = "Free"
-  }
+  sku = "Free"
 }
 `, testAccAzureRMNotificationHubNamespace_free(ri, location))
 }
