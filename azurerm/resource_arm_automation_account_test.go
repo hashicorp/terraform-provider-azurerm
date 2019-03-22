@@ -23,7 +23,7 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationAccount_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_server_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_secondary_access_key"),
@@ -80,7 +80,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 				Config: testAccAzureRMAutomationAccount_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
@@ -165,9 +165,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku = "Basic"
 }
 `, rInt, location, rInt)
 }
@@ -182,9 +180,7 @@ resource "azurerm_automation_account" "import" {
   location            = "${azurerm_automation_account.test.location}"
   resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku = "Basic"
 }
 `, template)
 }
@@ -201,10 +197,8 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
-
+  sku = "Basic"
+  
   tags = {
     "hello" = "world"
   }

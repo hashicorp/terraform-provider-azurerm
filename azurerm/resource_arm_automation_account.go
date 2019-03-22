@@ -40,23 +40,14 @@ func resourceArmAutomationAccount() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          string(automation.Basic),
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(automation.Basic),
-								string(automation.Free),
-							}, true),
-						},
-					},
-				},
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(automation.Basic),
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(automation.Basic),
+					string(automation.Free),
+				}, true),
 			},
 
 			"tags": tagsSchema(),
@@ -210,20 +201,17 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenAutomationAccountSku(sku *automation.Sku) []interface{} {
+func flattenAutomationAccountSku(sku *automation.Sku) string {
 	if sku == nil {
-		return []interface{}{}
+		return ""
 	}
 
-	result := map[string]interface{}{}
-	result["name"] = string(sku.Name)
-	return []interface{}{result}
+	return string(sku.Name)
 }
 
 func expandAutomationAccountSku(d *schema.ResourceData) *automation.Sku {
-	inputs := d.Get("sku").([]interface{})
-	input := inputs[0].(map[string]interface{})
-	name := automation.SkuNameEnum(input["name"].(string))
+	v := d.Get("sku").(string)
+	name := automation.SkuNameEnum(v)
 
 	sku := automation.Sku{
 		Name: name,
