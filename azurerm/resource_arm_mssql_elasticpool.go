@@ -176,7 +176,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			"zone_redundant": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  false,
 			},
 
 			"tags": tagsSchema(),
@@ -202,6 +203,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	elasticPoolName := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	zoneredundant := d.Get("zone_redundant").(bool)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
@@ -227,6 +229,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     expandTags(tags),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:       &zoneredundant,
 		},
 	}
 
