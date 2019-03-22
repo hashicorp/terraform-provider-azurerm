@@ -298,12 +298,12 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %+v", err)
 			}
 		}
-
 		if disks := resp.StorageProfile.DataDisks; disks != nil {
 			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(disks)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
+		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

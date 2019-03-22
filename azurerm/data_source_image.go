@@ -196,6 +196,8 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
+
+		d.Set("zone_resilient", profile.ZoneResilient)
 	}
 
 	flattenAndSetTags(d, img.Tags)

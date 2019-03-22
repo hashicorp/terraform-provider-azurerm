@@ -65,10 +65,6 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS")
 
-	if !supportsZRS(location) {
-		t.Skip(fmt.Sprintf("Integration test skipped because location '%s' does not support zone-redundant storage", location))
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -1432,15 +1428,4 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password, rInt, userName, password, rInt)
-}
-
-// Region list pulled from https://docs.microsoft.com/en-us/azure/storage/common/storage-redundancy-zrs
-func supportsZRS(location string) bool {
-	zrsRegions := []string{"westus2", "francecentral", "southeastasia", "westeurope", "northeurope", "japaneast", "uksouth", "eastus", "eastus2", "centralus"}
-	for _, region := range zrsRegions {
-		if region == location {
-			return true
-		}
-	}
-	return false
 }
