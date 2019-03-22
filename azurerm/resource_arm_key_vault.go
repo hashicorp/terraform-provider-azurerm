@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,20 +54,13 @@ func resourceArmKeyVault() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.Standard),
-								string(keyvault.Premium),
-							}, false),
-						},
-					},
-				},
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(keyvault.Standard),
+					string(keyvault.Premium),
+				}, false),
 			},
 
 			"vault_uri": {
@@ -391,21 +385,20 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	skuSets := d.Get("sku").([]interface{})
-	sku := skuSets[0].(map[string]interface{})
+	sku := d.Get("sku").(string)
 
 	return &keyvault.Sku{
 		Family: &armKeyVaultSkuFamily,
-		Name:   keyvault.SkuName(sku["name"].(string)),
+		Name:   keyvault.SkuName(sku),
 	}
 }
 
-func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
+func flattenKeyVaultSku(sku *keyvault.Sku) string {
+	if sku == nil {
+		return ""
 	}
 
-	return []interface{}{result}
+	return string(sku.Name)
 }
 
 func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
