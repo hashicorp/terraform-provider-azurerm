@@ -1434,6 +1434,7 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
 `, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password, rInt, userName, password, rInt)
 }
 
+// Region list pulled from https://docs.microsoft.com/en-us/azure/storage/common/storage-redundancy-zrs
 func supportsZRS(location string) bool {
 	zrsRegions := []string{"westus2", "westus", "southeastasia", "westeurope", "northeurope", "japaneast", "uksouth", "eastus", "eastus2", "centralus"}
 	for _, region := range zrsRegions {
