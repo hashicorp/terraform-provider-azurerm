@@ -21,10 +21,12 @@ import (
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetCreateUpdate,
-		Read:   resourceArmVirtualMachineScaleSetRead,
-		Update: resourceArmVirtualMachineScaleSetCreateUpdate,
-		Delete: resourceArmVirtualMachineScaleSetDelete,
+		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Read:          resourceArmVirtualMachineScaleSetRead,
+		Update:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Delete:        resourceArmVirtualMachineScaleSetDelete,
+		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
+		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
