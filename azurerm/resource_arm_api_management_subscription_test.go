@@ -163,8 +163,6 @@ func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error 
 				return err
 			}
 		}
-
-		return nil
 	}
 	return nil
 }
