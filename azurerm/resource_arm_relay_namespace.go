@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"time"
@@ -40,21 +41,12 @@ func resourceArmRelayNamespace() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(relay.Standard),
-							}, true),
-						},
-					},
-				},
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(relay.Standard),
+				}, true),
 			},
 
 			"metric_id": {
@@ -251,25 +243,20 @@ func relayNamespaceDeleteRefreshFunc(ctx context.Context, client relay.Namespace
 }
 
 func expandRelayNamespaceSku(d *schema.ResourceData) *relay.Sku {
-	vs := d.Get("sku").([]interface{})
-	v := vs[0].(map[string]interface{})
+	v := d.Get("sku").(string)
 
-	name := v["name"].(string)
-
-	return &relay.Sku{
-		Name: utils.String(name),
-		Tier: relay.SkuTier(name),
+	sku := relay.Sku{
+		Name: utils.String(v),
+		Tier: relay.SkuTier(v),
 	}
+
+	return &sku
 }
 
-func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenRelayNamespaceSku(sku *relay.Sku) string {
+	if sku == nil {
+		return ""
 	}
 
-	output := make(map[string]interface{})
-	if name := input.Name; name != nil {
-		output["name"] = *name
-	}
-	return []interface{}{output}
+	return string(*sku.Name)
 }

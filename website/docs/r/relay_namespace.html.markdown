@@ -24,9 +24,7 @@ resource "azurerm_relay_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Standard"
-  }
+  sku = "Standard"
 
   tags = {
     source = "terraform"
@@ -44,16 +42,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Azure Relay Namespace exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Required) The name of the SKU to use. At this time the only supported value is `Standard`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `sku` block contains:
-
-* `name` - (Required) The name of the SKU to use. At this time the only supported value is `Standard`.
-
 
 ## Attributes Reference
 

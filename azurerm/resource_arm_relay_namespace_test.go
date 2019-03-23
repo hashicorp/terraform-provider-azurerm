@@ -165,9 +165,7 @@ resource "azurerm_relay_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Standard"
-  }
+  sku = "Standard"
 }
 `, rInt, location, rInt)
 }
@@ -181,9 +179,7 @@ resource "azurerm_relay_namespace" "import" {
   location            = "${azurerm_relay_namespace.test.location}"
   resource_group_name = "${azurerm_relay_namespace.test.resource_group_name}"
 
-  sku {
-    name = "Standard"
-  }
+  sku = "Standard"
 }
 `, testAccAzureRMRelayNamespace_basic(rInt, location))
 }
@@ -200,9 +196,7 @@ resource "azurerm_relay_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Standard"
-  }
+  sku = "Standard"
 
   tags = {
     "Hello" = "World"
