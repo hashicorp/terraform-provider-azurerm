@@ -266,7 +266,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
-			MinimumTLSVersion:  expandMinimumTlsVersion(d.Get("minimum_tls_version").(string)),
+			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
 			RedisConfiguration: expandRedisConfiguration(d),
 		},
 		Tags: expandedTags,
@@ -572,15 +572,6 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 
 		return res, string(res.ProvisioningState), nil
 	}
-}
-
-func expandMinimumTlsVersion(tlsVersion string) redis.TLSVersion {
-	if tlsVersion == "1.2" {
-		return redis.OneFullStopTwo
-	} else if tlsVersion == "1.1" {
-		return redis.OneFullStopOne
-	}
-	return redis.OneFullStopZero
 }
 
 func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
