@@ -259,13 +259,62 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -1093,6 +1142,36 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, 
 	d.Set("primary_file_endpoint", fileEndpoint)
 	d.Set("primary_file_host", fileHost)
 
+	var webEndpoint, webHost string
+	if primary != nil {
+		if v := primary.Web; v != nil {
+			webEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid web endpoint for parsing: %q", *v)
+			}
+			webHost = u.Host
+		}
+	}
+	d.Set("primary_web_endpoint", webEndpoint)
+	d.Set("primary_web_host", webHost)
+
+	var dfsEndpoint, dfsHost string
+	if primary != nil {
+		if v := primary.Dfs; v != nil {
+			dfsEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid dfs endpoint for parsing: %q", *v)
+			}
+			dfsHost = u.Host
+		}
+	}
+	d.Set("primary_dfs_endpoint", dfsEndpoint)
+	d.Set("primary_dfs_host", dfsHost)
+
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
 	}
@@ -1146,5 +1225,49 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData
 	d.Set("secondary_table_endpoint", tableEndpoint)
 	d.Set("secondary_table_host", tableHost)
 
+	var webEndpoint, webHost string
+	if secondary != nil {
+		if v := secondary.Web; v != nil {
+			webEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid web endpoint for parsing: %q", *v)
+			}
+			webHost = u.Host
+		}
+	}
+	d.Set("secondary_web_endpoint", webEndpoint)
+	d.Set("secondary_web_host", webHost)
+
+	var dfsEndpoint, dfsHost string
+	if secondary != nil {
+		if v := secondary.Dfs; v != nil {
+			dfsEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid dfs endpoint for parsing: %q", *v)
+			}
+			dfsHost = u.Host
+		}
+	}
+	d.Set("secondary_dfs_endpoint", dfsEndpoint)
+	d.Set("secondary_dfs_host", dfsHost)
+
+	var fileEndpoint, fileHost string
+	if secondary != nil {
+		if v := secondary.File; v != nil {
+			fileEndpoint = *v
+
+			u, err := url.Parse(*v)
+			if err != nil {
+				return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
+			}
+			tableHost = u.Host
+		}
+	}
+	d.Set("secondary_file_endpoint", fileEndpoint)
+	d.Set("secondary_file_host", fileHost)
 	return nil
 }
