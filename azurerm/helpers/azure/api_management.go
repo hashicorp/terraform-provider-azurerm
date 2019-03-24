@@ -22,6 +22,17 @@ func SchemaApiManagementDataSourceName() *schema.Schema {
 	}
 }
 
+// SchemaApiManagementChildID returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
+func SchemaApiManagementChildID() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: ValidateResourceID,
+	}
+}
+
 // SchemaApiManagementChildName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
 func SchemaApiManagementChildName() *schema.Schema {
