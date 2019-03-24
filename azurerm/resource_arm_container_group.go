@@ -307,6 +307,154 @@ func resourceArmContainerGroup() *schema.Resource {
 								},
 							},
 						},
+
+						"liveness_probe": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"exec": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+
+									"httpget": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"path": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+												"port": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													ForceNew: true,
+												},
+												"scheme": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(containerinstance.HTTP),
+														string(containerinstance.HTTPS),
+													}, true),
+												},
+											},
+										},
+									},
+
+									"inital_delay_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"period_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"failure_threashold": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"sucess_threashold": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"timeout_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
+
+						"readiness_probe": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"exec": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+
+									"httpget": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"path": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+												"port": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													ForceNew: true,
+												},
+												"scheme": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+											},
+										},
+									},
+
+									"inital_delay_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"period_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"failure_threashold": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"sucess_threashold": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+
+									"timeout_seconds": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -661,6 +809,16 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			}
 		}
 
+		if v, ok := data["liveness_probe"]; ok {
+			livenessProbe := expandContainerProbe(v)
+			container.ContainerProperties.LivenessProbe = livenessProbe
+		}
+
+		if v, ok := data["readiness_probe"]; ok {
+			readinessProbe := expandContainerProbe(v)
+			container.ContainerProperties.ReadinessProbe = readinessProbe
+		}
+
 		containers = append(containers, container)
 	}
 
@@ -760,6 +918,73 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	}
 
 	return &volumeMounts, &containerGroupVolumes
+}
+
+func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
+	probe := containerinstance.ContainerProbe{}
+	probeRaw := input.([]interface{})
+
+	if len(probeRaw) == 0 {
+		return nil
+	}
+
+	for _, p := range probeRaw {
+		probeConfig := p.(map[string]interface{})
+
+		if initialDelaySeconds := probeConfig["inital_delay_seconds"].(int); initialDelaySeconds > 0 {
+			probe.InitialDelaySeconds = utils.Int32(int32(initialDelaySeconds))
+		}
+
+		if periodSeconds := probeConfig["period_seconds"].(int); periodSeconds > 0 {
+			probe.PeriodSeconds = utils.Int32(int32(periodSeconds))
+		}
+
+		if failureThreshold := probeConfig["failure_threashold"].(int); failureThreshold > 0 {
+			probe.FailureThreshold = utils.Int32(int32(failureThreshold))
+		}
+
+		if successThreshold := probeConfig["sucess_threashold"].(int); successThreshold > 0 {
+			probe.SuccessThreshold = utils.Int32(int32(successThreshold))
+		}
+
+		if timeoutSeconds := probeConfig["timeout_seconds"].(int); timeoutSeconds > 0 {
+			probe.TimeoutSeconds = utils.Int32(int32(timeoutSeconds))
+		}
+
+		commands := probeConfig["exec"].([]interface{})
+		if len(commands) > 0 {
+			execRaw := make([]string, 0, len(commands))
+
+			for _, command := range commands {
+				execRaw = append(execRaw, command.(string))
+			}
+
+			exec := containerinstance.ContainerExec{
+				Command: &execRaw,
+			}
+			probe.Exec = &exec
+		}
+
+		httpRaw := probeConfig["httpget"].([]interface{})
+		if len(httpRaw) > 0 {
+
+			for _, httpget := range httpRaw {
+				x := httpget.(map[string]interface{})
+
+				path := x["path"].(string)
+				port := x["port"].(int)
+				scheme := x["scheme"].(string)
+
+				ContainerHTTPGet := containerinstance.ContainerHTTPGet{
+					Path:   utils.String(string(path)),
+					Port:   utils.Int32(int32(port)),
+					Scheme: containerinstance.Scheme(scheme),
+				}
+				probe.HTTPGet = &ContainerHTTPGet
+			}
+		}
+	}
+	return &probe
 }
 
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -907,6 +1132,14 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
 
+		if container.LivenessProbe != nil {
+			containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
+		}
+
+		if container.ReadinessProbe != nil {
+			containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
+		}
+
 		containerCfg = append(containerCfg, containerConfig)
 	}
 
@@ -1000,6 +1233,56 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := make(map[string]interface{})
+
+	if Exec := input.Exec; Exec != nil {
+		var exec []string
+		for _, v := range *input.Exec.Command {
+			exec = append(exec, v)
+		}
+		output["exec"] = exec
+	}
+
+	if HTTPGet := input.HTTPGet; HTTPGet != nil {
+		httpget := make(map[string]interface{})
+		httpget["path"] = *input.HTTPGet.Path
+		httpget["port"] = *input.HTTPGet.Port
+		httpget["scheme"] = input.HTTPGet.Scheme
+
+		output["httpget"] = []interface{}{httpget}
+
+	}
+
+	if FailureThreshold := input.FailureThreshold; FailureThreshold != nil {
+		output["failure_threashold"] = input.FailureThreshold
+	}
+
+	if InitialDelaySeconds := input.InitialDelaySeconds; InitialDelaySeconds != nil {
+		output["inital_delay_seconds"] = input.InitialDelaySeconds
+	}
+
+	if PeriodSeconds := input.PeriodSeconds; PeriodSeconds != nil {
+		output["period_seconds"] = input.PeriodSeconds
+	}
+
+	if SuccessThreshold := input.SuccessThreshold; SuccessThreshold != nil {
+		output["sucess_threashold"] = input.SuccessThreshold
+	}
+
+	if TimeoutSeconds := input.TimeoutSeconds; TimeoutSeconds != nil {
+		output["timeout_seconds"] = input.TimeoutSeconds
+	}
+
+	outputs = append(outputs, output)
+	return outputs
 }
 
 func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.ContainerGroupDiagnostics {
