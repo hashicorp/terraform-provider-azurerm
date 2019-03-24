@@ -360,7 +360,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
-			MinimumTLSVersion: expandMinimumTlsVersion(d.Get("minimum_tls_version").(string)),
+			MinimumTLSVersion: redis.TLSVersion(d.Get("minimum_tls_version").(string)),
 			EnableNonSslPort:  utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
 				Capacity: utils.Int32(capacity),
