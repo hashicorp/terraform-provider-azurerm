@@ -1264,7 +1264,7 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData
 			if err != nil {
 				return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
 			}
-			tableHost = u.Host
+			fileHost = u.Host
 		}
 	}
 	d.Set("secondary_file_endpoint", fileEndpoint)

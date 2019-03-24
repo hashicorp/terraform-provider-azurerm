@@ -191,7 +191,6 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
 			"primary_file_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
