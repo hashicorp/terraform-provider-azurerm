@@ -72,6 +72,17 @@ func resourceArmRedisCache() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  redis.OneFullStopZero,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redis.OneFullStopZero),
+					string(redis.OneFullStopOne),
+					string(redis.OneFullStopTwo),
+				}, false),
+			},
+
 			"shard_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -255,6 +266,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
+			MinimumTLSVersion:  expandMinimumTlsVersion(d.Get("minimum_tls_version").(string)),
 			RedisConfiguration: expandRedisConfiguration(d),
 		},
 		Tags: expandedTags,
@@ -348,7 +360,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
-			EnableNonSslPort: utils.Bool(enableNonSSLPort),
+			MinimumTLSVersion: expandMinimumTlsVersion(d.Get("minimum_tls_version").(string)),
+			EnableNonSslPort:  utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
 				Capacity: utils.Int32(capacity),
 				Family:   family,
@@ -473,6 +486,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.Properties; props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("minimum_tls_version", props.MinimumTLSVersion)
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
 		if props.ShardCount != nil {
@@ -558,6 +572,15 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 
 		return res, string(res.ProvisioningState), nil
 	}
+}
+
+func expandMinimumTlsVersion(tlsVersion string) redis.TLSVersion {
+	if tlsVersion == "1.2" {
+		return redis.OneFullStopTwo
+	} else if tlsVersion == "1.1" {
+		return redis.OneFullStopOne
+	}
+	return redis.OneFullStopZero
 }
 
 func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
