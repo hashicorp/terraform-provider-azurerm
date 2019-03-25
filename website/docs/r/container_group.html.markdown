@@ -66,6 +66,14 @@ resource "azurerm_container_group" "aci-helloworld" {
       "ACCESS_KEY" = "secure_testing"
     }
 
+    readiness_probe {
+      exec = ["/bin/sh","-c","touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600"]
+    }
+
+    liveness_probe {
+      exec = ["cat", "/tmp/healthy"]
+    }
+
     commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
 
     volume {
@@ -144,6 +152,10 @@ A `container` block supports:
 
 * `secure_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
+* `readiness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `readiness_probe` block below. Changing this forces a new resource to be created.
+
+* `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
+
 * `command` - (Optional) A command line to be run on the container.
 
 ~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
@@ -211,6 +223,52 @@ A `volume` block supports:
 * `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
+---
+
+The `readiness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `inital_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe Changing this forces a new resource to be created.
+
+* `failure_threashold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
+
+* `sucess_threashold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
+
+---
+
+The `liveness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `inital_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe Changing this forces a new resource to be created.
+
+* `failure_threashold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
+
+* `sucess_threashold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
+
+---
+
+The `httpget` block supports:
+
+* `path` - (Optional) Path to access on the HTTP server. Changing this forces a new resource to be created.
+
+* `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
+
+* `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `HTTP` & `HTTPS`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

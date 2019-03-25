@@ -225,6 +225,26 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.0", "cat"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.httpget.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.inital_delay_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.period_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.failure_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.sucess_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.failure_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.path", "/"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.scheme", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.inital_delay_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.period_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.sucess_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.timeout_seconds", "1"),
 				),
 			},
 			{
@@ -307,6 +327,26 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.0", "cat"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.httpget.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.inital_delay_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.period_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.failure_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.sucess_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.failure_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.path", "/"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.scheme", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.inital_delay_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.period_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.sucess_threashold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.timeout_seconds", "1"),
 				),
 			},
 			{
@@ -605,7 +645,29 @@ resource "azurerm_container_group" "test" {
     secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
-    }
+		}
+
+		readiness_probe {
+			exec = ["cat","/tmp/healthy"]
+			inital_delay_seconds = 1
+			period_seconds = 1
+			failure_threashold = 1
+			sucess_threashold = 1
+			timeout_seconds = 1
+		}
+
+		liveness_probe {
+			httpget {
+				path = "/"
+				port = 443
+				scheme = "Http"
+			}
+			inital_delay_seconds = 1
+			period_seconds = 1
+			failure_threashold = 1
+			sucess_threashold = 1
+			timeout_seconds = 1
+		}
 
     commands = ["cmd.exe", "echo", "hi"]
   }
@@ -619,7 +681,7 @@ resource "azurerm_container_group" "test" {
         "node-name" = "acctestContainerGroup"
       }
     }
-  }
+	}
 
   tags = {
     environment = "Testing"
@@ -715,7 +777,29 @@ resource "azurerm_container_group" "test" {
     secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
-    }
+		}
+
+		readiness_probe {
+			exec = ["cat","/tmp/healthy"]
+			inital_delay_seconds = 1
+			period_seconds = 1
+			failure_threashold = 1
+			sucess_threashold = 1
+			timeout_seconds = 1
+		}
+
+		liveness_probe {
+			httpget {
+				path = "/"
+				port = 443
+				scheme = "Http"
+			}
+			inital_delay_seconds = 1
+			period_seconds = 1
+			failure_threashold = 1
+			sucess_threashold = 1
+			timeout_seconds = 1
+		}
 
     commands = ["/bin/bash", "-c", "ls"]
   }
@@ -729,7 +813,7 @@ resource "azurerm_container_group" "test" {
         "node-name" = "acctestContainerGroup"
       }
     }
-  }
+	}
 
   tags = {
     environment = "Testing"
