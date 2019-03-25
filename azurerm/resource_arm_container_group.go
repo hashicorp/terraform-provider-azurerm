@@ -976,7 +976,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				ContainerHTTPGet := containerinstance.ContainerHTTPGet{
-					Path:   utils.String(string(path)),
+					Path:   utils.String(path),
 					Port:   utils.Int32(int32(port)),
 					Scheme: containerinstance.Scheme(scheme),
 				}
@@ -1244,11 +1244,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	output := make(map[string]interface{})
 
 	if Exec := input.Exec; Exec != nil {
-		var exec []string
-		for _, v := range *input.Exec.Command {
-			exec = append(exec, v)
-		}
-		output["exec"] = exec
+		output["exec"] = *input.Exec.Command
 	}
 
 	if HTTPGet := input.HTTPGet; HTTPGet != nil {

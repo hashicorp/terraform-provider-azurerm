@@ -645,29 +645,29 @@ resource "azurerm_container_group" "test" {
     secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
-		}
+    }
 
-		readiness_probe {
-			exec = ["cat","/tmp/healthy"]
-			inital_delay_seconds = 1
-			period_seconds = 1
-			failure_threashold = 1
-			sucess_threashold = 1
-			timeout_seconds = 1
-		}
+    readiness_probe {
+      exec                 = ["cat","/tmp/healthy"]
+      inital_delay_seconds = 1
+      period_seconds       = 1
+      failure_threashold   = 1
+      sucess_threashold    = 1
+      timeout_seconds      = 1
+    }
 
-		liveness_probe {
-			httpget {
-				path = "/"
-				port = 443
-				scheme = "Http"
-			}
-			inital_delay_seconds = 1
-			period_seconds = 1
-			failure_threashold = 1
-			sucess_threashold = 1
-			timeout_seconds = 1
-		}
+    liveness_probe {
+      httpget {
+        path   = "/"
+        port   = 443
+        scheme = "Http"
+      }
+      inital_delay_seconds = 1
+      period_seconds       = 1
+      failure_threashold   = 1
+      sucess_threashold    = 1
+      timeout_seconds      = 1
+    }
 
     commands = ["cmd.exe", "echo", "hi"]
   }
@@ -779,27 +779,27 @@ resource "azurerm_container_group" "test" {
       "secureFoo1" = "secureBar1"
 		}
 
-		readiness_probe {
-			exec = ["cat","/tmp/healthy"]
-			inital_delay_seconds = 1
-			period_seconds = 1
-			failure_threashold = 1
-			sucess_threashold = 1
-			timeout_seconds = 1
-		}
+    readiness_probe {
+      exec                 = ["cat","/tmp/healthy"]
+      inital_delay_seconds = 1
+      period_seconds       = 1
+      failure_threashold   = 1
+      sucess_threashold    = 1
+      timeout_seconds      = 1
+    }
 
-		liveness_probe {
-			httpget {
-				path = "/"
-				port = 443
-				scheme = "Http"
-			}
-			inital_delay_seconds = 1
-			period_seconds = 1
-			failure_threashold = 1
-			sucess_threashold = 1
-			timeout_seconds = 1
-		}
+    liveness_probe {
+      httpget {
+        path   = "/"
+        port   = 443
+        scheme = "Http"
+      }
+      inital_delay_seconds = 1
+      period_seconds       = 1
+      failure_threashold   = 1
+      sucess_threashold    = 1
+      timeout_seconds      = 1
+    }
 
     commands = ["/bin/bash", "-c", "ls"]
   }
@@ -813,7 +813,7 @@ resource "azurerm_container_group" "test" {
         "node-name" = "acctestContainerGroup"
       }
     }
-	}
+  }
 
   tags = {
     environment = "Testing"
