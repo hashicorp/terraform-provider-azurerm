@@ -70,6 +70,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
+			"express_route_gateway_bypass": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"peer_virtual_network_gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -420,6 +425,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.Peer = &network.SubResource{
 			ID: &expressRouteCircuitId,
 		}
+	}
+
+	if v, ok := d.GetOk("express_route_gateway_bypass"); ok {
+		props.ExpressRouteGatewayBypass = utils.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("peer_virtual_network_gateway_id"); ok {

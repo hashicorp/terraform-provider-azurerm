@@ -230,6 +230,9 @@ The following arguments are supported:
     when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
     The Express Route Circuit can be in the same or in a different subscription.
 
+* `express_route_gateway_bypass` - (Optional) Bypass ExpressRoute Gateway 
+   for data forwarding.  Defaults to `false`.
+
 * `peer_virtual_network_gateway_id` - (Optional) The ID of the peer virtual
     network gateway when creating a VNet-to-VNet connection (i.e. when `type`
     is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or
