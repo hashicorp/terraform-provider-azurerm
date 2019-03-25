@@ -486,7 +486,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.Properties; props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
-		d.Set("minimum_tls_version", props.MinimumTLSVersion)
+		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
 		if props.ShardCount != nil {
