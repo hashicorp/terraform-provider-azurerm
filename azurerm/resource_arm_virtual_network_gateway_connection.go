@@ -427,9 +427,8 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		}
 	}
 
-	if v, ok := d.GetOk("express_route_gateway_bypass"); ok {
-		props.ExpressRouteGatewayBypass = utils.Bool(v.(bool))
-	}
+	v := d.Get("express_route_gateway_bypass")
+	props.ExpressRouteGatewayBypass = utils.Bool(v.(bool))
 
 	if v, ok := d.GetOk("peer_virtual_network_gateway_id"); ok {
 		peerVirtualNetworkGatewayId := v.(string)
