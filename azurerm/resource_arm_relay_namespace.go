@@ -258,5 +258,5 @@ func flattenRelayNamespaceSku(sku *relay.Sku) string {
 		return ""
 	}
 
-	return string(*sku.Name)
+	return *sku.Name
 }
