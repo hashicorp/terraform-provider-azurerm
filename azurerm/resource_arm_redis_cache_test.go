@@ -117,6 +117,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 				Config: testAccAzureRMRedisCache_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "minimum_tls_version"),
 				),
 			},
 			{
