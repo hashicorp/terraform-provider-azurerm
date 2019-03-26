@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_api_management_api` [GH-3010]
 * **New Resource:** `azurerm_api_management_api` [GH-3010]
+* **New Resource:** `azurerm_api_management_api_operation` [GH-3121]
 * **New Resource:** `azurerm_api_management_logger` [GH-2994]
 * **New Resource:** `azurerm_api_management_product_api` [GH-3066]
 * **New Resource:** `azurerm_api_management_subscription` [GH-3103]
