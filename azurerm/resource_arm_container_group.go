@@ -1285,8 +1285,8 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 			httpget["port"] = *v
 		}
 
-		if v := input.HTTPGet.Scheme; &v != nil {
-			httpget["scheme"] = string(v)
+		if input.HTTPGet.Scheme != "" {
+			httpget["scheme"] = input.HTTPGet.Scheme
 		}
 
 		output["httpget"] = []interface{}{httpget}
