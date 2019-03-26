@@ -319,7 +319,10 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:     schema.TypeList,
 										Optional: true,
 										ForceNew: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.NoZeroValues,
+										},
 									},
 
 									"httpget": {
@@ -329,14 +332,16 @@ func resourceArmContainerGroup() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"path": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ForceNew: true,
+													Type:         schema.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"port": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.PortNumber,
 												},
 												"scheme": {
 													Type:     schema.TypeString,
@@ -352,33 +357,43 @@ func resourceArmContainerGroup() *schema.Resource {
 									},
 
 									"inital_delay_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      0,
+										ValidateFunc: validation.NoZeroValues,
 									},
 
 									"period_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      10,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"failure_threashold": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      3,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"sucess_threashold": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      1,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"timeout_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      1,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 								},
 							},
@@ -395,7 +410,10 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:     schema.TypeList,
 										Optional: true,
 										ForceNew: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.NoZeroValues,
+										},
 									},
 
 									"httpget": {
@@ -405,52 +423,68 @@ func resourceArmContainerGroup() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"path": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ForceNew: true,
+													Type:         schema.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"port": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.PortNumber,
 												},
 												"scheme": {
 													Type:     schema.TypeString,
 													Optional: true,
 													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(containerinstance.HTTP),
+														string(containerinstance.HTTPS),
+													}, true),
 												},
 											},
 										},
 									},
 
 									"inital_delay_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      0,
+										ValidateFunc: validation.NoZeroValues,
 									},
 
 									"period_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      10,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"failure_threashold": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      3,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"sucess_threashold": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      1,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 
 									"timeout_seconds": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Default:      1,
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 								},
 							},
@@ -810,8 +844,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["liveness_probe"]; ok {
-			livenessProbe := expandContainerProbe(v)
-			container.ContainerProperties.LivenessProbe = livenessProbe
+			container.ContainerProperties.LivenessProbe = expandContainerProbe(v)
 		}
 
 		if v, ok := data["readiness_probe"]; ok {
@@ -931,36 +964,30 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	for _, p := range probeRaw {
 		probeConfig := p.(map[string]interface{})
 
-		if initialDelaySeconds := probeConfig["inital_delay_seconds"].(int); initialDelaySeconds > 0 {
-			probe.InitialDelaySeconds = utils.Int32(int32(initialDelaySeconds))
+		if v := probeConfig["inital_delay_seconds"].(int); v > 0 {
+			probe.InitialDelaySeconds = utils.Int32(int32(v))
 		}
 
-		if periodSeconds := probeConfig["period_seconds"].(int); periodSeconds > 0 {
-			probe.PeriodSeconds = utils.Int32(int32(periodSeconds))
+		if v := probeConfig["period_seconds"].(int); v > 0 {
+			probe.PeriodSeconds = utils.Int32(int32(v))
 		}
 
-		if failureThreshold := probeConfig["failure_threashold"].(int); failureThreshold > 0 {
-			probe.FailureThreshold = utils.Int32(int32(failureThreshold))
+		if v := probeConfig["failure_threashold"].(int); v > 0 {
+			probe.FailureThreshold = utils.Int32(int32(v))
 		}
 
-		if successThreshold := probeConfig["sucess_threashold"].(int); successThreshold > 0 {
-			probe.SuccessThreshold = utils.Int32(int32(successThreshold))
+		if v := probeConfig["sucess_threashold"].(int); v > 0 {
+			probe.SuccessThreshold = utils.Int32(int32(v))
 		}
 
-		if timeoutSeconds := probeConfig["timeout_seconds"].(int); timeoutSeconds > 0 {
-			probe.TimeoutSeconds = utils.Int32(int32(timeoutSeconds))
+		if v := probeConfig["timeout_seconds"].(int); v > 0 {
+			probe.TimeoutSeconds = utils.Int32(int32(v))
 		}
 
 		commands := probeConfig["exec"].([]interface{})
 		if len(commands) > 0 {
-			execRaw := make([]string, 0, len(commands))
-
-			for _, command := range commands {
-				execRaw = append(execRaw, command.(string))
-			}
-
 			exec := containerinstance.ContainerExec{
-				Command: &execRaw,
+				Command: utils.ExpandStringArray(commands),
 			}
 			probe.Exec = &exec
 		}
@@ -1243,38 +1270,47 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 
 	output := make(map[string]interface{})
 
-	if Exec := input.Exec; Exec != nil {
-		output["exec"] = *input.Exec.Command
+	if v := input.Exec; v != nil {
+		output["exec"] = *v.Command
 	}
 
-	if HTTPGet := input.HTTPGet; HTTPGet != nil {
+	if v := input.HTTPGet; v != nil {
 		httpget := make(map[string]interface{})
-		httpget["path"] = *input.HTTPGet.Path
-		httpget["port"] = *input.HTTPGet.Port
-		httpget["scheme"] = input.HTTPGet.Scheme
+
+		if v := input.HTTPGet.Path; v != nil {
+			httpget["path"] = *v
+		}
+
+		if v := input.HTTPGet.Port; v != nil {
+			httpget["port"] = *v
+		}
+
+		if v := string(input.HTTPGet.Scheme); &v != nil {
+			httpget["scheme"] = v
+		}
 
 		output["httpget"] = []interface{}{httpget}
 
 	}
 
-	if FailureThreshold := input.FailureThreshold; FailureThreshold != nil {
-		output["failure_threashold"] = input.FailureThreshold
+	if v := input.FailureThreshold; v != nil {
+		output["failure_threashold"] = *v
 	}
 
-	if InitialDelaySeconds := input.InitialDelaySeconds; InitialDelaySeconds != nil {
-		output["inital_delay_seconds"] = input.InitialDelaySeconds
+	if v := input.InitialDelaySeconds; v != nil {
+		output["inital_delay_seconds"] = *v
 	}
 
-	if PeriodSeconds := input.PeriodSeconds; PeriodSeconds != nil {
-		output["period_seconds"] = input.PeriodSeconds
+	if v := input.PeriodSeconds; v != nil {
+		output["period_seconds"] = *v
 	}
 
-	if SuccessThreshold := input.SuccessThreshold; SuccessThreshold != nil {
-		output["sucess_threashold"] = input.SuccessThreshold
+	if v := input.SuccessThreshold; v != nil {
+		output["sucess_threashold"] = *v
 	}
 
-	if TimeoutSeconds := input.TimeoutSeconds; TimeoutSeconds != nil {
-		output["timeout_seconds"] = input.TimeoutSeconds
+	if v := input.TimeoutSeconds; v != nil {
+		output["timeout_seconds"] = *v
 	}
 
 	outputs = append(outputs, output)
