@@ -202,10 +202,6 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 	grantTypesRaw := d.Get("grant_types").(*schema.Set).List()
 	grantTypes := expandApiManagementAuthorizationServerGrantTypes(grantTypesRaw)
 
-	authorizationMethodsRaw := d.Get("authorization_methods").(*schema.Set).List()
-	authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
-	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*schema.Set).List()
-	bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
 	clientAuthenticationMethodsRaw := d.Get("client_authentication_method").(*schema.Set).List()
 	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(clientAuthenticationMethodsRaw)
 	clientSecret := d.Get("client_secret").(string)
@@ -216,7 +212,6 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 	supportState := d.Get("support_state").(bool)
 	tokenBodyParametersRaw := d.Get("token_body_parameter").([]interface{})
 	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(tokenBodyParametersRaw)
-	tokenEndpoint := d.Get("token_endpoint").(string)
 
 	params := apimanagement.AuthorizationServerContract{
 		AuthorizationServerContractProperties: &apimanagement.AuthorizationServerContractProperties{
@@ -228,8 +223,6 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 			GrantTypes:                 grantTypes,
 
 			// Optional
-			AuthorizationMethods:       authorizationMethods,
-			BearerTokenSendingMethods:  bearerTokenSendingMethods,
 			ClientAuthenticationMethod: clientAuthenticationMethods,
 			ClientSecret:               utils.String(clientSecret),
 			DefaultScope:               utils.String(defaultScope),
@@ -238,8 +231,23 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 			ResourceOwnerUsername:      utils.String(resourceOwnerUsername),
 			SupportState:               utils.Bool(supportState),
 			TokenBodyParameters:        tokenBodyParameters,
-			TokenEndpoint:              utils.String(tokenEndpoint),
 		},
+	}
+
+	authorizationMethodsRaw := d.Get("authorization_methods").(*schema.Set).List()
+	if len(authorizationMethodsRaw) > 0 {
+		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
+		params.AuthorizationServerContractProperties.AuthorizationMethods = authorizationMethods
+	}
+
+	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*schema.Set).List()
+	if len(bearerTokenSendingMethodsRaw) > 0 {
+		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
+		params.AuthorizationServerContractProperties.BearerTokenSendingMethods = bearerTokenSendingMethods
+	}
+
+	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
+		params.AuthorizationServerContractProperties.TokenEndpoint = utils.String(tokenEndpoint)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, params, ""); err != nil {

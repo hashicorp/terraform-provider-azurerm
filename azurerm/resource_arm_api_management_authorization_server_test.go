@@ -193,20 +193,19 @@ resource "azurerm_api_management_authorization_server" "test" {
   grant_types = [
      "authorizationCode",
   ]
-
-  authorization_methods = [
+  authorization_methods        = [
     "GET",
     "POST",
   ]
   bearer_token_sending_methods = [
     "authorizationHeader"
   ]
-  client_secret = "n1n3-m0re-s3a5on5-m0r1y"
-  default_scope  = "read write"
-  token_endpoint = ""
-  resource_owner_username = "rick"
-  resource_owner_password = "C-193P"
-  support_state  = true
+  client_secret                = "n1n3-m0re-s3a5on5-m0r1y"
+  default_scope                = "read write"
+  token_endpoint               = "https://azacctest.hashicorptest.com/client/token"
+  resource_owner_username      = "rick"
+  resource_owner_password      = "C-193P"
+  support_state                = true
 }
 `, template, rInt)
 }
