@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account_id` - (Required for `Classic` Sku - Optional otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
+* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
 * `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
 
