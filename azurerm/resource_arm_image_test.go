@@ -641,7 +641,7 @@ resource "azurerm_image" "test" {
   name                = "accteste"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_redundant      = %t
+  zone_resilient      = %t
 
   os_disk {
     os_type  = "Linux"
