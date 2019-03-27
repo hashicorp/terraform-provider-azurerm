@@ -495,7 +495,7 @@ resource "azurerm_virtual_network_gateway_connection" "test_1" {
 
   type                            = "ExpressRoute"
   virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.test_1.id}"
-  express_route_circuit_id                = "${azurerm_express_route_circuit.test.id}"
+  express_route_circuit_id        = "${azurerm_express_route_circuit.test.id}"
   express_route_gateway_bypass    = true
 }
 
