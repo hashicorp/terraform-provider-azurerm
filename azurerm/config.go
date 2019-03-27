@@ -63,7 +63,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 
@@ -127,12 +127,17 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
+	apiManagementApiClient           apimanagement.APIClient
+	apiManagementApiOperationsClient apimanagement.APIOperationClient
 	apiManagementGroupClient         apimanagement.GroupClient
 	apiManagementGroupUsersClient    apimanagement.GroupUserClient
+	apiManagementLoggerClient        apimanagement.LoggerClient
 	apiManagementProductsClient      apimanagement.ProductClient
+	apiManagementProductApisClient   apimanagement.ProductAPIClient
 	apiManagementProductGroupsClient apimanagement.ProductGroupClient
 	apiManagementPropertyClient      apimanagement.PropertyClient
 	apiManagementServiceClient       apimanagement.ServiceClient
+	apiManagementSubscriptionsClient apimanagement.SubscriptionClient
 	apiManagementUsersClient         apimanagement.UserClient
 
 	// Application Insights
@@ -494,6 +499,14 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	apisClient := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apisClient.Client, auth)
+	c.apiManagementApiClient = apisClient
+
+	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationsClient.Client, auth)
+	c.apiManagementApiOperationsClient = apiOperationsClient
+
 	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&groupsClient.Client, auth)
 	c.apiManagementGroupClient = groupsClient
@@ -501,6 +514,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&groupUsersClient.Client, auth)
 	c.apiManagementGroupUsersClient = groupUsersClient
+
+	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&loggerClient.Client, auth)
+	c.apiManagementLoggerClient = loggerClient
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)
@@ -510,6 +527,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&productsClient.Client, auth)
 	c.apiManagementProductsClient = productsClient
 
+	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productApisClient.Client, auth)
+	c.apiManagementProductApisClient = productApisClient
+
 	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&productGroupsClient.Client, auth)
 	c.apiManagementProductGroupsClient = productGroupsClient
@@ -517,6 +538,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&propertiesClient.Client, auth)
 	c.apiManagementPropertyClient = propertiesClient
+
+	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionsClient.Client, auth)
+	c.apiManagementSubscriptionsClient = subscriptionsClient
 
 	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usersClient.Client, auth)

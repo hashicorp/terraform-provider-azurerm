@@ -51,6 +51,8 @@ output "storage_account_tier" {
 
 * `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
+    
+* `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
 * `account_encryption_source` - The Encryption Source for this Storage Account.
 

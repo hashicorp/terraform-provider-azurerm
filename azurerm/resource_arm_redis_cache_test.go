@@ -117,6 +117,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 				Config: testAccAzureRMRedisCache_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "minimum_tls_version"),
 				),
 			},
 			{
@@ -596,6 +597,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "C"
   sku_name            = "Basic"
   enable_non_ssl_port = false
+  minimum_tls_version = "1.2"
 
   redis_configuration {}
 }

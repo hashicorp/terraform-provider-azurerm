@@ -250,7 +250,7 @@ A `ssh_keys` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
 
--> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` interpolation function](https://www.terraform.io/docs/configuration/interpolation.html#file_path_) - for example `key_data = "${file("~/.ssh/id_rsa.pub")}"`.
+-> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
 
 * `path` - (Required) The path of the destination file on the virtual machine
 

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -143,6 +143,13 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+
+			"is_hns_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
 			},
 
 			"network_rules": {
@@ -385,6 +392,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
+	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -413,6 +421,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         networkRules,
+			IsHnsEnabled:           &isHnsEnabled,
 		},
 	}
 
@@ -441,6 +450,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
+	} else {
+		if isHnsEnabled {
+			return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
+		}
 	}
 
 	// Create
@@ -679,6 +692,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {

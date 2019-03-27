@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementGroupUsersClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagementProductGroupsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_group" {
 			continue

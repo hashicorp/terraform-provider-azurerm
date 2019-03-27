@@ -65,7 +65,6 @@ func resourceArmAppService() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),

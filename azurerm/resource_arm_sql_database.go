@@ -559,10 +559,6 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
-	}
-
-	if err != nil {
 		return fmt.Errorf("Error deleting SQL Database: %+v", err)
 	}
 

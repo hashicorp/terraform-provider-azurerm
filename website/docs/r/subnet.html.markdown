@@ -80,6 +80,7 @@ A `delegation` block supports the following:
 A `service_delegation` block supports the following:
 
 -> **NOTE:** Delegating to services may not be available in all regions. Check that the service you are delegating to is available in your region using the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations)
+
 * `name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.Batch/batchAccounts`, `Microsoft.ContainerInstance/containerGroups`, `Microsoft.HardwareSecurityModules/dedicatedHSMs`, `Microsoft.Logic/integrationServiceEnvironments`, `Microsoft.Netapp/volumes`, `Microsoft.ServiceFabricMesh/networks`, `Microsoft.Sql/managedInstances`, `Microsoft.Sql/servers` or `Microsoft.Web/serverFarms`.
 * `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
 
