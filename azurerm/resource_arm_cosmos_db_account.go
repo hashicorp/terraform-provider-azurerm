@@ -22,7 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDBAccount() *schema.Resource {
+func resourceArmCosmosAccount() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmCosmosDBAccountCreate,
 		Read:   resourceArmCosmosDBAccountRead,
@@ -297,7 +297,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 }
 
 func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
@@ -399,7 +399,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
@@ -547,7 +547,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -683,7 +683,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

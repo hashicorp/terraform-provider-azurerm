@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/cosmos"
 	"log"
 	"os"
 	"strings"
@@ -92,7 +93,7 @@ type ArmClient struct {
 
 	StopContext context.Context
 
-	cosmosDBClient documentdb.DatabaseAccountsClient
+	cosmosAccountsClient documentdb.DatabaseAccountsClient
 
 	automationAccountClient               automation.AccountClient
 	automationAgentRegistrationInfoClient automation.AgentRegistrationInformationClient
@@ -461,7 +462,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
-	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth)
+	client.registercosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
@@ -639,10 +640,14 @@ func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId str
 	c.cognitiveAccountsClient = accountsClient
 }
 
-func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
+func (c *ArmClient) registercosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	ca := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&ca.Client, auth)
+	c.cosmosAccountsClient = ca
+
+	/*cdb := cosmos.NewDatabasesClient(subscriptionId)
 	c.configureClient(&cdb.Client, auth)
-	c.cosmosDBClient = cdb
+	c.cosmosDatabasesClient = cdb*/
 }
 
 func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1403,4 +1408,8 @@ func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, 
 
 	queueClient := storageClient.GetQueueService()
 	return &queueClient, true, nil
+}
+
+func (c *ArmClient) getCosmosDatabasesClient(accountName string, accountKey string) cosmos.DatabasesClient {
+	return cosmos.NewDatabasesClient(accountName, cosmos.NewAccountKeyWithDefaults(accountKey))
 }

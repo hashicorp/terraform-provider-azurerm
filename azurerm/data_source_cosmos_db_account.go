@@ -177,7 +177,7 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 }
 
 func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

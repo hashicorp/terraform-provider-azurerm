@@ -643,7 +643,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
+	conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -682,12 +682,12 @@ func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for CosmosDB Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
+		conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on cosmosDBClient: %+v", err)
+			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
