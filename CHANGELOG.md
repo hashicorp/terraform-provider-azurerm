@@ -31,6 +31,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
 * `azurerm_key_vault` - support for the `storage_permissions` property [GH-3081]
 * `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
+* `azurerm_redis_cache` - support for the `minimum_tls_version` property [GH-3111]
 * `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
 * `azurerm_virtual_machine` - support for managed disks up to 32TB [GH-3062]
 * `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
