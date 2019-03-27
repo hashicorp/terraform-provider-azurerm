@@ -40,7 +40,6 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "test" {
-  name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   account_name         = "${azurerm_batch_account.test.name}"
   certificate          = "${base64encode(file("certificate.pfx"))}"
@@ -54,8 +53,6 @@ resource "azurerm_batch_certificate" "test" {
 ## Argument Reference
 
 The following arguments are supported:
-
-* `name` - (Required) The identifier for the certificate. This must be made up of algorithm and thumbprint separated by a dash, and must match the certificate data in the request. For example `SHA1-a3d1c5`. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) Specifies the name of the Batch account. Changing this forces a new resource to be created.
 
@@ -76,3 +73,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch certificate ID.
+
+* `name` - The generated name of the certificate.

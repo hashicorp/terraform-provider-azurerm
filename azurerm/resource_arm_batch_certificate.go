@@ -26,11 +26,8 @@ func resourceArmBatchCertificate() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     validateAzureRMBatchCertificateName,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"account_name": {
 				Type:         schema.TypeString,
@@ -59,12 +56,14 @@ func resourceArmBatchCertificate() *schema.Resource {
 			},
 			"thumbprint": {
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"thumbprint_algorithm": {
 				Type:             schema.TypeString,
 				Required:         true,
+				ForceNew:         true,
 				ValidateFunc:     validation.StringInSlice([]string{"SHA1"}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -80,12 +79,12 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
-	name := d.Get("name").(string)
 	certificate := d.Get("certificate").(string)
 	format := d.Get("format").(string)
 	password := d.Get("password").(string)
 	thumbprint := d.Get("thumbprint").(string)
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
+	name := thumbprintAlgorithm + "-" + thumbprint
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, accountName, name)

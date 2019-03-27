@@ -50,7 +50,6 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "test" {
-	name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
 	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"

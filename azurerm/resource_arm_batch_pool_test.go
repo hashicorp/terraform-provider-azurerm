@@ -564,7 +564,6 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "testcer" {
-	name                 = "SHA1-312d31a79fa0cef49c00f769afc2b73e9f4edf34"
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
 	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
@@ -573,7 +572,6 @@ resource "azurerm_batch_certificate" "testcer" {
 	thumbprint_algorithm = "SHA1"
 }
 resource "azurerm_batch_certificate" "testpfx" {
-	name                 = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
 	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
