@@ -91,6 +91,29 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGatewayConnection_expressroute(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
+
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMVirtualNetworkGatewayConnection_expressroute(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(firstResourceName),
+					resource.TestCheckResourceAttrSet(firstResourceName, "express_route_circuit_id"),
+					resource.TestCheckResourceAttr(firstResourceName, "express_route_gateway_bypass", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
@@ -414,6 +437,90 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
   shared_key = "${var.shared_key}"
 }
 `, rInt, rInt2, sharedKey, location, altLocation)
+}
+
+func testAccAzureRMVirtualNetworkGatewayConnection_expressroute(rInt int, location string) string {
+	return fmt.Sprintf(`
+variable "random1" {
+  default = "%d"
+}
+
+resource "azurerm_resource_group" "test_1" {
+  name     = "acctestRG-${var.random1}"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test_1" {
+  name                = "acctestvn-${var.random1}"
+  location            = "${azurerm_resource_group.test_1.location}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test_1" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = "${azurerm_resource_group.test_1.name}"
+  virtual_network_name = "${azurerm_virtual_network.test_1.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test_1" {
+  name                = "acctest-${var.random1}"
+  location            = "${azurerm_resource_group.test_1.location}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test_1" {
+  name                = "acctest-${var.random1}"
+  location            = "${azurerm_resource_group.test_1.location}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+
+  type     = "ExpressRoute"
+  vpn_type = "RouteBased"
+  sku      = "Basic"
+
+  ip_configuration {
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = "${azurerm_public_ip.test_1.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = "${azurerm_subnet.test_1.id}"
+  }
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test_1" {
+  name                = "acctest-${var.random1}"
+  location            = "${azurerm_resource_group.test_1.location}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+
+  type                            = "ExpressRoute"
+  virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.test_1.id}"
+  express_route_circuit_id                = "${azurerm_express_route_circuit.test.id}"
+  express_route_gateway_bypass    = true
+}
+
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = true
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(rInt int, location string) string {
