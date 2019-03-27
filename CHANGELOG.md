@@ -31,12 +31,14 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
 * `azurerm_key_vault` - support for the `storage_permissions` property [GH-3081]
 * `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
+* `mssql_elasticpool` - support setting the `zone_redundant` property [GH-3104]
 * `azurerm_redis_cache` - support for the `minimum_tls_version` property [GH-3111]
 * `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
 * `azurerm_virtual_machine` - support for managed disks up to 32TB [GH-3062]
 * `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
 
 BUG FIXES:
+
 * `azurerm_application_gateway` - correctly populating backend addresses from both new and deprecated properties `fqdns`/`fqdn_list` [GH-3085]
 * `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
 * `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
