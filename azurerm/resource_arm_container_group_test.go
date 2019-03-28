@@ -681,7 +681,7 @@ resource "azurerm_container_group" "test" {
         "node-name" = "acctestContainerGroup"
       }
     }
-	}
+  }
 
   tags = {
     environment = "Testing"
