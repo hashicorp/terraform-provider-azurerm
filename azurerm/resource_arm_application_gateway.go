@@ -919,6 +919,49 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 128),
 							Default:      128,
 						},
+						"disabled_rule_group": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"rule_group_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"crs_20_protocol_violations",
+											"crs_21_protocol_anomalies",
+											"crs_23_request_limits",
+											"crs_30_http_policy",
+											"crs_35_bad_robots",
+											"crs_40_generic_attacks",
+											"crs_41_sql_injection_attacks",
+											"crs_41_xss_attacks",
+											"crs_42_tight_security",
+											"crs_45_trojans",
+											"REQUEST-911-METHOD-ENFORCEMENT",
+											"REQUEST-913-SCANNER-DETECTION",
+											"REQUEST-920-PROTOCOL-ENFORCEMENT",
+											"REQUEST-921-PROTOCOL-ATTACK",
+											"REQUEST-930-APPLICATION-ATTACK-LFI",
+											"REQUEST-931-APPLICATION-ATTACK-RFI",
+											"REQUEST-932-APPLICATION-ATTACK-RCE",
+											"REQUEST-933-APPLICATION-ATTACK-PHP",
+											"REQUEST-941-APPLICATION-ATTACK-XSS",
+											"REQUEST-942-APPLICATION-ATTACK-SQLI",
+											"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION",
+										}, true),
+									},
+
+									"rules": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2612,6 +2655,29 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	requestBodyCheck := v["request_body_check"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
+	disabledRuleGroups := make([]network.ApplicationGatewayFirewallDisabledRuleGroup, 0)
+	for _, disabledRuleGroup := range v["disabled_rule_group"].([]interface{}) {
+		disabledRuleGroupMap := disabledRuleGroup.(map[string]interface{})
+
+		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
+
+		rules := make([]int32, 0)
+		for _, rule := range disabledRuleGroupMap["rules"].([]interface{}) {
+			rules = append(rules, int32(rule.(int)))
+		}
+
+		if len(rules) == 0 {
+			rules = nil
+		}
+
+		ruleGroup := network.ApplicationGatewayFirewallDisabledRuleGroup{
+			RuleGroupName: utils.String(ruleGroupName),
+			Rules:         &rules,
+		}
+
+		disabledRuleGroups = append(disabledRuleGroups, ruleGroup)
+	}
+
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
 		Enabled:                utils.Bool(enabled),
 		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
@@ -2620,6 +2686,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
+		DisabledRuleGroups:     &disabledRuleGroups,
 	}
 }
 
@@ -2643,6 +2710,37 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.RuleSetVersion != nil {
 		output["rule_set_version"] = *input.RuleSetVersion
+	}
+
+	ruleGroups := make([]interface{}, 0)
+	if disabledRuleGroups := input.DisabledRuleGroups; disabledRuleGroups != nil {
+		for _, ruleGroup := range *disabledRuleGroups {
+			ruleGroupOutput := map[string]interface{}{}
+
+			if ruleGroup.RuleGroupName != nil {
+				ruleGroupOutput["rule_group_name"] = *ruleGroup.RuleGroupName
+			}
+
+			ruleOutputs := make([]interface{}, 0)
+			if rules := ruleGroup.Rules; rules != nil {
+				for _, rule := range *rules {
+					ruleOutputs = append(ruleOutputs, rule)
+				}
+			}
+			ruleGroupOutput["rules"] = ruleOutputs
+
+			ruleGroups = append(ruleGroups, ruleGroupOutput)
+		}
+
+		output["disabled_rule_group"] = ruleGroups
+	}
+
+	if input.RequestBodyCheck != nil {
+		output["request_body_check"] = *input.RequestBodyCheck
+	}
+
+	if input.MaxRequestBodySizeInKb != nil {
+		output["max_request_body_size_kb"] = *input.MaxRequestBodySizeInKb
 	}
 
 	if input.FileUploadLimitInMb != nil {
