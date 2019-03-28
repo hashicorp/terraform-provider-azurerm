@@ -92,7 +92,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_expressroute(t *testing.T) {
-	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
+	firstResourceName := "azurerm_virtual_network_gateway_connection.test"
 
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_expressroute(ri, testLocation())
