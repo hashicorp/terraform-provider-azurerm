@@ -1109,35 +1109,27 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, 
 }
 
 func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.Blob, "blob"); err != nil {
-			return err
-		}
+	if secondary == nil {
+		return nil
 	}
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.Dfs, "dfs"); err != nil {
-			return err
-		}
+
+	if err := setEndpointAndHost(d, "secondary", secondary.Blob, "blob"); err != nil {
+		return err
 	}
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.File, "file"); err != nil {
-			return err
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.Dfs, "dfs"); err != nil {
+		return err
 	}
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.Queue, "queue"); err != nil {
-			return err
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.File, "file"); err != nil {
+		return err
 	}
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.Table, "table"); err != nil {
-			return err
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.Queue, "queue"); err != nil {
+		return err
 	}
-	if secondary != nil {
-		if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
-			return err
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
+		return err
 	}
 	return nil
 }
