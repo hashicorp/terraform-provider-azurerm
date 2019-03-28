@@ -13,15 +13,15 @@ Manages an IotHub Shared Access Policy
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_iothub" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_iothub" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"
@@ -30,10 +30,10 @@ resource "azurerm_iothub" "test" {
   }
 }
 
-resource "azurerm_iothub_shared_access_policy" "test" {
+resource "azurerm_iothub_shared_access_policy" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  iothub_name         = "${azurerm_iothub.example.name}"
   
   registry_read = true
   registry_write = true
