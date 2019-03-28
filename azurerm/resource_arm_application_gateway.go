@@ -919,6 +919,29 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 128),
 							Default:      128,
 						},
+
+						"exclusion": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match_variable": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"selector_match_operator": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"selector": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2612,6 +2635,23 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	requestBodyCheck := v["request_body_check"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
+	exclusions := make([]network.ApplicationGatewayFirewallExclusion, 0)
+	for _, exclusion := range v["exclusion"].([]interface{}) {
+		exclusionMap := exclusion.(map[string]interface{})
+
+		matchVariable := exclusionMap["match_variable"].(string)
+		selectorMatchOperator := exclusionMap["selector_match_operator"].(string)
+		selector := exclusionMap["selector"].(string)
+
+		exclusionList := network.ApplicationGatewayFirewallExclusion{
+			MatchVariable:         utils.String(matchVariable),
+			SelectorMatchOperator: utils.String(selectorMatchOperator),
+			Selector:              utils.String(selector),
+		}
+
+		exclusions = append(exclusions, exclusionList)
+	}
+
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
 		Enabled:                utils.Bool(enabled),
 		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
@@ -2620,6 +2660,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
+		Exclusions:             &exclusions,
 	}
 }
 
@@ -2655,6 +2696,29 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.MaxRequestBodySizeInKb != nil {
 		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
+	}
+
+	exclusionLists := make([]interface{}, 0)
+	if exclusions := input.Exclusions; exclusions != nil {
+		for _, exclusionList := range *exclusions {
+			exclusionListOutput := map[string]interface{}{}
+
+			if exclusionList.MatchVariable != nil {
+				exclusionListOutput["match_variable"] = *exclusionList.MatchVariable
+			}
+
+			if exclusionList.SelectorMatchOperator != nil {
+				exclusionListOutput["selector_match_operator"] = *exclusionList.SelectorMatchOperator
+			}
+
+			if exclusionList.Selector != nil {
+				exclusionListOutput["selector"] = *exclusionList.Selector
+			}
+
+			exclusionLists = append(exclusionLists, exclusionListOutput)
+		}
+
+		output["exclusion"] = exclusionLists
 	}
 
 	results = append(results, output)
