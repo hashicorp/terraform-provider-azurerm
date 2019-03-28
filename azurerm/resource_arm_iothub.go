@@ -22,6 +22,7 @@ import (
 )
 
 var iothubResourceName = "azurerm_iothub"
+
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
 		path := strings.Split(k, ".")
