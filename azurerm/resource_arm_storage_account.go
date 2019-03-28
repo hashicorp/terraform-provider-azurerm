@@ -1082,66 +1082,76 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 }
 
 func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
-	if err := setEndpointAndHost(d, primary, "primary", primary.Blob, "blob"); err != nil {
-		return err
-	}
-	if err := setEndpointAndHost(d, primary, "primary", primary.Dfs, "dfs"); err != nil {
-		return err
-	}
-	if err := setEndpointAndHost(d, primary, "primary", primary.File, "file"); err != nil {
-		return err
-	}
-	if err := setEndpointAndHost(d, primary, "primary", primary.Queue, "queue"); err != nil {
-		return err
-	}
-	if err := setEndpointAndHost(d, primary, "primary", primary.Table, "table"); err != nil {
-		return err
-	}
-	if err := setEndpointAndHost(d, primary, "primary", primary.Web, "web"); err != nil {
-		return err
-	}
-
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
+	}
+
+	if err := setEndpointAndHost(d, "primary", primary.Blob, "blob"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Dfs, "dfs"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.File, "file"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Queue, "queue"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Web, "web"); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.Blob, "blob"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.Blob, "blob"); err != nil {
+			return err
+		}
 	}
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.Dfs, "dfs"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.Dfs, "dfs"); err != nil {
+			return err
+		}
 	}
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.File, "file"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.File, "file"); err != nil {
+			return err
+		}
 	}
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.Queue, "queue"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.Queue, "queue"); err != nil {
+			return err
+		}
 	}
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.Table, "table"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.Table, "table"); err != nil {
+			return err
+		}
 	}
-	if err := setEndpointAndHost(d, secondary, "secondary", secondary.Web, "web"); err != nil {
-		return err
+	if secondary != nil {
+		if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func setEndpointAndHost(d *schema.ResourceData, ordinal *storage.Endpoints, ordinalString string, endpointType *string, typeString string) error {
+func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointType *string, typeString string) error {
 	var endpoint, host string
-	if ordinal != nil {
-		if v := endpointType; v != nil {
-			endpoint = *v
+	if v := endpointType; v != nil {
+		endpoint = *v
 
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid %s endpoint for parsing: %q", typeString, *v)
-			}
-			host = u.Host
+		u, err := url.Parse(*v)
+		if err != nil {
+			return fmt.Errorf("invalid %s endpoint for parsing: %q", typeString, *v)
 		}
+		host = u.Host
 	}
 
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
