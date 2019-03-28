@@ -14,6 +14,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
+func possibleArmApplicationGatewaySslCipherSuiteValues() []string {
+	cipherSuites := make([]string, 0)
+	for _, cipherSuite := range network.PossibleApplicationGatewaySslCipherSuiteValues() {
+		cipherSuites = append(cipherSuites, string(cipherSuite))
+	}
+	return cipherSuites
+}
+
 func resourceArmApplicationGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmApplicationGatewayCreateUpdate,
@@ -635,8 +644,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			// TODO: @tombuildsstuff deprecate this in favour of a full `ssl_protocol` block in the future
 			"disabled_ssl_protocols": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Deprecated: "has been replaced by `ssl_policy`.`disabled_protocols`",
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -645,6 +655,66 @@ func resourceArmApplicationGateway() *schema.Resource {
 						string(network.TLSv11),
 						string(network.TLSv12),
 					}, true),
+				},
+			},
+
+			"ssl_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disabled_protocols": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.TLSv10),
+									string(network.TLSv11),
+									string(network.TLSv12),
+								}, true),
+							},
+						},
+
+						"policy_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.Custom),
+									string(network.Predefined),
+								}, true),
+							},
+						},
+
+						"policy_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"cipher_suites": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+								ValidateFunc:     validation.StringInSlice(possibleArmApplicationGatewaySslCipherSuiteValues(), true),
+							},
+						},
+
+						"min_protocol_version": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.TLSv10),
+								string(network.TLSv11),
+								string(network.TLSv12),
+							}, true),
+						},
+					},
 				},
 			},
 
@@ -1228,6 +1298,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", setErr)
 		}
 
+		if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
+			return fmt.Errorf("Error setting `ssl_policy`: %+v", setErr)
+		}
+
 		d.Set("enable_http2", props.EnableHTTP2)
 
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
@@ -1661,16 +1735,86 @@ func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatew
 }
 
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
-	vs := d.Get("disabled_ssl_protocols").([]interface{})
-	results := make([]network.ApplicationGatewaySslProtocol, 0)
+	policy := network.ApplicationGatewaySslPolicy{}
+	vs := d.Get("ssl_policy").([]interface{})
+	if len(vs) == 0 {
+		return &policy
+	}
+	v := vs[0].(map[string]interface{})
 
-	for _, v := range vs {
-		results = append(results, network.ApplicationGatewaySslProtocol(v.(string)))
+	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
+	for _, policy := range v["disabled_protocols"].([]interface{}) {
+		disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
+	}
+	if len(disabledSSLPolicies) == 0 {
+		for _, policy := range d.Get("disabled_ssl_protocols").([]interface{}) {
+			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
+		}
 	}
 
-	return &network.ApplicationGatewaySslPolicy{
-		DisabledSslProtocols: &results,
+	if len(disabledSSLPolicies) > 0 {
+		policy = network.ApplicationGatewaySslPolicy{
+			DisabledSslProtocols: &disabledSSLPolicies,
+		}
+	} else {
+		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
+
+		if policyType == network.Predefined {
+			policyName := network.ApplicationGatewaySslPolicyName(v["policy_name"].(string))
+
+			policy = network.ApplicationGatewaySslPolicy{
+				PolicyType: policyType,
+				PolicyName: policyName,
+			}
+		} else if policyType == network.Custom {
+			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
+
+			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
+			for _, cipherSuite := range v["cipher_suites"].([]interface{}) {
+				cipherSuites = append(cipherSuites, network.ApplicationGatewaySslCipherSuite(cipherSuite.(string)))
+			}
+
+			policy = network.ApplicationGatewaySslPolicy{
+				PolicyType:         policyType,
+				MinProtocolVersion: minProtocolVersion,
+				CipherSuites:       &cipherSuites,
+			}
+		}
 	}
+
+	return &policy
+}
+
+func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPolicy) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input == nil {
+		return results
+	}
+
+	output := map[string]interface{}{}
+	output["policy_name"] = input.PolicyName
+	output["policy_type"] = input.PolicyType
+	output["min_protocol_version"] = input.MinProtocolVersion
+
+	if input.CipherSuites != nil {
+		cipherSuites := make([]interface{}, 0)
+		for _, v := range *input.CipherSuites {
+			cipherSuites = append(cipherSuites, string(v))
+		}
+		output["cipher_suites"] = cipherSuites
+	}
+
+	if input.DisabledSslProtocols != nil {
+		disabledSslProtocols := make([]interface{}, 0)
+		for _, v := range *input.DisabledSslProtocols {
+			disabledSslProtocols = append(disabledSslProtocols, string(v))
+		}
+		output["disabled_protocols"] = disabledSslProtocols
+	}
+
+	results = append(results, output)
+	return results
 }
 
 func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGatewaySslPolicy) []interface{} {

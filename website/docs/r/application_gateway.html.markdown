@@ -147,7 +147,9 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+* `disabled_ssl_protocols` - Deprecated: replaced by `ssl_policy`. (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`. Not compatible with `ssl_policy`
+
+* `ssl_policy` (Optional) ssl policys block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -380,6 +382,28 @@ A `url_path_map` block supports the following:
 
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
+
+---
+
+A `ssl_policy` block supports the following:
+
+* `policy_type` - (Optional) The Type of the Policy. Required if `policy_name` is set. Possible values are `Predefined` and `Custom`. Not compatible with `disabled_protocols`.
+
+For `policy_type`=`Predefined`:
+
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
+
+For `policy_type`=`Custom`:
+
+* `min_protocol_version` - (Optional) The minimal TLS version Required if `policy_type` is set to `Custom`. Possible values can change over time and are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`
+
+* `cipher_suites` - (Optional) A List of accepted cipher suites Required if `policy_type` is set to `Custom`. Example ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]. Possible values can change over time and are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`
+
+For `disabled_protocols`:
+
+* `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`. Not compatible with `policy_name` / `policy_type` 
+
 
 ---
 
