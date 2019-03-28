@@ -153,7 +153,7 @@ resource "azurerm_api_management_authorization_server" "test" {
   client_id                    = "42424242-4242-4242-4242-424242424242"
   client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
   grant_types = [
-     "authorizationCode",
+    "implicit",
   ]
 }
 `, template, rInt)
