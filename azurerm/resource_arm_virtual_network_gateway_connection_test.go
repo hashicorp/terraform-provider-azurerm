@@ -478,7 +478,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "ExpressRoute"
   vpn_type = "RouteBased"
-  sku      = "Basic"
+  sku      = "Standard"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
