@@ -2,6 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"regexp"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform/helper/customdiff"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -10,9 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"regexp"
-	"strings"
 )
 
 func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
@@ -26,14 +27,6 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"iothub_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.IoTHubName,
-			},
-			"resource_group_name": resourceGroupNameSchema(),
 			"name": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -43,21 +36,34 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
 			},
 
+			"resource_group_name": resourceGroupNameSchema(),
+
+			"iothub_name": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.IoTHubName,
+			},
+
 			"registry_read": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
+
 			"registry_write": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
+
 			"service_connect": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
+
 			"device_connect": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -81,6 +87,7 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Sensitive: true,
 				Computed:  true,
 			},
+
 			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -280,20 +287,20 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	_ = d.Set("name", keyName)
-	_ = d.Set("iothub_name", iothubName)
-	_ = d.Set("resource_group_name", resourceGroup)
+	d.Set("name", keyName)
+	d.Set("iothub_name", iothubName)
+	d.Set("resource_group_name", resourceGroup)
 
-	_ = d.Set("primary_key", accessPolicy.PrimaryKey)
-	_ = d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey))
-	_ = d.Set("secondary_key", accessPolicy.SecondaryKey)
-	_ = d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey))
+	d.Set("primary_key", accessPolicy.PrimaryKey)
+	d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey))
+	d.Set("secondary_key", accessPolicy.SecondaryKey)
+	d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey))
 
 	rights := flattenAccessRights(accessPolicy.Rights)
-	_ = d.Set("registry_read", rights.registryRead)
-	_ = d.Set("registry_write", rights.registryWrite)
-	_ = d.Set("device_connect", rights.deviceConnect)
-	_ = d.Set("service_connect", rights.serviceConnect)
+	d.Set("registry_read", rights.registryRead)
+	d.Set("registry_write", rights.registryWrite)
+	d.Set("device_connect", rights.deviceConnect)
+	d.Set("service_connect", rights.serviceConnect)
 
 	return nil
 }

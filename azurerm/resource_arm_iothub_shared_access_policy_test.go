@@ -2,14 +2,15 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
-	"strings"
-	"testing"
 )
 
 func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
@@ -112,7 +113,7 @@ resource "azurerm_iothub" "test" {
 resource "azurerm_iothub_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
-  name            = "acctest"
+  name                = "acctest"
 
   registry_read  = true
   registry_write = true
