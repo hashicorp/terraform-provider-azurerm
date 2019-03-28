@@ -5,12 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -126,6 +126,13 @@ func resourceArmPublicIp() *schema.Resource {
 				Computed: true,
 			},
 
+			"public_ip_prefix_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"zones": singleZonesSchema(),
 
 			"tags": tagsSchema(),
@@ -182,6 +189,8 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	publicIpPrefixId := d.Get("public_ip_prefix_id").(string)
+
 	publicIp := network.PublicIPAddress{
 		Name:     &name,
 		Location: &location,
@@ -192,6 +201,9 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			PublicIPAllocationMethod: network.IPAllocationMethod(ipAllocationMethod),
 			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
+			PublicIPPrefix: &network.SubResource{
+				ID: utils.String(publicIpPrefixId),
+			},
 		},
 		Tags:  expandTags(tags),
 		Zones: zones,
