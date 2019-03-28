@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
-	"github.com/hashicorp/terraform/helper/customdiff"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -94,38 +94,29 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Computed:  true,
 			},
 		},
-		CustomizeDiff: customdiff.All(
-			validateAtLeastOneIsTrue(
-				"registry_read",
-				"registry_write",
-				"service_connect",
-				"device_connect",
-			),
-			validateRegistryWriteImpliesRegistryRead,
-		),
+		CustomizeDiff: iothubSharedAccessPolicyCustomizeDiff,
 	}
 }
 
-func validateRegistryWriteImpliesRegistryRead(d *schema.ResourceDiff, meta interface{}) error {
-	if d.Get("registry_write").(bool) && !d.Get("registry_read").(bool) {
-		return fmt.Errorf("registry_read key must be set to true when registry_write is set to true")
+func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+	registryRead, hasRegistryRead := d.GetOk("registry_read")
+	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
+	serviceConnect, hasServieConnect := d.GetOk("service_connect")
+	deviceConnect, hasDeviceConnect := d.GetOk("device_connect")
+
+	if !hasRegistryRead && !hasRegistryWrite && !hasServieConnect && !hasDeviceConnect {
+		return fmt.Errorf("One of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
 	}
-	return nil
 
-}
-func validateAtLeastOneIsTrue(parameterNames ...string) schema.CustomizeDiffFunc {
-	return func(d *schema.ResourceDiff, meta interface{}) error {
-		atLeastOneSet := false
-		for _, param := range parameterNames {
-			atLeastOneSet = atLeastOneSet || d.Get(param).(bool)
-		}
-
-		if !atLeastOneSet {
-			return fmt.Errorf("at least one of the properties: %s must be set to true", strings.Join(parameterNames, ", "))
-		}
-
-		return nil
+	if !registryRead.(bool) && !registryWrite.(bool) && !serviceConnect.(bool) && !deviceConnect.(bool) {
+		err = multierror.Append(err, fmt.Errorf("At least one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set to true"))
 	}
+
+	if registryWrite.(bool) && !registryRead.(bool) {
+		err = multierror.Append(err, fmt.Errorf("If `registry_write` is set to true, `registry_read` must also be set to true"))
+	}
+
+	return
 }
 
 func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
