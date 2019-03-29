@@ -18,9 +18,12 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_app_service` - exporting the `cors` headers [GH-2870]
 * Data Source: `azurerm_storage_account` - exposing the Hierarchical Namespace state [GH-3032]
 * `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
 * `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
+* `azurerm_app_service` - support for specifying `cors` headers [GH-2870]
+* `azurerm_app_service_slot` - support for specifying `cors` headers [GH-2870]
 * `azurerm_app_service_slot` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_application_gateway` - support for WAF configuration properties `request_body_check` and `max_request_body_size_kb` [GH-3093]
 * `azurerm_application_gateway` - support for the `hostname` property [GH-2990]
@@ -36,7 +39,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
 * `azurerm_key_vault` - support for the `storage_permissions` property [GH-3081]
 * `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
-* `mssql_elasticpool` - support setting the `zone_redundant` property [GH-3104]
+* `azurerm_mssql_elasticpool` - support setting the `zone_redundant` property [GH-3104]
 * `azurerm_redis_cache` - support for the `minimum_tls_version` property [GH-3111]
 * `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
 * `azurerm_storage_account` - exposing the DFS File Secondary and Web endpoints [GH-3110]
