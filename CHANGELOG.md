@@ -28,6 +28,7 @@ IMPROVEMENTS:
 * `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 [GH-3049]
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` [GH-3043]
 * `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type [GH-3049]
+* `azurerm_image` - support for the `zone_resilient` property [GH-3100]
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property [GH-2987]
 * `azurerm_key_vault` - support for the `storage_permissions` property [GH-3081]
 * `azurerm_managed_disk` - support for managed disks up to 32TB [GH-3062]
