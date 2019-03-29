@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
+* `policy` - (Optional) A `policy` block as defined below.
+
 * `security` - (Optional) A `security` block as defined below.
 
 * `sign_in` - (Optional) A `sign_in` block as defined below.
@@ -123,6 +125,14 @@ A `management`, `portal` and `scm` block supports the following:
 
 ---
 
+A `policy` block supports the following:
+
+* `xml_content` - (Optional) The XML Content for this Policy.
+
+* `xml_link` - (Optional) A link to an API Management Policy XML Document, which must be publicly available.
+
+---
+
 A `proxy` block supports the following:
 
 * `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
@@ -140,7 +150,6 @@ A `proxy` block supports the following:
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
-
 
 ---
 
@@ -213,9 +222,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Service.
 
+* `additional_location` - One or more `additional_location` blocks as documented below.
+
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
 * `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
+
+* `identity` - An `identity` block as defined below.
 
 * `management_api_url` - The URL for the Management API associated with this API Management service.
 
@@ -225,9 +238,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `identity` - An `identity` block as defined below.
+---
 
-* `additional_location` - One or more `additional_location` blocks as documented below.
+An `additional_location` block exports the following:
+
+* `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
+
+* `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
 ---
 
@@ -236,14 +253,6 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
----
-
-An `additional_location` block exports the following:
-
-* `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
-
-* `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
 ## Import
 

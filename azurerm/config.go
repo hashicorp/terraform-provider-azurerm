@@ -135,6 +135,7 @@ type ArmClient struct {
 	apiManagementGroupUsersClient           apimanagement.GroupUserClient
 	apiManagementLoggerClient               apimanagement.LoggerClient
 	apiManagementOpenIdConnectClient        apimanagement.OpenIDConnectProviderClient
+	apiManagementPolicyClient               apimanagement.PolicyClient
 	apiManagementProductsClient             apimanagement.ProductClient
 	apiManagementProductApisClient          apimanagement.ProductAPIClient
 	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
@@ -531,6 +532,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&loggerClient.Client, auth)
 	c.apiManagementLoggerClient = loggerClient
+
+	policyClient := apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policyClient.Client, auth)
+	c.apiManagementPolicyClient = policyClient
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)

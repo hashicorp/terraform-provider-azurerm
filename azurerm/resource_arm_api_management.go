@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -255,6 +256,30 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"xml_content": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ConflictsWith:    []string{"policy.0.xml_link"},
+							DiffSuppressFunc: suppress.XmlDiff,
+						},
+
+						"xml_link": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"policy.0.xml_content"},
+						},
+					},
+				},
+			},
+
 			"sign_in": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -431,6 +456,28 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	policyClient := meta.(*ArmClient).apiManagementPolicyClient
+	policiesRaw := d.Get("policy").([]interface{})
+	policy, err := expandApiManagementPolicies(policiesRaw)
+	if err != nil {
+		return err
+	}
+
+	if d.HasChange("policy") {
+		if policy == nil {
+			// remove the existing policy
+			if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
+				if !utils.ResponseWasNotFound(resp) {
+					return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
+			}
+		} else {
+			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy); err != nil {
+				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmApiManagementServiceRead(d, meta)
 }
 
@@ -467,6 +514,14 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	policyClient := meta.(*ArmClient).apiManagementPolicyClient
+	policy, err := policyClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(policy.Response) {
+			return fmt.Errorf("Error retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	d.Set("name", name)
@@ -519,6 +574,10 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	flattenAndSetTags(d, resp.Tags)
+
+	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
+		return fmt.Errorf("Error setting `policy`: %+v", err)
+	}
 
 	return nil
 }
@@ -1044,4 +1103,59 @@ func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings
 			"terms_of_service": termsOfService,
 		},
 	}
+}
+
+func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyContract, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	vs := input[0].(map[string]interface{})
+	xmlContent := vs["xml_content"].(string)
+	xmlLink := vs["xml_link"].(string)
+
+	if xmlContent != "" {
+		return &apimanagement.PolicyContract{
+			PolicyContractProperties: &apimanagement.PolicyContractProperties{
+				ContentFormat: apimanagement.XML,
+				PolicyContent: utils.String(xmlContent),
+			},
+		}, nil
+	}
+
+	if xmlLink != "" {
+		return &apimanagement.PolicyContract{
+			PolicyContractProperties: &apimanagement.PolicyContractProperties{
+				ContentFormat: apimanagement.XMLLink,
+				PolicyContent: utils.String(xmlLink),
+			},
+		}, nil
+	}
+
+	return nil, fmt.Errorf("Either `xml_content` or `xml_link` should be set if the `policy` block is defined.")
+}
+
+func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
+	output := map[string]interface{}{
+		"xml_content": "",
+		"xml_link":    "",
+	}
+
+	if props := input.PolicyContractProperties; props != nil {
+		if props.PolicyContent != nil {
+			output["xml_content"] = *props.PolicyContent
+		}
+	}
+
+	// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+	// as such we need to retrieve this value from the state if it's present
+	if existing, ok := d.GetOk("policy"); ok {
+		existingVs := existing.([]interface{})
+		if len(existingVs) > 0 {
+			existingV := existingVs[0].(map[string]interface{})
+			output["xml_link"] = existingV["xml_link"].(string)
+		}
+	}
+
+	return []interface{}{output}
 }

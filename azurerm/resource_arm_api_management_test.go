@@ -150,6 +150,54 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagement_policy(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_policyXmlContent(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMApiManagement_policyXmlLink(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"policy.0.xml_link"},
+			},
+			{
+				Config: testAccAzureRMApiManagement_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).apiManagementServiceClient
 
@@ -223,6 +271,64 @@ resource "azurerm_api_management" "test" {
   sku {
     name     = "Developer"
     capacity = 1
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMApiManagement_policyXmlContent(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+
+  policy {
+    xml_content = <<XML
+<policies>
+  <inbound>
+    <find-and-replace from="xyz" to="abc" />
+  </inbound>
+</policies>
+XML
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMApiManagement_policyXmlLink(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+
+  policy {
+    xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
   }
 }
 `, rInt, location, rInt)
