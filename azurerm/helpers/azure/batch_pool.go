@@ -144,8 +144,10 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 	output := make([]interface{}, 0)
 	for _, armCertificate := range *armCertificates {
 		certificate := map[string]interface{}{}
-		certificate["id"] = armCertificate.ID
-		certificate["store_location"] = armCertificate.StoreLocation
+		if armCertificate.ID != nil {
+			certificate["id"] = *armCertificate.ID
+		}
+		certificate["store_location"] = string(armCertificate.StoreLocation)
 		certificate["store_name"] = armCertificate.StoreName
 		visibility := &schema.Set{F: schema.HashString}
 		if armCertificate.Visibility != nil {
@@ -153,10 +155,8 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 				visibilityTemp := string(armVisibility)
 				visibility.Add(visibilityTemp)
 			}
-			certificate["visibility"] = visibility
-			foo := visibility.List()
-			_ = foo
 		}
+		certificate["visibility"] = visibility
 		output = append(output, certificate)
 	}
 	return output

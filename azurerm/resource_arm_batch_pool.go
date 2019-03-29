@@ -171,7 +171,7 @@ func resourceArmBatchPool() *schema.Resource {
 						"id": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"store_location": {
@@ -518,9 +518,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
-		if props.Certificates != nil {
-			d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates))
-		}
+		d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates))
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}

@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Data Source: azurerm_batch_account
+# Data Source: azurerm_batch_certificate
 
 Use this data source to access information about an existing certificate in a Batch Account.
 
@@ -21,8 +21,8 @@ data "azurerm_batch_certificate" "test" {
   resource_group_name = "test"
 }
 
-output "pool_allocation_mode" {
-  value = "${data.azurerm_batch_certificate.test.pool_allocation_mode}"
+output "thumbprint" {
+  value = "${data.azurerm_batch_certificate.test.thumbprint}"
 }
 ```
 
@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `public_data` - The public key of the certificate.
 
-* `format` - The ID of the Storage Account used for this Batch account.
+* `format` - The format of the certificate, such as `Cer` or `Pfx`.
 
 * `thumbprint` - The thumbprint of the certificate.
 

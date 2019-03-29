@@ -118,11 +118,11 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"store_location": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"CurrentUser",
 								"LocalMachine",

@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_batch_account
+# azurerm_batch_certificate
 
 Manages a certificate in an Azure Batch account.
 
@@ -64,9 +64,7 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. This must and can only be specified when `format` is `Pfx`.
 
-* `thumbprint` - (Required) The thumbprint of the certificate. This must match the thumbprint from the name.
-
-* `thumbprint_algorithm` - (Required) The algorithm of the certificate thumbprint. This must match the first portion of the certificate name. Currently required to be 'SHA1'.
+* `thumbprint` - (Required) The thumbprint of the certificate. At this time the only supported value is 'SHA1'.
 
 ## Attributes Reference
 
