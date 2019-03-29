@@ -71,6 +71,7 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
+
 	if requireResourcesToBeImported {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
