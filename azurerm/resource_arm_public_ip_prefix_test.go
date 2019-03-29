@@ -214,7 +214,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
 }
@@ -229,9 +229,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	tags = {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -249,9 +249,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	tags = {
+  tags = {
     environment = "staging"
   }
 }
@@ -268,9 +268,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	prefix_length = 31
+  prefix_length = 31
 }
 `, rInt, location, rInt)
 }
