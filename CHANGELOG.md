@@ -39,6 +39,7 @@ IMPROVEMENTS:
 * `mssql_elasticpool` - support setting the `zone_redundant` property [GH-3104]
 * `azurerm_redis_cache` - support for the `minimum_tls_version` property [GH-3111]
 * `azurerm_storage_account` - support for configuring the Hierarchical Namespace state [GH-3032]
+* `azurerm_storage_account` - exposing the DFS File Secondary and Web endpoints [GH-3110]
 * `azurerm_virtual_machine` - support for managed disks up to 32TB [GH-3062]
 * `azurerm_virtual_machine_scale_set` - support for managed disks up to 32TB [GH-3062]
 
