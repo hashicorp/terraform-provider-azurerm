@@ -155,6 +155,9 @@ resource "azurerm_api_management_authorization_server" "test" {
   grant_types = [
     "implicit",
   ]
+  authorization_methods        = [
+    "GET",
+  ]
 }
 `, template, rInt)
 }
@@ -173,6 +176,9 @@ resource "azurerm_api_management_authorization_server" "import" {
   client_id                    = "${azurerm_api_management_authorization_server.test.client_id}"
   client_registration_endpoint = "${azurerm_api_management_authorization_server.test.client_registration_endpoint}"
   grant_types                  = "${azurerm_api_management_authorization_server.test.grant_types}"
+  authorization_methods        = [
+    "GET",
+  ]
 }
 `, template)
 }
