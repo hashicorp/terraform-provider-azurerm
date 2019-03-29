@@ -35,7 +35,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
-			
+
 			"authorization_methods": {
 				Type:     schema.TypeSet,
 				Required: true,
