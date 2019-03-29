@@ -140,6 +140,8 @@ type ArmClient struct {
 	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
 	apiManagementPropertyClient             apimanagement.PropertyClient
 	apiManagementServiceClient              apimanagement.ServiceClient
+	apiManagementSignInClient               apimanagement.SignInSettingsClient
+	apiManagementSignUpClient               apimanagement.SignUpSettingsClient
 	apiManagementSubscriptionsClient        apimanagement.SubscriptionClient
 	apiManagementUsersClient                apimanagement.UserClient
 
@@ -533,6 +535,14 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)
 	c.apiManagementServiceClient = serviceClient
+
+	signInClient := apimanagement.NewSignInSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&signInClient.Client, auth)
+	c.apiManagementSignInClient = signInClient
+
+	signUpClient := apimanagement.NewSignUpSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&signUpClient.Client, auth)
+	c.apiManagementSignUpClient = signUpClient
 
 	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&openIdConnectClient.Client, auth)

@@ -255,6 +255,58 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"sign_in": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"sign_up": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"terms_of_service": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"consent_required": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"text": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 
 			"gateway_url": {
@@ -365,6 +417,20 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
+	signInSettingsRaw := d.Get("sign_in").([]interface{})
+	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
+	signInClient := meta.(*ArmClient).apiManagementSignInClient
+	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
+		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	signUpSettingsRaw := d.Get("sign_up").([]interface{})
+	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
+	signUpClient := meta.(*ArmClient).apiManagementSignUpClient
+	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
+		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	return resourceArmApiManagementServiceRead(d, meta)
 }
 
@@ -389,6 +455,18 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	signInClient := meta.(*ArmClient).apiManagementSignInClient
+	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	signUpClient := meta.(*ArmClient).apiManagementSignUpClient
+	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -430,6 +508,14 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
+
+	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+		return fmt.Errorf("Error setting `sign_in`: %+v", err)
+	}
+
+	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+		return fmt.Errorf("Error setting `sign_up`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -856,4 +942,106 @@ func parseApiManagementNilableDictionary(input map[string]*string, key string) b
 	}
 
 	return val
+}
+
+func expandApiManagementSignInSettings(input []interface{}) apimanagement.PortalSigninSettings {
+	enabled := false
+
+	if len(input) > 0 {
+		vs := input[0].(map[string]interface{})
+		enabled = vs["enabled"].(bool)
+	}
+
+	return apimanagement.PortalSigninSettings{
+		PortalSigninSettingProperties: &apimanagement.PortalSigninSettingProperties{
+			Enabled: utils.Bool(enabled),
+		},
+	}
+}
+
+func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings) []interface{} {
+	enabled := false
+
+	if props := input.PortalSigninSettingProperties; props != nil {
+		if props.Enabled != nil {
+			enabled = *props.Enabled
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+		},
+	}
+}
+
+func expandApiManagementSignUpSettings(input []interface{}) apimanagement.PortalSignupSettings {
+	if len(input) == 0 {
+		return apimanagement.PortalSignupSettings{
+			PortalSignupSettingsProperties: &apimanagement.PortalSignupSettingsProperties{
+				Enabled: utils.Bool(false),
+				TermsOfService: &apimanagement.TermsOfServiceProperties{
+					ConsentRequired: utils.Bool(false),
+					Enabled:         utils.Bool(false),
+					Text:            utils.String(""),
+				},
+			},
+		}
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	props := apimanagement.PortalSignupSettingsProperties{
+		Enabled: utils.Bool(vs["enabled"].(bool)),
+	}
+
+	termsOfServiceRaw := vs["terms_of_service"].([]interface{})
+	if len(termsOfServiceRaw) > 0 {
+		termsOfServiceVs := termsOfServiceRaw[0].(map[string]interface{})
+		props.TermsOfService = &apimanagement.TermsOfServiceProperties{
+			Enabled:         utils.Bool(termsOfServiceVs["enabled"].(bool)),
+			ConsentRequired: utils.Bool(termsOfServiceVs["consent_required"].(bool)),
+			Text:            utils.String(termsOfServiceVs["text"].(string)),
+		}
+	}
+
+	return apimanagement.PortalSignupSettings{
+		PortalSignupSettingsProperties: &props,
+	}
+}
+
+func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings) []interface{} {
+	enabled := false
+	termsOfService := make([]interface{}, 0)
+
+	if props := input.PortalSignupSettingsProperties; props != nil {
+		if props.Enabled != nil {
+			enabled = *props.Enabled
+		}
+
+		if tos := props.TermsOfService; tos != nil {
+			output := make(map[string]interface{})
+
+			if tos.Enabled != nil {
+				output["enabled"] = *tos.Enabled
+			}
+
+			if tos.ConsentRequired != nil {
+				output["consent_required"] = *tos.ConsentRequired
+			}
+
+			if tos.Text != nil {
+				output["text"] = *tos.Text
+			}
+
+			termsOfService = append(termsOfService, output)
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":          enabled,
+			"terms_of_service": termsOfService,
+		},
+	}
 }
