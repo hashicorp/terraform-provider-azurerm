@@ -174,6 +174,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_api_management_group":                   resourceArmApiManagementGroup(),
 			"azurerm_api_management_group_user":              resourceArmApiManagementGroupUser(),
 			"azurerm_api_management_logger":                  resourceArmApiManagementLogger(),
+			"azurerm_api_management_openid_connect_provider": resourceArmApiManagementOpenIDConnectProvider(),
 			"azurerm_api_management_product":                 resourceArmApiManagementProduct(),
 			"azurerm_api_management_product_api":             resourceArmApiManagementProductApi(),
 			"azurerm_api_management_product_group":           resourceArmApiManagementProductGroup(),

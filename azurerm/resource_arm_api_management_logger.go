@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -98,6 +99,19 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 
 	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
 		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+	}
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Logger %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_api_management_logger", *existing.ID)
+		}
 	}
 
 	parameters := apimanagement.LoggerContract{
@@ -207,8 +221,9 @@ func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing API Management Logger ID %q: %+v", d.Id(), err)
+		return err
 	}
+
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
 	name := id.Path["loggers"]
