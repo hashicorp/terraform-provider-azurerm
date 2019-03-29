@@ -68,7 +68,6 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
-
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
 
