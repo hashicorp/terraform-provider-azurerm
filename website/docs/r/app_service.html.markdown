@@ -221,14 +221,6 @@ The following attributes are exported:
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
 
----
-
-`cors` supports the following:
-
-* `allowed_origins` - (Required) List of allowed origins
-
-* `support_credentials` - (Optional) Should credential headers be allowed? Defaults to `false`.
-
 ## Import
 
 App Services can be imported using the `resource id`, e.g.
