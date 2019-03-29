@@ -34,7 +34,7 @@ resource "azurerm_api_management" "example" {
 resource "azurerm_api_management_policy" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   api_management_name = "${azurerm_api_management.example.name}"
-  xml_content         = "<policies><inbound></inbound></policies>"
+  xml_content         = "<policies><inbound><find-and-replace from='xyz' to='abc' /></inbound></policies>"
 }
 ```
 
