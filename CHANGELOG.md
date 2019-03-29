@@ -25,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for WAF configuration properties `request_body_check` and `max_request_body_size_kb` [GH-3093]
 * `azurerm_application_gateway` - support for the `hostname` property [GH-2990]
 * `azurerm_application_gateway` - support for redirect rules [GH-2908]
+* `azurerm_application_gateway` - support for `zones` [GH-3144]
 * `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties [GH-3071]
 * `azurerm_container_group` - support for attaching GPU's [GH-3053]
 * `azurerm_eventhub` - support for the `skip_empty_archives` property [GH-3074]
