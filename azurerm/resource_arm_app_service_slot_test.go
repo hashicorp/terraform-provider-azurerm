@@ -272,9 +272,6 @@ func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
 				Config: testAccAzureRMAppServiceSlot_corsSettings(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.support_credentials", "true"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.#", "3"),
 				)},
 			{
 				ResourceName:      resourceName,

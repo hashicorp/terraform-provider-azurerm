@@ -436,11 +436,13 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 
 	result := make(map[string]interface{})
 
-	allowedOrigins := make([]string, 0)
+	allowedOrigins := make([]interface{}, 0)
 	if s := input.AllowedOrigins; s != nil {
-		allowedOrigins = *s
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
 	}
-	result["allowed_origins"] = allowedOrigins
+	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
 
 	if input.SupportCredentials != nil {
 		result["support_credentials"] = *input.SupportCredentials
