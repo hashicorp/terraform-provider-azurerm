@@ -67,7 +67,7 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }

@@ -458,6 +458,10 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
+
+    storage_permissions = [
+      "set",
+    ]
   }
 }
 
@@ -560,6 +564,10 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
+
+    storage_permissions = [
+      "set",
+    ]
   }
 }
 
@@ -646,6 +654,10 @@ resource "azurerm_key_vault" "test" {
     ]
 
     secret_permissions = [
+      "set",
+    ]
+    
+    storage_permissions = [
       "set",
     ]
   }
@@ -791,7 +803,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }
@@ -833,6 +845,10 @@ resource "azurerm_key_vault" "test" {
     ]
 
     secret_permissions = [
+      "set",
+    ]
+
+    storage_permissions = [
       "set",
     ]
   }

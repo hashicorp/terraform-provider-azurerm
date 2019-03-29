@@ -21,6 +21,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *schema.ResourceData) bool {
+		path := strings.Split(k, ".")
+		path[len(path)-1] = "type"
+		return d.Get(strings.Join(path, ".")).(string) != t
+	}
+}
+
+func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *schema.ResourceData) bool {
+		for _, f := range fs {
+			if !f(k, old, new, d) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 func resourceArmIotHub() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmIotHubCreateUpdate,
@@ -158,13 +177,16 @@ func resourceArmIotHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								// As Azure API masks the connection string key suppress diff for this property
-								if old != "" && strings.HasSuffix(old, "****") {
-									return true
-								}
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
-								return false
+								// Azure will always mask the Access Keys and will include the port number in the GET response
+								// 5671 is the default port for Azure Service Bus connections
+								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
 							},
+							Sensitive: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
@@ -172,25 +194,30 @@ func resourceArmIotHub() *schema.Resource {
 							ValidateFunc: validateIoTHubEndpointName,
 						},
 						"batch_frequency_in_seconds": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      300,
-							ValidateFunc: validation.IntBetween(60, 720),
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          300,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(60, 720),
 						},
 						"max_chunk_size_in_bytes": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      314572800,
-							ValidateFunc: validation.IntBetween(10485760, 524288000),
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          314572800,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(10485760, 524288000),
 						},
 						"container_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"encoding": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+						},
+						"encoding": {
+							Type:     schema.TypeString,
+							Optional: true,
+							DiffSuppressFunc: supressWhenAll(
+								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Avro),
 								string(devices.AvroDeflate),
@@ -745,6 +772,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusQueue"
+
 				results = append(results, output)
 			}
 		}
@@ -760,6 +789,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 
+				output["type"] = "AzureIotHub.ServiceBusTopic"
+
 				results = append(results, output)
 			}
 		}
@@ -774,6 +805,8 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
 				}
+
+				output["type"] = "AzureIotHub.EventHub"
 
 				results = append(results, output)
 			}

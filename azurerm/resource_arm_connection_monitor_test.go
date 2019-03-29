@@ -554,7 +554,7 @@ resource "azurerm_connection_monitor" "test" {
     port    = 443
   }
 
-  tags {
+  tags = {
     env = "test"
   }
 
@@ -612,7 +612,7 @@ resource "azurerm_connection_monitor" "test" {
     port               = 443
   }
 
-  tags {
+  tags = {
     env = "test"
   }
 

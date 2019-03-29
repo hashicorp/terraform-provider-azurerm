@@ -86,6 +86,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := tf.AccRandTimeInt()
+	codeVersion := "6.4.637.9590"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,19 +94,19 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(ri, testLocation(), "6.3.162.9494"),
+				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(ri, testLocation(), codeVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "upgrade_mode", "Manual"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_code_version", "6.3.162.9494"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_code_version", codeVersion),
 				),
 			},
 			{
-				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(ri, testLocation(), "6.3.176.9494"),
+				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(ri, testLocation(), codeVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "upgrade_mode", "Manual"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_code_version", "6.3.176.9494"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_code_version", codeVersion),
 				),
 			},
 			{
@@ -854,7 +855,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -899,7 +900,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -945,7 +946,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -995,7 +996,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -1052,7 +1053,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
 	}
@@ -1130,7 +1131,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   fabric_settings {
 		name = "Security"
 		
-    parameters {
+    parameters = {
       "ClusterProtectionLevel" = "None"
     }
 	}
@@ -1234,10 +1235,10 @@ resource "azurerm_service_fabric_cluster" "test" {
   management_endpoint = "http://example:80"
   node_type {
 		name                 = "first"
-		placement_properties {
+		placement_properties = {
 			"HasSSD" = "true"
 		}
-		capacities {
+		capacities = {
 			"ClientConnections" = "20000"
 			"MemoryGB" = "8"
 		}
@@ -1246,7 +1247,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
 		http_endpoint_port   = 80
   }
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -1277,7 +1278,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 80
 	}
 	
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }

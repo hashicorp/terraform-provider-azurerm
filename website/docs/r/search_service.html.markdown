@@ -24,7 +24,7 @@ resource "azurerm_search_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "Standard"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }

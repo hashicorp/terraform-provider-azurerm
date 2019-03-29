@@ -258,7 +258,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "standard"
   managed_resource_group_name = "acctestRG-%d-managed"
 
-  tags {
+  tags = {
     Environment = "Production"
     Pricing     = "Standard"
   }
@@ -280,7 +280,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "standard"
   managed_resource_group_name = "acctestRG-%d-managed"
 
-  tags {
+  tags = {
     Pricing = "Standard"
   }
 }

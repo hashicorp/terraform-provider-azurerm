@@ -34,7 +34,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -61,3 +61,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch account ID.
+
+* `primary_access_key` - The Batch account primary access key.
+
+* `secondary_access_key` - The Batch account secondary access key.
+
+* `account_endpoint` - The account endpoint used to interact with the Batch service.
+
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.

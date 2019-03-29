@@ -10,6 +10,7 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -35,7 +36,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
@@ -63,7 +63,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 
@@ -113,11 +113,12 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
-	eventGridDomainsClient      eventgrid.DomainsClient
-	eventGridTopicsClient       eventgrid.TopicsClient
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
+	eventGridDomainsClient            eventgrid.DomainsClient
+	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
+	eventGridTopicsClient             eventgrid.TopicsClient
+	eventHubClient                    eventhub.EventHubsClient
+	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient          eventhub.NamespacesClient
 
 	solutionsClient operationsmanagement.SolutionsClient
 
@@ -126,7 +127,21 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementServiceClient apimanagement.ServiceClient
+	apiManagementApiClient                  apimanagement.APIClient
+	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
+	apiManagementCertificatesClient         apimanagement.CertificateClient
+	apiManagementGroupClient                apimanagement.GroupClient
+	apiManagementGroupUsersClient           apimanagement.GroupUserClient
+	apiManagementLoggerClient               apimanagement.LoggerClient
+	apiManagementOpenIdConnectClient        apimanagement.OpenIDConnectProviderClient
+	apiManagementProductsClient             apimanagement.ProductClient
+	apiManagementProductApisClient          apimanagement.ProductAPIClient
+	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
+	apiManagementPropertyClient             apimanagement.PropertyClient
+	apiManagementServiceClient              apimanagement.ServiceClient
+	apiManagementSubscriptionsClient        apimanagement.SubscriptionClient
+	apiManagementUsersClient                apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -487,9 +502,65 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ams.Client, auth)
-	c.apiManagementServiceClient = ams
+	apisClient := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apisClient.Client, auth)
+	c.apiManagementApiClient = apisClient
+
+	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationsClient.Client, auth)
+	c.apiManagementApiOperationsClient = apiOperationsClient
+
+	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&authorizationServersClient.Client, auth)
+	c.apiManagementAuthorizationServersClient = authorizationServersClient
+
+	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&certificatesClient.Client, auth)
+	c.apiManagementCertificatesClient = certificatesClient
+
+	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
+	c.apiManagementGroupClient = groupsClient
+
+	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupUsersClient.Client, auth)
+	c.apiManagementGroupUsersClient = groupUsersClient
+
+	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&loggerClient.Client, auth)
+	c.apiManagementLoggerClient = loggerClient
+
+	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&serviceClient.Client, auth)
+	c.apiManagementServiceClient = serviceClient
+
+	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&openIdConnectClient.Client, auth)
+	c.apiManagementOpenIdConnectClient = openIdConnectClient
+
+	productsClient := apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productsClient.Client, auth)
+	c.apiManagementProductsClient = productsClient
+
+	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productApisClient.Client, auth)
+	c.apiManagementProductApisClient = productApisClient
+
+	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productGroupsClient.Client, auth)
+	c.apiManagementProductGroupsClient = productGroupsClient
+
+	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&propertiesClient.Client, auth)
+	c.apiManagementPropertyClient = propertiesClient
+
+	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionsClient.Client, auth)
+	c.apiManagementSubscriptionsClient = subscriptionsClient
+
+	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&usersClient.Client, auth)
+	c.apiManagementUsersClient = usersClient
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -847,6 +918,10 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egdc.Client, auth)
 	c.eventGridDomainsClient = egdc
+
+	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egesc.Client, auth)
+	c.eventGridEventSubscriptionsClient = egesc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

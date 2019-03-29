@@ -2,6 +2,7 @@
 contrib.go.opencensus.io/exporter/ocagent
 # github.com/Azure/azure-sdk-for-go v25.1.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
+github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch
@@ -27,7 +28,6 @@ github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
-github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces
 github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns
@@ -55,7 +55,7 @@ github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric
-github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage
+github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
 github.com/Azure/azure-sdk-for-go/storage
@@ -147,8 +147,8 @@ github.com/hashicorp/go-azure-helpers/response
 # github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab
-github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
+github.com/hashicorp/go-getter
 # github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
