@@ -12,29 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaAppServiceCorsSettings() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"allowed_origins": {
-					Type:     schema.TypeSet,
-					Required: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
-				},
-				"support_credentials": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-			},
-		},
-	}
-}
-
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
