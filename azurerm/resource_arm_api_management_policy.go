@@ -121,6 +121,7 @@ func resourceArmApiManagementPolicyRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("api_management_name", serviceName)
 	if properties := resp.PolicyContractProperties; properties != nil {
 		d.Set("xml_content", "")
 		d.Set("xml_link", "")
