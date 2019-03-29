@@ -1,4 +1,4 @@
-package cosmos
+package capi
 
 import (
 	"crypto/hmac"
@@ -51,17 +51,18 @@ func GenerateAuthorizationSignature(r *http.Request, key64 string) (string, erro
 	// get the type
 	// "dbs/MyDatabase/colls/MyCollection" -> colls
 	// "dbs" -> colls
-	rLinkParts := strings.Split(rLink, "/")
+	rLinkParts := strings.Split(strings.ToLower(rLink), "/")
 	rLinkPartsLen := len(rLinkParts)
 
 	if rLinkPartsLen%2 == 0 {
 		rType = rLinkParts[rLinkPartsLen-2]
 	} else {
 		rType = rLinkParts[rLinkPartsLen-1]
+		rLink = ""
 	}
 
 	//form signature to hash
-	sig := verb + "\n" + strings.ToLower(rType) + "\n" + rLink + "\n" + date + "\n\n" //yes the extra new line is required
+	sig := verb + "\n" + rType + "\n" + rLink + "\n" + date + "\n\n" //yes the extra new line is required
 
 	//decode key
 	key, err := base64.StdEncoding.DecodeString(key64)

@@ -2,114 +2,144 @@ package cosmos
 
 import (
 	"context"
+	"fmt"
 	"github.com/Azure/go-autorest/autorest"
-	"net/http"
+	"github.com/terraform-providers/terraform-provider-azurerm/cosmos/capi"
+	"strconv"
 )
 
-// Client Definitions
+// Client
 type DatabasesClient struct {
-	BaseClient
+	capi.BaseClient
 }
 
-func NewDatabasesClient(cosmosAccountName string, cosmosAccountKey AccountKey) DatabasesClient {
-	return NewDatabasesClientWithSuffix(cosmosAccountName, cosmosAccountKey, DefaultCosmosURLSuffix)
+func NewDatabasesClientWithDefaults(cosmosAccountName string, cosmosAccountKey capi.AccountKey) DatabasesClient {
+	return NewDatabasesClient(cosmosAccountName, cosmosAccountKey, capi.DefaultURLSuffix, capi.DefaultCosmosAPIVersion)
 }
 
-func NewDatabasesClientWithSuffix(cosmosAccountName string, cosmosAccountKey AccountKey, cosmosURLSuffix string) DatabasesClient {
-	return NewDatabasesClientWithVersion(cosmosAccountName, cosmosAccountKey, cosmosURLSuffix, "2017-02-22")
-}
-
-func NewDatabasesClientWithVersion(cosmosAccountName string, cosmosAccountKey AccountKey, cosmosURLSuffix, version string) DatabasesClient {
+func NewDatabasesClient(cosmosAccountName string, cosmosAccountKey capi.AccountKey, cosmosURLSuffix, version string) DatabasesClient {
 	return DatabasesClient{
-		newClient("cosmos.DatabasesClient", cosmosAccountName, cosmosAccountKey, cosmosURLSuffix, version),
+		capi.NewClient("cosmos.DatabasesClient", cosmosAccountName, cosmosAccountKey, cosmosURLSuffix, version),
 	}
 }
 
-// Objects
+// Object
 type Database struct {
-	APIResponse
+	capi.BaseResource
 
-	//throughput
+	OfferThroughput *int `json:"-"`
 }
 
-func ByPopulatingEntity(e APIResponse) autorest.RespondDecorator {
+/*
+func ByUnmarshallingDatabase(db *Database) autorest.RespondDecorator {
 	return func(r autorest.Responder) autorest.Responder {
 		return autorest.ResponderFunc(func(resp *http.Response) error {
+
 			err := r.Respond(resp)
-			if err != nil {
-				return err
+
+			if err == nil {
+				b, errInner := ioutil.ReadAll(resp.Body)
+				// Some responses might include a BOM, remove for successful unmarshalling
+				b = bytes.TrimPrefix(b, []byte("\xef\xbb\xbf"))
+				if errInner != nil {
+					err = fmt.Errorf("Error occurred reading http.Response#Body - Error = '%v'", errInner)
+				} else if len(strings.Trim(string(b), " ")) > 0 {
+					errInner = json.Unmarshal(b, v)
+					if errInner != nil {
+						err = fmt.Errorf("Error occurred unmarshalling JSON - Error = '%v' JSON = '%s'", errInner, string(b))
+					}
+				}
 			}
 
-			e.Response = autorest.Response{resp}
 
-			return nil
+			return err
 		})
 	}
+}*/
+
+// PathBase
+type PathToDatabase struct {
+	capi.PathBase
+
+	Database string
+}
+
+func ParseDatabasePath(path string) (PathToDatabase, error) {
+	p, err := capi.ParsePath(path)
+	if err != nil {
+		return PathToDatabase{}, fmt.Errorf("Unable to parse database path: %v", err)
+	}
+
+	dbp := PathToDatabase{PathBase: p}
+
+	if v, ok := p.Parts["dbs"]; ok {
+		dbp.Database = v
+		return dbp, nil
+	}
+
+	return dbp, fmt.Errorf("Unable to parse database path, missing `dbs` component")
+}
+
+//should this retirn a PathBase object?
+func GenerateDatabasePath(databaseName string) PathToDatabase {
+	p, _ := ParseDatabasePath("/dbs/" + databaseName) //cannot.. well should not fail
+	return p
 }
 
 // Methods
-func (client DatabasesClient) Create(ctx context.Context, databaseName string) (result Database, err error) {
+func (c DatabasesClient) Create(ctx context.Context, databaseName string, db Database) (result Database, err error) {
+	path := GenerateDatabasePath(databaseName)
+	db.ID = &databaseName
 
-	db := Database{
-		APIResponse: APIResponse{
-			ID: &databaseName,
-		},
+	preparers := []autorest.PrepareDecorator{
+		autorest.WithJSON(db),
 	}
 
-	req, err := client.Preparer(ctx, "Create", http.MethodPost, "/dbs", map[string]interface{}{}, autorest.WithJSON(db))
-	if err != nil {
-		return result, err
+	if db.OfferThroughput != nil {
+		preparers = append(preparers, autorest.WithHeader("x-ms-offer-throughput", strconv.Itoa(*db.OfferThroughput)))
 	}
 
-	resp, err := client.Sender("Create", req)
+	resp, err := c.BaseClient.Create(ctx, path.GetCreatePath(), preparers, []autorest.RespondDecorator{autorest.ByUnmarshallingJSON(&result)})
+
+	result.Response = *resp
 	if err == nil {
-		resp, err = client.Responder("Create", resp.Response, http.StatusCreated, autorest.ByUnmarshallingJSON(&result))
-		if err == nil {
-			result.Path = "cosmos/dbs/" + databaseName
+		v := resp.Header.Get("x-ms-offer-throughput")
+
+		if v != "" {
+			//populate
+			i, err := strconv.Atoi(resp.Header.Get("x-ms-offer-throughput"))
+			if err != nil {
+				return result, fmt.Errorf("unable to")
+			}
+			result.OfferThroughput = &i
 		}
 	}
-
-	result.PopulateCommon(resp)
 
 	return result, err
 }
 
-func (client DatabasesClient) Get(ctx context.Context, databaseName string) (result Database, err error) {
-	parameters := map[string]interface{}{
-		"databaseName": databaseName,
-	}
+func (c DatabasesClient) Get(ctx context.Context, databaseName string) (result Database, err error) {
+	path := GenerateDatabasePath(databaseName)
 
-	req, err := client.Preparer(ctx, "Get", http.MethodGet, "/dbs/{databaseName}", parameters)
-	if err != nil {
-		return result, err
-	}
+	resp, err := c.BaseClient.Get(ctx, path.Path, autorest.ByUnmarshallingJSON(&result))
 
-	resp, err := client.Sender("Get", req)
+	result.Response = *resp
 	if err == nil {
-		resp, err = client.Responder("Get", resp.Response, http.StatusOK, autorest.ByUnmarshallingJSON(&result))
-		if err == nil {
-			result.Path = "cosmos/dbs/" + databaseName
+		v := resp.Header.Get("x-ms-offer-throughput")
+
+		if v != "" {
+			//populate
+			i, err := strconv.Atoi(resp.Header.Get("x-ms-offer-throughput"))
+			if err != nil {
+				return result, fmt.Errorf("unable to")
+			}
+			result.OfferThroughput = &i
 		}
 	}
-	result.Response = resp
+
 	return result, err
 }
 
-func (client DatabasesClient) Delete(ctx context.Context, databaseName string) (result autorest.Response, err error) {
-	parameters := map[string]interface{}{
-		"databaseName": databaseName,
-	}
-
-	req, err := client.Preparer(ctx, "Delete", http.MethodDelete, "/dbs/{databaseName}", parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cosmos.DatabasesClient", "Delete", nil, "Failure preparing request")
-		return result, err
-	}
-
-	resp, err := client.Sender("Delete", req)
-	if err == nil {
-		resp, err = client.Responder("Delete", resp.Response, http.StatusNoContent)
-	}
-
-	return resp, err
+func (c DatabasesClient) Delete(ctx context.Context, databaseName string) (result *autorest.Response, err error) {
+	return c.BaseClient.Delete(ctx, GenerateDatabasePath(databaseName).Path)
 }

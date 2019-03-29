@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/cosmos"
 	"log"
 	"regexp"
 
@@ -74,7 +75,9 @@ func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if _, err := client.Create(ctx, name); err != nil {
+	db := cosmos.Database{OfferThroughput: utils.Int(500)}
+
+	if _, err := client.Create(ctx, name, db); err != nil {
 		return fmt.Errorf("Error creating Cosmos Database %s (Account %s): %+v", name, account, err)
 	}
 
@@ -84,7 +87,7 @@ func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	//path is unique, id is actually the name
-	d.SetId(resp.Path)
+	d.SetId("cosmos/" + client.AccountName + "/" + resp.Path)
 
 	return resourceArmCosmosDatabaseRead(d, meta)
 }
@@ -113,7 +116,7 @@ func resourceArmCosmosDatabaseRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_name", account)
 	d.Set("account_key", key)
 
-	//d.Set("name", resp.Path)
+	//d.Set("name", resp.PathBase)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/cosmos/capi"
 	"log"
 	"os"
 	"strings"
@@ -645,7 +646,7 @@ func (c *ArmClient) registercosmosAccountsClients(endpoint, subscriptionId strin
 	c.configureClient(&ca.Client, auth)
 	c.cosmosAccountsClient = ca
 
-	/*cdb := cosmos.NewDatabasesClient(subscriptionId)
+	/*cdb := cosmos.NewDatabasesClientWithDefaults(subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDatabasesClient = cdb*/
 }
@@ -1411,5 +1412,5 @@ func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, 
 }
 
 func (c *ArmClient) getCosmosDatabasesClient(accountName string, accountKey string) cosmos.DatabasesClient {
-	return cosmos.NewDatabasesClient(accountName, cosmos.NewAccountKeyWithDefaults(accountKey))
+	return cosmos.NewDatabasesClientWithDefaults(accountName, capi.NewAccountKeyWithDefaults(accountKey))
 }

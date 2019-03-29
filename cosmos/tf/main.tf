@@ -20,14 +20,14 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 
-resource "azurerm_cosmosdb_database" "test11" {
-  name         = "ktktktnew"
+resource "azurerm_cosmosdb_database" "test" {
+  name         = "ktktktnewnewnewnewnew"
   account_name = "${azurerm_cosmosdb_account.test.name}"
   account_key  = "${azurerm_cosmosdb_account.test.primary_master_key}"
 }
 
-resource "azurerm_cosmosdb_database" "test12" {
-  name         = "workworkwork"
+resource "azurerm_cosmosdb_database" "testmore" {
+  name         = "renameitagainandagain"
   account_name = "${azurerm_cosmosdb_account.test.name}"
   account_key  = "${azurerm_cosmosdb_account.test.primary_master_key}"
 }
