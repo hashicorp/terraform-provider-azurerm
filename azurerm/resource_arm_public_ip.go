@@ -128,7 +128,7 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"public_ip_prefix_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
