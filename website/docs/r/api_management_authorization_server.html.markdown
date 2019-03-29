@@ -39,11 +39,11 @@ resource "azurerm_api_management_authorization_server" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Authorization Server. Changing this forces a new resource to be created.
-
 * `api_management_name` - (Required) The name of the API Management Service in which this Authorization Server should be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
+* `authorization_methods` - (Required) The HTTP Verbs supported by the Authorization Endpoint. Possible values are `DELETE`, `GET`, `HEAD`, `OPTIONS`, `PATCH`, `POST`, `PUT` and `TRACE`.
+
+-> **NOTE:** `GET` must always be present.
 
 * `authorization_endpoint` - (Required) The OAUTH Authorization Endpoint.
 
@@ -55,11 +55,11 @@ The following arguments are supported:
 
 * `grant_types` - (Required) Form of Authorization Grants required when requesting an Access Token. Possible values are `authorizationCode`, `clientCredentials`, `implicit` and `resourceOwnerPassword`.
 
+* `name` - (Required) The name of this Authorization Server. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
+
 ---
-
-* `authorization_methods` - (Optional) The HTTP Verbs supported by the Authorization Endpoint. Possible values are `DELETE`, `GET`, `HEAD`, `OPTIONS`, `PATCH`, `POST`, `PUT` and `TRACE`.
-
--> **NOTE:** If set, `GET` must always be present.
 
 * `bearer_token_sending_methods` - (Optional) The mechanism by which Access Tokens are passed to the API. Possible values are `authorizationHeader` and `query`.
 

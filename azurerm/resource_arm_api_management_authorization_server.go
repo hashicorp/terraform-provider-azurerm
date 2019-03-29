@@ -35,6 +35,25 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
+			
+			"authorization_methods": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(apimanagement.DELETE),
+						string(apimanagement.GET),
+						string(apimanagement.HEAD),
+						string(apimanagement.OPTIONS),
+						string(apimanagement.PATCH),
+						string(apimanagement.POST),
+						string(apimanagement.PUT),
+						string(apimanagement.TRACE),
+					}, false),
+				},
+				Set: schema.HashString,
+			},
 
 			"client_id": {
 				Type:         schema.TypeString,
@@ -70,25 +89,6 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 			},
 
 			// Optional
-			"authorization_methods": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.DELETE),
-						string(apimanagement.GET),
-						string(apimanagement.HEAD),
-						string(apimanagement.OPTIONS),
-						string(apimanagement.PATCH),
-						string(apimanagement.POST),
-						string(apimanagement.PUT),
-						string(apimanagement.TRACE),
-					}, false),
-				},
-				Set: schema.HashString,
-			},
-
 			"bearer_token_sending_methods": {
 				Type:     schema.TypeSet,
 				Optional: true,
