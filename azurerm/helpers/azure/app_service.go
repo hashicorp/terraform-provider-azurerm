@@ -411,7 +411,7 @@ func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
 	setting := settings[0].(map[string]interface{})
 
 	if v, ok := setting["allowed_origins"]; ok {
-		input := v.([]interface{})
+		input := v.(*schema.Set).List()
 
 		allowedOrigins := make([]string, 0)
 		for _, param := range input {
