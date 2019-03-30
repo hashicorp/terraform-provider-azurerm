@@ -39,21 +39,9 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
-			"sku": {
-				Type:     schema.TypeList,
+			"sku_name": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"capacity": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"notification_sender_email": {
@@ -198,8 +186,8 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if err := d.Set("sku_name", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku_name`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -289,20 +277,14 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	return results
 }
 
-func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
+func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) string {
 	if profile == nil {
-		return []interface{}{}
+		return ""
 	}
 
-	sku := make(map[string]interface{})
+	skuName := fmt.Sprintf("%s_%d", string(profile.Name), *profile.Capacity)
 
-	sku["name"] = string(profile.Name)
-
-	if profile.Capacity != nil {
-		sku["capacity"] = *profile.Capacity
-	}
-
-	return []interface{}{sku}
+	return skuName
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {

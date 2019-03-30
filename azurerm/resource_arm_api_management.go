@@ -60,10 +60,13 @@ func resourceArmApiManagementService() *schema.Resource {
 				ValidateFunc: validate.ApiManagementServicePublisherEmail,
 			},
 
+			// Remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -76,13 +79,26 @@ func resourceArmApiManagementService() *schema.Resource {
 								string(apimanagement.SkuTypePremium),
 							}, false),
 						},
+
 						"capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(0),
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: azure.SkuNameStringInSlice([]string{
+					string(apimanagement.SkuTypeDeveloper),
+					string(apimanagement.SkuTypeBasic),
+					string(apimanagement.SkuTypeStandard),
+					string(apimanagement.SkuTypePremium),
+				}, 1, false),
 			},
 
 			"identity": {
@@ -289,6 +305,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).apiManagementServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
+	log.Printf("[INFO] validating SKU for API Management Service.")
+
+	sku := expandAzureRmApiManagementSku(d)
+
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	name := d.Get("name").(string)
@@ -309,8 +329,6 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-
-	sku := expandAzureRmApiManagementSku(d)
 
 	publisherName := d.Get("publisher_name").(string)
 	publisherEmail := d.Get("publisher_email").(string)
@@ -379,6 +397,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["service"]
+	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -428,10 +447,18 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if skuName == "" {
+		// Remove in 2.0
+		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		d.Set("sku_name", "")
+	} else {
+		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
+		d.Set("sku", "")
 	}
-
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -704,17 +731,41 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 }
 
 func expandAzureRmApiManagementSku(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
-	vs := d.Get("sku").([]interface{})
-	// guaranteed by MinItems in the schema
-	v := vs[0].(map[string]interface{})
+	var name string
+	var capacity int32
+	var err error
 
-	name := apimanagement.SkuType(v["name"].(string))
-	capacity := int32(v["capacity"].(int))
+	if s := d.Get("sku_name").(string); s != "" {
+		name, capacity, err = azure.SplitSku(s)
+
+		if err != nil {
+			return &apimanagement.ServiceSkuProperties{}
+		}
+	} else {
+		// Remove in 2.0 timeframe
+		vs := d.Get("sku").([]interface{})
+
+		// guaranteed by MinItems in the schema
+		v := vs[0].(map[string]interface{})
+
+		name = v["name"].(string)
+		capacity = int32(v["capacity"].(int))
+	}
 
 	sku := &apimanagement.ServiceSkuProperties{
-		Name:     name,
+		Name:     apimanagement.SkuType(name),
 		Capacity: utils.Int32(capacity),
 	}
+
+	return sku
+}
+
+func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuProperties) string {
+	if input == nil {
+		return ""
+	}
+
+	sku := fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 
 	return sku
 }

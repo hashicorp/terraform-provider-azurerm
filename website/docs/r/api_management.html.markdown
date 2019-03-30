@@ -25,10 +25,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 ```
 
@@ -46,7 +43,9 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku`  - (Required) A `sku` block as documented below
+
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(_). The fist part is the `name`, valid values include: `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ---
 
@@ -122,7 +121,7 @@ A `security` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: `Developer`, `Basic`, `Standard` and `Premium`.
+* `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: Developer, Basic, Standard and Premium.
 
 * `capacity` - (Required) Specifies the Pricing Capacity for the API Management Service.
 

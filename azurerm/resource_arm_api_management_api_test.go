@@ -38,6 +38,35 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
+// Remove in 2.0
+func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_basicClassic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "soap_pass_through", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_current", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_online", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
 	ri := acctest.RandInt()
@@ -322,6 +351,24 @@ resource "azurerm_api_management_api" "test" {
 `, template, rInt)
 }
 
+// Remove in 2.0
+func testAccAzureRMApiManagementApi_basicClassic(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_templateClassic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+}
+`, template, rInt)
+}
+
 func testAccAzureRMApiManagementApi_wordRevision(rInt int, location string) string {
 	template := testAccAzureRMApiManagementApi_template(rInt, location)
 	return fmt.Sprintf(`
@@ -448,6 +495,26 @@ resource "azurerm_api_management_api" "test" {
 }
 
 func testAccAzureRMApiManagementApi_template(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagementApi_templateClassic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"

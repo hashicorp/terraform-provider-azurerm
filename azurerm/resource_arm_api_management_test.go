@@ -195,10 +195,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku = "Developer_1"
 }
 `, rInt, location, rInt)
 }
@@ -215,10 +212,7 @@ resource "azurerm_api_management" "import" {
   publisher_name      = "${azurerm_api_management.test.publisher_name}"
   publisher_email     = "${azurerm_api_management.test.publisher_email}"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku = "Developer_1"
 }
 `, template)
 }
@@ -237,10 +231,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku = "Developer_1"
 
   security {
     disable_frontend_tls10     = true
@@ -311,10 +302,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku {
-    name     = "Premium"
-    capacity = 1
-  }
+  sku = "Premium_1"
 
   tags = {
     "Acceptance" = "Test"
