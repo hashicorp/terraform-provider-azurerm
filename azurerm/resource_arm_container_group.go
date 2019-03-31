@@ -670,8 +670,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["readiness_probe"]; ok {
-			readinessProbe := expandContainerProbe(v)
-			container.ContainerProperties.ReadinessProbe = readinessProbe
+			container.ContainerProperties.ReadinessProbe = expandContainerProbe(v)
 		}
 
 		containers = append(containers, container)
@@ -1096,19 +1095,19 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		output["exec"] = *v.Command
 	}
 
-	if v := input.HTTPGet; v != nil {
+	if get := input.HTTPGet; get != nil {
 		httpget := make(map[string]interface{})
 
-		if v := input.HTTPGet.Path; v != nil {
+		if v := get.Path; v != nil {
 			httpget["path"] = *v
 		}
 
-		if v := input.HTTPGet.Port; v != nil {
+		if v := get.Port; v != nil {
 			httpget["port"] = *v
 		}
 
-		if input.HTTPGet.Scheme != "" {
-			httpget["scheme"] = input.HTTPGet.Scheme
+		if get.Scheme != "" {
+			httpget["scheme"] = get.Scheme
 		}
 
 		output["httpget"] = []interface{}{httpget}
