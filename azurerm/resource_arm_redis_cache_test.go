@@ -395,7 +395,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabled(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"redis_configuration.0.aof_storage_connection_string_0","redis_configuration.0.aof_storage_connection_string_1"},
+				ImportStateVerifyIgnore: []string{"redis_configuration.0.aof_storage_connection_string_0", "redis_configuration.0.aof_storage_connection_string_1"},
 			},
 		},
 	})
@@ -406,7 +406,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, location)
+	config := testAccAzureRMRedisCacheAOFBackupEnabled(ri, rs, location)
 	updatedConfig := testAccAzureRMRedisCacheAOFBackupDisabled(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -418,7 +418,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(resourceName),
-				)
+				),
 				ExpectNonEmptyPlan: true,
 			},
 			{

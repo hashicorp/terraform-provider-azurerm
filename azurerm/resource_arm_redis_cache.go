@@ -186,7 +186,6 @@ func resourceArmRedisCache() *schema.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
-						
 					},
 				},
 			},
