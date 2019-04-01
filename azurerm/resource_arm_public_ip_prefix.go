@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,19 +17,8 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 		Read:   resourceArmPublicIpPrefixRead,
 		Update: resourceArmPublicIpPrefixCreateUpdate,
 		Delete: resourceArmPublicIpPrefixDelete,
-
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				id, err := parseAzureResourceID(d.Id())
-				if err != nil {
-					return nil, err
-				}
-				name := id.Path["publicIPPrefixes"]
-				if name == "" {
-					return nil, fmt.Errorf("Error parsing supplied resource id. Please check it and rerun:\n %s", d.Id())
-				}
-				return []*schema.ResourceData{d}, nil
-			},
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -46,14 +34,13 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(network.Standard),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(network.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Standard),
-				}, true),
+				}, false),
 			},
 
 			"prefix_length": {

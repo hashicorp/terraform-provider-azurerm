@@ -37,11 +37,9 @@ resource "azurerm_public_ip_prefix" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Public IP resource . Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Public IP resource . Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the public IP.
+* `resource_group_name` - (Required) The name of the resource group in which to create the public IP.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -65,3 +63,11 @@ The following attributes are exported:
 
 * `id` - The Public IP Prefix ID.
 * `ip_prefix` - The IP address prefix value that was allocated.
+
+## Import
+
+Public IP Prefixes can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_public_ip_prefix.myPublicIpPrefix /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPFixes/myPublicIpPrefix1
+```
