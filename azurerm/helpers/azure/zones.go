@@ -7,7 +7,6 @@ func SchemaZones() *schema.Schema {
 		Type:     schema.TypeList,
 		Optional: true,
 		ForceNew: true,
-		MinItems: 1,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 		},
