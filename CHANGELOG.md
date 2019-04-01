@@ -52,6 +52,7 @@ BUG FIXES:
 * `azurerm_key_vault_certificate` - making `contents` and `password` within the `certificate` block sensitive [GH-3064]
 * `monitor_metric_alert` - support for setting `aggregation` to `count`  [GH-3047]
 * `azurerm_virtual_network_gateway` - fixing a crash when `bgp_settings` had no elements [GH-3038]
+* `azurerm_virtual_machine_scale_set` - support setting `zones` to an empty list [GH-3142]
 
 ## 1.23.0 (March 08, 2019)
 
