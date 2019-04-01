@@ -51,7 +51,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 			},
 			"password": {
 				Type:      schema.TypeString,
-				Optional:  true, // Required if `format` is "Cer"
+				Optional:  true, // Required if `format` is "Pfx"
 				Sensitive: true,
 			},
 			"thumbprint": {
