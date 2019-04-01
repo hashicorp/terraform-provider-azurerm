@@ -147,24 +147,46 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"rdb_backup_frequency": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validateRedisBackupFrequency,
 						},
+
 						"rdb_backup_max_snapshot_count": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+
 						"rdb_storage_connection_string": {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
+
 						"notify_keyspace_events": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+
+						"aof_backup_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"aof_storage_connection_string_0": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"aof_storage_connection_string_1": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+						
 					},
 				},
 			},
@@ -601,7 +623,7 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["maxfragmentationmemory-reserved"] = utils.String(delta)
 	}
 
-	// Backup
+	// RDB Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
 		output["rdb-backup-enabled"] = utils.String(delta)
@@ -623,6 +645,20 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 
 	if v, ok := d.GetOk("redis_configuration.0.notify_keyspace_events"); ok {
 		output["notify-keyspace-events"] = utils.String(v.(string))
+	}
+
+	// AOF Backup
+	if v, ok := d.GetOk("redis_configuration.0.aof_backup_enabled"); ok {
+		delta := strconv.FormatBool(v.(bool))
+		output["aof-backup-enabled"] = utils.String(delta)
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_0"); ok {
+		output["aof-storage-connection-string-0"] = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_1"); ok {
+		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
 	return output
@@ -719,6 +755,20 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	}
 	if v := input["notify-keyspace-events"]; v != nil {
 		outputs["notify_keyspace_events"] = *v
+	}
+
+	if v := input["aof-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `aof-backup-enabled` %q: %+v", *v, err)
+		}
+		outputs["aof_backup_enabled"] = b
+	}
+	if v := input["aof-storage-connection-string-0"]; v != nil {
+		outputs["aof_storage_connection_string_0"] = *v
+	}
+	if v := input["aof-storage-connection-string-1"]; v != nil {
+		outputs["aof_storage_connection_string_1"] = *v
 	}
 
 	return []interface{}{outputs}, nil
