@@ -113,6 +113,8 @@ A `site_config` block supports the following:
 
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
 
+* `cors` - (Optional) A `cors` block as defined below.
+
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
 * `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
@@ -158,6 +160,14 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 * `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+* `support_credentials` - (Optional) Are credentials supported?
 
 ---
 
