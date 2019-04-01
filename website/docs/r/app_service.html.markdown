@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `client_cert_enabled` - (Optional) Does the App Service require client certificates for incoming requests? Defaults to `false`.
 
-* `enabled` - (Optional) Is the App Service Enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional) Is the App Service Enabled?
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
