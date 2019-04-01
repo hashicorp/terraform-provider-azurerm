@@ -259,7 +259,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -464,14 +463,15 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if d.HasChange("policy") {
-		if policy == nil {
-			// remove the existing policy
-			if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
-				if !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-				}
+		// remove the existing policy
+		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
+			if !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
-		} else {
+		}
+
+		// then add the new one, if it exists
+		if policy != nil {
 			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy); err != nil {
 				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
@@ -1136,15 +1136,21 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 }
 
 func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
-	output := map[string]interface{}{
-		"xml_content": "",
-		"xml_link":    "",
-	}
-
+	xmlContent := ""
 	if props := input.PolicyContractProperties; props != nil {
 		if props.PolicyContent != nil {
-			output["xml_content"] = *props.PolicyContent
+			xmlContent = *props.PolicyContent
 		}
+	}
+
+	// if there's no policy assigned, we set this to an empty list
+	if xmlContent == "" {
+		return []interface{}{}
+	}
+
+	output := map[string]interface{}{
+		"xml_content": xmlContent,
+		"xml_link":    "",
 	}
 
 	// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
