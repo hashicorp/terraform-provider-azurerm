@@ -224,9 +224,14 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	d.Set("resource_group_name", resourceGroup)
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
-	d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey))
+	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey)); err != nil {
+		return fmt.Errorf("error setting `primary_connection_string`: %v", err)
+	}
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
 	d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey))
+	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey)); err != nil {
+		return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
+	}
 
 	rights := flattenAccessRights(accessPolicy.Rights)
 	d.Set("registry_read", rights.registryRead)
