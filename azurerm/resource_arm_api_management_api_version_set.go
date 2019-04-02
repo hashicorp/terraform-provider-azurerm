@@ -63,7 +63,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 
 			"description": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -84,15 +84,17 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 			},
 
 			"version_header_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.NoEmptyStrings,
+				ConflictsWith: []string{"version_query_name"},
 			},
 
 			"version_query_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.NoEmptyStrings,
+				ConflictsWith: []string{"version_header_name"},
 			},
 		},
 	}
@@ -184,13 +186,8 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("versioning_schema", props.VersioningScheme)
-
-		if v := props.VersionHeaderName; v != nil {
-			d.Set("version_header_name", v)
-		}
-		if v := props.VersionQueryName; v != nil {
-			d.Set("version_query_name", v)
-		}
+		d.Set("version_header_name", props.VersionHeaderName)
+		d.Set("version_query_name", props.VersionQueryName)
 	}
 
 	return nil

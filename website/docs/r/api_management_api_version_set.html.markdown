@@ -3,13 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_version_set"
 sidebar_current: "docs-azurerm-resource-api-management-api-version-set"
 description: |-
-  Manages an API Management API Version Set.
+  Manages an API Version Set within a API Management Service.
 ---
 
 # azurerm_api_management_version_set
 
-Manages an API Management API Version Set.
-
+Manages an API Version Set within a API Management Service.
 
 ## Example Usage
 
@@ -33,10 +32,9 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azurerm_api_management_version_set" "example" {
-  name                = "example-apimapivs"
+  name                = "example-apimapi-1.0.0"
   resource_group_name = "${azurerm_resource_group.example.name}"
   api_management_name = "${azurerm_api_management.example.name}"
-  description         = "ExampleAPIVersionSetDescription"
   display_name        = "ExampleAPIVersionSet"
   versioning_schema   = "Segment"
 }
@@ -53,16 +51,15 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) The name of the [API Management Service](api_management.html) in which the API Version Set should exist. Changing this forces a new resource to be created.
 
-* `description` - (Required) The description of API Version Set.
+* `description` - (Optional) The description of API Version Set.
 
 * `display_name` - (Required) The display name of this API Version Set.
 
 * `versioning_schema` - (Required) A value that determines where the API Version identifier will be located in a HTTP request. Allowed values include: `Segment`, `Header`, `Query`.
 
-* `version_header_name` - (Optional) Name of HTTP header parameter that indicates the API Version if `versioning_schema` is set to `Header`.
+* `version_header_name` - (Optional) The name of HTTP header parameter value to read in Inbound Requests which defines the API Version.
 
-* `version_query_name` - (Optional) Name of query parameter that indicates the API Version if `versioning_schema` is set to `Query`.
-
+* `version_query_name` - (Optional) The name of the Query String value to read in Inbound Requests which defines the API Version.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
