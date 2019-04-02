@@ -911,16 +911,16 @@ resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 3
+  capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
 
   redis_configuration {
-    aof_backup_enabled            = true
+    aof_backup_enabled              = true
     aof_storage_connection_string_0 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
-		aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.secondary_access_key}"
-	}
+    aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.secondary_access_key}"
+  }
 }
 `, rInt, location, rString, rInt)
 }
