@@ -169,7 +169,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

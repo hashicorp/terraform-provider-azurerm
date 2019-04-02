@@ -89,7 +89,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

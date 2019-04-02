@@ -127,15 +127,22 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementApiClient           apimanagement.APIClient
-	apiManagementApiVersionSetClient apimanagement.APIVersionSetClient
-	apiManagementGroupClient         apimanagement.GroupClient
-	apiManagementGroupUsersClient    apimanagement.GroupUserClient
-	apiManagementProductsClient      apimanagement.ProductClient
-	apiManagementProductGroupsClient apimanagement.ProductGroupClient
-	apiManagementPropertyClient      apimanagement.PropertyClient
-	apiManagementServiceClient       apimanagement.ServiceClient
-	apiManagementUsersClient         apimanagement.UserClient
+	apiManagementApiClient                  apimanagement.APIClient
+	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+  apiManagementApiVersionSetClient        apimanagement.APIVersionSetClient
+	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
+	apiManagementCertificatesClient         apimanagement.CertificateClient
+	apiManagementGroupClient                apimanagement.GroupClient
+	apiManagementGroupUsersClient           apimanagement.GroupUserClient
+	apiManagementLoggerClient               apimanagement.LoggerClient
+	apiManagementOpenIdConnectClient        apimanagement.OpenIDConnectProviderClient
+	apiManagementProductsClient             apimanagement.ProductClient
+	apiManagementProductApisClient          apimanagement.ProductAPIClient
+	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
+	apiManagementPropertyClient             apimanagement.PropertyClient
+	apiManagementServiceClient              apimanagement.ServiceClient
+	apiManagementSubscriptionsClient        apimanagement.SubscriptionClient
+	apiManagementUsersClient                apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -500,9 +507,21 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&apisClient.Client, auth)
 	c.apiManagementApiClient = apisClient
 
-	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
+	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationsClient.Client, auth)
+	c.apiManagementApiOperationsClient = apiOperationsClient
+  
+  apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiVersionSetClient.Client, auth)
 	c.apiManagementApiVersionSetClient = apiVersionSetClient
+
+	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&authorizationServersClient.Client, auth)
+	c.apiManagementAuthorizationServersClient = authorizationServersClient
+
+	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&certificatesClient.Client, auth)
+	c.apiManagementCertificatesClient = certificatesClient
 
 	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&groupsClient.Client, auth)
@@ -512,13 +531,25 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&groupUsersClient.Client, auth)
 	c.apiManagementGroupUsersClient = groupUsersClient
 
+	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&loggerClient.Client, auth)
+	c.apiManagementLoggerClient = loggerClient
+
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&serviceClient.Client, auth)
 	c.apiManagementServiceClient = serviceClient
 
+	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&openIdConnectClient.Client, auth)
+	c.apiManagementOpenIdConnectClient = openIdConnectClient
+
 	productsClient := apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&productsClient.Client, auth)
 	c.apiManagementProductsClient = productsClient
+
+	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productApisClient.Client, auth)
+	c.apiManagementProductApisClient = productApisClient
 
 	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&productGroupsClient.Client, auth)
@@ -527,6 +558,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&propertiesClient.Client, auth)
 	c.apiManagementPropertyClient = propertiesClient
+
+	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionsClient.Client, auth)
+	c.apiManagementSubscriptionsClient = subscriptionsClient
 
 	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usersClient.Client, auth)

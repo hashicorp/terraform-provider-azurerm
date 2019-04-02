@@ -92,13 +92,13 @@ The following arguments are supported:
 
 ---
 
+* `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The MsSQL Elastic Pool ID.
-
-* `zone_redundant` - Whether or not this elastic pool is zone redundant.
 
 ## Import
 

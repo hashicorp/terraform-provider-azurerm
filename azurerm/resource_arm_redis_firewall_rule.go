@@ -63,7 +63,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
