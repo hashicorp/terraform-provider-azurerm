@@ -117,9 +117,9 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
-	certificate = {
+  certificate = {
     id             = "${azurerm_batch_certificate.test.id}"
-		store_location = "CurrentUser"
+    store_location = "CurrentUser"
     visibility     = [ "StartTask", "RemoteUser" ]
   }
   

@@ -15,14 +15,14 @@ Use this data source to access information about an existing certificate in a Ba
 
 ```hcl
 
-data "azurerm_batch_certificate" "test" {
+data "azurerm_batch_certificate" "example" {
   name                = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
-  account_name        = "testbatchaccount"
-  resource_group_name = "test"
+  account_name        = "examplebatchaccount"
+  resource_group_name = "example"
 }
 
 output "thumbprint" {
-  value = "${data.azurerm_batch_certificate.test.thumbprint}"
+  value = "${data.azurerm_batch_certificate.example.thumbprint}"
 }
 ```
 

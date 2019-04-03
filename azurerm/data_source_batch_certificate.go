@@ -44,13 +44,13 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 }
 
 func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).batchCertificateClient
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 	name := d.Get("name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroupName, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

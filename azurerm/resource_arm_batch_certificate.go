@@ -37,9 +37,10 @@ func resourceArmBatchCertificate() *schema.Resource {
 			},
 			"resource_group_name": resourceGroupNameSchema(),
 			"certificate": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringLenBetween(1, 10000),
 			},
 			"format": {
 				Type:     schema.TypeString,
