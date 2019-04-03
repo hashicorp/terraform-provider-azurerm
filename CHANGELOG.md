@@ -20,6 +20,7 @@ IMPROVEMENTS:
 
 * Data Source: `azurerm_app_service` - exporting the `cors` headers [GH-2870]
 * Data Source: `azurerm_storage_account` - exposing the Hierarchical Namespace state [GH-3032]
+* `azurerm_api_management` - support for `sign_in`, `sign_up` and `policy` blocks [GH-3151]
 * `azurerm_app_service` - support for migrating between App Service Plans [GH-3048]
 * `azurerm_app_service` - support for additional types for the `scm_type` field in the `site_config` block [GH-3019]
 * `azurerm_app_service` - support for specifying `cors` headers [GH-2870]
