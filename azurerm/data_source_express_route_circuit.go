@@ -40,7 +40,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 						},
 						"vlan_id": {
 							Type:     schema.TypeInt,
-							Computed: true, //Ram: express route API does not expose primary and secondary subnet??
+							Computed: true,
 						},
 						"shared_key": {
 							Type:     schema.TypeString,
