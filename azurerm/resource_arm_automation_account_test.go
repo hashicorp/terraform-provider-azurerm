@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -23,7 +24,36 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationAccount_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "Basic"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_server_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_secondary_access_key"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMAutomationAccount_basicClassic(t *testing.T) {
+	resourceName := "azurerm_automation_account.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationAccount_basicClassic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_server_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "dsc_secondary_access_key"),
@@ -33,6 +63,23 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMAutomationAccount_basicNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMAutomationAccount_basicNotDefined(ri, testLocation()),
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
 	})
@@ -80,14 +127,14 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 				Config: testAccAzureRMAutomationAccount_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "Basic"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: true,
+				ImportStateVerify: false,
 			},
 		},
 	})
@@ -165,7 +212,43 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku = "Basic"
+  sku_name = "Basic"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMAutomationAccount_basicClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  } 
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMAutomationAccount_basicNotDefined(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
 }
@@ -180,7 +263,7 @@ resource "azurerm_automation_account" "import" {
   location            = "${azurerm_automation_account.test.location}"
   resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
 
-  sku = "Basic"
+  sku_name = "Basic"
 }
 `, template)
 }
@@ -197,7 +280,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku = "Basic"
+  sku_name = "Basic"
   
   tags = {
     "hello" = "world"

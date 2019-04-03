@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -39,15 +38,35 @@ func resourceArmAutomationAccount() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			// Remove in 2.0
 			"sku": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(automation.Basic),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(automation.Basic),
+								string(automation.Free),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Basic),
 					string(automation.Free),
-				}, true),
+				}, false),
 			},
 
 			"tags": tagsSchema(),
@@ -72,6 +91,12 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).automationAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
+	sku := expandAutomationAccountSku(d)
+
+	if sku == nil {
+		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	}
+
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
 	name := d.Get("name").(string)
@@ -92,7 +117,6 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	sku := expandAutomationAccountSku(d)
 
 	parameters := automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
@@ -131,6 +155,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
+	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -160,8 +185,17 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if skuName == "" {
+		// Remove in 2.0
+		if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		d.Set("sku_name", "")
+	} else {
+		if err := d.Set("sku_name", flattenAutomationAccountSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
+		d.Set("sku", "")
 	}
 
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)
@@ -201,7 +235,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenAutomationAccountSku(sku *automation.Sku) string {
+func flattenAutomationAccountSkuName(sku *automation.Sku) string {
 	if sku == nil {
 		return ""
 	}
@@ -209,8 +243,32 @@ func flattenAutomationAccountSku(sku *automation.Sku) string {
 	return string(sku.Name)
 }
 
+// Remove in 2.0
+func flattenAutomationAccountSku(sku *automation.Sku) []interface{} {
+	if sku == nil {
+		return []interface{}{}
+	}
+
+	result := map[string]interface{}{}
+	result["name"] = string(sku.Name)
+	return []interface{}{result}
+}
+
 func expandAutomationAccountSku(d *schema.ResourceData) *automation.Sku {
-	v := d.Get("sku").(string)
+	v := d.Get("sku_name").(string)
+
+	// Remove in 2.0
+	if v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			return nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+	}
+
 	name := automation.SkuNameEnum(v)
 
 	sku := automation.Sku{

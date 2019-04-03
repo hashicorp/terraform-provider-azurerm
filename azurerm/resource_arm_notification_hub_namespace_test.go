@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -28,7 +29,49 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
+				ImportStateVerify: false,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMNotificationHubNamespace_freeClassic(t *testing.T) {
+	resourceName := "azurerm_notification_hub_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHubNamespace_freeClassic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMNotificationHubNamespace_freeNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(ri, testLocation()),
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
 	})
@@ -126,7 +169,43 @@ resource "azurerm_notification_hub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub"
 
-  sku = "Free"
+  sku_name = "Free"
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHubNamespace_freeClassic(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  namespace_type      = "NotificationHub"
+
+  sku {
+    name = "Free"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHubNamespace_freeNotDefined(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  namespace_type      = "NotificationHub"
 }
 `, ri, location, ri)
 }
@@ -141,7 +220,7 @@ resource "azurerm_notification_hub_namespace" "import" {
   location            = "${azurerm_notification_hub_namespace.test.location}"
   namespace_type      = "${azurerm_notification_hub_namespace.test.namespace_type}"
 
-  sku = "Free"
+  sku_name = "Free"
 }
 `, testAccAzureRMNotificationHubNamespace_free(ri, location))
 }

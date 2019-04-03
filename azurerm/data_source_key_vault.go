@@ -170,7 +170,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("vault_uri", props.VaultURI)
 
-		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
+		if err := d.Set("sku_name", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
 			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
@@ -189,12 +189,8 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
-	}
-
-	return []interface{}{result}
+func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) string {
+	return string(sku.Name)
 }
 
 func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {

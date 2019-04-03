@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
 
-  sku = "standard"
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
@@ -63,7 +63,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+* `sku` - (Optional) 
+
+* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
@@ -83,6 +85,11 @@ The following arguments are supported:
 
 ---
 
+A `sku` block supports the following:
+
+* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+
+---
 A `access_policy` block supports the following:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.

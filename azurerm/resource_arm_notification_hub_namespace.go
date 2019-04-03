@@ -40,9 +40,32 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"location": locationSchema(),
 
 			"sku": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(notificationhubs.Basic),
+								string(notificationhubs.Free),
+								string(notificationhubs.Standard),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"sku_name": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				ForceNew:         true,
+				ConflictsWith:    []string{"sku"},
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.Basic),
@@ -83,6 +106,12 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 	client := meta.(*ArmClient).notificationNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
+	sku := expandNotificationHubNamespacesSku(d)
+
+	if sku == nil {
+		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	}
+
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
@@ -104,7 +133,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
 		Location: utils.String(location),
-		Sku:      expandNotificationHubNamespacesSku(d),
+		Sku:      sku,
 		NamespaceProperties: &notificationhubs.NamespaceProperties{
 			Region:        utils.String(location),
 			NamespaceType: notificationhubs.NamespaceType(namespaceType),
@@ -151,6 +180,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
+	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -169,9 +199,17 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	sku := flattenNotificationHubNamespacesSku(resp.Sku)
-	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if skuName == "" {
+		// Remove in 2.0
+		if err := d.Set("sku", flattenNotificationHubNamespacesSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		d.Set("sku_name", "")
+	} else {
+		if err := d.Set("sku_name", flattenNotificationHubNamespacesSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
+		d.Set("sku", "")
 	}
 
 	if props := resp.NamespaceProperties; props != nil {
@@ -218,7 +256,19 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 }
 
 func expandNotificationHubNamespacesSku(d *schema.ResourceData) *notificationhubs.Sku {
-	v := d.Get("sku").(string)
+	v := d.Get("sku_name").(string)
+
+	// Remove in 2.0
+	if v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			return nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+	}
 
 	sku := notificationhubs.Sku{
 		Name: notificationhubs.SkuName(v),
@@ -227,12 +277,26 @@ func expandNotificationHubNamespacesSku(d *schema.ResourceData) *notificationhub
 	return &sku
 }
 
-func flattenNotificationHubNamespacesSku(sku *notificationhubs.Sku) string {
+func flattenNotificationHubNamespacesSkuName(sku *notificationhubs.Sku) string {
 	if sku == nil {
 		return ""
 	}
 
 	return string(sku.Name)
+}
+
+// Remove in 2.0
+func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := map[string]interface{}{
+		"name": string(input.Name),
+	}
+	outputs = append(outputs, output)
+	return outputs
 }
 
 func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
