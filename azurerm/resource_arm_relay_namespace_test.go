@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -28,16 +29,66 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: true,
+				ImportStateVerify: false,
 			},
 		},
 	})
 }
+
+// Remove in 2.0
+func TestAccAzureRMRelayNamespace_basicClassic(t *testing.T) {
+	resourceName := "azurerm_relay_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRelayNamespace_basicClassic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRelayNamespaceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMRelayNamespace_basicNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMRelayNamespace_basicNotDefined(ri, testLocation()),
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -94,7 +145,7 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: true,
+				ImportStateVerify: false,
 			},
 		},
 	})
@@ -165,7 +216,42 @@ resource "azurerm_relay_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku = "Standard"
+  sku_name = "Standard"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMRelayNamespace_basicClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Standard"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRelayNamespace_basicNotDefined(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
 }
@@ -179,7 +265,7 @@ resource "azurerm_relay_namespace" "import" {
   location            = "${azurerm_relay_namespace.test.location}"
   resource_group_name = "${azurerm_relay_namespace.test.resource_group_name}"
 
-  sku = "Standard"
+  sku_name = "Standard"
 }
 `, testAccAzureRMRelayNamespace_basic(rInt, location))
 }
@@ -196,7 +282,7 @@ resource "azurerm_relay_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku = "Standard"
+  sku_name = "Standard"
 
   tags = {
     "Hello" = "World"

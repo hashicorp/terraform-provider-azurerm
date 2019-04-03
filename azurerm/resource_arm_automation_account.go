@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -48,25 +49,27 @@ func resourceArmAutomationAccount() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(automation.Basic),
 								string(automation.Free),
-							}, false),
+							}, true),
 						},
 					},
 				},
 			},
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"sku"},
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith:    []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Basic),
 					string(automation.Free),
-				}, false),
+				}, true),
 			},
 
 			"tags": tagsSchema(),
@@ -187,13 +190,17 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 
 	if skuName == "" {
 		// Remove in 2.0
-		if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku`: %+v", err)
+			}
 		}
 		d.Set("sku_name", "")
 	} else {
-		if err := d.Set("sku_name", flattenAutomationAccountSkuName(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku_name", flattenAutomationAccountSkuName(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku_name`: %+v", err)
+			}
 		}
 		d.Set("sku", "")
 	}

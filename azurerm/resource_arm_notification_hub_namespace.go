@@ -48,14 +48,15 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(notificationhubs.Basic),
 								string(notificationhubs.Free),
 								string(notificationhubs.Standard),
-							}, false),
+							}, true),
 						},
 					},
 				},
@@ -71,7 +72,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 					string(notificationhubs.Basic),
 					string(notificationhubs.Free),
 					string(notificationhubs.Standard),
-				}, false),
+				}, true),
 			},
 
 			"enabled": {
@@ -201,13 +202,17 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 
 	if skuName == "" {
 		// Remove in 2.0
-		if err := d.Set("sku", flattenNotificationHubNamespacesSku(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku", flattenNotificationHubNamespacesSku(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku`: %+v", err)
+			}
 		}
 		d.Set("sku_name", "")
 	} else {
-		if err := d.Set("sku_name", flattenNotificationHubNamespacesSkuName(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku_name", flattenNotificationHubNamespacesSkuName(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku_name`: %+v", err)
+			}
 		}
 		d.Set("sku", "")
 	}

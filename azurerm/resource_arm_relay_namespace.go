@@ -41,8 +41,29 @@ func resourceArmRelayNamespace() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(relay.Standard),
+							}, true),
+						},
+					},
+				},
+			},
+
+			"sku_name": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				ConflictsWith:    []string{"sku"},
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
@@ -86,13 +107,19 @@ func resourceArmRelayNamespace() *schema.Resource {
 func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).relayNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
+
+	sku := expandRelayNamespaceSku(d)
+
+	if sku == nil {
+		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	}
+
 	log.Printf("[INFO] preparing arguments for Relay Namespace creation.")
 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	sku := expandRelayNamespaceSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -148,6 +175,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
+	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -165,11 +193,21 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if sku := resp.Sku; sku != nil {
-		flattenedSku := flattenRelayNamespaceSku(sku)
-		if err = d.Set("sku", flattenedSku); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+	if skuName == "" {
+		// Remove in 2.0
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku", flattenRelayNamespaceSku(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku`: %+v", err)
+			}
 		}
+		d.Set("sku_name", "")
+	} else {
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku_name", flattenRelayNamespaceSkuName(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku_name`: %+v", err)
+			}
+		}
+		d.Set("sku", "")
 	}
 
 	if props := resp.NamespaceProperties; props != nil {
@@ -243,7 +281,19 @@ func relayNamespaceDeleteRefreshFunc(ctx context.Context, client relay.Namespace
 }
 
 func expandRelayNamespaceSku(d *schema.ResourceData) *relay.Sku {
-	v := d.Get("sku").(string)
+	v := d.Get("sku_name").(string)
+
+	// Remove in 2.0
+	if v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			return nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+	}
 
 	sku := relay.Sku{
 		Name: utils.String(v),
@@ -253,10 +303,23 @@ func expandRelayNamespaceSku(d *schema.ResourceData) *relay.Sku {
 	return &sku
 }
 
-func flattenRelayNamespaceSku(sku *relay.Sku) string {
+func flattenRelayNamespaceSkuName(sku *relay.Sku) string {
 	if sku == nil {
 		return ""
 	}
 
 	return *sku.Name
+}
+
+// Remove in 2.0
+func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	if name := input.Name; name != nil {
+		output["name"] = *name
+	}
+	return []interface{}{output}
 }

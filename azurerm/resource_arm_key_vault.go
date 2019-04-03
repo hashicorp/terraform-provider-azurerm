@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -62,24 +63,26 @@ func resourceArmKeyVault() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(keyvault.Standard),
 								string(keyvault.Premium),
-							}, false),
+							}, true),
 						},
 					},
 				},
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+				}, true),
 			},
 
 			"vault_uri": {
@@ -335,13 +338,19 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 		if skuName == "" {
 			// Remove in 2.0
-			if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+			if sku := props.Sku; sku != nil {
+				if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
+					return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+				}
 			}
+			d.Set("sku_name", "")
 		} else {
-			if err := d.Set("sku_name", flattenKeyVaultSkuName(props.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
+			if sku := props.Sku; sku != nil {
+				if err := d.Set("sku_name", flattenKeyVaultSkuName(props.Sku)); err != nil {
+					return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
+				}
 			}
+			d.Set("sku", "")
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
