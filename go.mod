@@ -6,7 +6,7 @@ require (
 	git.apache.org/thrift.git v0.0.0-20181218151757-9b75e4fe745a // indirect
 	github.com/Azure/azure-sdk-for-go v25.1.0+incompatible
 	github.com/Azure/go-autorest v11.4.0+incompatible
-	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 // indirect
 	github.com/apparentlymart/go-rundeck-api v0.0.0-20160826143032-f6af74d34d1e // indirect
 	github.com/apparentlymart/go-textseg v0.0.0-20170531203952-b836f5c4d331 // indirect
