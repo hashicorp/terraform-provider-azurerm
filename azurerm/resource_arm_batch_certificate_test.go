@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -32,7 +31,6 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Pfx"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
@@ -62,7 +60,6 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Cer"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"),
@@ -122,35 +119,6 @@ resource "azurerm_batch_certificate" "test" {
 	thumbprint_algorithm = "SHA1"
 }
 `, rInt, location, batchAccountSuffix)
-}
-
-func testCheckAzureRMBatchCertificateExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchCertificateClient
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on batchCertificateClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch certificate %q (Resource Group: %q, Account: %q) does not exist", name, resourceGroup, accountName)
-		}
-
-		return nil
-	}
 }
 
 func testCheckAzureRMBatchCertificateDestroy(s *terraform.State) error {
