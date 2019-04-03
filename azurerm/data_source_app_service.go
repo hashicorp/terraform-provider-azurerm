@@ -28,7 +28,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": azure.SchemaAppServiceSiteConfig(),
+			"site_config": azure.SchemaAppServiceDataSourceSiteConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,

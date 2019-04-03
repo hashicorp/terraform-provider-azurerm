@@ -92,6 +92,26 @@ output "storage_account_tier" {
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
 
+* `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
+
+* `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
+
+* `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
+
+* `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
+
+* `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
+
+* `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
+
 * `primary_access_key` - The primary access key for the Storage Account.
 
 * `secondary_access_key` - The secondary access key for the Storage Account.

@@ -1342,6 +1342,91 @@ func (client BaseClient) ValidateResponder(resp *http.Response) (result Validate
 	return
 }
 
+// ValidateContainerSettings validate if the container settings are correct.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+func (client BaseClient) ValidateContainerSettings(ctx context.Context, validateContainerSettingsRequest ValidateContainerSettingsRequest, resourceGroupName string) (result SetObject, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ValidateContainerSettings")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.BaseClient", "ValidateContainerSettings", err.Error())
+	}
+
+	req, err := client.ValidateContainerSettingsPreparer(ctx, validateContainerSettingsRequest, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ValidateContainerSettingsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ValidateContainerSettingsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ValidateContainerSettingsPreparer prepares the ValidateContainerSettings request.
+func (client BaseClient) ValidateContainerSettingsPreparer(ctx context.Context, validateContainerSettingsRequest ValidateContainerSettingsRequest, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/validateContainerSettings", pathParameters),
+		autorest.WithJSON(validateContainerSettingsRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ValidateContainerSettingsSender sends the ValidateContainerSettings request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) ValidateContainerSettingsSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ValidateContainerSettingsResponder handles the response to the ValidateContainerSettings request. The method always
+// closes the http.Response Body.
+func (client BaseClient) ValidateContainerSettingsResponder(resp *http.Response) (result SetObject, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Value),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ValidateMove validate whether a resource can be moved.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
