@@ -601,12 +601,12 @@ resource "azurerm_batch_pool" "test" {
 	certificate = {
 		id             = "${azurerm_batch_certificate.testcer.id}"
 		store_location = "CurrentUser"
-		visibility = [ "StartTask" ]
+		visibility     = [ "StartTask" ]
 	}
 	certificate = {
 		id             = "${azurerm_batch_certificate.testpfx.id}"
 		store_location = "CurrentUser"
-		visibility = [ "StartTask", "RemoteUser" ]
+		visibility     = [ "StartTask", "RemoteUser" ]
 	}
 }
 
