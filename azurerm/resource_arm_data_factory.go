@@ -7,16 +7,17 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryV2() *schema.Resource {
+func resourceArmDataFactory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryV2CreateOrUpdate,
-		Read:   resourceArmDataFactoryV2Read,
-		Update: resourceArmDataFactoryV2CreateOrUpdate,
-		Delete: resourceArmDataFactoryV2Delete,
+		Create: resourceArmDataFactoryCreateOrUpdate,
+		Read:   resourceArmDataFactoryRead,
+		Update: resourceArmDataFactoryCreateOrUpdate,
+		Delete: resourceArmDataFactoryDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -65,9 +66,10 @@ func resourceArmDataFactoryV2() *schema.Resource {
 			},
 
 			"github_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"vsts_configuration"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
@@ -75,12 +77,12 @@ func resourceArmDataFactoryV2() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"collaboration_branch": {
+						"branch_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"host_name": {
+						"git_url": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
@@ -97,13 +99,13 @@ func resourceArmDataFactoryV2() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"vsts_configuration"},
 			},
 
 			"vsts_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"github_configuration"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
@@ -111,7 +113,7 @@ func resourceArmDataFactoryV2() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"collaboration_branch": {
+						"branch_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
@@ -138,7 +140,6 @@ func resourceArmDataFactoryV2() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"github_configuration"},
 			},
 
 			"tags": tagsSchema(),
@@ -146,7 +147,7 @@ func resourceArmDataFactoryV2() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -154,6 +155,19 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Data Factory %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_data_factory", *existing.ID)
+		}
+	}
 
 	dataFactory := datafactory.Factory{
 		Location: &location,
@@ -180,7 +194,7 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Cannot read Data Factory %s (resource group %s) ID", name, resourceGroup)
 	}
 
-	if hasRepo, repo := expandArmDataFactoryV2RepoConfiguration(d); hasRepo {
+	if hasRepo, repo := expandArmDataFactoryRepoConfiguration(d); hasRepo {
 		repoUpdate := datafactory.FactoryRepoUpdate{
 			FactoryResourceID: resp.ID,
 			RepoConfiguration: repo,
@@ -192,10 +206,10 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryV2Read(d, meta)
+	return resourceArmDataFactoryRead(d, meta)
 }
 
-func resourceArmDataFactoryV2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -222,7 +236,7 @@ func resourceArmDataFactoryV2Read(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	repoType, repo := flattenArmDataFactoryV2RepoConfiguration(&resp)
+	repoType, repo := flattenArmDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting Data Factory %q `vsts_configuration` (Resource Group %q): %+v", name, resourceGroup, err)
@@ -238,7 +252,7 @@ func resourceArmDataFactoryV2Read(d *schema.ResourceData, meta interface{}) erro
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenArmDataFactoryV2Identity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenArmDataFactoryIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting Data Factory %q `identity` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -247,7 +261,7 @@ func resourceArmDataFactoryV2Read(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmDataFactoryV2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -268,11 +282,11 @@ func resourceArmDataFactoryV2Delete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, datafactory.BasicFactoryRepoConfiguration) {
+func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafactory.BasicFactoryRepoConfiguration) {
 	if vstsList, ok := d.GetOk("vsts_configuration"); ok {
 		vsts := vstsList.([]interface{})[0].(map[string]interface{})
 		accountName := vsts["account_name"].(string)
-		collaborationBranch := vsts["collaboration_branch"].(string)
+		branchName := vsts["branch_name"].(string)
 		projectName := vsts["project_name"].(string)
 		repositoryName := vsts["repository_name"].(string)
 		rootFolder := vsts["root_folder"].(string)
@@ -280,7 +294,7 @@ func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, data
 		// https://github.com/Azure/go-autorest/issues/307
 		return true, &datafactory.FactoryVSTSConfiguration{
 			AccountName:         &accountName,
-			CollaborationBranch: &collaborationBranch,
+			CollaborationBranch: &branchName,
 			ProjectName:         &projectName,
 			RepositoryName:      &repositoryName,
 			RootFolder:          &rootFolder,
@@ -291,15 +305,15 @@ func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, data
 	if githubList, ok := d.GetOk("github_configuration"); ok {
 		github := githubList.([]interface{})[0].(map[string]interface{})
 		accountName := github["account_name"].(string)
-		collaborationBranch := github["collaboration_branch"].(string)
-		hostName := github["host_name"].(string)
+		branchName := github["branch_name"].(string)
+		gitURL := github["git_url"].(string)
 		repositoryName := github["repository_name"].(string)
 		rootFolder := github["root_folder"].(string)
 		// https://github.com/Azure/go-autorest/issues/307
 		return true, &datafactory.FactoryGitHubConfiguration{
 			AccountName:         &accountName,
-			CollaborationBranch: &collaborationBranch,
-			HostName:            &hostName,
+			CollaborationBranch: &branchName,
+			HostName:            &gitURL,
 			RepositoryName:      &repositoryName,
 			RootFolder:          &rootFolder,
 		}
@@ -308,7 +322,7 @@ func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, data
 	return false, nil
 }
 
-func flattenArmDataFactoryV2RepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
+func flattenArmDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
 	result := make([]interface{}, 0)
 	properties := factory.FactoryProperties
 	if properties != nil {
@@ -317,15 +331,15 @@ func flattenArmDataFactoryV2RepoConfiguration(factory *datafactory.Factory) (dat
 			settings := map[string]interface{}{}
 			if config, test := repo.AsFactoryGitHubConfiguration(); test {
 				settings["account_name"] = *config.AccountName
-				settings["collaboration_branch"] = *config.CollaborationBranch
-				settings["host_name"] = *config.HostName
+				settings["branch_name"] = *config.CollaborationBranch
+				settings["git_url"] = *config.HostName
 				settings["repository_name"] = *config.RepositoryName
 				settings["root_folder"] = *config.RootFolder
 				return datafactory.TypeFactoryGitHubConfiguration, append(result, settings)
 			}
 			if config, test := repo.AsFactoryVSTSConfiguration(); test {
 				settings["account_name"] = *config.AccountName
-				settings["collaboration_branch"] = *config.CollaborationBranch
+				settings["branch_name"] = *config.CollaborationBranch
 				settings["project_name"] = *config.ProjectName
 				settings["repository_name"] = *config.RepositoryName
 				settings["root_folder"] = *config.RootFolder
@@ -337,7 +351,7 @@ func flattenArmDataFactoryV2RepoConfiguration(factory *datafactory.Factory) (dat
 	return datafactory.TypeFactoryRepoConfiguration, result
 }
 
-func flattenArmDataFactoryV2Identity(identity *datafactory.FactoryIdentity) interface{} {
+func flattenArmDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
 	if identity == nil {
 		return make([]interface{}, 0)
 	}

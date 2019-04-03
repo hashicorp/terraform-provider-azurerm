@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_v2"
-sidebar_current: "docs-azurerm-resource-data-factory-v2-x"
+page_title: "Azure Resource Manager: azurerm_data_factory"
+sidebar_current: "docs-azurerm-resource-data-factory-x"
 description: |-
   Manage an Azure Data Factory (Version 2).
 ---
 
-# azurerm_data_factory_v2
+# azurerm_data_factory
 
 Manage an Azure Data Factory (Version 2).
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "northeurope"
 }
 
-resource "azurerm_data_factory_v2" "example" {
+resource "azurerm_data_factory" "example" {
   name                = "example"
   location            = "northeurope"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `account_name` - (Required) Specifies the GitHub account name.
 
-* `collaboration_branch` - (Required) Specifies the branch of the repository to get code from.
+* `branch_name` - (Required) Specifies the branch of the repository to get code from.
 
-* `host_name` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com. Use https://github.com for open source repositories.
+* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com. Use https://github.com for open source repositories.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Specifies the VSTS account name.
 
-* `collaboration_branch` - (Required) Specifies the branch of the repository to get code from.
+* `branch_name` - (Required) Specifies the branch of the repository to get code from.
 
 * `project_name` - (Required) Specifies the name of the VSTS project.
 
@@ -92,5 +92,5 @@ The following attributes are exported:
 Data Factory can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_v2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example
+terraform import azurerm_data_factory.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example
 ```
