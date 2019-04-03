@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -85,6 +84,10 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 	thumbprint := d.Get("thumbprint").(string)
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
 	name := thumbprintAlgorithm + "-" + thumbprint
+
+	if err := validateFormatAndPassword(format, password); err != nil {
+		return err
+	}
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, accountName, name)
@@ -185,6 +188,10 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 	thumbprint := d.Get("thumbprint").(string)
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
 
+	if err := validateFormatAndPassword(format, password); err != nil {
+		return err
+	}
+
 	parameters := batch.CertificateCreateOrUpdateParameters{
 		Name: &name,
 		CertificateCreateOrUpdateProperties: &batch.CertificateCreateOrUpdateProperties{
@@ -238,12 +245,12 @@ func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func validateAzureRMBatchCertificateName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[\w]+-[\w]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"must be made up of algorithm and thumbprint separated by a dash in %q: %q", k, value))
+func validateFormatAndPassword(format string, password string) error {
+	if format == "Pfx" && password == "" {
+		return fmt.Errorf("Batch Certificate Password is required when Format is `Pfx`")
 	}
-
-	return warnings, errors
+	if format == "Cer" && password != "" {
+		return fmt.Errorf(" Batch Certificate Password must not be specified when Format is `Cer`")
+	}
+	return nil
 }

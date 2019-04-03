@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -73,4 +74,13 @@ func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+func validateAzureRMBatchCertificateName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[\w]+-[\w]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"must be made up of algorithm and thumbprint separated by a dash in %q: %q", k, value))
+	}
+
+	return warnings, errors
 }

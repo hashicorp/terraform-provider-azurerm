@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -41,6 +42,26 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchCertificatePfxWithoutPassword(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	config := testAccAzureRMBatchCertificatePfxWithoutPassword(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Password is required"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
@@ -60,11 +81,32 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Cer"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "SHA1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBatchCertificateCerWithPassword(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	config := testAccAzureRMBatchCertificateCerWithPassword(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Password must not be specified"),
 			},
 		},
 	})
@@ -96,6 +138,30 @@ resource "azurerm_batch_certificate" "test" {
 `, rInt, location, batchAccountSuffix)
 }
 
+func testAccAzureRMBatchCertificatePfxWithoutPassword(rInt int, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+}
+
+resource "azurerm_batch_certificate" "test" {
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
+	format               = "Pfx"
+	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	thumbprint_algorithm = "SHA1"
+}
+`, rInt, location, batchAccountSuffix)
+}
 func testAccAzureRMBatchCertificateCer(rInt int, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -115,6 +181,31 @@ resource "azurerm_batch_certificate" "test" {
 	account_name         = "${azurerm_batch_account.test.name}"
 	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
 	format               = "Cer"
+	thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
+	thumbprint_algorithm = "SHA1"
+}
+`, rInt, location, batchAccountSuffix)
+}
+func testAccAzureRMBatchCertificateCerWithPassword(rInt int, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+}
+
+resource "azurerm_batch_certificate" "test" {
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
+	format               = "Cer"
+	password             = "should not have a password for Cer"
 	thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
 	thumbprint_algorithm = "SHA1"
 }
