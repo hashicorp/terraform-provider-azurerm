@@ -17,7 +17,12 @@ type BaseResource struct {
 	Path string `json:"-"` //path to object `dbs/{databaseName}/colls{collectionName}` ect
 }
 
-func (e BaseResource) PopulateCommon(r autorest.Response) {
-	e.Response = r
+func (br *BaseResource) PopulateBase(err error, response *autorest.Response) {
+	if response != nil {
+		br.Response = *response
+	}
 
+	if err == nil {
+		br.Path = response.Request.URL.Path
+	}
 }

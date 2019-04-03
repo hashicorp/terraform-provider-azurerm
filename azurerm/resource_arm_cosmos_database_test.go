@@ -150,7 +150,7 @@ func testAccAzureRMCosmosdatabase_debug() string {
 	return fmt.Sprintf(`
 
 resource "azurerm_cosmosdb_database" "test" {
-  name         = "SevenDayDB"
+  name         = "SevenDayDBs"
   account_name = "kt-cosmos-201903"
   account_key  = "yvLnqDanONZn10a2ZgUge8cA3P9hkr3elsONP4yW6qADfj1RFkteABYBYEz627UAIUPGDRIeZNjaKqE4mBieqA=="
 }

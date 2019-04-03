@@ -35,6 +35,8 @@ func TestGenerateAuthorizationSignature(t *testing.T) {
 			Key:      "yvLnqDanONZn10a2ZgUge8cA3P9hkr3elsONP4yW6qADfj1RFkteABYBYEz627UAIUPGDRIeZNjaKqE4mBieqA==",
 			Expected: "bQ3HqSBMZk9mXEC8J33HWI6p8a9vrgW0agBIMsBs7Jk=",
 		},
+		//todo add delete and list for db
+		//todo add get post delete list for sub sub resource
 	}
 
 	for _, tc := range cases {

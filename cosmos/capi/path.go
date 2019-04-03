@@ -6,8 +6,8 @@ import (
 )
 
 type PathBase struct {
-	Path  string
-	Parts map[string]string
+	String string
+	Parts  map[string]string
 }
 
 func ParsePath(path string) (PathBase, error) {
@@ -34,21 +34,12 @@ func ParsePath(path string) (PathBase, error) {
 	}
 
 	return PathBase{
-		Path:  path,
-		Parts: m,
+		String: path,
+		Parts:  m,
 	}, nil
-}
-
-type IPath interface {
-	GetPath() string
-	GetCreatePath() string
-}
-
-func (p PathBase) GetPath() string {
-	return p.Path
 }
 
 //given a path (dbs/data/colls/stuff) return the creation path (dbs/data/colls)
 func (p PathBase) GetCreatePath() string {
-	return p.Path[0:strings.LastIndex(p.Path, "/")]
+	return p.String[0:strings.LastIndex(p.String, "/")]
 }

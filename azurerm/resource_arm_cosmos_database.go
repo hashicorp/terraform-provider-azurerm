@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/cosmos"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -42,15 +44,33 @@ func resourceArmCosmosDatabase() *schema.Resource {
 			},
 
 			"account_key": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				//Sensitive: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
+				Sensitive: true,
 			},
 
-			//x offer throughput
+			"offer_throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntBetweenAndDivisibleBy(400, 1000000, 100),
+			},
 		},
 	}
+}
+
+func cosmosBuildResourceId(accountName, path string) string {
+	return "cosmos/" + accountName + "/" + path
+}
+
+func cosmosSplitResourceId(id string) (account, path string) {
+	stripped := strings.TrimPrefix(id, "cosmos/")
+	parts := strings.SplitN(stripped, "/", 2)
+	if len(parts) != 2 {
+		return "", ""
+	}
+	return parts[0], parts[1]
 }
 
 func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
@@ -71,11 +91,16 @@ func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if existing.Path != "" {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_database", existing.Path)
+			id := cosmosBuildResourceId(account, cosmos.BuildDatabasePath(name).String)
+			return tf.ImportAsExistsError("azurerm_cosmosdb_database", id)
 		}
 	}
 
-	db := cosmos.Database{OfferThroughput: utils.Int(500)}
+	db := cosmos.Database{}
+
+	if v, ok := d.GetOkExists("offer_throughput"); ok {
+		db.OfferThroughput = utils.Int(v.(int))
+	}
 
 	if _, err := client.Create(ctx, name, db); err != nil {
 		return fmt.Errorf("Error creating Cosmos Database %s (Account %s): %+v", name, account, err)
@@ -87,7 +112,7 @@ func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	//path is unique, id is actually the name
-	d.SetId("cosmos/" + client.AccountName + "/" + resp.Path)
+	d.SetId(cosmosBuildResourceId(client.AccountName, resp.Path))
 
 	return resourceArmCosmosDatabaseRead(d, meta)
 }
@@ -95,28 +120,28 @@ func resourceArmCosmosDatabaseCreate(d *schema.ResourceData, meta interface{}) e
 func resourceArmCosmosDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
-	account := d.Get("account_name").(string)
-	key := d.Get("account_key").(string)
+	account, path := cosmosSplitResourceId(d.Id())
+	p, err := cosmos.ParseDatabasePath(path)
+	if err != nil {
+		return fmt.Errorf("Unable to parsing ID (%s) into a Cosmos Database path into a path: %+v", d.Id(), err)
+	}
 
+	key := d.Get("account_key").(string)
 	client := meta.(*ArmClient).getCosmosDatabasesClient(account, key)
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, p.Database)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Database %s (Account %s) - removing from state", name, account)
+			log.Printf("[INFO] Error reading Cosmos Database %s (Account %s) - removing from state", p.Database, account)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error reading Cosmos Database %s (Account %s): %+v", p.Database, account, err)
 	}
 
 	d.Set("name", resp.ID)
-	d.Set("account_name", account)
-	d.Set("account_key", key)
-
-	//d.Set("name", resp.PathBase)
+	d.Set("offer_throughput", resp.OfferThroughput)
 
 	return nil
 }
@@ -124,21 +149,19 @@ func resourceArmCosmosDatabaseRead(d *schema.ResourceData, meta interface{}) err
 func resourceArmCosmosDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 
-	/*id, err := parseAzureResourceID(d.Id())
+	account, path := cosmosSplitResourceId(d.Id())
+	p, err := cosmos.ParseDatabasePath(path)
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
-	}*/
+		return fmt.Errorf("Unable to parsing ID (%s) into a Cosmos Database path into a path: %+v", d.Id(), err)
+	}
 
-	name := d.Get("name").(string)
-	account := d.Get("account_name").(string)
 	key := d.Get("account_key").(string)
-
 	client := meta.(*ArmClient).getCosmosDatabasesClient(account, key)
 
-	resp, err := client.Delete(ctx, name)
+	resp, err := client.Delete(ctx, p.Database)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Cosmos Database %s (Account %s): %+v", name, account, err)
+			return fmt.Errorf("Error deleting Cosmos Database %s (Account %s): %+v", p.Database, account, err)
 		}
 	}
 

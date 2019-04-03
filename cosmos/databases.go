@@ -30,33 +30,6 @@ type Database struct {
 	OfferThroughput *int `json:"-"`
 }
 
-/*
-func ByUnmarshallingDatabase(db *Database) autorest.RespondDecorator {
-	return func(r autorest.Responder) autorest.Responder {
-		return autorest.ResponderFunc(func(resp *http.Response) error {
-
-			err := r.Respond(resp)
-
-			if err == nil {
-				b, errInner := ioutil.ReadAll(resp.Body)
-				// Some responses might include a BOM, remove for successful unmarshalling
-				b = bytes.TrimPrefix(b, []byte("\xef\xbb\xbf"))
-				if errInner != nil {
-					err = fmt.Errorf("Error occurred reading http.Response#Body - Error = '%v'", errInner)
-				} else if len(strings.Trim(string(b), " ")) > 0 {
-					errInner = json.Unmarshal(b, v)
-					if errInner != nil {
-						err = fmt.Errorf("Error occurred unmarshalling JSON - Error = '%v' JSON = '%s'", errInner, string(b))
-					}
-				}
-			}
-
-
-			return err
-		})
-	}
-}*/
-
 // PathBase
 type PathToDatabase struct {
 	capi.PathBase
@@ -81,65 +54,37 @@ func ParseDatabasePath(path string) (PathToDatabase, error) {
 }
 
 //should this retirn a PathBase object?
-func GenerateDatabasePath(databaseName string) PathToDatabase {
+func BuildDatabasePath(databaseName string) PathToDatabase {
 	p, _ := ParseDatabasePath("/dbs/" + databaseName) //cannot.. well should not fail
 	return p
 }
 
 // Methods
-func (c DatabasesClient) Create(ctx context.Context, databaseName string, db Database) (result Database, err error) {
-	path := GenerateDatabasePath(databaseName)
-	db.ID = &databaseName
+func (c DatabasesClient) Create(ctx context.Context, databaseName string, input Database) (result Database, err error) {
+	path := BuildDatabasePath(databaseName)
+	input.ID = &databaseName
 
 	preparers := []autorest.PrepareDecorator{
-		autorest.WithJSON(db),
+		autorest.WithJSON(input),
 	}
 
-	if db.OfferThroughput != nil {
-		preparers = append(preparers, autorest.WithHeader("x-ms-offer-throughput", strconv.Itoa(*db.OfferThroughput)))
+	if input.OfferThroughput != nil {
+		preparers = append(preparers, autorest.WithHeader("x-ms-offer-throughput", strconv.Itoa(*input.OfferThroughput)))
 	}
 
 	resp, err := c.BaseClient.Create(ctx, path.GetCreatePath(), preparers, []autorest.RespondDecorator{autorest.ByUnmarshallingJSON(&result)})
-
-	result.Response = *resp
-	if err == nil {
-		v := resp.Header.Get("x-ms-offer-throughput")
-
-		if v != "" {
-			//populate
-			i, err := strconv.Atoi(resp.Header.Get("x-ms-offer-throughput"))
-			if err != nil {
-				return result, fmt.Errorf("unable to")
-			}
-			result.OfferThroughput = &i
-		}
-	}
-
+	result.PopulateBase(err, resp)
 	return result, err
 }
 
 func (c DatabasesClient) Get(ctx context.Context, databaseName string) (result Database, err error) {
-	path := GenerateDatabasePath(databaseName)
+	path := BuildDatabasePath(databaseName)
 
-	resp, err := c.BaseClient.Get(ctx, path.Path, autorest.ByUnmarshallingJSON(&result))
-
-	result.Response = *resp
-	if err == nil {
-		v := resp.Header.Get("x-ms-offer-throughput")
-
-		if v != "" {
-			//populate
-			i, err := strconv.Atoi(resp.Header.Get("x-ms-offer-throughput"))
-			if err != nil {
-				return result, fmt.Errorf("unable to")
-			}
-			result.OfferThroughput = &i
-		}
-	}
-
+	resp, err := c.BaseClient.Get(ctx, path.String, autorest.ByUnmarshallingJSON(&result))
+	result.PopulateBase(err, resp)
 	return result, err
 }
 
 func (c DatabasesClient) Delete(ctx context.Context, databaseName string) (result *autorest.Response, err error) {
-	return c.BaseClient.Delete(ctx, GenerateDatabasePath(databaseName).Path)
+	return c.BaseClient.Delete(ctx, BuildDatabasePath(databaseName).String)
 }
