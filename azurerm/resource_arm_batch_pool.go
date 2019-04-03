@@ -518,7 +518,9 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
-		d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates))
+		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+			return fmt.Errorf("Error flattening `certificate`: %+v", err)
+		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}
