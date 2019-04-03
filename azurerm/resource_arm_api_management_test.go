@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -29,7 +30,51 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: true,
+				ImportStateVerify: false,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagement_basicClassic(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagement_basicNotDefined(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
 	})
@@ -195,7 +240,49 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku = "Developer_1"
+  sku_name = "Developer_1"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagement_basicClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name = "Developer"
+    capacity = 1
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagement_basicNotDefined(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
 }
 `, rInt, location, rInt)
 }
@@ -212,7 +299,7 @@ resource "azurerm_api_management" "import" {
   publisher_name      = "${azurerm_api_management.test.publisher_name}"
   publisher_email     = "${azurerm_api_management.test.publisher_email}"
 
-  sku = "Developer_1"
+  sku_name = "Developer_1"
 }
 `, template)
 }
@@ -231,7 +318,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku = "Developer_1"
+  sku_name = "Developer_1"
 
   security {
     disable_frontend_tls10     = true
@@ -302,7 +389,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku = "Premium_1"
+  sku_name = "Premium_1"
 
   tags = {
     "Acceptance" = "Test"

@@ -309,6 +309,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	sku := expandAzureRmApiManagementSku(d)
 
+	if sku == nil {
+		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	}
+
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	name := d.Get("name").(string)
@@ -449,16 +453,21 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	if skuName == "" {
 		// Remove in 2.0
-		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku`: %+v", err)
+			}
 		}
 		d.Set("sku_name", "")
 	} else {
-		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		if sku := resp.Sku; sku != nil {
+			if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+				return fmt.Errorf("Error setting `sku_name`: %+v", err)
+			}
 		}
 		d.Set("sku", "")
 	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -739,11 +748,15 @@ func expandAzureRmApiManagementSku(d *schema.ResourceData) *apimanagement.Servic
 		name, capacity, err = azure.SplitSku(s)
 
 		if err != nil {
-			return &apimanagement.ServiceSkuProperties{}
+			return nil
 		}
 	} else {
 		// Remove in 2.0 timeframe
 		vs := d.Get("sku").([]interface{})
+
+		if len(vs) == 0 {
+			return nil
+		}
 
 		// guaranteed by MinItems in the schema
 		v := vs[0].(map[string]interface{})
