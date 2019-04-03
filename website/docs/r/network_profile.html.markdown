@@ -14,26 +14,27 @@ Manages an Azure Network Profile.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "testgroup"
+resource "azurerm_resource_group" "example" {
+  name     = "examplegroup"
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "testvnet"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_virtual_network" "example" {
+  name                = "examplevnet"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.1.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+resource "azurerm_subnet" "example" {
+  name                 = "examplesubnet"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.1.0.0/24"
 
   delegation {
     name = "delegation"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -41,16 +42,17 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                                      = "testnetprofile"
-  location                                  = "${azurerm_resource_group.test.location}"
-  resource_group_name                       = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_profile" "example" {
+  name                = "examplenetprofile"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   container_network_interface_configuration {
-    name             = "testcnic"
+    name = "examplecnic"
+
     ip_configuration {
-      name      = "testipconfig"
-      subnet_id = "${azurerm_subnet.test.id}"
+      name      = "exampleipconfig"
+      subnet_id = "${azurerm_subnet.example.id}"
     }
   }
 }
@@ -98,5 +100,5 @@ The following attributes are exported:
 Azure Network Profile can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_profile.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkProfiles/testnetprofile
+terraform import azurerm_network_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkProfiles/examplenetprofile
 ```

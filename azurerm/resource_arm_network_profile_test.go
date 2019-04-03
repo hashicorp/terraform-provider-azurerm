@@ -168,8 +168,7 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 
 		client := testAccProvider.Meta().(*ArmClient).netProfileClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		_, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
 		}
 
@@ -226,6 +225,7 @@ resource "azurerm_subnet" "test" {
 
   delegation {
     name = "acctestdelegation-%d"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -234,12 +234,13 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_profile" "test" {
-  name                                      = "acctestnetprofile-%d"
-  location                                  = "${azurerm_resource_group.test.location}"
-  resource_group_name                       = "${azurerm_resource_group.test.name}"
+  name                = "acctestnetprofile-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   container_network_interface_configuration {
-    name             = "acctesteth-%d"
+    name = "acctesteth-%d"
+
     ip_configuration {
       name      = "acctestipconfig-%d"
       subnet_id = "${azurerm_subnet.test.id}"
@@ -260,7 +261,8 @@ resource "azurerm_network_profile" "import" {
   resource_group_name = "${azurerm_network_profile.test.resource_group_name}"
 
   container_network_interface_configuration {
-    name             = "${azurerm_network_profile.test.container_network_interface_configuration.0.name}"
+    name = "${azurerm_network_profile.test.container_network_interface_configuration.0.name}"
+
     ip_configuration {
       name      = "${azurerm_network_profile.test.container_network_interface_configuration.0.ip_configuration.0.name}"
       subnet_id = "${azurerm_subnet.test.id}"
@@ -292,6 +294,7 @@ resource "azurerm_subnet" "test" {
 
   delegation {
     name = "acctestdelegation-%d"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -300,12 +303,13 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_profile" "test" {
-  name                                      = "acctestnetprofile-%d"
-  location                                  = "${azurerm_resource_group.test.location}"
-  resource_group_name                       = "${azurerm_resource_group.test.name}"
+  name                = "acctestnetprofile-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   container_network_interface_configuration {
-    name             = "acctesteth-%d"
+    name = "acctesteth-%d"
+
     ip_configuration {
       name      = "acctestipconfig-%d"
       subnet_id = "${azurerm_subnet.test.id}"
@@ -342,6 +346,7 @@ resource "azurerm_subnet" "test" {
 
   delegation {
     name = "acctestdelegation-%d"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -350,12 +355,13 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_profile" "test" {
-  name                                      = "acctestnetprofile-%d"
-  location                                  = "${azurerm_resource_group.test.location}"
-  resource_group_name                       = "${azurerm_resource_group.test.name}"
+  name                = "acctestnetprofile-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   container_network_interface_configuration {
-    name             = "acctesteth-%d"
+    name = "acctesteth-%d"
+
     ip_configuration {
       name      = "acctestipconfig-%d"
       subnet_id = "${azurerm_subnet.test.id}"

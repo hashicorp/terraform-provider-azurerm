@@ -2,11 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,9 +26,10 @@ func resourceArmNetworkProfile() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -44,7 +45,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"ip_configuration": {
 							Type:     schema.TypeList,
@@ -54,7 +55,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
@@ -133,8 +134,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -233,8 +233,7 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
-	_, err = client.Delete(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -370,7 +369,6 @@ func flattenArmContainerNetworkInterfaceIDs(input *[]network.ContainerNetworkInt
 		return retCNIs
 	}
 
-	// if-continue is used to simplify the deeply nested if-else statement.
 	for _, retCNI := range *input {
 		if retCNI.ID != nil {
 			retCNIs = append(retCNIs, *retCNI.ID)
