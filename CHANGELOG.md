@@ -1,4 +1,10 @@
 ## 1.25.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
+* dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
+
 ## 1.24.0 (April 03, 2019)
 
 UPGRADE NOTES:
