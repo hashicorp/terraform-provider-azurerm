@@ -24,36 +24,6 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			switch schema := diff.Get("versioning_schema").(string); schema {
-			case string(apimanagement.VersioningSchemeSegment):
-				if _, ok := diff.GetOk("version_header_name"); ok {
-					return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Segment`")
-				}
-				if _, ok := diff.GetOk("version_query_name"); ok {
-					return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Segment`")
-				}
-
-			case string(apimanagement.VersioningSchemeHeader):
-				if _, ok := diff.GetOk("version_header_name"); !ok {
-					return fmt.Errorf("`version_header_name` must be set if `versioning_schema` is `Header`")
-				}
-				if _, ok := diff.GetOk("version_query_name"); ok {
-					return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Header`")
-				}
-
-			case string(apimanagement.VersioningSchemeQuery):
-				if _, ok := diff.GetOk("version_query_name"); !ok {
-					return fmt.Errorf("`version_query_name` must be set if `versioning_schema` is `Query`")
-				}
-				if _, ok := diff.GetOk("version_header_name"); ok {
-					return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Query`")
-				}
-			}
-
-			return nil
-		},
-
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
@@ -61,19 +31,13 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"display_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"versioning_schema": {
+			"versioning_scheme": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -81,6 +45,12 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 					string(apimanagement.VersioningSchemeQuery),
 					string(apimanagement.VersioningSchemeSegment),
 				}, false),
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"version_header_name": {
@@ -121,26 +91,53 @@ func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	var vHeaderName, vQueryName *string
-	if v, ok := d.GetOk("version_header_name"); ok {
-		vHeaderName = utils.String(v.(string))
-	}
-	if v, ok := d.GetOk("version_query_name"); ok {
-		vQueryName = utils.String(v.(string))
-	}
-
+	versioningScheme := apimanagement.VersioningScheme(d.Get("versioning_scheme").(string))
 	parameters := apimanagement.APIVersionSetContract{
 		APIVersionSetContractProperties: &apimanagement.APIVersionSetContractProperties{
-			DisplayName:       utils.String(d.Get("display_name").(string)),
-			VersioningScheme:  apimanagement.VersioningScheme(d.Get("versioning_schema").(string)),
-			Description:       utils.String(d.Get("description").(string)),
-			VersionHeaderName: vHeaderName,
-			VersionQueryName:  vQueryName,
+			DisplayName:      utils.String(d.Get("display_name").(string)),
+			VersioningScheme: versioningScheme,
+			Description:      utils.String(d.Get("description").(string)),
 		},
 	}
 
+	var headerSet, querySet bool
+	if v, ok := d.GetOk("version_header_name"); ok {
+		headerSet = v.(string) != ""
+		parameters.APIVersionSetContractProperties.VersionHeaderName = utils.String(v.(string))
+	}
+	if v, ok := d.GetOk("version_query_name"); ok {
+		querySet = v.(string) != ""
+		parameters.APIVersionSetContractProperties.VersionQueryName = utils.String(v.(string))
+	}
+
+	switch schema := versioningScheme; schema {
+	case apimanagement.VersioningSchemeHeader:
+		if !headerSet {
+			return fmt.Errorf("`version_header_name` must be set if `versioning_schema` is `Header`")
+		}
+		if querySet {
+			return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Header`")
+		}
+
+	case apimanagement.VersioningSchemeQuery:
+		if headerSet {
+			return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Query`")
+		}
+		if !querySet {
+			return fmt.Errorf("`version_query_name` must be set if `versioning_schema` is `Query`")
+		}
+
+	case apimanagement.VersioningSchemeSegment:
+		if headerSet {
+			return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Segment`")
+		}
+		if querySet {
+			return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Segment`")
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("Error creating/updating Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -185,7 +182,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	if props := resp.APIVersionSetContractProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("versioning_schema", props.VersioningScheme)
+		d.Set("versioning_scheme", string(props.VersioningScheme))
 		d.Set("version_header_name", props.VersionHeaderName)
 		d.Set("version_query_name", props.VersionQueryName)
 	}
