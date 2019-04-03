@@ -48,6 +48,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
+  minimum_tls_version = "1.2"
 }
 ```
 
@@ -134,6 +135,8 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 * `sku_name` - (Required) The SKU of Redis to use - can be either Basic, Standard or Premium.
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6789) - disabled by default.
+
+* `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
 

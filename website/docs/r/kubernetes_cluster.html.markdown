@@ -120,7 +120,7 @@ A `azure_active_directory` block supports the following:
 
 * `server_app_id` - (Required) The Server ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
 
-* `server_app_secret` - (Required) The Client Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
 

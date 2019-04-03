@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `client_cert_enabled` - (Optional) Does the App Service require client certificates for incoming requests? Defaults to `false`.
 
-* `enabled` - (Optional) Is the App Service Enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional) Is the App Service Enabled?
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
@@ -112,6 +112,8 @@ A `site_config` block supports the following:
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
+
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
@@ -158,6 +160,14 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 * `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+* `support_credentials` - (Optional) Are credentials supported?
 
 ---
 
