@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security"
 
 // AadConnectivityState enumerates the values for aad connectivity state.
 type AadConnectivityState string
@@ -193,6 +193,25 @@ const (
 // PossibleProtocolValues returns an array of possible values for the Protocol const type.
 func PossibleProtocolValues() []Protocol {
 	return []Protocol{All, TCP, UDP}
+}
+
+// ReportedSeverity enumerates the values for reported severity.
+type ReportedSeverity string
+
+const (
+	// High ...
+	High ReportedSeverity = "High"
+	// Informational ...
+	Informational ReportedSeverity = "Informational"
+	// Low ...
+	Low ReportedSeverity = "Low"
+	// Medium ...
+	Medium ReportedSeverity = "Medium"
+)
+
+// PossibleReportedSeverityValues returns an array of possible values for the ReportedSeverity const type.
+func PossibleReportedSeverityValues() []ReportedSeverity {
+	return []ReportedSeverity{High, Informational, Low, Medium}
 }
 
 // SettingKind enumerates the values for setting kind.
@@ -720,8 +739,8 @@ type AlertProperties struct {
 	RemediationSteps *string `json:"remediationSteps,omitempty"`
 	// ActionTaken - The action that was taken as a response to the alert (Active, Blocked etc.)
 	ActionTaken *string `json:"actionTaken,omitempty"`
-	// ReportedSeverity - Estimated severity of this alert
-	ReportedSeverity *string `json:"reportedSeverity,omitempty"`
+	// ReportedSeverity - Estimated severity of this alert. Possible values include: 'Informational', 'Low', 'Medium', 'High'
+	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
 	// CompromisedEntity - The entity that the incident happened on
 	CompromisedEntity *string `json:"compromisedEntity,omitempty"`
 	// AssociatedResource - Azure resource ID of the associated resource
@@ -731,6 +750,8 @@ type AlertProperties struct {
 	SystemSource *string `json:"systemSource,omitempty"`
 	// CanBeInvestigated - Whether this alert can be investigated with Azure Security Center
 	CanBeInvestigated *bool `json:"canBeInvestigated,omitempty"`
+	// IsIncident - Whether this alert is for incident type or not (otherwise - single alert)
+	IsIncident *bool `json:"isIncident,omitempty"`
 	// Entities - objects that are related to this alerts
 	Entities *[]AlertEntity `json:"entities,omitempty"`
 	// ConfidenceScore - level of confidence we have on the alert
@@ -775,7 +796,7 @@ func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 	if ap.ActionTaken != nil {
 		objectMap["actionTaken"] = ap.ActionTaken
 	}
-	if ap.ReportedSeverity != nil {
+	if ap.ReportedSeverity != "" {
 		objectMap["reportedSeverity"] = ap.ReportedSeverity
 	}
 	if ap.CompromisedEntity != nil {
@@ -792,6 +813,9 @@ func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ap.CanBeInvestigated != nil {
 		objectMap["canBeInvestigated"] = ap.CanBeInvestigated
+	}
+	if ap.IsIncident != nil {
+		objectMap["isIncident"] = ap.IsIncident
 	}
 	if ap.Entities != nil {
 		objectMap["entities"] = ap.Entities
@@ -4003,151 +4027,14 @@ type PricingList struct {
 	autorest.Response `json:"-"`
 	// Value - List of pricing configurations
 	Value *[]Pricing `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
-	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PricingListIterator provides access to a complete listing of Pricing values.
-type PricingListIterator struct {
-	i    int
-	page PricingListPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *PricingListIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PricingListIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *PricingListIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter PricingListIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter PricingListIterator) Response() PricingList {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter PricingListIterator) Value() Pricing {
-	if !iter.page.NotDone() {
-		return Pricing{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the PricingListIterator type.
-func NewPricingListIterator(page PricingListPage) PricingListIterator {
-	return PricingListIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (pl PricingList) IsEmpty() bool {
-	return pl.Value == nil || len(*pl.Value) == 0
-}
-
-// pricingListPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (pl PricingList) pricingListPreparer(ctx context.Context) (*http.Request, error) {
-	if pl.NextLink == nil || len(to.String(pl.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(pl.NextLink)))
-}
-
-// PricingListPage contains a page of Pricing values.
-type PricingListPage struct {
-	fn func(context.Context, PricingList) (PricingList, error)
-	pl PricingList
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *PricingListPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PricingListPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.pl)
-	if err != nil {
-		return err
-	}
-	page.pl = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *PricingListPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page PricingListPage) NotDone() bool {
-	return !page.pl.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page PricingListPage) Response() PricingList {
-	return page.pl
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page PricingListPage) Values() []Pricing {
-	if page.pl.IsEmpty() {
-		return nil
-	}
-	return *page.pl.Value
-}
-
-// Creates a new instance of the PricingListPage type.
-func NewPricingListPage(getNextPage func(context.Context, PricingList) (PricingList, error)) PricingListPage {
-	return PricingListPage{fn: getNextPage}
-}
-
-// PricingProperties pricing data
+// PricingProperties pricing properties for the relevant scope
 type PricingProperties struct {
-	// PricingTier - Pricing tier type. Possible values include: 'Free', 'Standard'
+	// PricingTier - The pricing tier value. Possible values include: 'Free', 'Standard'
 	PricingTier PricingTier `json:"pricingTier,omitempty"`
+	// FreeTrialRemainingTime - The duration left for the subscriptions free trial period - in ISO 8601 format (e.g. P3Y6M4DT12H30M5S).
+	FreeTrialRemainingTime *string `json:"freeTrialRemainingTime,omitempty"`
 }
 
 // Resource describes an Azure resource.
