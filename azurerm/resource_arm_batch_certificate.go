@@ -209,8 +209,6 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account: %q, Resource Group %q) ID", name, accountName, resourceGroupName)
 	}
 
-	d.SetId(*read.ID)
-
 	return resourceArmBatchCertificateRead(d, meta)
 }
 
