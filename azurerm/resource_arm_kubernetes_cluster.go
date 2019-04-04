@@ -175,7 +175,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 100),
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 
 						"max_count": {
@@ -587,6 +587,14 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	if *agentProfiles[0].EnableAutoScaling == true && agentProfiles[0].MaxCount == nil {
+		return fmt.Errorf("`max_count` must be set when `enable_autoscaling` is set to `true`.")
+	}
+
+	if *agentProfiles[0].EnableAutoScaling == true && agentProfiles[0].MinCount == nil {
+		return fmt.Errorf("`min_count` must be set when `enable_autoscaling` is set to `true`.")
+	}
+
 	tags := d.Get("tags").(map[string]interface{})
 
 	// we can't do this in the CustomizeDiff since the interpolations aren't evaluated at that point
@@ -934,20 +942,20 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 
 	if enableAutoscaling == true {
 		profile.Type = containerservice.VirtualMachineScaleSets
+
+		if minCount := int32(config["min_count"].(int)); minCount >= 0 {
+			profile.MinCount = utils.Int32(minCount)
+		}
+
+		if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
+			profile.MaxCount = utils.Int32(maxCount)
+		}
 	} else {
 		profile.Type = containerservice.AvailabilitySet
 	}
 
 	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
-	}
-
-	if minCount := int32(config["min_count"].(int)); minCount > 0 {
-		profile.MinCount = utils.Int32(minCount)
-	}
-
-	if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
-		profile.MaxCount = utils.Int32(maxCount)
 	}
 
 	vnetSubnetID := config["vnet_subnet_id"].(string)
