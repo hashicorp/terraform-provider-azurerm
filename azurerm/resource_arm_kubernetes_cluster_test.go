@@ -641,10 +641,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   agent_pool_profile {
     name               = "default"
-		count              = "1"
-		enable_autoscaling = true
-		min_count          = "0"
-		max_count          = "3"
+	  count              = "1"
+	  enable_autoscaling = true
+	  min_count          = "0"
+	  max_count          = "3"
     vm_size            = "Standard_DS2_v2"
   }
 
