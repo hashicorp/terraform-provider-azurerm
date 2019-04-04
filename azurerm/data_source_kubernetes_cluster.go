@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -112,6 +112,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+
+						"enable_autoscaling": {
+							Type: schema.TypeBool,
+							Computed: true,
+						}
 					},
 				},
 			},
@@ -579,6 +584,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
 		}
 
+		if profile.EnableAutoScaling != nil {
+			agentPoolProfile["enable_autoscaling"] = *profile.EnableAutoScaling
+		}
+
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
 	}
 
@@ -612,7 +621,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
