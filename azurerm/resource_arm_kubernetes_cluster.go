@@ -169,6 +169,22 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 						},
+
+						"min_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+
+						"max_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
 					},
 				},
 			},
@@ -555,6 +571,22 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	networkProfile := expandKubernetesClusterNetworkProfile(d)
 	addonProfiles := expandKubernetesClusterAddonProfiles(d)
 
+	if agentProfiles[0].MaxCount != nil && agentProfiles[0].MinCount != nil {
+		if *agentProfiles[0].MaxCount < *agentProfiles[0].MinCount {
+			return fmt.Errorf("`max_count` must be greater than `min_count`.")
+		}
+
+		if agentProfiles[0].Count != nil {
+			if *agentProfiles[0].Count < *agentProfiles[0].MinCount {
+				return fmt.Errorf("`count` must be greater than `min_count`.")
+			}
+
+			if *agentProfiles[0].Count > *agentProfiles[0].MinCount {
+				return fmt.Errorf("`count` must be less than `max_count`.")
+			}
+		}
+	}
+
 	tags := d.Get("tags").(map[string]interface{})
 
 	// we can't do this in the CustomizeDiff since the interpolations aren't evaluated at that point
@@ -900,8 +932,22 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 		OsType:            containerservice.OSType(osType),
 	}
 
+	if enableAutoscaling == true {
+		profile.Type = containerservice.VirtualMachineScaleSets
+	} else {
+		profile.Type = containerservice.AvailabilitySet
+	}
+
 	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	if minCount := int32(config["min_count"].(int)); minCount > 0 {
+		profile.MinCount = utils.Int32(minCount)
+	}
+
+	if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
+		profile.MaxCount = utils.Int32(maxCount)
 	}
 
 	vnetSubnetID := config["vnet_subnet_id"].(string)
@@ -953,6 +999,13 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 
 		if profile.MaxPods != nil {
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+		}
+
+		if profile.MinCount != nil {
+			agentPoolProfile["min_count"] = int(*profile.MinCount)
+		}
+		if profile.MaxCount != nil {
+			agentPoolProfile["max_count"] = int(*profile.MaxCount)
 		}
 
 		if profile.EnableAutoScaling != nil {
