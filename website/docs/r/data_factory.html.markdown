@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "northeurope"
-  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 
@@ -45,13 +45,13 @@ The following arguments are supported:
 
 ---
 
-`identity` supports the following:
+A `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
 
 ---
 
-`github_configuration` supports the following:
+A `github_configuration` block supports the following:
 
 * `account_name` - (Required) Specifies the GitHub account name.
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ---
 
-`vsts_configuration` supports the following:
+A `vsts_configuration` block supports the following:
 
 * `account_name` - (Required) Specifies the VSTS account name.
 

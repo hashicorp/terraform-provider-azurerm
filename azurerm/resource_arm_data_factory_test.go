@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -105,7 +104,6 @@ func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
 func TestAccAzureRMDataFactory_identity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactory_identity(ri, testLocation())
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 	resourceName := "azurerm_data_factory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -117,10 +115,10 @@ func TestAccAzureRMDataFactory_identity(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestCheckResourceAttrSet(resourceName, "identity.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "identity.0.type"),
+					resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "identity.0.tenant_id"),
 				),
 			},
 			{

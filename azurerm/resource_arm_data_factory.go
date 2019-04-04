@@ -46,12 +46,11 @@ func resourceArmDataFactory() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
-							}, true),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -182,16 +181,16 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, dataFactory, ""); err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Data Factory %q (resource group %s) ID", name, resourceGroup)
 	}
 
 	if hasRepo, repo := expandArmDataFactoryRepoConfiguration(d); hasRepo {
@@ -200,7 +199,7 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 			RepoConfiguration: repo,
 		}
 		if _, err = client.ConfigureFactoryRepo(ctx, location, repoUpdate); err != nil {
-			return err
+			return fmt.Errorf("Error configuring Repository for Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -227,7 +226,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Data Factory %s: %+v", name, err)
+		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -239,13 +238,17 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	repoType, repo := flattenArmDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting Data Factory %q `vsts_configuration` (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
+	} else {
+		d.Set("vsts_configuration", []interface{}{})
 	}
 	if repoType == datafactory.TypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting Data Factory %q `github_configuration` (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
+	} else {
+		d.Set("github_configuration", []interface{}{})
 	}
 	if repoType == datafactory.TypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
@@ -253,7 +256,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if err := d.Set("identity", flattenArmDataFactoryIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting Data Factory %q `identity` (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error flattening `identity`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -275,7 +278,7 @@ func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) erro
 	response, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory %s: %+v", name, err)
+			return fmt.Errorf("Error deleting Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -324,26 +327,48 @@ func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafa
 
 func flattenArmDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
 	result := make([]interface{}, 0)
-	properties := factory.FactoryProperties
-	if properties != nil {
+
+	if properties := factory.FactoryProperties; properties != nil {
 		repo := properties.RepoConfiguration
 		if repo != nil {
 			settings := map[string]interface{}{}
 			if config, test := repo.AsFactoryGitHubConfiguration(); test {
-				settings["account_name"] = *config.AccountName
-				settings["branch_name"] = *config.CollaborationBranch
-				settings["git_url"] = *config.HostName
-				settings["repository_name"] = *config.RepositoryName
-				settings["root_folder"] = *config.RootFolder
+				if config.AccountName != nil {
+					settings["account_name"] = *config.AccountName
+				}
+				if config.CollaborationBranch != nil {
+					settings["branch_name"] = *config.CollaborationBranch
+				}
+				if config.HostName != nil {
+					settings["git_url"] = *config.HostName
+				}
+				if config.RepositoryName != nil {
+					settings["repository_name"] = *config.RepositoryName
+				}
+				if config.RootFolder != nil {
+					settings["root_folder"] = *config.RootFolder
+				}
 				return datafactory.TypeFactoryGitHubConfiguration, append(result, settings)
 			}
 			if config, test := repo.AsFactoryVSTSConfiguration(); test {
-				settings["account_name"] = *config.AccountName
-				settings["branch_name"] = *config.CollaborationBranch
-				settings["project_name"] = *config.ProjectName
-				settings["repository_name"] = *config.RepositoryName
-				settings["root_folder"] = *config.RootFolder
-				settings["tenant_id"] = *config.TenantID
+				if config.AccountName != nil {
+					settings["account_name"] = *config.AccountName
+				}
+				if config.CollaborationBranch != nil {
+					settings["branch_name"] = *config.CollaborationBranch
+				}
+				if config.ProjectName != nil {
+					settings["project_name"] = *config.ProjectName
+				}
+				if config.RepositoryName != nil {
+					settings["repository_name"] = *config.RepositoryName
+				}
+				if config.RootFolder != nil {
+					settings["root_folder"] = *config.RootFolder
+				}
+				if config.TenantID != nil {
+					settings["tenant_id"] = *config.TenantID
+				}
 				return datafactory.TypeFactoryVSTSConfiguration, append(result, settings)
 			}
 		}
