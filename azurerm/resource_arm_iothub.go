@@ -505,7 +505,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
 
-		ipFilterRules := flattenIPFilterRules((properties.IPFilterRules))
+		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
 		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
 			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
 		}
