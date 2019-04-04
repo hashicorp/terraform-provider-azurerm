@@ -190,7 +190,7 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory %q (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Data Factory %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	if hasRepo, repo := expandArmDataFactoryRepoConfiguration(d); hasRepo {
