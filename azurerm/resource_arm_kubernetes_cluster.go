@@ -587,11 +587,11 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if *agentProfiles[0].EnableAutoScaling == true && agentProfiles[0].MaxCount == nil {
+	if *agentProfiles[0].EnableAutoScaling && agentProfiles[0].MaxCount == nil {
 		return fmt.Errorf("`max_count` must be set when `enable_autoscaling` is set to `true`.")
 	}
 
-	if *agentProfiles[0].EnableAutoScaling == true && agentProfiles[0].MinCount == nil {
+	if *agentProfiles[0].EnableAutoScaling && agentProfiles[0].MinCount == nil {
 		return fmt.Errorf("`min_count` must be set when `enable_autoscaling` is set to `true`.")
 	}
 
@@ -940,7 +940,7 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 		OsType:            containerservice.OSType(osType),
 	}
 
-	if enableAutoscaling == true {
+	if enableAutoscaling {
 		profile.Type = containerservice.VirtualMachineScaleSets
 
 		if minCount := int32(config["min_count"].(int)); minCount >= 0 {
