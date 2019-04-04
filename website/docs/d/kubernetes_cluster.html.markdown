@@ -82,7 +82,13 @@ A `agent_pool_profile` block exports the following:
 
 * `count` - The number of Agents (VM's) in the Pool.
 
+* `enable_autoscaling` - Is autoscaling enabled?
+
+* `max_count` - The maximum number of nodes in the cluster.  Only set if autoscaling is enabled.
+
 * `max_pods` - The maximum number of pods that can run on each agent.
+
+* `min_count` - The minimum number of nodes in the cluster.  Only set if autoscaling is enabled.
 
 * `name` - The name assigned to this pool of agents.
 

@@ -105,6 +105,9 @@ A `agent_pool_profile` block supports the following:
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
+* `enable_autoscaling` - (Optional) Is autoscaling enabled?  Defaults to `false`.
+* `max_count` - (Optional) The maximum number of nodes in the autoscaling cluster.  Required if `enable_autoscaling` is set to `true`.  Possible values must be in the range of 1 to 100 (inclusive).
+* `min_count` - (Optional) The minimum number of nodes in the autoscaling cluster.  Required if `enable_autoscaling` is set to `true`.  Possible values must be in the range of 0 to 100 (inclusive).  Defaults to `1`.
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent.
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
