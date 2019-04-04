@@ -970,9 +970,16 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 
 	for _, r := range *in {
 		rawRule := make(map[string]interface{})
-		rawRule["name"] = *r.FilterName
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
 		rawRule["action"] = string(r.Action)
-		rawRule["ip_mask"] = *r.IPMask
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
 		rules = append(rules, rawRule)
 	}
 	return rules
