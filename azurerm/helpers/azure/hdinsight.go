@@ -211,14 +211,12 @@ func ExpandHDInsightsStorageAccounts(input []interface{}) (*[]hdinsight.StorageA
 }
 
 type HDInsightNodeDefinition struct {
-	CanSpecifyInstanceCount bool
-	MinInstanceCount        int
-	MaxInstanceCount        int
-	ValidVmSizes            []string
-	CanSpecifyDisks         bool
-	MaxNumberOfDisksPerNode *int
-
-	// TODO: pull these in for the Expand
+	CanSpecifyInstanceCount  bool
+	MinInstanceCount         int
+	MaxInstanceCount         int
+	ValidVmSizes             []string
+	CanSpecifyDisks          bool
+	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
 	FixedTargetInstanceCount *int32
 }
@@ -275,7 +273,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		// TODO: should we make this validate func optional?
 		result["min_instance_count"] = &schema.Schema{
 			Type:         schema.TypeInt,
 			Optional:     true,
