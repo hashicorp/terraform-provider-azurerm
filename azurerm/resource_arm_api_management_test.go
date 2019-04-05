@@ -30,7 +30,11 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 		},
 	})
@@ -56,7 +60,11 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 		},
 	})
@@ -129,6 +137,10 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 		},
 	})
@@ -164,6 +176,8 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					"hostname_configuration.0.proxy.0.certificate_password",  // not returned from API, sensitive
 					"hostname_configuration.0.proxy.1.certificate",           // not returned from API, sensitive
 					"hostname_configuration.0.proxy.1.certificate_password",  // not returned from API, sensitive
+					"sku",
+					"sku_name",
 				},
 			},
 		},
@@ -190,6 +204,10 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 		},
 	})
@@ -215,6 +233,10 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 			{
 				Config: testAccAzureRMApiManagement_policyXmlLink(ri, location),
@@ -223,10 +245,14 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"policy.0.xml_link"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"policy.0.xml_link",
+					"sku",
+					"sku_name",
+				},
 			},
 			{
 				Config: testAccAzureRMApiManagement_policyRemoved(ri, location),
@@ -238,6 +264,10 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"sku",
+					"sku_name",
+				},
 			},
 		},
 	})
@@ -336,6 +366,7 @@ resource "azurerm_api_management" "test" {
   sku {
     name = "Developer"
     capacity = 1
+	}
 }
 `, rInt, location, rInt)
 }
@@ -354,8 +385,6 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku_name = "Developer_1"
 }
 `, rInt, location, rInt)
 }
