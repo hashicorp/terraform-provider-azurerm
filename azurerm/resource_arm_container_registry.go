@@ -112,6 +112,67 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"network_rules_profile": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"default_action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerregistry.DefaultActionAllow),
+								string(containerregistry.DefaultActionDeny),
+							}, true),
+						},
+
+						"subnet_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Computed: true,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, true),
+									},
+									"subnet_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+										Required: true,
+									},
+								},
+							},
+						},
+
+						"ip_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, true),
+									},
+									"ip_range": {
+										Type:     schema.TypeString,
+										Computed: true,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 
@@ -163,7 +224,9 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		},
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
+			NetworkRuleSet:   expandNetworkRuleSet(d),
 		},
+
 		Tags: expandTags(tags),
 	}
 
@@ -498,4 +561,40 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 	}
 
 	return warnings, errors
+}
+
+func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRuleSet {
+	configs := d.Get("network_rules_profile").(*schema.Set).List()
+	config := configs[0].(map[string]interface{})
+
+	virtualNetworkRuleConfigs := config["subnet_rule"].([]interface{})
+	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0, len(virtualNetworkRuleConfigs))
+
+	for _, virtualNetworkRuleInterface := range virtualNetworkRuleConfigs {
+		config := virtualNetworkRuleInterface.(map[string]interface{})
+		virtualNetworkRules =
+			append(virtualNetworkRules, containerregistry.VirtualNetworkRule{
+				Action:                   containerregistry.Action(config["action"].(string)),
+				VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
+			})
+	}
+
+	ipRuleConfigs := config["ip_rule"].([]interface{})
+	ipRules := make([]containerregistry.IPRule, 0, len(ipRuleConfigs))
+
+	for _, ipRuleInterface := range ipRuleConfigs {
+		config := ipRuleInterface.(map[string]interface{})
+		ipRules =
+			append(ipRules, containerregistry.IPRule{
+				Action:           containerregistry.Action(config["action"].(string)),
+				IPAddressOrRange: utils.String(config["ip_range"].(string)),
+			})
+	}
+
+	networkRuleSet := containerregistry.NetworkRuleSet{
+		DefaultAction:       containerregistry.DefaultAction(config["default_action"].(string)),
+		VirtualNetworkRules: &virtualNetworkRules,
+		IPRules:             &ipRules,
+	}
+	return &networkRuleSet
 }
