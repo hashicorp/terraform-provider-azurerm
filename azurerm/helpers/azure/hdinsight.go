@@ -309,7 +309,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 				"Standard_GS4",
 				"Standard_GS5",
 				"Standard_NC24",
-			}, false),
+			}, true),
 		},
 		"username": {
 			Type:     schema.TypeString,
