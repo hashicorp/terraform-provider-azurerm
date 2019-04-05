@@ -35,6 +35,11 @@ func untar(input io.Reader, dst, src string, dir bool) error {
 
 		path := dst
 		if dir {
+			// Disallow parent traversal
+			if containsDotDot(hdr.Name) {
+				return fmt.Errorf("entry contains '..': %s", hdr.Name)
+			}
+
 			path = filepath.Join(path, hdr.Name)
 		}
 
