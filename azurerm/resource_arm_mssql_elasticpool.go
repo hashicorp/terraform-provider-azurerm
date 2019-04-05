@@ -176,7 +176,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			"zone_redundant": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
 			},
 
 			"tags": tagsSchema(),
@@ -228,6 +228,10 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
 		},
+	}
+
+	if v, ok := d.GetOkExists("zone_redundant"); ok {
+		elasticPool.ElasticPoolProperties.ZoneRedundant = utils.Bool(v.(bool))
 	}
 
 	if d.HasChange("max_size_gb") {
