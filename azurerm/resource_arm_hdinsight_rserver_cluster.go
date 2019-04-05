@@ -187,7 +187,7 @@ func resourceArmHDInsightRServerCluster() *schema.Resource {
 func expandHDInsightsRServerConfigurations(gateway []interface{}, rStudio bool) map[string]interface{} {
 	config := azure.ExpandHDInsightsConfigurations(gateway)
 
-	config["rstudio"] = map[string]interface{}{
+	config["rserver"] = map[string]interface{}{
 		"rstudio": rStudio,
 	}
 
@@ -311,7 +311,7 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error retrieving Gateway Configuration for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	rStudioConfig, err := configurationsClient.Get(ctx, resourceGroup, name, "rstudio")
+	rStudioConfig, err := configurationsClient.Get(ctx, resourceGroup, name, "rserver")
 	if err != nil {
 		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
