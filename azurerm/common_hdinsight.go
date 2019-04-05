@@ -141,7 +141,10 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 	if len(existingVs) > 0 {
 		existingV := existingVs[0].(map[string]interface{})
 
-		existingEdgeNodes = existingV["edge_node"].([]interface{})
+		if definition.EdgeNodeDef != nil {
+			existingEdgeNodes = existingV["edge_node"].([]interface{})
+		}
+
 		existingHeadNodes = existingV["head_node"].([]interface{})
 		existingWorkerNodes = existingV["worker_node"].([]interface{})
 		existingZookeeperNodes = existingV["zookeeper_node"].([]interface{})
