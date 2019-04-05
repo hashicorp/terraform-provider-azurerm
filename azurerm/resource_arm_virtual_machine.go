@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"golang.org/x/net/context"
 )
@@ -102,8 +103,10 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"identity_ids": {
 							Type:     schema.TypeList,
 							Optional: true,
+							MinItems: 1,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validate.UUID,
 							},
 						},
 					},
