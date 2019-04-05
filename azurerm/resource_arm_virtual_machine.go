@@ -102,8 +102,10 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"identity_ids": {
 							Type:     schema.TypeList,
 							Optional: true,
+							MinItems: 1,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
 							},
 						},
 					},
