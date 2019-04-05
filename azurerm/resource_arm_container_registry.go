@@ -297,6 +297,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
+			NetworkRuleSet:   expandNetworkRuleSet(d),
 		},
 		Sku: &containerregistry.Sku{
 			Name: containerregistry.SkuName(sku),
