@@ -7,6 +7,10 @@ IMPROVEMENTS:
 * dependencies: upgrading `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
 * `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
 
+BUG FIXES:
+
+* `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
+
 ## 1.24.0 (April 03, 2019)
 
 UPGRADE NOTES:
