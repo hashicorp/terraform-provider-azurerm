@@ -335,7 +335,7 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 func expandHDInsightInteractiveQueryComponentVersion(input []interface{}) map[string]*string {
 	vs := input[0].(map[string]interface{})
 	return map[string]*string{
-		"interactive_hive": utils.String(vs["InteractiveHive"].(string)),
+		"InteractiveHive": utils.String(vs["interactive_hive"].(string)),
 	}
 }
 
