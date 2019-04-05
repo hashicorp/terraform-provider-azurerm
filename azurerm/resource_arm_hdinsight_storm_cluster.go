@@ -17,37 +17,6 @@ var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         4,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
-	ValidVmSizes: []string{
-		// TODO: are these the same for the other types?
-		// only certain sizes are valid for certain machine types for certain kinds
-		// otherwise you get an unhelpful error. this is an attempt to make a better UX
-		"Standard_A3",
-		"Standard_A4",
-		"Standard_A4_v2",
-		"Standard_A4m_v2",
-		"Standard_A6",
-		"Standard_A7",
-		"Standard_A8_v2",
-		"Standard_A8m_v2",
-		"Standard_D12_v2",
-		"Standard_D13_v2",
-		"Standard_D14_v2",
-		"Standard_D3_v2",
-		"Standard_D4_v2",
-		"Standard_D5_v2",
-		"Standard_E16_v3",
-		"Standard_E20_v3",
-		"Standard_E2_v3",
-		"Standard_E32_v3",
-		"Standard_E4_v3",
-		"Standard_E64_v3",
-		"Standard_E64i_v3",
-		"Standard_E8_v3",
-		"Standard_G2",
-		"Standard_G3",
-		"Standard_G4",
-		"Standard_G5",
-	},
 }
 
 var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -56,38 +25,6 @@ var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	// can't find a hard limit - appears to be limited by the subscription; setting something sensible for now
 	MaxInstanceCount: 9999,
 	CanSpecifyDisks:  false,
-	ValidVmSizes: []string{
-		// TODO: update this
-		// TODO: are these the same for the other types?
-		// only certain sizes are valid for certain machine types for certain kinds
-		// otherwise you get an unhelpful error. this is an attempt to make a better UX
-		"Standard_A3",
-		"Standard_A4",
-		"Standard_A4_v2",
-		"Standard_A4m_v2",
-		"A6",
-		"A7",
-		"Standard_A8_v2",
-		"Standard_A8m_v2",
-		"Standard_D3_v2",
-		"Standard_D4_v2",
-		"Standard_D5_v2",
-		"Standard_D12_v2",
-		"Standard_D13_v2",
-		"Standard_D14_v2",
-		"Standard_E2_v3",
-		"Standard_E4_v3",
-		"Standard_E8_v3",
-		"Standard_E16_v3",
-		"Standard_E20_v3",
-		"Standard_E32_v3",
-		"Standard_E64_v3",
-		"Standard_E64i_v3",
-		"Standard_G2",
-		"Standard_G3",
-		"Standard_G4",
-		"Standard_G5",
-	},
 }
 
 var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -96,11 +33,6 @@ var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	MaxInstanceCount:         3,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
-	ValidVmSizes: []string{
-		//// this is hard-coded at the API level
-		//"Medium",
-		"Standard_A4_V2",
-	},
 }
 
 func resourceArmHDInsightStormCluster() *schema.Resource {

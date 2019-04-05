@@ -19,37 +19,6 @@ var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
-	ValidVmSizes: []string{
-		// TODO: are these the same for the other types?
-		// only certain sizes are valid for certain machine types for certain kinds
-		// otherwise you get an unhelpful error. this is an attempt to make a better UX
-		"Standard_A3",
-		"Standard_A4",
-		"Standard_A4_v2",
-		"Standard_A4m_v2",
-		"Standard_A6",
-		"Standard_A7",
-		"Standard_A8_v2",
-		"Standard_A8m_v2",
-		"Standard_D12_v2",
-		"Standard_D13_v2",
-		"Standard_D14_v2",
-		"Standard_D3_v2",
-		"Standard_D4_v2",
-		"Standard_D5_v2",
-		"Standard_E16_v3",
-		"Standard_E20_v3",
-		"Standard_E2_v3",
-		"Standard_E32_v3",
-		"Standard_E4_v3",
-		"Standard_E64_v3",
-		"Standard_E64i_v3",
-		"Standard_E8_v3",
-		"Standard_G2",
-		"Standard_G3",
-		"Standard_G4",
-		"Standard_G5",
-	},
 }
 
 var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -57,38 +26,6 @@ var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        16,
 	CanSpecifyDisks:         false,
-	ValidVmSizes: []string{
-		// TODO: update this
-		// TODO: are these the same for the other types?
-		// only certain sizes are valid for certain machine types for certain kinds
-		// otherwise you get an unhelpful error. this is an attempt to make a better UX
-		"Standard_A3",
-		"Standard_A4",
-		"Standard_A4_v2",
-		"Standard_A4m_v2",
-		"A6",
-		"A7",
-		"Standard_A8_v2",
-		"Standard_A8m_v2",
-		"Standard_D3_v2",
-		"Standard_D4_v2",
-		"Standard_D5_v2",
-		"Standard_D12_v2",
-		"Standard_D13_v2",
-		"Standard_D14_v2",
-		"Standard_E2_v3",
-		"Standard_E4_v3",
-		"Standard_E8_v3",
-		"Standard_E16_v3",
-		"Standard_E20_v3",
-		"Standard_E32_v3",
-		"Standard_E64_v3",
-		"Standard_E64i_v3",
-		"Standard_G2",
-		"Standard_G3",
-		"Standard_G4",
-		"Standard_G5",
-	},
 }
 
 var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -98,10 +35,6 @@ var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefiniti
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
-	ValidVmSizes: []string{
-		// this is hard-coded at the API level
-		"Medium",
-	},
 }
 
 var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
@@ -110,10 +43,6 @@ var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         1,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
-	ValidVmSizes: []string{
-		// this is hard-coded at the API level
-		"Medium",
-	},
 }
 
 func resourceArmHDInsightRServerCluster() *schema.Resource {
