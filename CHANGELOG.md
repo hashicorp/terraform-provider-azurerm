@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
 * dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
+* dependencies: upgrading `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
 * `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
 
 ## 1.24.0 (April 03, 2019)
