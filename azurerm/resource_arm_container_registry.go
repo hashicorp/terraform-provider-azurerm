@@ -112,7 +112,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"network_rules_profile": {
+			"network_access_profile": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -562,7 +562,7 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 }
 
 func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRuleSet {
-	configs := d.Get("network_rules_profile").(*schema.Set).List()
+	configs := d.Get("network_access_profile").(*schema.Set).List()
 	config := configs[0].(map[string]interface{})
 
 	virtualNetworkRuleConfigs := config["subnet_rule"].([]interface{})

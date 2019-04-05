@@ -54,6 +54,29 @@ The following arguments are supported:
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
+* `network_access_profile` - (Optional) A `network_access_profile` block as documented below.
+
+`network_access_profile` supports the following:
+
+* `default_action` - (Required) The behaviour for requests matching no rules. Either `Allow` or `Deny`
+
+* `ip_rule` - (Optional) Can be repeated a number of time to allow access to the Registry from the specific ip range in CIDR form. Each `ip_rule` block support the fields documented below.
+
+* `subnet_rule` - (Optional) Can be specified a number of times to allow access to the Registry from a subnet. Each `subnet_rule` block support the fields documented below.
+
+`ip_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. Can only be `Allow`
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+`subnet_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. Can only be `Allow`
+
+* `subnet_id` - (Required) Resource ID of the subnet from which requests will match the rule.
+
+---
 ## Attributes Reference
 
 The following attributes are exported:
