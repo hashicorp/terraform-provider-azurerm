@@ -134,7 +134,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"action": {
 										Type:     schema.TypeString,
-										Computed: true,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerregistry.Allow),
@@ -142,7 +141,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 									},
 									"subnet_id": {
 										Type:     schema.TypeString,
-										Computed: true,
 										Required: true,
 									},
 								},
@@ -163,7 +161,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 									},
 									"ip_range": {
 										Type:     schema.TypeString,
-										Computed: true,
 										Required: true,
 									},
 								},
