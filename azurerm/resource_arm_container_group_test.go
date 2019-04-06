@@ -229,7 +229,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.0", "cat"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.httpget.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.http_get.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.inital_delay_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.period_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.failure_threshold", "1"),
@@ -237,10 +237,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.path", "/"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.port", "443"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.scheme", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.path", "/"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.scheme", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.inital_delay_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.period_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.success_threshold", "1"),
@@ -331,7 +331,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.0", "cat"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.httpget.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.http_get.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.inital_delay_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.period_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.failure_threshold", "1"),
@@ -339,10 +339,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.path", "/"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.port", "443"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.httpget.0.scheme", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.path", "/"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.http_get.0.scheme", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.inital_delay_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.period_seconds", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.liveness_probe.0.success_threshold", "1"),
@@ -657,7 +657,7 @@ resource "azurerm_container_group" "test" {
     }
 
     liveness_probe {
-      httpget {
+      http_get {
         path   = "/"
         port   = 443
         scheme = "Http"
@@ -789,7 +789,7 @@ resource "azurerm_container_group" "test" {
     }
 
     liveness_probe {
-      httpget {
+      http_get {
         path   = "/"
         port   = 443
         scheme = "Http"

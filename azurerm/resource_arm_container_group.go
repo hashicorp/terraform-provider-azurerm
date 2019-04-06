@@ -813,7 +813,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 			probe.Exec = &exec
 		}
 
-		httpRaw := probeConfig["httpget"].([]interface{})
+		httpRaw := probeConfig["http_get"].([]interface{})
 		if len(httpRaw) > 0 {
 
 			for _, httpget := range httpRaw {
@@ -823,12 +823,11 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				port := x["port"].(int)
 				scheme := x["scheme"].(string)
 
-				ContainerHTTPGet := containerinstance.ContainerHTTPGet{
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:   utils.String(path),
 					Port:   utils.Int32(int32(port)),
 					Scheme: containerinstance.Scheme(scheme),
 				}
-				probe.HTTPGet = &ContainerHTTPGet
 			}
 		}
 	}
@@ -1095,24 +1094,25 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		output["exec"] = *v.Command
 	}
 
+	httpGets := make([]interface{}, 0)
 	if get := input.HTTPGet; get != nil {
-		httpget := make(map[string]interface{})
+		httpGet := make(map[string]interface{})
 
 		if v := get.Path; v != nil {
-			httpget["path"] = *v
+			httpGet["path"] = *v
 		}
 
 		if v := get.Port; v != nil {
-			httpget["port"] = *v
+			httpGet["port"] = *v
 		}
 
 		if get.Scheme != "" {
-			httpget["scheme"] = get.Scheme
+			httpGet["scheme"] = get.Scheme
 		}
 
-		output["httpget"] = []interface{}{httpget}
-
+		httpGets = append(httpGets, httpGet)
 	}
+	output["http_get"] = httpGets
 
 	if v := input.FailureThreshold; v != nil {
 		output["failure_threshold"] = *v

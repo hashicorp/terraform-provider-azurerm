@@ -24,7 +24,7 @@ func SchemaContainerGroupProbe() *schema.Schema {
 					},
 				},
 
-				"httpget": {
+				"http_get": {
 					Type:     schema.TypeList,
 					Optional: true,
 					ForceNew: true,
