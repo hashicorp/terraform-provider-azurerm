@@ -979,13 +979,8 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
 
-		if container.LivenessProbe != nil {
-			containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
-		}
-
-		if container.ReadinessProbe != nil {
-			containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
-		}
+		containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
+		containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
 
 		containerCfg = append(containerCfg, containerConfig)
 	}
