@@ -10,6 +10,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
+* `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
 * `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
 
 ## 1.24.0 (April 03, 2019)
