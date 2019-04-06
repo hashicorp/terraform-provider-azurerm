@@ -10,6 +10,7 @@ require (
 	github.com/apparentlymart/go-rundeck-api v0.0.0-20160826143032-f6af74d34d1e // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/fsouza/go-dockerclient v0.0.0-20160427172547-1d4f4ae73768 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
 	github.com/go-ini/ini v1.23.1 // indirect
@@ -22,6 +23,7 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.0
 	github.com/hashicorp/terraform v0.11.14-0.20190329073242-44702fa6c163
+	github.com/kr/pretty v0.1.0 // indirect
 	github.com/marstr/collection v1.0.1 // indirect
 	github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c // indirect
 	github.com/mitchellh/cli v1.0.0 // indirect
