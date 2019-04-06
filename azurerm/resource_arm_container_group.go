@@ -785,7 +785,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	for _, p := range probeRaw {
 		probeConfig := p.(map[string]interface{})
 
-		if v := probeConfig["inital_delay_seconds"].(int); v > 0 {
+		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
 			probe.InitialDelaySeconds = utils.Int32(int32(v))
 		}
 
@@ -1119,7 +1119,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	}
 
 	if v := input.InitialDelaySeconds; v != nil {
-		output["inital_delay_seconds"] = *v
+		output["initial_delay_seconds"] = *v
 	}
 
 	if v := input.PeriodSeconds; v != nil {

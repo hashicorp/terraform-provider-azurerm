@@ -55,7 +55,7 @@ func SchemaContainerGroupProbe() *schema.Schema {
 					},
 				},
 
-				"inital_delay_seconds": {
+				"initial_delay_seconds": {
 					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
