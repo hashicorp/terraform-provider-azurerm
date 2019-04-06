@@ -635,7 +635,7 @@ resource "azurerm_container_group" "test" {
     ports {
       port     = 80
       protocol = "TCP"
-		}
+    }
 
     environment_variables = {
       "foo"  = "bar"
@@ -770,14 +770,14 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo" = "bar"
+      "foo"  = "bar"
       "foo1" = "bar1"
     }
 
     secure_environment_variables = {
       "secureFoo"  = "secureBar"
       "secureFoo1" = "secureBar1"
-		}
+    }
 
     readiness_probe {
       exec                 = ["cat","/tmp/healthy"]
@@ -805,7 +805,7 @@ resource "azurerm_container_group" "test" {
   }
 
   diagnostics {
-  log_analytics {
+     log_analytics {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
