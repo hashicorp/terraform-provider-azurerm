@@ -67,13 +67,13 @@ func SchemaContainerGroupProbe() *schema.Schema {
 					ForceNew: true,
 				},
 
-				"failure_threashold": {
+				"failure_threshold": {
 					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},
 
-				"sucess_threashold": {
+				"success_threshold": {
 					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,

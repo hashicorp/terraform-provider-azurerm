@@ -793,11 +793,11 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 			probe.PeriodSeconds = utils.Int32(int32(v))
 		}
 
-		if v := probeConfig["failure_threashold"].(int); v > 0 {
+		if v := probeConfig["failure_threshold"].(int); v > 0 {
 			probe.FailureThreshold = utils.Int32(int32(v))
 		}
 
-		if v := probeConfig["sucess_threashold"].(int); v > 0 {
+		if v := probeConfig["success_threshold"].(int); v > 0 {
 			probe.SuccessThreshold = utils.Int32(int32(v))
 		}
 
@@ -1115,7 +1115,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	}
 
 	if v := input.FailureThreshold; v != nil {
-		output["failure_threashold"] = *v
+		output["failure_threshold"] = *v
 	}
 
 	if v := input.InitialDelaySeconds; v != nil {
@@ -1127,7 +1127,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	}
 
 	if v := input.SuccessThreshold; v != nil {
-		output["sucess_threashold"] = *v
+		output["success_threshold"] = *v
 	}
 
 	if v := input.TimeoutSeconds; v != nil {
