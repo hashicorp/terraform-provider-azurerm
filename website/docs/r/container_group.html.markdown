@@ -268,7 +268,7 @@ The `httpget` block supports:
 
 * `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
 
-* `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `HTTP` & `HTTPS`. Changing this forces a new resource to be created.
+* `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

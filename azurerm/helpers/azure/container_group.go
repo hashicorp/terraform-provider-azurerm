@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -48,9 +47,9 @@ func SchemaContainerGroupProbe() *schema.Schema {
 								Optional: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(containerinstance.HTTP),
-									string(containerinstance.HTTPS),
-								}, true),
+									"Http",
+									"Https",
+								}, false),
 							},
 						},
 					},
