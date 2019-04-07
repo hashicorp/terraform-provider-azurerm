@@ -212,7 +212,8 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Factory
-	dataFactoryClient datafactory.FactoriesClient
+	dataFactoryClient              datafactory.FactoriesClient
+	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
@@ -817,6 +818,10 @@ func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, 
 	dataFactoryClient := datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryClient.Client, auth)
 	c.dataFactoryClient = dataFactoryClient
+
+	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
+	c.dataFactoryLinkedServiceClient = dataFactoryLinkedServiceClient
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
