@@ -2,7 +2,6 @@ package azure
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,7 +18,7 @@ func SchemaHDInsightName() *schema.Schema {
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateHDInsightName,
+		ValidateFunc: validate.HDInsightName,
 	}
 }
 
@@ -27,19 +26,8 @@ func SchemaHDInsightDataSourceName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validateHDInsightName,
+		ValidateFunc: validate.HDInsightName,
 	}
-}
-
-func validateHDInsightName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	// The name must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number).
-	if matched := regexp.MustCompile(`(^[a-zA-Z0-9])([a-zA-Z0-9-]{1,57})([a-zA-Z0-9]$)`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number).", k))
-	}
-
-	return warnings, errors
 }
 
 func SchemaHDInsightTier() *schema.Schema {
@@ -61,8 +49,8 @@ func SchemaHDInsightClusterVersion() *schema.Schema {
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
+		ValidateFunc:     validate.HDInsightClusterVersion,
 		DiffSuppressFunc: hdinsightClusterVersionDiffSuppressFunc,
-		// TODO: validation
 	}
 }
 
