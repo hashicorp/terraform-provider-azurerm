@@ -625,6 +625,32 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "site_config.0.ip_restriction"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -1990,6 +2016,37 @@ resource "azurerm_app_service" "test" {
       subnet_mask = "255.255.255.0"
     }
   }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	sku {
+		tier = "Standard"
+		size = "S1"
+	}
+}
+
+resource "azurerm_app_service" "test" {
+	name                = "acctestAS-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+	site_config {
+		ip_restriction = []
+	}
 }
 `, rInt, location, rInt, rInt)
 }

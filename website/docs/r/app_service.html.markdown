@@ -177,6 +177,8 @@ A `ip_restriction` block supports the following:
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
+This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+
 ## Attributes Reference
 
 The following attributes are exported:

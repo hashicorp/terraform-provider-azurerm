@@ -448,6 +448,27 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "site_config.0.ip_restriction"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -1511,6 +1532,45 @@ resource "azurerm_app_service_slot" "test" {
     ip_restriction {
       ip_address = "10.10.10.10"
     }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction = []
   }
 }
 `, rInt, location, rInt, rInt, rInt)
