@@ -27,10 +27,11 @@ var hdInsightSparkClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
-	CanSpecifyInstanceCount: false,
-	MinInstanceCount:        3,
-	MaxInstanceCount:        3,
-	CanSpecifyDisks:         false,
+	CanSpecifyInstanceCount:  false,
+	MinInstanceCount:         3,
+	MaxInstanceCount:         3,
+	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	CanSpecifyDisks:          false,
 }
 
 func resourceArmHDInsightSparkCluster() *schema.Resource {
