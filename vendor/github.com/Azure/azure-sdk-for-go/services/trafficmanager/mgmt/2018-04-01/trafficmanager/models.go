@@ -20,10 +20,11 @@ package trafficmanager
 import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/date"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 
 // EndpointMonitorStatus enumerates the values for endpoint monitor status.
 type EndpointMonitorStatus string
@@ -122,17 +123,36 @@ type TrafficRoutingMethod string
 const (
 	// Geographic ...
 	Geographic TrafficRoutingMethod = "Geographic"
+	// MultiValue ...
+	MultiValue TrafficRoutingMethod = "MultiValue"
 	// Performance ...
 	Performance TrafficRoutingMethod = "Performance"
 	// Priority ...
 	Priority TrafficRoutingMethod = "Priority"
+	// Subnet ...
+	Subnet TrafficRoutingMethod = "Subnet"
 	// Weighted ...
 	Weighted TrafficRoutingMethod = "Weighted"
 )
 
 // PossibleTrafficRoutingMethodValues returns an array of possible values for the TrafficRoutingMethod const type.
 func PossibleTrafficRoutingMethodValues() []TrafficRoutingMethod {
-	return []TrafficRoutingMethod{Geographic, Performance, Priority, Weighted}
+	return []TrafficRoutingMethod{Geographic, MultiValue, Performance, Priority, Subnet, Weighted}
+}
+
+// TrafficViewEnrollmentStatus enumerates the values for traffic view enrollment status.
+type TrafficViewEnrollmentStatus string
+
+const (
+	// TrafficViewEnrollmentStatusDisabled ...
+	TrafficViewEnrollmentStatusDisabled TrafficViewEnrollmentStatus = "Disabled"
+	// TrafficViewEnrollmentStatusEnabled ...
+	TrafficViewEnrollmentStatusEnabled TrafficViewEnrollmentStatus = "Enabled"
+)
+
+// PossibleTrafficViewEnrollmentStatusValues returns an array of possible values for the TrafficViewEnrollmentStatus const type.
+func PossibleTrafficViewEnrollmentStatusValues() []TrafficViewEnrollmentStatus {
+	return []TrafficViewEnrollmentStatus{TrafficViewEnrollmentStatusDisabled, TrafficViewEnrollmentStatusEnabled}
 }
 
 // CheckTrafficManagerRelativeDNSNameAvailabilityParameters parameters supplied to check Traffic Manager
@@ -265,22 +285,44 @@ func (e *Endpoint) UnmarshalJSON(body []byte) error {
 type EndpointProperties struct {
 	// TargetResourceID - The Azure Resource URI of the of the endpoint. Not applicable to endpoints of type 'ExternalEndpoints'.
 	TargetResourceID *string `json:"targetResourceId,omitempty"`
-	// Target - The fully-qualified DNS name of the endpoint. Traffic Manager returns this value in DNS responses to direct traffic to this endpoint.
+	// Target - The fully-qualified DNS name or IP address of the endpoint. Traffic Manager returns this value in DNS responses to direct traffic to this endpoint.
 	Target *string `json:"target,omitempty"`
 	// EndpointStatus - The status of the endpoint. If the endpoint is Enabled, it is probed for endpoint health and is included in the traffic routing method. Possible values include: 'EndpointStatusEnabled', 'EndpointStatusDisabled'
 	EndpointStatus EndpointStatus `json:"endpointStatus,omitempty"`
 	// Weight - The weight of this endpoint when using the 'Weighted' traffic routing method. Possible values are from 1 to 1000.
 	Weight *int64 `json:"weight,omitempty"`
-	// Priority - The priority of this endpoint when using the ‘Priority’ traffic routing method. Possible values are from 1 to 1000, lower values represent higher priority. This is an optional parameter.  If specified, it must be specified on all endpoints, and no two endpoints can share the same priority value.
+	// Priority - The priority of this endpoint when using the 'Priority' traffic routing method. Possible values are from 1 to 1000, lower values represent higher priority. This is an optional parameter.  If specified, it must be specified on all endpoints, and no two endpoints can share the same priority value.
 	Priority *int64 `json:"priority,omitempty"`
-	// EndpointLocation - Specifies the location of the external or nested endpoints when using the ‘Performance’ traffic routing method.
+	// EndpointLocation - Specifies the location of the external or nested endpoints when using the 'Performance' traffic routing method.
 	EndpointLocation *string `json:"endpointLocation,omitempty"`
 	// EndpointMonitorStatus - The monitoring status of the endpoint. Possible values include: 'CheckingEndpoint', 'Online', 'Degraded', 'Disabled', 'Inactive', 'Stopped'
 	EndpointMonitorStatus EndpointMonitorStatus `json:"endpointMonitorStatus,omitempty"`
 	// MinChildEndpoints - The minimum number of endpoints that must be available in the child profile in order for the parent profile to be considered available. Only applicable to endpoint of type 'NestedEndpoints'.
 	MinChildEndpoints *int64 `json:"minChildEndpoints,omitempty"`
-	// GeoMapping - The list of countries/regions mapped to this endpoint when using the ‘Geographic’ traffic routing method. Please consult Traffic Manager Geographic documentation for a full list of accepted values.
+	// GeoMapping - The list of countries/regions mapped to this endpoint when using the 'Geographic' traffic routing method. Please consult Traffic Manager Geographic documentation for a full list of accepted values.
 	GeoMapping *[]string `json:"geoMapping,omitempty"`
+	// Subnets - The list of subnets, IP addresses, and/or address ranges mapped to this endpoint when using the 'Subnet' traffic routing method. An empty list will match all ranges not covered by other endpoints.
+	Subnets *[]EndpointPropertiesSubnetsItem `json:"subnets,omitempty"`
+	// CustomHeaders - List of custom headers.
+	CustomHeaders *[]EndpointPropertiesCustomHeadersItem `json:"customHeaders,omitempty"`
+}
+
+// EndpointPropertiesCustomHeadersItem custom header name and value.
+type EndpointPropertiesCustomHeadersItem struct {
+	// Name - Header name.
+	Name *string `json:"name,omitempty"`
+	// Value - Header value.
+	Value *string `json:"value,omitempty"`
+}
+
+// EndpointPropertiesSubnetsItem subnet first address, scope, and/or last address.
+type EndpointPropertiesSubnetsItem struct {
+	// First - First address in the subnet.
+	First *string `json:"first,omitempty"`
+	// Last - Last address in the subnet.
+	Last *string `json:"last,omitempty"`
+	// Scope - Block size (number of leading bits in the subnet mask).
+	Scope *int32 `json:"scope,omitempty"`
 }
 
 // GeographicHierarchy class representing the Geographic hierarchy used with the Geographic traffic routing
@@ -373,6 +415,108 @@ type GeographicHierarchyProperties struct {
 	GeographicHierarchy *Region `json:"geographicHierarchy,omitempty"`
 }
 
+// HeatMapEndpoint class which is a sparse representation of a Traffic Manager endpoint.
+type HeatMapEndpoint struct {
+	// ResourceID - The ARM Resource ID of this Traffic Manager endpoint.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// EndpointID - A number uniquely identifying this endpoint in query experiences.
+	EndpointID *int32 `json:"endpointId,omitempty"`
+}
+
+// HeatMapModel class representing a Traffic Manager HeatMap.
+type HeatMapModel struct {
+	autorest.Response `json:"-"`
+	// HeatMapProperties - The properties of the Traffic Manager HeatMap.
+	*HeatMapProperties `json:"properties,omitempty"`
+	// ID - Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - The type of the resource. Ex- Microsoft.Network/trafficManagerProfiles.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HeatMapModel.
+func (hmm HeatMapModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hmm.HeatMapProperties != nil {
+		objectMap["properties"] = hmm.HeatMapProperties
+	}
+	if hmm.ID != nil {
+		objectMap["id"] = hmm.ID
+	}
+	if hmm.Name != nil {
+		objectMap["name"] = hmm.Name
+	}
+	if hmm.Type != nil {
+		objectMap["type"] = hmm.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for HeatMapModel struct.
+func (hmm *HeatMapModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var heatMapProperties HeatMapProperties
+				err = json.Unmarshal(*v, &heatMapProperties)
+				if err != nil {
+					return err
+				}
+				hmm.HeatMapProperties = &heatMapProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				hmm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				hmm.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				hmm.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// HeatMapProperties class representing a Traffic Manager HeatMap properties.
+type HeatMapProperties struct {
+	// StartTime - The beginning of the time window for this HeatMap, inclusive.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The ending of the time window for this HeatMap, exclusive.
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// Endpoints - The endpoints used in this HeatMap calculation.
+	Endpoints *[]HeatMapEndpoint `json:"endpoints,omitempty"`
+	// TrafficFlows - The traffic flows produced in this HeatMap calculation.
+	TrafficFlows *[]TrafficFlow `json:"trafficFlows,omitempty"`
+}
+
 // MonitorConfig class containing endpoint monitoring settings in a Traffic Manager profile.
 type MonitorConfig struct {
 	// ProfileMonitorStatus - The profile-level monitoring status of the Traffic Manager profile. Possible values include: 'ProfileMonitorStatusCheckingEndpoints', 'ProfileMonitorStatusOnline', 'ProfileMonitorStatusDegraded', 'ProfileMonitorStatusDisabled', 'ProfileMonitorStatusInactive'
@@ -389,6 +533,26 @@ type MonitorConfig struct {
 	TimeoutInSeconds *int64 `json:"timeoutInSeconds,omitempty"`
 	// ToleratedNumberOfFailures - The number of consecutive failed health check that Traffic Manager tolerates before declaring an endpoint in this profile Degraded after the next failed health check.
 	ToleratedNumberOfFailures *int64 `json:"toleratedNumberOfFailures,omitempty"`
+	// CustomHeaders - List of custom headers.
+	CustomHeaders *[]MonitorConfigCustomHeadersItem `json:"customHeaders,omitempty"`
+	// ExpectedStatusCodeRanges - List of expected status code ranges.
+	ExpectedStatusCodeRanges *[]MonitorConfigExpectedStatusCodeRangesItem `json:"expectedStatusCodeRanges,omitempty"`
+}
+
+// MonitorConfigCustomHeadersItem custom header name and value.
+type MonitorConfigCustomHeadersItem struct {
+	// Name - Header name.
+	Name *string `json:"name,omitempty"`
+	// Value - Header value.
+	Value *string `json:"value,omitempty"`
+}
+
+// MonitorConfigExpectedStatusCodeRangesItem min and max value of a status code range.
+type MonitorConfigExpectedStatusCodeRangesItem struct {
+	// Min - Min status code.
+	Min *int32 `json:"min,omitempty"`
+	// Max - Max status code.
+	Max *int32 `json:"max,omitempty"`
 }
 
 // NameAvailability class representing a Traffic Manager Name Availability response.
@@ -527,7 +691,7 @@ type ProfileListResult struct {
 type ProfileProperties struct {
 	// ProfileStatus - The status of the Traffic Manager profile. Possible values include: 'ProfileStatusEnabled', 'ProfileStatusDisabled'
 	ProfileStatus ProfileStatus `json:"profileStatus,omitempty"`
-	// TrafficRoutingMethod - The traffic routing method of the Traffic Manager profile. Possible values include: 'Performance', 'Priority', 'Weighted', 'Geographic'
+	// TrafficRoutingMethod - The traffic routing method of the Traffic Manager profile. Possible values include: 'Performance', 'Priority', 'Weighted', 'Geographic', 'MultiValue', 'Subnet'
 	TrafficRoutingMethod TrafficRoutingMethod `json:"trafficRoutingMethod,omitempty"`
 	// DNSConfig - The DNS settings of the Traffic Manager profile.
 	DNSConfig *DNSConfig `json:"dnsConfig,omitempty"`
@@ -535,6 +699,10 @@ type ProfileProperties struct {
 	MonitorConfig *MonitorConfig `json:"monitorConfig,omitempty"`
 	// Endpoints - The list of endpoints in the Traffic Manager profile.
 	Endpoints *[]Endpoint `json:"endpoints,omitempty"`
+	// TrafficViewEnrollmentStatus - Indicates whether Traffic View is 'Enabled' or 'Disabled' for the Traffic Manager profile. Null, indicates 'Disabled'. Enabling this feature will increase the cost of the Traffic Manage profile. Possible values include: 'TrafficViewEnrollmentStatusEnabled', 'TrafficViewEnrollmentStatusDisabled'
+	TrafficViewEnrollmentStatus TrafficViewEnrollmentStatus `json:"trafficViewEnrollmentStatus,omitempty"`
+	// MaxReturn - Maximum number of endpoints to be returned for MultiValue routing type.
+	MaxReturn *int64 `json:"maxReturn,omitempty"`
 }
 
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
@@ -546,6 +714,16 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - The type of the resource. Ex- Microsoft.Network/trafficManagerProfiles.
 	Type *string `json:"type,omitempty"`
+}
+
+// QueryExperience class representing a Traffic Manager HeatMap query experience properties.
+type QueryExperience struct {
+	// EndpointID - The id of the endpoint from the 'endpoints' array which these queries were routed to.
+	EndpointID *int32 `json:"endpointId,omitempty"`
+	// QueryCount - The number of queries originating from this location.
+	QueryCount *int32 `json:"queryCount,omitempty"`
+	// Latency - The latency experienced by queries originating from this location.
+	Latency *float64 `json:"latency,omitempty"`
 }
 
 // Region class representing a region in the Geographic hierarchy used with the Geographic traffic routing
@@ -602,4 +780,104 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
+}
+
+// TrafficFlow class representing a Traffic Manager HeatMap traffic flow properties.
+type TrafficFlow struct {
+	// SourceIP - The IP address that this query experience originated from.
+	SourceIP *string `json:"sourceIp,omitempty"`
+	// Latitude - The approximate latitude that these queries originated from.
+	Latitude *float64 `json:"latitude,omitempty"`
+	// Longitude - The approximate longitude that these queries originated from.
+	Longitude *float64 `json:"longitude,omitempty"`
+	// QueryExperiences - The query experiences produced in this HeatMap calculation.
+	QueryExperiences *[]QueryExperience `json:"queryExperiences,omitempty"`
+}
+
+// UserMetricsModel class representing Traffic Manager User Metrics.
+type UserMetricsModel struct {
+	autorest.Response `json:"-"`
+	// UserMetricsProperties - The properties of the Traffic Manager User Metrics.
+	*UserMetricsProperties `json:"properties,omitempty"`
+	// ID - Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - The type of the resource. Ex- Microsoft.Network/trafficManagerProfiles.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserMetricsModel.
+func (umm UserMetricsModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if umm.UserMetricsProperties != nil {
+		objectMap["properties"] = umm.UserMetricsProperties
+	}
+	if umm.ID != nil {
+		objectMap["id"] = umm.ID
+	}
+	if umm.Name != nil {
+		objectMap["name"] = umm.Name
+	}
+	if umm.Type != nil {
+		objectMap["type"] = umm.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for UserMetricsModel struct.
+func (umm *UserMetricsModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var userMetricsProperties UserMetricsProperties
+				err = json.Unmarshal(*v, &userMetricsProperties)
+				if err != nil {
+					return err
+				}
+				umm.UserMetricsProperties = &userMetricsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				umm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				umm.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				umm.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// UserMetricsProperties class representing a Traffic Manager Real User Metrics key response.
+type UserMetricsProperties struct {
+	// Key - The key returned by the User Metrics operation.
+	Key *string `json:"key,omitempty"`
 }
