@@ -111,6 +111,8 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving Configuration for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	d.SetId(*resp.ID)
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
