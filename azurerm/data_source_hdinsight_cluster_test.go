@@ -23,8 +23,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_hadoop(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "Hadoop"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "HADOOP"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -47,8 +47,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_hbase(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "HBase"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "HBASE"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -71,8 +71,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_interactiveQuery(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "InteractiveQuery"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "INTERACTIVEQUERY"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -95,8 +95,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_kafka(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "Kafka"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "KAFKA"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -119,8 +119,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_mlServices(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "MLServices"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "MLSERVICES"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "edge_ssh_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -143,8 +143,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_rserver(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "RServer"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "RSERVER"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "edge_ssh_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -167,8 +167,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_spark(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_spark(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "Spark"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "SPARK"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
@@ -191,8 +191,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_storm(t *testing.T) {
 			{
 				Config: testAccDataSourceHDInsightCluster_storm(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "kind", "Storm"),
-					resource.TestCheckResourceAttr(dataSourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "STORM"),
+					resource.TestCheckResourceAttr(dataSourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "edge_ssh_endpoint", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ssh_endpoint"),
