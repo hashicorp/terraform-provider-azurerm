@@ -52,6 +52,7 @@ func TestAzureRmDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
+	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,8 +64,22 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "parameters"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+				),
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
 				),
 			},
 			{
@@ -148,13 +163,51 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
-  name = "acctestlssql%d"
+  name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name = "${azurerm_data_factory.test.name}"
-  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  annotations         = ["test1", "test2", "test3"]
+  description         = "test description"
   parameters {
 	  "foo" = "test1"
 	  "bar" = "test2"
+  }
+  additional_properties {
+	"foo" = "test1"
+	"bar" = "test2"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_linked_service_sql_server" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  annotations         = ["test1", "test2"]
+  description         = "test description 2"
+  parameters {
+	  "foo" = "test1"
+	  "bar" = "test2"
+	  "buzz" = "test3"
+  }
+  additional_properties {
+	"foo" = "test1"
   }
 }
 `, rInt, location, rInt, rInt)

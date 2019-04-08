@@ -45,6 +45,11 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"connection_string": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -67,6 +72,11 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+
+			"additional_properties": {
+				Type:     schema.TypeMap,
+				Optional: true,
 			},
 		},
 	}
@@ -97,15 +107,19 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		ConnectionString: d.Get("connection_string").(string),
 	}
 
-	parameters := expandDataFactoryLinkedServiceParameters(d.Get("parameters").(map[string]interface{}))
+	description := d.Get("description").(string)
+	parameters := expandDataFactoryLinkedServiceParameters(d)
+	additionalProperties := expandDataFactoryLinkedServiceAdditionalProperties(d)
 	annotations := expandDataFactoryLinkedServiceAnnotations(d)
 
 	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
+		Description:                          &description,
 		SQLServerLinkedServiceTypeProperties: sqlServerProperties,
 		Type:                                 datafactory.TypeSQLServer,
 		ConnectVia:                           expandDataFactoryLinkedServiceIntegrationRuntime(d),
 		Parameters:                           parameters,
 		Annotations:                          annotations,
+		AdditionalProperties:                 additionalProperties,
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -161,6 +175,12 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServer, *resp.Type)
 	}
 
+	d.Set("additional_properties", sqlServer.AdditionalProperties)
+
+	if sqlServer.Description != nil {
+		d.Set("description", *sqlServer.Description)
+	}
+
 	annotations := flattenDataFactoryLinkedServiceAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
@@ -179,7 +199,12 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
 		if properties.ConnectionString != nil {
-			d.Set("connection_string", properties.ConnectionString.(string))
+			val, ok := properties.ConnectionString.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping connection string %q since it's not a string", val)
+			} else {
+				d.Set("connection_string", properties.ConnectionString.(string))
+			}
 		}
 	}
 
@@ -217,6 +242,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new stri
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
 
+	// We need to remove the password from the new string since it isn't returned from the api
 	for i, v := range newSplit {
 		if strings.HasPrefix(v, "password") {
 			newSplit = append(newSplit[:i], newSplit[i+1:]...)
@@ -227,6 +253,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new stri
 		return false
 	}
 
+	// We'll error out if we find any differences between the old and the new connectiong strings
 	for i := range oldSplit {
 		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
 			return false
@@ -249,7 +276,9 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(d *schema.ResourceData) *d
 	return nil
 }
 
-func expandDataFactoryLinkedServiceParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
+func expandDataFactoryLinkedServiceParameters(d *schema.ResourceData) map[string]*datafactory.ParameterSpecification {
+	input := d.Get("parameters").(map[string]interface{})
+
 	output := make(map[string]*datafactory.ParameterSpecification)
 
 	for k, v := range input {
@@ -257,6 +286,18 @@ func expandDataFactoryLinkedServiceParameters(input map[string]interface{}) map[
 			Type:         datafactory.ParameterTypeString,
 			DefaultValue: v.(string),
 		}
+	}
+
+	return output
+}
+
+func expandDataFactoryLinkedServiceAdditionalProperties(d *schema.ResourceData) map[string]interface{} {
+	input := d.Get("additional_properties").(map[string]interface{})
+
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		output[k] = v
 	}
 
 	return output
