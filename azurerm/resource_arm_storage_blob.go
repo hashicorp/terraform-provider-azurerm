@@ -640,7 +640,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	metadataOptions := &storage.GetBlobMetadataOptions{}
-	blob.GetMetadata(metadataOptions)
+	err = blob.GetMetadata(metadataOptions)
 	if err != nil {
 		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
