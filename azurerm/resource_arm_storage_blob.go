@@ -119,7 +119,8 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 		},
@@ -762,7 +763,7 @@ func determineResourceGroupForStorageAccount(accountName string, client *ArmClie
 	return nil, nil
 }
 
-func expandBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
+func expandStorageAccountBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
 	blobMetadata := make(map[string]string)
 
 	blobMetadataRaw := d.Get("metadata").(map[string]interface{})
@@ -772,7 +773,7 @@ func expandBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
 	return storage.BlobMetadata(blobMetadata)
 }
 
-func flattenBlobMetadata(in storage.BlobMetadata) map[string]interface{} {
+func flattenStorageAccountBlobMetadata(in storage.BlobMetadata) map[string]interface{} {
 	blobMetadata := make(map[string]interface{})
 
 	for key, value := range in {
