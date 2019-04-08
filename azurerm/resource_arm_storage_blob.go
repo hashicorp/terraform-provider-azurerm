@@ -580,7 +580,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("metadata") {
-		blob.Metadata = expandBlobMetadata(d)
+		blob.Metadata = expandStorageAccountBlobMetadata(d)
 
 		opts := &storage.SetBlobMetadataOptions{}
 		if err := blob.SetMetadata(opts); err != nil {
