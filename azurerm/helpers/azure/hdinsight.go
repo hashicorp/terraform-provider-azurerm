@@ -312,8 +312,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Optional:  true,
 			ForceNew:  true,
 			Sensitive: true,
-			// TODO: validation
-			// The password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 		},
 		"ssh_keys": {
 			Type:     schema.TypeSet,

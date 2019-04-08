@@ -130,6 +130,8 @@ A `edge_node` block supports the following:
 
 * `password` - (Optional) The Password associated with the local administrator for the Edge Node. Changing this forces a new resource to be created.
 
+-> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
+
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Edge Node. Changing this forces a new resource to be created.
 
 -> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
@@ -147,6 +149,8 @@ A `head_node` block supports the following:
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Head Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Head Nodes. Changing this forces a new resource to be created.
+
+-> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Head Nodes. Changing this forces a new resource to be created.
 
@@ -193,6 +197,8 @@ A `worker_node` block supports the following:
 * `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
+
+-> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Worker Nodes. Changing this forces a new resource to be created.
 
