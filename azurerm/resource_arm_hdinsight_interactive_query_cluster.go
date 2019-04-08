@@ -158,7 +158,7 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 			OsType:         hdinsight.Linux,
 			ClusterVersion: utils.String(clusterVersion),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
-				Kind:             utils.String("InteractiveQuery"),
+				Kind:             utils.String("INTERACTIVEHIVE"),
 				ComponentVersion: componentVersions,
 				Configurations:   gateway,
 			},
