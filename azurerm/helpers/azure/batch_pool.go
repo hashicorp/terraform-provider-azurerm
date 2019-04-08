@@ -128,12 +128,24 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	if startTask.ResourceFiles != nil {
 		for _, armResourceFile := range *startTask.ResourceFiles {
 			resourceFile := make(map[string]interface{})
-			resourceFile["auto_storage_container_name"] = armResourceFile.AutoStorageContainerName
-			resourceFile["storage_container_url"] = armResourceFile.StorageContainerURL
-			resourceFile["http_url"] = armResourceFile.HTTPURL
-			resourceFile["blob_prefix"] = armResourceFile.BlobPrefix
-			resourceFile["file_path"] = armResourceFile.FilePath
-			resourceFile["file_mode"] = armResourceFile.FileMode
+			if armResourceFile.AutoStorageContainerName != nil {
+				resourceFile["auto_storage_container_name"] = *armResourceFile.AutoStorageContainerName
+			}
+			if armResourceFile.StorageContainerURL != nil {
+				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerURL
+			}
+			if armResourceFile.HTTPURL != nil {
+				resourceFile["http_url"] = *armResourceFile.HTTPURL
+			}
+			if armResourceFile.BlobPrefix != nil {
+				resourceFile["blob_prefix"] = *armResourceFile.BlobPrefix
+			}
+			if armResourceFile.FilePath != nil {
+				resourceFile["file_path"] = *armResourceFile.FilePath
+			}
+			if armResourceFile.FileMode != nil {
+				resourceFile["file_mode"] = *armResourceFile.FileMode
+			}
 			resourceFiles = append(resourceFiles, resourceFile)
 		}
 	}

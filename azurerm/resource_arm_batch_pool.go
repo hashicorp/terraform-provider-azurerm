@@ -284,8 +284,6 @@ func resourceArmBatchPool() *schema.Resource {
 									"auto_storage_container_name": {
 										Type:     schema.TypeString,
 										Optional: true,
-										// TODO ValidateFunc - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified.
-										// TODO - for docs: https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
 									},
 									"blob_prefix": {
 										Type:     schema.TypeString,
@@ -397,7 +395,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
-	if err := validateCrossFieldRules(&parameters); err != nil {
+	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
 		return err
 	}
 
@@ -500,7 +498,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
-	if err := validateCrossFieldRules(&parameters); err != nil {
+	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
 		return err
 	}
 
@@ -687,7 +685,7 @@ func validateUserIdentity(userIdentity *batch.UserIdentity) error {
 	return nil
 }
 
-func validateCrossFieldRules(pool *batch.Pool) error {
+func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	// Perform validation across multiple fields as per https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
