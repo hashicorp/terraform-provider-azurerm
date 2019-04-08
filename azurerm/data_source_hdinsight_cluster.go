@@ -87,13 +87,8 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 	configurationsClient := meta.(*ArmClient).hdinsightConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	resourceGroup := d.Get("resource_group_name").(string)
+	name := d.Get("name").(string)
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
