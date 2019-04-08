@@ -58,27 +58,29 @@ func SchemaHDInsightTier() *schema.Schema {
 
 func SchemaHDInsightClusterVersion() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
-		ForceNew: true,
-		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-			// TODO: tests
-			// `3.6` gets converted to `3.6.1000.67`; so let's just compare major/minor if possible
-			o := strings.Split(old, ".")
-			n := strings.Split(new, ".")
-
-			if len(o) >= 2 && len(n) >= 2 {
-				oldMajor := o[0]
-				oldMinor := o[1]
-				newMajor := n[0]
-				newMinor := n[1]
-
-				return oldMajor == newMajor && oldMinor == newMinor
-			}
-
-			return false
-		},
+		Type:             schema.TypeString,
+		Required:         true,
+		ForceNew:         true,
+		DiffSuppressFunc: hdinsightClusterVersionDiffSuppressFunc,
+		// TODO: validation
 	}
+}
+
+func hdinsightClusterVersionDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	// `3.6` gets converted to `3.6.1000.67`; so let's just compare major/minor if possible
+	o := strings.Split(old, ".")
+	n := strings.Split(new, ".")
+
+	if len(o) >= 2 && len(n) >= 2 {
+		oldMajor := o[0]
+		oldMinor := o[1]
+		newMajor := n[0]
+		newMinor := n[1]
+
+		return oldMajor == newMajor && oldMinor == newMinor
+	}
+
+	return false
 }
 
 func SchemaHDInsightsGateway() *schema.Schema {
