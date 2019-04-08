@@ -279,13 +279,13 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
@@ -354,13 +354,13 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       ssh_keys = [ "${var.ssh_key}" ]
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       ssh_keys              = [ "${var.ssh_key}" ]
       target_instance_count = 3
@@ -406,13 +406,13 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
@@ -450,6 +450,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -475,7 +476,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -483,7 +484,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -521,6 +522,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -546,7 +548,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -554,7 +556,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3

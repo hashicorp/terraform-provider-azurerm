@@ -58,13 +58,13 @@ resource "azurerm_hdinsight_interactive_query_cluster" "example" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_A4_V2"
+      vm_size                  = "Standard_D14_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -131,6 +131,8 @@ A `head_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Head Nodes. Changing this forces a new resource to be created.
 
+-> **NOTE:** High memory instances must be specified for the Head Node (Azure suggests a `Standard_D13_V2`).
+
 * `password` - (Optional) The Password associated with the local administrator for the Head Nodes. Changing this forces a new resource to be created.
 
 -> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
@@ -174,6 +176,8 @@ A `worker_node` block supports the following:
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
+
+-> **NOTE:** High memory instances must be specified for the Head Node (Azure suggests a `Standard_D14_V2`).
 
 * `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
