@@ -85,7 +85,7 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
 	name := thumbprintAlgorithm + "-" + thumbprint
 
-	if err := validateFormatAndPassword(format, password); err != nil {
+	if err := validateBatchCertificateFormatAndPassword(format, password); err != nil {
 		return err
 	}
 
@@ -188,7 +188,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 	thumbprint := d.Get("thumbprint").(string)
 	thumbprintAlgorithm := d.Get("thumbprint_algorithm").(string)
 
-	if err := validateFormatAndPassword(format, password); err != nil {
+	if err := validateBatchCertificateFormatAndPassword(format, password); err != nil {
 		return err
 	}
 
@@ -245,7 +245,7 @@ func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func validateFormatAndPassword(format string, password string) error {
+func validateBatchCertificateFormatAndPassword(format string, password string) error {
 	if format == "Pfx" && password == "" {
 		return fmt.Errorf("Batch Certificate Password is required when Format is `Pfx`")
 	}

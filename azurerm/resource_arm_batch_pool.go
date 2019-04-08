@@ -169,9 +169,13 @@ func resourceArmBatchPool() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateFunc:     azure.ValidateResourceID,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							// The ID returned for the certificate in the batch account and the certificate applied to the pool
+							// are not consistent in their casing which causes issues when referencing IDs across resources
+							// (as Terraform still sees differences to apply due to the casing)
+							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"store_location": {
