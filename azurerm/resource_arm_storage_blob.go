@@ -663,7 +663,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
 	d.Set("url", u)
-	d.Set("metadata", flattenBlobMetadata(blob.Metadata))
+	d.Set("metadata", flattenStorageAccountBlobMetadata(blob.Metadata))
 
 	return nil
 }
