@@ -209,7 +209,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	blob.Metadata = expandBlobMetadata(d)
+	blob.Metadata = expandStorageAccountBlobMetadata(d)
 
 	opts := &storage.SetBlobMetadataOptions{}
 	if err := blob.SetMetadata(opts); err != nil {
