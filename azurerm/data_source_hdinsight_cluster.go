@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -120,7 +121,9 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 
 		if def := props.ClusterDefinition; def != nil {
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(def.ComponentVersion))
-			d.Set("kind", def.Kind)
+			if kind := def.Kind; kind != nil {
+				d.Set("kind", strings.ToLower(*kind))
+			}
 			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
