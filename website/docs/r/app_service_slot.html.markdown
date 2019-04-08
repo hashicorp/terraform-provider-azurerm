@@ -246,12 +246,11 @@ A `identity` block supports the following:
 
 ---
 
-A `ip_restriction` block supports the following:
+A `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) supports the following:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
-
 
 ## Attributes Reference
 

@@ -448,6 +448,46 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
+	noBlocksConfig := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMAppServiceSlot_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				// This configuration includes a single explicit ip_restriction
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration has no site_config blocks at all.
+				Config: noBlocksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -1511,6 +1551,45 @@ resource "azurerm_app_service_slot" "test" {
     ip_restriction {
       ip_address = "10.10.10.10"
     }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction = []
   }
 }
 `, rInt, location, rInt, rInt, rInt)
