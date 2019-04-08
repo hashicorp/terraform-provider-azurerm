@@ -495,10 +495,10 @@ resource "azurerm_storage_blob" "test" {
   type = "page"
 	size = 5120
 	
-	metadata {
-		test = "value1"
-		test2 = "value2"
-	}
+  metadata {
+    test = "value1"
+    test2 = "value2"
+  }
 }
 `, rInt, location, rString)
 }
