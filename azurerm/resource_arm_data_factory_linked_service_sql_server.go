@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,10 +28,10 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO add validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAzureRMDataFactoryLinkedServiceName,
 			},
 
 			"data_factory_name": {
@@ -45,20 +46,23 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"connection_string": {
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
+				ValidateFunc:     validate.NoEmptyStrings,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"integration_runtime_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"parameters": {
@@ -108,18 +112,15 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 	}
 
 	description := d.Get("description").(string)
-	parameters := expandDataFactoryLinkedServiceParameters(d)
-	additionalProperties := expandDataFactoryLinkedServiceAdditionalProperties(d)
-	annotations := expandDataFactoryLinkedServiceAnnotations(d)
 
 	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
 		Description:                          &description,
 		SQLServerLinkedServiceTypeProperties: sqlServerProperties,
 		Type:                                 datafactory.TypeSQLServer,
 		ConnectVia:                           expandDataFactoryLinkedServiceIntegrationRuntime(d),
-		Parameters:                           parameters,
-		Annotations:                          annotations,
-		AdditionalProperties:                 additionalProperties,
+		Parameters:                           expandDataFactoryLinkedServiceParameters(d),
+		Annotations:                          expandDataFactoryLinkedServiceAnnotations(d),
+		AdditionalProperties:                 expandDataFactoryLinkedServiceAdditionalProperties(d),
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -261,6 +262,15 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new stri
 	}
 
 	return true
+}
+
+func validateAzureRMDataFactoryLinkedServiceName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
+	}
+
+	return warnings, errors
 }
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(d *schema.ResourceData) *datafactory.IntegrationRuntimeReference {
