@@ -245,6 +245,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 				"Standard_A1_V2",
 				"Standard_A2_V2",
 				"Standard_A2m_V2",
+				"Standard_A3",
 				"Standard_A4_V2",
 				"Standard_A4m_V2",
 				"Standard_A8_V2",
