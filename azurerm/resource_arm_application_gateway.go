@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -32,6 +32,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"location": locationSchema(),
+
+			"zones": zonesSchema(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -144,6 +146,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 								string(network.Enabled),
 								string(network.Disabled),
 							}, true),
+						},
+
+						"host_name": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 
 						"pick_host_name_from_backend_address": {
@@ -445,6 +452,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						"redirect_configuration_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"backend_address_pool_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -466,6 +479,68 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"url_path_map_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"redirect_configuration_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"redirect_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"redirect_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Permanent),
+								string(network.Temporary),
+								string(network.Found),
+								string(network.SeeOther),
+							}, false),
+						},
+
+						"target_listener_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"target_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"include_path": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"include_query_string": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"target_listener_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -698,12 +773,18 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"default_backend_address_pool_name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"default_backend_http_settings_name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+						},
+
+						"default_redirect_configuration_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"path_rule": {
@@ -726,12 +807,18 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 									"backend_address_pool_name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"backend_http_settings_name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+									},
+
+									"redirect_configuration_name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"backend_address_pool_id": {
@@ -740,6 +827,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"backend_http_settings_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"redirect_configuration_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -758,6 +850,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"default_backend_http_settings_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"default_redirect_configuration_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -810,6 +907,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 500),
 							Default:      100,
+						},
+						"request_body_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"max_request_body_size_kb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 128),
+							Default:      128,
 						},
 					},
 				},
@@ -887,14 +995,17 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	httpListeners := expandApplicationGatewayHTTPListeners(d, gatewayID)
 	probes := expandApplicationGatewayProbes(d)
 	requestRoutingRules := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
+	redirectConfigurations := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	sku := expandApplicationGatewaySku(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
+		Zones:    zones,
 
 		Tags: expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
@@ -908,12 +1019,25 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			HTTPListeners:                 httpListeners,
 			Probes:                        probes,
 			RequestRoutingRules:           requestRoutingRules,
+			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           sku,
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     sslPolicy,
 			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
 		},
+	}
+
+	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
+		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
+		if backendHttpSettingsProperties.HostName != nil {
+			hostName := *backendHttpSettingsProperties.HostName
+			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+
+			if hostName != "" && pick {
+				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			}
+		}
 	}
 
 	for _, probe := range *probes {
@@ -983,6 +1107,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	if location := applicationGateway.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+	d.Set("zones", applicationGateway.Zones)
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
@@ -1040,6 +1165,14 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `request_routing_rule`: %+v", setErr)
 		}
 
+		redirectConfigurations, err := flattenApplicationGatewayRedirectConfigurations(props.RedirectConfigurations)
+		if err != nil {
+			return fmt.Errorf("Error flattening `redirect configuration`: %+v", err)
+		}
+		if setErr := d.Set("redirect_configuration", redirectConfigurations); setErr != nil {
+			return fmt.Errorf("Error setting `redirect configuration`: %+v", setErr)
+		}
+
 		if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", setErr)
 		}
@@ -1060,7 +1193,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `url_path_map`: %+v", setErr)
 		}
 
-		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); err != nil {
+		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
 		}
 	}
@@ -1172,17 +1305,19 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 			})
 		}
 
-		// TODO: remove in 2.0
-		for _, ip := range v["ip_address_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				IPAddress: utils.String(ip.(string)),
-			})
-		}
-		// TODO: remove in 2.0
-		for _, ip := range v["fqdn_list"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				Fqdn: utils.String(ip.(string)),
-			})
+		if len(backendAddresses) == 0 {
+			// TODO: remove in 2.0
+			for _, ip := range v["ip_address_list"].([]interface{}) {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					IPAddress: utils.String(ip.(string)),
+				})
+			}
+			// TODO: remove in 2.0
+			for _, ip := range v["fqdn_list"].([]interface{}) {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					Fqdn: utils.String(ip.(string)),
+				})
+			}
 		}
 
 		name := v["name"].(string)
@@ -1272,6 +1407,11 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			},
 		}
 
+		hostName := v["host_name"].(string)
+		if hostName != "" {
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
+		}
+
 		if v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]network.SubResource, 0)
@@ -1331,6 +1471,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
+			}
+
+			if hostName := props.HostName; hostName != nil {
+				output["host_name"] = *hostName
 			}
 
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
@@ -1919,6 +2063,13 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 			}
 		}
 
+		if redirectConfigName := v["redirect_configuration_name"].(string); redirectConfigName != "" {
+			redirectConfigID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RedirectConfiguration = &network.SubResource{
+				ID: utils.String(redirectConfigID),
+			}
+		}
+
 		results = append(results, rule)
 	}
 
@@ -1933,6 +2084,14 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
+
+			if applicationGatewayHasSubResource(props.BackendAddressPool) && applicationGatewayHasSubResource(props.RedirectConfiguration) {
+				return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+			}
+
+			if applicationGatewayHasSubResource(props.BackendHTTPSettings) && applicationGatewayHasSubResource(props.RedirectConfiguration) {
+				return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+			}
 
 			output := map[string]interface{}{
 				"rule_type": string(props.RuleType),
@@ -1992,6 +2151,128 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 					output["url_path_map_name"] = urlPathMapName
 					output["url_path_map_id"] = *pathMap.ID
 				}
+			}
+
+			if redirect := props.RedirectConfiguration; redirect != nil {
+				if redirect.ID != nil {
+					redirectId, err := parseAzureResourceID(*redirect.ID)
+					if err != nil {
+						return nil, err
+					}
+					redirectName := redirectId.Path["redirectConfigurations"]
+					output["redirect_configuration_name"] = redirectName
+					output["redirect_configuration_id"] = *redirect.ID
+				}
+			}
+
+			results = append(results, output)
+		}
+	}
+
+	return results, nil
+}
+
+func applicationGatewayHasSubResource(subResource *network.SubResource) bool {
+	return subResource != nil && subResource.ID != nil && *subResource.ID != ""
+}
+
+func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRedirectConfiguration {
+
+	vs := d.Get("redirect_configuration").([]interface{})
+	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		redirectType := v["redirect_type"].(string)
+
+		output := network.ApplicationGatewayRedirectConfiguration{
+			Name: utils.String(name),
+			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
+				RedirectType: network.ApplicationGatewayRedirectType(redirectType),
+			},
+		}
+
+		if includePath := v["include_path"].(bool); includePath {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
+		}
+
+		if includeQueryString := v["include_query_string"].(bool); includeQueryString {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludeQueryString = utils.Bool(includeQueryString)
+		}
+
+		if targetListenerName := v["target_listener_name"].(string); targetListenerName != "" {
+			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
+				ID: utils.String(targetListenerID),
+			}
+		}
+
+		if targetUrl := v["target_url"].(string); targetUrl != "" {
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetURL = utils.String(targetUrl)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayRedirectConfigurations(input *[]network.ApplicationGatewayRedirectConfiguration) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
+
+			if !applicationGatewayHasSubResource(config.TargetListener) && (config.TargetURL == nil || *config.TargetURL == "") {
+				return nil, fmt.Errorf("[ERROR] Set either `target_listener_name` or `target_url`")
+			}
+			if applicationGatewayHasSubResource(config.TargetListener) && config.TargetURL != nil && *config.TargetURL != "" {
+				return nil, fmt.Errorf("[ERROR] Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
+			}
+
+			if config.TargetURL != nil && *config.TargetURL != "" && config.IncludePath != nil {
+				return nil, fmt.Errorf("[ERROR] `include_path` is not a valid option when `target_url` is set")
+			}
+
+			output := map[string]interface{}{
+				"redirect_type": string(props.RedirectType),
+			}
+
+			if config.ID != nil {
+				output["id"] = *config.ID
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if listener := props.TargetListener; listener != nil {
+				if listener.ID != nil {
+					listenerId, err := parseAzureResourceID(*listener.ID)
+					if err != nil {
+						return nil, err
+					}
+					targetListenerName := listenerId.Path["httpListeners"]
+					output["target_listener_name"] = targetListenerName
+					output["target_listener_id"] = *listener.ID
+				}
+			}
+
+			if config.TargetURL != nil {
+				output["target_url"] = *config.TargetURL
+			}
+
+			if config.IncludePath != nil {
+				output["include_path"] = *config.IncludePath
+			}
+
+			if config.IncludeQueryString != nil {
+				output["include_query_string"] = *config.IncludeQueryString
 			}
 
 			results = append(results, output)
@@ -2116,11 +2397,6 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
-		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
-
-		defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
-		defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
 
 		pathRules := make([]network.ApplicationGatewayPathRule, 0)
 		for _, ruleConfig := range v["path_rule"].([]interface{}) {
@@ -2154,20 +2430,46 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 				}
 			}
 
+			if redirectConfigurationName := ruleConfigMap["redirect_configuration_name"].(string); redirectConfigurationName != "" {
+				redirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigurationName)
+				rule.ApplicationGatewayPathRulePropertiesFormat.RedirectConfiguration = &network.SubResource{
+					ID: utils.String(redirectConfigurationID),
+				}
+			}
+
 			pathRules = append(pathRules, rule)
 		}
 
 		output := network.ApplicationGatewayURLPathMap{
 			Name: utils.String(name),
 			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-				DefaultBackendAddressPool: &network.SubResource{
-					ID: utils.String(defaultBackendAddressPoolID),
-				},
-				DefaultBackendHTTPSettings: &network.SubResource{
-					ID: utils.String(defaultBackendHTTPSettingsID),
-				},
 				PathRules: &pathRules,
 			},
+		}
+
+		// treating these three as optional as seems necessary when redirection is also an alternative. Not explicit in the documentation, though
+		// see https://docs.microsoft.com/en-us/rest/api/application-gateway/applicationgateways/createorupdate#applicationgatewayurlpathmap
+		// see also az docs https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/url-path-map?view=azure-cli-latest#az-network-application-gateway-url-path-map-create
+
+		if defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string); defaultBackendAddressPoolName != "" {
+			defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool = &network.SubResource{
+				ID: utils.String(defaultBackendAddressPoolID),
+			}
+		}
+
+		if defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string); defaultBackendHTTPSettingsName != "" {
+			defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings = &network.SubResource{
+				ID: utils.String(defaultBackendHTTPSettingsID),
+			}
+		}
+
+		if defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string); defaultRedirectConfigurationName != "" {
+			defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultRedirectConfiguration = &network.SubResource{
+				ID: utils.String(defaultRedirectConfigurationID),
+			}
 		}
 
 		results = append(results, output)
@@ -2214,6 +2516,16 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 				output["default_backend_http_settings_id"] = *settings.ID
 			}
 
+			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.ID != nil {
+				settingsId, err := parseAzureResourceID(*redirect.ID)
+				if err != nil {
+					return nil, err
+				}
+				redirectConfigurationName := settingsId.Path["redirectConfigurations"]
+				output["default_redirect_configuration_name"] = redirectConfigurationName
+				output["default_redirect_configuration_id"] = *redirect.ID
+			}
+
 			pathRules := make([]interface{}, 0)
 			if rules := props.PathRules; rules != nil {
 				for _, rule := range *rules {
@@ -2227,7 +2539,23 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						ruleOutput["name"] = *rule.Name
 					}
 
-					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
+					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
+						if applicationGatewayHasSubResource(props.DefaultBackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_address_pool_name` and `redirect_configuration_name` (default back-end pool not applicable when redirection specified)")
+						}
+
+						if applicationGatewayHasSubResource(ruleProps.BackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+						}
+
+						if applicationGatewayHasSubResource(props.DefaultBackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_http_settings_name` and `redirect_configuration_name` (default back-end settings not applicable when redirection specified)")
+						}
+
+						if applicationGatewayHasSubResource(ruleProps.BackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
+							return nil, fmt.Errorf("[ERROR] Conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+						}
+
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
 							poolId, err := parseAzureResourceID(*pool.ID)
 							if err != nil {
@@ -2246,6 +2574,16 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							backendHTTPSettingsName2 := backendId.Path["backendHttpSettingsCollection"]
 							ruleOutput["backend_http_settings_name"] = backendHTTPSettingsName2
 							ruleOutput["backend_http_settings_id"] = *backend.ID
+						}
+
+						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.ID != nil {
+							redirectId, err := parseAzureResourceID(*redirect.ID)
+							if err != nil {
+								return nil, err
+							}
+							redirectConfigurationName2 := redirectId.Path["redirectConfigurations"]
+							ruleOutput["redirect_configuration_name"] = redirectConfigurationName2
+							ruleOutput["redirect_configuration_id"] = *redirect.ID
 						}
 
 						pathOutputs := make([]interface{}, 0)
@@ -2278,13 +2616,17 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	ruleSetType := v["rule_set_type"].(string)
 	ruleSetVersion := v["rule_set_version"].(string)
 	fileUploadLimitInMb := v["file_upload_limit_mb"].(int)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:             utils.Bool(enabled),
-		FirewallMode:        network.ApplicationGatewayFirewallMode(mode),
-		RuleSetType:         utils.String(ruleSetType),
-		RuleSetVersion:      utils.String(ruleSetVersion),
-		FileUploadLimitInMb: utils.Int32(int32(fileUploadLimitInMb)),
+		Enabled:                utils.Bool(enabled),
+		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:            utils.String(ruleSetType),
+		RuleSetVersion:         utils.String(ruleSetVersion),
+		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
+		RequestBodyCheck:       utils.Bool(requestBodyCheck),
+		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
 	}
 }
 
@@ -2312,6 +2654,14 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.FileUploadLimitInMb != nil {
 		output["file_upload_limit_mb"] = int(*input.FileUploadLimitInMb)
+	}
+
+	if input.RequestBodyCheck != nil {
+		output["request_body_check"] = *input.RequestBodyCheck
+	}
+
+	if input.MaxRequestBodySizeInKb != nil {
+		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
 	}
 
 	results = append(results, output)

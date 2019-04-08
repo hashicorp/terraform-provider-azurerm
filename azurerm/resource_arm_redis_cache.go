@@ -72,6 +72,17 @@ func resourceArmRedisCache() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  redis.OneFullStopZero,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redis.OneFullStopZero),
+					string(redis.OneFullStopOne),
+					string(redis.OneFullStopTwo),
+				}, false),
+			},
+
 			"shard_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -136,23 +147,44 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"rdb_backup_frequency": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validateRedisBackupFrequency,
 						},
+
 						"rdb_backup_max_snapshot_count": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+
 						"rdb_storage_connection_string": {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
+
 						"notify_keyspace_events": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+
+						"aof_backup_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"aof_storage_connection_string_0": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"aof_storage_connection_string_1": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -255,6 +287,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
+			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
 			RedisConfiguration: expandRedisConfiguration(d),
 		},
 		Tags: expandedTags,
@@ -348,7 +381,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
-			EnableNonSslPort: utils.Bool(enableNonSSLPort),
+			MinimumTLSVersion: redis.TLSVersion(d.Get("minimum_tls_version").(string)),
+			EnableNonSslPort:  utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
 				Capacity: utils.Int32(capacity),
 				Family:   family,
@@ -473,6 +507,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.Properties; props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
 		if props.ShardCount != nil {
@@ -587,7 +622,7 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["maxfragmentationmemory-reserved"] = utils.String(delta)
 	}
 
-	// Backup
+	// RDB Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
 		output["rdb-backup-enabled"] = utils.String(delta)
@@ -609,6 +644,20 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 
 	if v, ok := d.GetOk("redis_configuration.0.notify_keyspace_events"); ok {
 		output["notify-keyspace-events"] = utils.String(v.(string))
+	}
+
+	// AOF Backup
+	if v, ok := d.GetOk("redis_configuration.0.aof_backup_enabled"); ok {
+		delta := strconv.FormatBool(v.(bool))
+		output["aof-backup-enabled"] = utils.String(delta)
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_0"); ok {
+		output["aof-storage-connection-string-0"] = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_1"); ok {
+		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
 	return output
@@ -705,6 +754,20 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	}
 	if v := input["notify-keyspace-events"]; v != nil {
 		outputs["notify_keyspace_events"] = *v
+	}
+
+	if v := input["aof-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `aof-backup-enabled` %q: %+v", *v, err)
+		}
+		outputs["aof_backup_enabled"] = b
+	}
+	if v := input["aof-storage-connection-string-0"]; v != nil {
+		outputs["aof_storage_connection_string_0"] = *v
+	}
+	if v := input["aof-storage-connection-string-1"]; v != nil {
+		outputs["aof_storage_connection_string_1"] = *v
 	}
 
 	return []interface{}{outputs}, nil

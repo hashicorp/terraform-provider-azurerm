@@ -1,9 +1,9 @@
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_key_vault" "main" {
+resource "azurerm_key_vault" "example" {
   name                = "${var.prefix}keyvault"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
   enabled_for_deployment          = true
@@ -27,13 +27,11 @@ resource "azurerm_key_vault" "main" {
     key_permissions    = []
     secret_permissions = []
   }
-
-  tags = "${var.tags}"
 }
 
-resource "azurerm_key_vault_certificate" "main" {
+resource "azurerm_key_vault_certificate" "example" {
   name      = "${local.virtual_machine_name}-cert"
-  vault_uri = "${azurerm_key_vault.main.vault_uri}"
+  vault_uri = "${azurerm_key_vault.example.vault_uri}"
 
   certificate_policy {
     issuer_parameters {
@@ -64,7 +62,8 @@ resource "azurerm_key_vault_certificate" "main" {
     x509_certificate_properties {
       # Server Authentication = 1.3.6.1.5.5.7.3.1
       # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = [ "1.3.6.1.5.5.7.3.1" ]
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
       key_usage = [
         "cRLSign",
         "dataEncipherment",
