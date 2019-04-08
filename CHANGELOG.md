@@ -4,6 +4,19 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
 * dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
+* dependencies: upgrading `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
+* Data Source: `azurerm_subnet` - exposing the `service_endpoint` field [GH-3184]
+* `azurerm_container_group` - support for specifying `liveness_probe` and `readiness_probe` blocks [GH-3118]
+* `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
+* `azurerm_key_vault_access_policy` - support for setting `storage_permissions` [GH-3153]
+* `azurerm_iothub` - support for configuring `ip_filter_rule` [GH-3173]
+* `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's [GH-3171]
+
+BUG FIXES:
+
+* `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
+* `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
+* `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
 
 ## 1.24.0 (April 03, 2019)
 
