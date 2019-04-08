@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -54,36 +55,21 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+
+			"parameters": {
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
+
+			"annotations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
-}
-
-// Because the password isn't returned from the api in the connection string, we'll check all
-// but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
-
-	sort.Strings(oldSplit)
-	sort.Strings(newSplit)
-
-	for i, v := range newSplit {
-		if strings.HasPrefix(v, "password") {
-			newSplit = append(newSplit[:i], newSplit[i+1:]...)
-		}
-	}
-
-	if len(oldSplit) != len(newSplit) {
-		return false
-	}
-
-	for i := range oldSplit {
-		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
-			return false
-		}
-	}
-
-	return true
 }
 
 func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -111,10 +97,15 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		ConnectionString: d.Get("connection_string").(string),
 	}
 
+	parameters := expandDataFactoryLinkedServiceParameters(d.Get("parameters").(map[string]interface{}))
+	annotations := expandDataFactoryLinkedServiceAnnotations(d)
+
 	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
 		SQLServerLinkedServiceTypeProperties: sqlServerProperties,
 		Type:                                 datafactory.TypeSQLServer,
 		ConnectVia:                           expandDataFactoryLinkedServiceIntegrationRuntime(d),
+		Parameters:                           parameters,
+		Annotations:                          annotations,
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -170,6 +161,16 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServer, *resp.Type)
 	}
 
+	annotations := flattenDataFactoryLinkedServiceAnnotations(sqlServer.Annotations)
+	if err := d.Set("annotations", annotations); err != nil {
+		return fmt.Errorf("Error setting `annotations`: %+v", err)
+	}
+
+	parameters := flattenDataFactoryLinkedServiceParameters(sqlServer.Parameters)
+	if err := d.Set("parameters", parameters); err != nil {
+		return fmt.Errorf("Error setting `parameters`: %+v", err)
+	}
+
 	if connectVia := sqlServer.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", *connectVia.ReferenceName)
@@ -207,6 +208,34 @@ func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, 
 	return nil
 }
 
+// Because the password isn't returned from the api in the connection string, we'll check all
+// but the password string and return true if they match.
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
+	oldSplit := strings.Split(strings.ToLower(old), ";")
+	newSplit := strings.Split(strings.ToLower(new), ";")
+
+	sort.Strings(oldSplit)
+	sort.Strings(newSplit)
+
+	for i, v := range newSplit {
+		if strings.HasPrefix(v, "password") {
+			newSplit = append(newSplit[:i], newSplit[i+1:]...)
+		}
+	}
+
+	if len(oldSplit) != len(newSplit) {
+		return false
+	}
+
+	for i := range oldSplit {
+		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func expandDataFactoryLinkedServiceIntegrationRuntime(d *schema.ResourceData) *datafactory.IntegrationRuntimeReference {
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
 		integrationRuntimeName := v.(string)
@@ -218,4 +247,60 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(d *schema.ResourceData) *d
 		}
 	}
 	return nil
+}
+
+func expandDataFactoryLinkedServiceParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
+	output := make(map[string]*datafactory.ParameterSpecification)
+
+	for k, v := range input {
+		output[k] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterTypeString,
+			DefaultValue: v.(string),
+		}
+	}
+
+	return output
+}
+
+func flattenDataFactoryLinkedServiceParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		if v != nil {
+			// we only support string parameters at this time
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}
+
+func expandDataFactoryLinkedServiceAnnotations(d *schema.ResourceData) *[]interface{} {
+	input := d.Get("annotations").([]interface{})
+	annotations := make([]interface{}, 0)
+
+	for _, annotation := range input {
+		annotations = append(annotations, annotation.(string))
+	}
+
+	return &annotations
+}
+
+func flattenDataFactoryLinkedServiceAnnotations(input *[]interface{}) []string {
+	annotations := make([]string, 0)
+	if input != nil {
+		for _, annotation := range *input {
+			val, ok := annotation.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping annotation %q since it's not a string", val)
+			}
+			annotations = append(annotations, val)
+		}
+	}
+	return annotations
 }

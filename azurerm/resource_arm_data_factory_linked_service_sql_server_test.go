@@ -63,6 +63,8 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "parameters"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 				),
 			},
 			{
@@ -150,6 +152,10 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name = "${azurerm_data_factory.test.name}"
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  parameters {
+	  "foo" = "test1"
+	  "bar" = "test2"
+  }
 }
 `, rInt, location, rInt, rInt)
 }
