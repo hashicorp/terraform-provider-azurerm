@@ -71,5 +71,5 @@ The following attributes are exported:
 Data Factory Linked Service SQL Server can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
+terraform import azurerm_data_factory_linked_service_sql_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
 ```
