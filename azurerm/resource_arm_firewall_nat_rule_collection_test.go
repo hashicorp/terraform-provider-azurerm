@@ -439,7 +439,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -474,7 +477,10 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -509,7 +515,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -544,7 +553,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 
@@ -572,7 +584,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -607,7 +622,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 
@@ -635,7 +653,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -670,7 +691,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 8888
+		translated_address = "1.1.1.1"
   }
 
   rule {
@@ -690,7 +714,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -725,7 +752,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-    ]
+		]
+		
+		translated_port = 53
+		translated_address = "8.8.8.8"
   }
 }
 `, template)
