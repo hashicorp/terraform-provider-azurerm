@@ -70,6 +70,14 @@ func resourceArmFirewallNatRuleCollection() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"translated_address": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"translated_port": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 						"source_addresses": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -374,12 +382,17 @@ func expandArmFirewallNatRules(input *schema.Set) []network.AzureFirewallNatRule
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
+		translatedAddress := rule["translated_address"].(string)
+		translatedPort := rule["translated_port"].(string)
+
 		ruleToAdd := network.AzureFirewallNatRule{
 			Name:                 utils.String(name),
 			Description:          utils.String(description),
 			SourceAddresses:      &sourceAddresses,
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     &destinationPorts,
+			TranslatedAddress:    &translatedAddress,
+			TranslatedPort:       &translatedPort,
 		}
 
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
@@ -408,6 +421,12 @@ func flattenFirewallNatRuleCollectionRules(rules *[]network.AzureFirewallNatRule
 		}
 		if rule.Description != nil {
 			output["description"] = *rule.Description
+		}
+		if rule.TranslatedAddress != nil {
+			output["translated_address"] = *rule.TranslatedAddress
+		}
+		if rule.TranslatedPort != nil {
+			output["translated_port"] = *rule.TranslatedPort
 		}
 		if rule.SourceAddresses != nil {
 			output["source_addresses"] = set.FromStringSlice(*rule.SourceAddresses)
