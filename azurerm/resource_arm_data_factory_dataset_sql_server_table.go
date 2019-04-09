@@ -11,12 +11,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactorySQLServerTableDataset() *schema.Resource {
+func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactorySQLServerTableDatasetCreateOrUpdate,
-		Read:   resourceArmDataFactorySQLServerTableDatasetRead,
-		Update: resourceArmDataFactorySQLServerTableDatasetCreateOrUpdate,
-		Delete: resourceArmDataFactorySQLServerTableDatasetDelete,
+		Create: resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate,
+		Read:   resourceArmDataFactoryDatasetSQLServerTableRead,
+		Update: resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate,
+		Delete: resourceArmDataFactoryDatasetSQLServerTableDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -40,24 +40,18 @@ func resourceArmDataFactorySQLServerTableDataset() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"location": locationSchema(),
-
 			"resource_group_name": resourceGroupNameSchema(),
-
-			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceArmDataFactorySQLServerTableDatasetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryDatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -89,10 +83,10 @@ func resourceArmDataFactorySQLServerTableDatasetCreateOrUpdate(d *schema.Resourc
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactorySQLServerTableDatasetRead(d, meta)
+	return resourceArmDataFactoryDatasetSQLServerTableRead(d, meta)
 }
 
-func resourceArmDataFactorySQLServerTableDatasetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryDatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -120,7 +114,7 @@ func resourceArmDataFactorySQLServerTableDatasetRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactorySQLServerTableDatasetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryDatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
