@@ -24,6 +24,7 @@ IMPROVEMENTS:
 * `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
 * `azurerm_key_vault_access_policy` - support for setting `storage_permissions` [GH-3153]
 * `azurerm_iothub` - support for configuring `ip_filter_rule` [GH-3173]
+* `azurerm_storage_blob` - support for the `metadata` property [GH-3206]
 * `azurerm_traffic_manager_profile` - support the `MultiValue` and `Weighted` values for the `traffic_routing_method` property [GH-3207]
 * `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's [GH-3171]
 
