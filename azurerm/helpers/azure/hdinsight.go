@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurestack/azurestack/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -152,15 +154,17 @@ func SchemaHDInsightsStorageAccounts() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"storage_account_key": {
-					Type:      schema.TypeString,
-					Required:  true,
-					ForceNew:  true,
-					Sensitive: true,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"storage_container_id": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
 				},
 				"is_default": {
 					Type:     schema.TypeBool,

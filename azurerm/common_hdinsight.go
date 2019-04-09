@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func hdinsightClusterUpdate(clusterKind string, readFunc func(d *schema.ResourceData, meta interface{}) error) func(d *schema.ResourceData, meta interface{}) error {
+func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*ArmClient).hdinsightClustersClient
 		ctx := meta.(*ArmClient).StopContext
@@ -58,7 +58,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc func(d *schema.Resource
 	}
 }
 
-func hdinsightClusterDelete(clusterKind string) func(d *schema.ResourceData, meta interface{}) error {
+func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*ArmClient).hdinsightClustersClient
 		ctx := meta.(*ArmClient).StopContext
