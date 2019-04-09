@@ -12,6 +12,7 @@ FEATURES:
 * **New Resource:** `azurerm_hdinsight_rserver_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_spark_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_storm_cluster` [GH-3196]
+* **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
 
 IMPROVEMENTS:
 
