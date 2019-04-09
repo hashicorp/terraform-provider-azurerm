@@ -18,7 +18,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 ---
 
-We recommend using a service principal or a managed identity when running Terraform non-interactively (such as when running Terraform in a CI/CD pipeline),  and authenticating using the Azure CLI when running Terraform locally.
+We recommend using a service principal or a managed identity when running Terraform non-interactively (such as when running Terraform in a CI/CD pipeline), and authenticating using the Azure CLI when running Terraform locally.
 
 ## What is a managed identity?
 
