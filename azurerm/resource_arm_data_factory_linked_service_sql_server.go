@@ -117,10 +117,22 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		Description:                          &description,
 		SQLServerLinkedServiceTypeProperties: sqlServerProperties,
 		Type:                                 datafactory.TypeSQLServer,
-		ConnectVia:                           expandDataFactoryLinkedServiceIntegrationRuntime(d),
-		Parameters:                           expandDataFactoryLinkedServiceParameters(d),
-		Annotations:                          expandDataFactoryLinkedServiceAnnotations(d),
-		AdditionalProperties:                 expandDataFactoryLinkedServiceAdditionalProperties(d),
+	}
+
+	if v, ok := d.GetOk("parameters"); ok {
+		sqlServerLinkedService.Parameters = expandDataFactoryLinkedServiceParameters(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("integration_runtime_name"); ok {
+		sqlServerLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+	}
+
+	if v, ok := d.GetOk("additional_properties"); ok {
+		sqlServerLinkedService.AdditionalProperties = expandDataFactoryLinkedServiceAdditionalProperties(v.(map[string]interface{}))
+	}
+
+	if v, ok := d.GetOk("annotations"); ok {
+		sqlServerLinkedService.Annotations = expandDataFactoryLinkedServiceAnnotations(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -194,20 +206,22 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 
 	if connectVia := sqlServer.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
-			d.Set("integration_runtime_name", *connectVia.ReferenceName)
+			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
 	}
 
+	connectionString := ""
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
 		if properties.ConnectionString != nil {
 			val, ok := properties.ConnectionString.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping connection string %q since it's not a string", val)
+			if ok {
+				connectionString = val
 			} else {
-				d.Set("connection_string", properties.ConnectionString.(string))
+				log.Printf("[DEBUG] Skipping connection string %q since it's not a string", val)
 			}
 		}
 	}
+	d.Set("connection_string", connectionString)
 
 	return nil
 }
@@ -254,7 +268,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new stri
 		return false
 	}
 
-	// We'll error out if we find any differences between the old and the new connectiong strings
+	// We'll error out if we find any differences between the old and the new connection strings
 	for i := range oldSplit {
 		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
 			return false
@@ -273,22 +287,16 @@ func validateAzureRMDataFactoryLinkedServiceName(v interface{}, k string) (warni
 	return warnings, errors
 }
 
-func expandDataFactoryLinkedServiceIntegrationRuntime(d *schema.ResourceData) *datafactory.IntegrationRuntimeReference {
-	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		integrationRuntimeName := v.(string)
-		typeString := "IntegrationRuntimeReference"
+func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
+	typeString := "IntegrationRuntimeReference"
 
-		return &datafactory.IntegrationRuntimeReference{
-			ReferenceName: &integrationRuntimeName,
-			Type:          &typeString,
-		}
+	return &datafactory.IntegrationRuntimeReference{
+		ReferenceName: &integrationRuntimeName,
+		Type:          &typeString,
 	}
-	return nil
 }
 
-func expandDataFactoryLinkedServiceParameters(d *schema.ResourceData) map[string]*datafactory.ParameterSpecification {
-	input := d.Get("parameters").(map[string]interface{})
-
+func expandDataFactoryLinkedServiceParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
 	output := make(map[string]*datafactory.ParameterSpecification)
 
 	for k, v := range input {
@@ -301,9 +309,7 @@ func expandDataFactoryLinkedServiceParameters(d *schema.ResourceData) map[string
 	return output
 }
 
-func expandDataFactoryLinkedServiceAdditionalProperties(d *schema.ResourceData) map[string]interface{} {
-	input := d.Get("additional_properties").(map[string]interface{})
-
+func expandDataFactoryLinkedServiceAdditionalProperties(input map[string]interface{}) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	for k, v := range input {
@@ -331,8 +337,7 @@ func flattenDataFactoryLinkedServiceParameters(input map[string]*datafactory.Par
 	return output
 }
 
-func expandDataFactoryLinkedServiceAnnotations(d *schema.ResourceData) *[]interface{} {
-	input := d.Get("annotations").([]interface{})
+func expandDataFactoryLinkedServiceAnnotations(input []interface{}) *[]interface{} {
 	annotations := make([]interface{}, 0)
 
 	for _, annotation := range input {
@@ -344,14 +349,16 @@ func expandDataFactoryLinkedServiceAnnotations(d *schema.ResourceData) *[]interf
 
 func flattenDataFactoryLinkedServiceAnnotations(input *[]interface{}) []string {
 	annotations := make([]string, 0)
-	if input != nil {
-		for _, annotation := range *input {
-			val, ok := annotation.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping annotation %q since it's not a string", val)
-			}
-			annotations = append(annotations, val)
+	if input == nil {
+		return annotations
+	}
+
+	for _, annotation := range *input {
+		val, ok := annotation.(string)
+		if !ok {
+			log.Printf("[DEBUG] Skipping annotation %q since it's not a string", val)
 		}
+		annotations = append(annotations, val)
 	}
 	return annotations
 }

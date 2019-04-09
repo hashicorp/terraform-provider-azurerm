@@ -3,12 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_sql_server"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-sql-server"
 description: |-
-  Manage an Azure Data Factory Linked Service SQL Server.
+  Manage a Linked Service (connection) between a SQL Server and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_sql_server
 
-Manage an Azure Data Factory Linked Service SQL Server.
+Manage a Linked Service (connection) between a SQL Server and Azure Data Factory.
+
+~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -29,12 +31,6 @@ resource "azurerm_data_factory_linked_service_sql_server" "example" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
-  parameters {
-	  "foo" = "example1"
-  }
-  additional_properties {
-	  "bar" = "example2"
-  }
 }
 ```
 
@@ -64,7 +60,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Data Factory Linked Service SQL Server ID.
+* `id` - The ID of the Data Factory Linked Service.
 
 ## Import
 
