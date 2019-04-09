@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// NOTE: this isn't a recommended way of building resources in Terraform
+// this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightHBaseClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
