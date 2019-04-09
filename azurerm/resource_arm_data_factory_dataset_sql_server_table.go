@@ -41,6 +41,16 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
+
+			"table_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"linked_service_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 		},
 	}
 }
@@ -57,28 +67,44 @@ func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.Resourc
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_sql", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_sql_server", *existing.ID)
 		}
 	}
 
-	dataset := datafactory.DatasetResource{}
+	sqlServerDatasetProperties := datafactory.SQLServerTableDatasetTypeProperties{
+		TableName: d.Get("table_name").(string),
+	}
+
+	linkedServiceName := d.Get("linked_service_name").(string)
+	linkedService := &datafactory.LinkedServiceReference{
+		ReferenceName: &linkedServiceName,
+	}
+
+	sqlServerTableset := datafactory.SQLServerTableDataset{
+		SQLServerTableDatasetTypeProperties: &sqlServerDatasetProperties,
+		LinkedServiceName:                   linkedService,
+	}
+
+	dataset := datafactory.DatasetResource{
+		Properties: sqlServerTableset,
+	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Dataset SQL Server Table  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -105,7 +131,7 @@ func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -129,7 +155,7 @@ func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, m
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory SQL Server Table Dataset %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
