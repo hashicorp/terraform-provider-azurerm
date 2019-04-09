@@ -182,7 +182,6 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Computed: true,
 				},
 
 				"websockets_enabled": {
