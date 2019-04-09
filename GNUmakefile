@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor')
+TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 

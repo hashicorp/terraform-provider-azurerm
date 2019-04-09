@@ -21,6 +21,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *schema.ResourceData) bool {
+		path := strings.Split(k, ".")
+		path[len(path)-1] = "type"
+		return d.Get(strings.Join(path, ".")).(string) != t
+	}
+}
+
+func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppressFunc {
+	return func(k, old, new string, d *schema.ResourceData) bool {
+		for _, f := range fs {
+			if !f(k, old, new, d) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 func resourceArmIotHub() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmIotHubCreateUpdate,
@@ -158,12 +177,14 @@ func resourceArmIotHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								// As Azure API masks the connection string key suppress diff for this property
-								if old != "" && strings.HasSuffix(old, "****") {
-									return true
-								}
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
-								return false
+								// Azure will always mask the Access Keys and will include the port number in the GET response
+								// 5671 is the default port for Azure Service Bus connections
+								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
 							},
 							Sensitive: true,
 						},
@@ -173,25 +194,30 @@ func resourceArmIotHub() *schema.Resource {
 							ValidateFunc: validateIoTHubEndpointName,
 						},
 						"batch_frequency_in_seconds": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      300,
-							ValidateFunc: validation.IntBetween(60, 720),
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          300,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(60, 720),
 						},
 						"max_chunk_size_in_bytes": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      314572800,
-							ValidateFunc: validation.IntBetween(10485760, 524288000),
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          314572800,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(10485760, 524288000),
 						},
 						"container_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"encoding": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+						},
+						"encoding": {
+							Type:     schema.TypeString,
+							Optional: true,
+							DiffSuppressFunc: supressWhenAll(
+								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Avro),
 								string(devices.AvroDeflate),
@@ -297,6 +323,33 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"ip_filter_rule": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"ip_mask": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.CIDR,
+						},
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.Accept),
+								string(devices.Reject),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -349,12 +402,14 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	routes := expandIoTHubRoutes(d)
+	ipFilterRules := expandIPFilterRules(d)
 
 	properties := devices.IotHubDescription{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
+			IPFilterRules: ipFilterRules,
 			Routing: &devices.RoutingProperties{
 				Endpoints:     endpoints,
 				Routes:        routes,
@@ -450,6 +505,12 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("fallback_route", fallbackRoute); err != nil {
 			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
+
+		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
+		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
+		}
+
 	}
 
 	d.Set("name", name)
@@ -880,4 +941,47 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
+	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	if len(ipFilterRuleList) == 0 {
+		return nil
+	}
+
+	rules := make([]devices.IPFilterRule, 0)
+
+	for _, r := range ipFilterRuleList {
+		rawRule := r.(map[string]interface{})
+		rule := &devices.IPFilterRule{
+			FilterName: utils.String(rawRule["name"].(string)),
+			Action:     devices.IPFilterActionType(rawRule["action"].(string)),
+			IPMask:     utils.String(rawRule["ip_mask"].(string)),
+		}
+
+		rules = append(rules, *rule)
+	}
+	return &rules
+}
+
+func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
+	rules := make([]interface{}, 0)
+	if in == nil {
+		return rules
+	}
+
+	for _, r := range *in {
+		rawRule := make(map[string]interface{})
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
+		rawRule["action"] = string(r.Action)
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
+		rules = append(rules, rawRule)
+	}
+	return rules
 }

@@ -99,6 +99,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_api_management":                         dataSourceApiManagementService(),
+			"azurerm_api_management_api":                     dataSourceApiManagementApi(),
 			"azurerm_api_management_group":                   dataSourceApiManagementGroup(),
 			"azurerm_api_management_product":                 dataSourceApiManagementProduct(),
 			"azurerm_api_management_user":                    dataSourceArmApiManagementUser(),
@@ -168,11 +169,20 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_api_management":                         resourceArmApiManagementService(),
+			"azurerm_api_management_api":                     resourceArmApiManagementApi(),
+			"azurerm_api_management_api_operation":           resourceArmApiManagementApiOperation(),
+			"azurerm_api_management_api_version_set":         resourceArmApiManagementApiVersionSet(),
+			"azurerm_api_management_authorization_server":    resourceArmApiManagementAuthorizationServer(),
+			"azurerm_api_management_certificate":             resourceArmApiManagementCertificate(),
 			"azurerm_api_management_group":                   resourceArmApiManagementGroup(),
 			"azurerm_api_management_group_user":              resourceArmApiManagementGroupUser(),
+			"azurerm_api_management_logger":                  resourceArmApiManagementLogger(),
+			"azurerm_api_management_openid_connect_provider": resourceArmApiManagementOpenIDConnectProvider(),
 			"azurerm_api_management_product":                 resourceArmApiManagementProduct(),
+			"azurerm_api_management_product_api":             resourceArmApiManagementProductApi(),
 			"azurerm_api_management_product_group":           resourceArmApiManagementProductGroup(),
 			"azurerm_api_management_property":                resourceArmApiManagementProperty(),
+			"azurerm_api_management_subscription":            resourceArmApiManagementSubscription(),
 			"azurerm_api_management_user":                    resourceArmApiManagementUser(),
 			"azurerm_app_service_active_slot":                resourceArmAppServiceActiveSlot(),
 			"azurerm_app_service_custom_hostname_binding":    resourceArmAppServiceCustomHostnameBinding(),

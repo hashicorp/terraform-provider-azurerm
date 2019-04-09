@@ -55,7 +55,7 @@ resource "azurerm_container_group" "aci-helloworld" {
     }
     ports {
       port     = 443
-      protocol = "TCP" 
+      protocol = "TCP"
     }
 
     environment_variables = {
@@ -64,6 +64,14 @@ resource "azurerm_container_group" "aci-helloworld" {
 
     secure_environment_variables = {
       "ACCESS_KEY" = "secure_testing"
+    }
+
+    readiness_probe {
+      exec = ["/bin/sh","-c","touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600"]
+    }
+
+    liveness_probe {
+      exec = ["cat", "/tmp/healthy"]
     }
 
     commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
@@ -134,11 +142,19 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
+* `gpu` - (Optional) A `gpu` block as defined below.
+
+~> **Note:** Gpu resources are currently only supported in Linux containers.
+
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
 * `secure_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
+* `readiness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `readiness_probe` block below. Changing this forces a new resource to be created.
+
+* `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
 * `command` - (Optional) A command line to be run on the container.
 
@@ -184,6 +200,14 @@ A `ports` block supports:
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
 
+--
+
+A `gpu` block supports:
+
+* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`.
+
+* `sku` - (Required) The Sku which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
+
 ---
 
 A `volume` block supports:
@@ -199,6 +223,52 @@ A `volume` block supports:
 * `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
+---
+
+The `readiness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+---
+
+The `liveness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+---
+
+The `httpget` block supports:
+
+* `path` - (Optional) Path to access on the HTTP server. Changing this forces a new resource to be created.
+
+* `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
+
+* `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

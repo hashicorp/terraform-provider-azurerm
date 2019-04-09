@@ -112,7 +112,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

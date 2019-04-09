@@ -287,6 +287,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "capture_description.0.skip_empty_archives", "true"),
 				),
 			},
 			{
@@ -546,6 +547,7 @@ resource "azurerm_eventhub" "test" {
     encoding            = "Avro"
     interval_in_seconds = 60
     size_limit_in_bytes = 10485760
+    skip_empty_archives = true
 
     destination {
       name                = "EventHubArchive.AzureBlockBlob"

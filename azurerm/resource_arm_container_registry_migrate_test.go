@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
 )

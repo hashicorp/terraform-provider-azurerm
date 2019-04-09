@@ -6,12 +6,6 @@ variable "location" {
   description = "The Azure Region in which the resources in this example should exist"
 }
 
-variable "tags" {
-  type        = "map"
-  default     = {}
-  description = "Any tags which should be assigned to the resources in this example"
-}
-
 variable "custom_image_resource_group_name" {
   description = "The name of the Resource Group in which the Custom Image exists."
 }

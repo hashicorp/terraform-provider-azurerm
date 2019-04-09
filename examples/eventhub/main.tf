@@ -1,28 +1,22 @@
 resource "azurerm_resource_group" "example" {
-  name     = "${var.resource_group}"
+  name     = "${var.prefix}-resources"
   location = "${var.location}"
 }
 
-resource "random_integer" "ri" {
-  min = 10000
-  max = 99999
-}
-
 resource "azurerm_eventhub_namespace" "example" {
-  name                = "tfex-eventhub${random_integer.ri.result}-namespace"
+  name                = "${var.prefix}-ehnamespace"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-
-  sku      = "Standard"
-  capacity = 2
+  sku                 = "Standard"
+  capacity            = 2
 
   tags = {
     environment = "Examples"
   }
 }
 
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "tfex-eventhub-namespace-authrule"
+resource "azurerm_eventhub_namespace_authorization_rule" "example" {
+  name                = "${var.prefix}-nsauth-rule"
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   eventhub_name       = "${azurerm_eventhub.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -33,7 +27,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "tfex-eventhub${random_integer.ri.result}"
+  name                = "${var.prefix}-eh1"
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
@@ -42,7 +36,7 @@ resource "azurerm_eventhub" "example" {
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
-  name                = "tfex-eventhub-authrule"
+  name                = "${var.prefix}-enauth-rule"
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   eventhub_name       = "${azurerm_eventhub.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -53,7 +47,7 @@ resource "azurerm_eventhub_authorization_rule" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "example" {
-  name                = "tfex-eventhub${random_integer.ri.result}-consumer"
+  name                = "${var.prefix}-ehcg"
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   eventhub_name       = "${azurerm_eventhub.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"

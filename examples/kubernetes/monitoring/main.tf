@@ -1,21 +1,21 @@
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-mon-resources"
   location = "${var.location}"
 }
 
-resource "azurerm_log_analytics_workspace" "test" {
+resource "azurerm_log_analytics_workspace" "example" {
   name                = "${var.prefix}-law"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
+resource "azurerm_log_analytics_solution" "example" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.example.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.example.name}"
 
   plan {
     publisher = "Microsoft"
@@ -23,10 +23,10 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "example" {
   name                = "${var.prefix}-mon"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   dns_prefix          = "${var.prefix}-mon"
 
   agent_pool_profile {
@@ -45,7 +45,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   addon_profile {
     oms_agent {
       enabled                    = true
-      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.example.id}"
     }
   }
 

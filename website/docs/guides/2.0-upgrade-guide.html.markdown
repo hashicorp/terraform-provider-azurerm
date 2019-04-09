@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.22.0"
+  version = "=1.24.0"
 }
 ```
 
