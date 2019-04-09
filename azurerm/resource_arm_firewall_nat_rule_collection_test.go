@@ -88,6 +88,8 @@ func TestAccAzureRMFirewallNatRuleCollection_updatedName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.name", "rule1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.translated_address", "53"),
+					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.translated_port", "8.8.8.8"),
 				),
 			},
 			{
@@ -514,7 +516,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
-      "Any",
+      "TCP",
 		]
 
 		translated_port = 53
@@ -552,7 +554,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
-      "Any",
+      "TCP",
 		]
 		
 		translated_port = 53
@@ -586,8 +588,8 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
       "TCP",
 		]
 		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+		translated_port = 8080
+		translated_address = "8.8.4.4"
   }
 }
 `, template)
@@ -621,11 +623,11 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
-      "Any",
+      "TCP",
 		]
 		
 		translated_port = 53
-		translated_address = "8.8.8.8"
+		translated_address = "10.0.0.1"
   }
 }
 
@@ -655,8 +657,8 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
       "TCP",
 		]
 		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+		translated_port = 8080
+		translated_address = "10.0.0.1"
   }
 }
 `, template)
@@ -690,11 +692,11 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
-      "Any",
+      "TCP",
 		]
 		
-		translated_port = 8888
-		translated_address = "1.1.1.1"
+		translated_port = 53
+		translated_address = "10.0.0.1"
   }
 
   rule {
@@ -716,8 +718,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "TCP",
 		]
 		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+		translated_port = 8888
+		translated_address = "192.168.0.1"
   }
 }
 `, template)
@@ -751,11 +753,11 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     protocols = [
-      "Any",
+      "TCP",
 		]
 		
 		translated_port = 53
-		translated_address = "8.8.8.8"
+		translated_address = "10.0.0.1"
   }
 }
 `, template)

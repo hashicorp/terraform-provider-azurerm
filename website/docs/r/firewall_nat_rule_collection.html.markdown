@@ -108,13 +108,17 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
-
 * `destination_addresses` - (Required) A list of destination IP addresses and/or IP ranges.
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
+
+* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+
+* `translated_address` - (Required) The address of the service behind the Firewall.
+
+* `translated_port` - (Required) The port of the service behind the Firewall.
 
 ## Import
 
