@@ -65,7 +65,6 @@ func resourceArmAppService() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),
@@ -426,11 +425,21 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	configResp, err := client.GetConfiguration(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(configResp.Response) {
+			log.Printf("[DEBUG] Configuration of App Service %q (resource group %q) was not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", name, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of App Service %q (resource group %q) were not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
 	}
 

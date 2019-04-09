@@ -58,3 +58,21 @@ func ApiManagementServicePublisherEmail(v interface{}, k string) (warnings []str
 
 	return warnings, errors
 }
+
+func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+
+	if matched := regexp.MustCompile(`^[^*#&+]{1,256}$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only be up to 256 characters in length and not include the characters `*`, `#`, `&` or `+`", k))
+	}
+	return ws, es
+}
+
+func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+
+	if matched := regexp.MustCompile(`^[\w][\w-/.]+[\w-]$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only be up to 256 characters in length, not start or end with `/` and only contain valid url characters", k))
+	}
+	return ws, es
+}

@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.
+
 ---
 
 `sku` supports the following:
@@ -97,8 +99,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The MsSQL Elastic Pool ID.
-
-* `zone_redundant` - Whether or not this elastic pool is zone redundant.
 
 ## Import
 

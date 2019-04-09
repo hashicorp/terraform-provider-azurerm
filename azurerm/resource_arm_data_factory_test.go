@@ -354,7 +354,7 @@ func testAccAzureRMDataFactory_github(rInt int, location string) string {
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
 		
 		github_configuration {
 			git_url         = "https://github.com/terraform-providers/"
@@ -376,7 +376,7 @@ func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
 		
 		github_configuration {
 			git_url         = "https://github.com/terraform-providers/"

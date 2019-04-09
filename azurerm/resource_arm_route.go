@@ -5,7 +5,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -80,7 +80,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, rtName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

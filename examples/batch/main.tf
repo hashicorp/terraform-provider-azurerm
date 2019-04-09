@@ -1,41 +1,27 @@
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:
-  # subscription_id = "..." 
-  # client_id       = "..."
-  # client_secret   = "..."
-  # tenant_id       = "..."
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group_name}"
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
   location = "${var.location}"
 }
 
-resource "random_integer" "ri" {
-  min = 10000
-  max = 99999
+resource "azurerm_storage_account" "example" {
+  name                     = "${var.prefix}stor"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_account" "stor" {
-  name                     = "stor${random_integer.ri.result}"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
-  account_tier             = "${var.storage_account_tier}"
-  account_replication_type = "${var.storage_replication_type}"
+resource "azurerm_batch_account" "example" {
+  name                = "${var.prefix}batch"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  storage_account_id  = "${azurerm_storage_account.example.id}"
 }
 
-resource "azurerm_batch_account" "batch" {
-  name                 = "batch${random_integer.ri.result}"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
-  location             = "${azurerm_resource_group.rg.location}"
-  storage_account_name = "${azurerm_storage_account.stor.name}"
-}
-
-resource "azurerm_batch_pool" "fixedpool" {
-  name                = "myfixedpool"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  account_name        = "${azurerm_batch_account.batch.name}"
+resource "azurerm_batch_pool" "fixed" {
+  name                = "${var.prefix}-fixed-pool"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = "${azurerm_batch_account.example.name}"
   display_name        = "Fixed Scale Pool"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -71,16 +57,17 @@ resource "azurerm_batch_pool" "fixedpool" {
 }
 
 resource "azurerm_batch_pool" "autopool" {
-  name                = "myautopool"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  account_name        = "${azurerm_batch_account.batch.name}"
+  name                = "${var.prefix}-autoscale-pool"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = "${azurerm_batch_account.example.name}"
   display_name        = "Auto Scale Pool"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  
+
   auto_scale {
     evaluation_interval = "PT15M"
-    formula             = <<EOF
+
+    formula = <<EOF
       startingNumberOfVMs = 1;
       maxNumberofVMs = 25;
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);

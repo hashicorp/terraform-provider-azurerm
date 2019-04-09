@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,11 +53,11 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 		},
 	}
 
-	if _, err := client.UpdateSubscriptionPricing(ctx, name, pricing); err != nil {
+	if _, err := client.Update(ctx, name, pricing); err != nil {
 		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
 	}
 
-	resp, err := client.GetSubscriptionPricing(ctx, name)
+	resp, err := client.Get(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
@@ -74,7 +74,7 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
+	resp, err := client.Get(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription was not found: %v", err)

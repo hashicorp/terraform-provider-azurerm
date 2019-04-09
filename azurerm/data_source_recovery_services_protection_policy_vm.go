@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,7 +52,8 @@ func dataSourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData,
 		return fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*protectionPolicy.ID)
+	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
+	d.SetId(id)
 
 	flattenAndSetTags(d, protectionPolicy.Tags)
 	return nil

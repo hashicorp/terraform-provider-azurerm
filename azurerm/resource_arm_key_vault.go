@@ -105,6 +105,7 @@ func resourceArmKeyVault() *schema.Resource {
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
 						"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
+						"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
 					},
 				},
 			},
