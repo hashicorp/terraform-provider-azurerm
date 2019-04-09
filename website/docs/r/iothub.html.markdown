@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
+* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
+
 * `route` - (Optional) A `route` block as defined below.
 
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
@@ -124,6 +126,16 @@ An `endpoint` block supports the following:
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+
+---
+
+An `ip_filter_rule` block supports the following:
+
+* `name` - (Required) The name of the filter.
+
+* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
+
+* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
 
 ---
 

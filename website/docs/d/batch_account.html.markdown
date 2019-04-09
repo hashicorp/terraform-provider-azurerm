@@ -44,4 +44,12 @@ The following attributes are exported:
 
 * `storage_account_id` - The ID of the Storage Account used for this Batch account.
 
+* `primary_access_key` - The Batch account primary access key.
+
+* `secondary_access_key` - The Batch account secondary access key.
+
+* `account_endpoint` - The account endpoint used to interact with the Batch service.
+
 * `tags` - A map of tags assigned to the Batch account.
+
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.

@@ -352,6 +352,23 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
     "delete",
   ]
 
+  storage_permissions = [
+    "backup",
+    "delete",
+    "deletesas",
+    "get",
+    "getsas",
+    "list",
+    "listsas",
+    "purge",
+    "recover",
+    "regeneratekey",
+    "restore",
+    "set",
+    "setsas",
+    "update",
+  ]
+
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -135,7 +136,7 @@ func resourceArmDataFactory() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -190,7 +191,7 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory %q (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Data Factory %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	if hasRepo, repo := expandArmDataFactoryRepoConfiguration(d); hasRepo {
@@ -235,20 +236,18 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	d.Set("vsts_configuration", []interface{}{})
+	d.Set("github_configuration", []interface{}{})
 	repoType, repo := flattenArmDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
 		}
-	} else {
-		d.Set("vsts_configuration", []interface{}{})
 	}
 	if repoType == datafactory.TypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
 		}
-	} else {
-		d.Set("github_configuration", []interface{}{})
 	}
 	if repoType == datafactory.TypeFactoryRepoConfiguration {
 		d.Set("vsts_configuration", repo)
@@ -294,7 +293,6 @@ func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafa
 		repositoryName := vsts["repository_name"].(string)
 		rootFolder := vsts["root_folder"].(string)
 		tenantID := vsts["tenant_id"].(string)
-		// https://github.com/Azure/go-autorest/issues/307
 		return true, &datafactory.FactoryVSTSConfiguration{
 			AccountName:         &accountName,
 			CollaborationBranch: &branchName,
@@ -312,7 +310,6 @@ func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafa
 		gitURL := github["git_url"].(string)
 		repositoryName := github["repository_name"].(string)
 		rootFolder := github["root_folder"].(string)
-		// https://github.com/Azure/go-autorest/issues/307
 		return true, &datafactory.FactoryGitHubConfiguration{
 			AccountName:         &accountName,
 			CollaborationBranch: &branchName,
