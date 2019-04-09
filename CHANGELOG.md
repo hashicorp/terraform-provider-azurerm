@@ -1,5 +1,9 @@
 ## 1.25.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_factory` [GH-3159]
+
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
