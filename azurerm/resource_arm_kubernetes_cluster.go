@@ -320,6 +320,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Calico),
+								string(containerservice.Azure),
 							}, false),
 						},
 
