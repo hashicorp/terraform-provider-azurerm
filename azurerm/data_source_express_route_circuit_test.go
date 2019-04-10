@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMExpressRoute_basic(t *testing.T) {
+func testAccDataSourceAzureRMExpressRoute_basicMetered(t *testing.T) {
 	dataSourceName := "data.azurerm_express_route_circuit.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -33,14 +33,8 @@ func TestAccDataSourceAzureRMExpressRoute_basic(t *testing.T) {
 	})
 }
 
-/*func TestAccDataSourceAzureRMExpressRoute_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_express_route_circuit.test"
-	ri := tf.AccRandTimeInt()
-
-}*/
-
 func testAccDataSourceAzureRMExpressRoute_basic(rInt int, location string) string {
-	config := testAccAzureRMExpressRouteCircuit_MeteredBasic(rInt, location)
+	config := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(rInt, location)
 
 	return fmt.Sprintf(`
 	%s
@@ -50,34 +44,4 @@ func testAccDataSourceAzureRMExpressRoute_basic(rInt int, location string) strin
   		name                = "${azurerm_express_route_circuit.test.name}"
 	}
 	`, config)
-}
-
-func testAccAzureRMExpressRouteCircuit_MeteredBasic(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_express_route_circuit" "test" {
-  name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  service_provider_name = "Equinix Test"
-  peering_location      = "Silicon Valley Test"
-  bandwidth_in_mbps     = 50
-
-  sku {
-    tier   = "Standard"
-    family = "MeteredData"
-  }
-
-  allow_classic_operations = false
-
-  tags = {
-    Environment = "production"
-    Purpose     = "AcceptanceTests"
-  }
-}
-`, rInt, location, rInt)
 }

@@ -21,12 +21,22 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
+			"location": locationForDataSourceSchema(),
+
 			"peerings": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"peering_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"primary_peer_address_prefix": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"secondary_peer_address_prefix": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -56,7 +66,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 			},
 
 			"service_provider_properties": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -82,7 +92,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -118,6 +128,10 @@ func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(*resp.ID)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if properties := resp.ExpressRouteCircuitPropertiesFormat; properties != nil {
 		peerings := flattenExpressRouteCircuitPeerings(properties.Peerings)
@@ -155,6 +169,14 @@ func flattenExpressRouteCircuitPeerings(input *[]network.ExpressRouteCircuitPeer
 			p := make(map[string]interface{})
 
 			p["peering_type"] = string(props.PeeringType)
+
+			if primaryPeerAddressPrefix := props.PrimaryPeerAddressPrefix; primaryPeerAddressPrefix != nil {
+				p["primary_peer_address_prefix"] = *primaryPeerAddressPrefix
+			}
+
+			if secondaryPeerAddressPrefix := props.SecondaryPeerAddressPrefix; secondaryPeerAddressPrefix != nil {
+				p["secondary_peer_address_prefix"] = *secondaryPeerAddressPrefix
+			}
 
 			if azureAsn := props.AzureASN; azureAsn != nil {
 				p["azure_asn"] = *azureAsn
