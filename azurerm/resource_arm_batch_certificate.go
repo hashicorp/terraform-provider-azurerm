@@ -66,6 +66,10 @@ func resourceArmBatchCertificate() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"SHA1"}, false),
 			},
+			"public_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
