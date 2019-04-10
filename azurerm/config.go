@@ -3,8 +3,6 @@ package azurerm
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/cosmos"
-	"github.com/terraform-providers/terraform-provider-azurerm/cosmos/capi"
 	"log"
 	"os"
 	"strings"
@@ -1449,8 +1447,4 @@ func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, 
 
 	queueClient := storageClient.GetQueueService()
 	return &queueClient, true, nil
-}
-
-func (c *ArmClient) getCosmosDatabasesClient(accountName string, accountKey string) cosmos.DatabasesClient {
-	return cosmos.NewDatabasesClientWithDefaults(accountName, capi.NewAccountKeyWithDefaults(accountKey))
 }
