@@ -217,6 +217,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_container_service":                      resourceArmContainerService(),
 			"azurerm_cosmosdb_account":                       resourceArmCosmosDBAccount(),
 			"azurerm_data_factory":                           resourceArmDataFactory(),
+			"azurerm_data_factory_linked_service_sql_server": resourceArmDataFactoryLinkedServiceSQLServer(),
 			"azurerm_data_lake_analytics_account":            resourceArmDataLakeAnalyticsAccount(),
 			"azurerm_data_lake_analytics_firewall_rule":      resourceArmDataLakeAnalyticsFirewallRule(),
 			"azurerm_data_lake_store_file":                   resourceArmDataLakeStoreFile(),
