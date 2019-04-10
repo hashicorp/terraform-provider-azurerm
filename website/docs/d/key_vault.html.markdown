@@ -72,3 +72,5 @@ A `sku` block exports the following:
 * `key_permissions` - A list of key permissions applicable to this Access Policy.
 
 * `secret_permissions` - A list of secret permissions applicable to this Access Policy.
+
+* `storage_permissions` - A list of storage permissions applicable to this Access Policy.
