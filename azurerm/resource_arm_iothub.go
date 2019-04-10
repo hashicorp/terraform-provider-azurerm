@@ -21,6 +21,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var iothubResourceName = "azurerm_iothub"
+
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
 		path := strings.Split(k, ".")
@@ -364,6 +366,9 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -539,6 +544,9 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
+
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

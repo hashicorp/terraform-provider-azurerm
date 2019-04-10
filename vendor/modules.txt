@@ -33,6 +33,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01
 github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces
 github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
 github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
 github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights
@@ -155,8 +156,8 @@ github.com/hashicorp/go-azure-helpers/response
 # github.com/hashicorp/go-cleanhttp v0.5.0
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter v0.0.0-20180327010114-90bb99a48d86
-github.com/hashicorp/go-getter/helper/url
 github.com/hashicorp/go-getter
+github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0

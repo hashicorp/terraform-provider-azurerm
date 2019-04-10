@@ -132,6 +132,8 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
+~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified.
+
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
 ---

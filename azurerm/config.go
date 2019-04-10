@@ -41,6 +41,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
@@ -224,8 +225,9 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Factory
-	dataFactoryClient        datafactory.FactoriesClient
-	dataFactoryDatasetClient datafactory.DatasetsClient
+	dataFactoryClient              datafactory.FactoriesClient
+	dataFactoryDatasetClient       datafactory.DatasetsClient
+	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
@@ -238,6 +240,11 @@ type ArmClient struct {
 
 	// Databricks
 	databricksWorkspacesClient databricks.WorkspacesClient
+
+	// HDInsight
+	hdinsightApplicationsClient   hdinsight.ApplicationsClient
+	hdinsightClustersClient       hdinsight.ClustersClient
+	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -485,6 +492,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
+	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
 	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
@@ -882,6 +890,10 @@ func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, 
 	dataFactoryDatasetClient := datafactory.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryDatasetClient.Client, auth)
 	c.dataFactoryDatasetClient = dataFactoryDatasetClient
+
+	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
+	c.dataFactoryLinkedServiceClient = dataFactoryLinkedServiceClient
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -972,6 +984,20 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ehnc.Client, auth)
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	applicationsClient := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&applicationsClient.Client, auth)
+	c.hdinsightApplicationsClient = applicationsClient
+
+	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&clustersClient.Client, auth)
+	c.hdinsightClustersClient = clustersClient
+
+	configurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&configurationsClient.Client, auth)
+	c.hdinsightConfigurationsClient = configurationsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
