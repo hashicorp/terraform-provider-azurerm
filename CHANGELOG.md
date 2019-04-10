@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
 * **New Resource:** `azurerm_data_factory` [GH-3159]
+* **New Resource:** `azurerm_data_factory_linked_service_sql_server` [GH-3205]
 * **New Resource:** `azurerm_hdinsight_kafka_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_kbase_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_hadoop_cluster` [GH-3196]
