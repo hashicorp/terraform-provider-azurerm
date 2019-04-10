@@ -177,6 +177,17 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  containerservice.AvailabilitySet,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.AvailabilitySet),
+								string(containerservice.VirtualMachineScaleSets),
+							}, false),
+						},
+
 						"max_count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -569,6 +580,10 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	networkProfile := expandKubernetesClusterNetworkProfile(d)
 	addonProfiles := expandKubernetesClusterAddonProfiles(d)
 
+	if agentProfiles[0].Type == containerservice.AvailabilitySet && agentProfiles[0].EnableAutoScaling != nil && *agentProfiles[0].EnableAutoScaling {
+		return fmt.Errorf("`enable_autoscaling` must be `false` if `type` is `AvailabilitySet`.")
+	}
+
 	if agentProfiles[0].MaxCount != nil && agentProfiles[0].MinCount != nil {
 		if *agentProfiles[0].MaxCount < *agentProfiles[0].MinCount {
 			return fmt.Errorf("`max_count` must be greater than `min_count`.")
@@ -938,9 +953,10 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 		OsType:            containerservice.OSType(osType),
 	}
 
-	if enableAutoscaling {
-		profile.Type = containerservice.VirtualMachineScaleSets
+	agentType := config["type"].(string)
+	profile.Type = containerservice.AgentPoolType(agentType)
 
+	if enableAutoscaling {
 		if minCount := int32(config["min_count"].(int)); minCount >= 0 {
 			profile.MinCount = utils.Int32(minCount)
 		}
@@ -948,8 +964,6 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 		if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
 			profile.MaxCount = utils.Int32(maxCount)
 		}
-	} else {
-		profile.Type = containerservice.AvailabilitySet
 	}
 
 	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
@@ -1007,6 +1021,7 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
 		}
 
+		agentPoolProfile["type"] = string(profile.Type)
 		if profile.MinCount != nil {
 			agentPoolProfile["min_count"] = int(*profile.MinCount)
 		}
