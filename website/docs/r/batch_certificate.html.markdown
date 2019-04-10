@@ -73,3 +73,5 @@ The following attributes are exported:
 * `id` - The Batch certificate ID.
 
 * `name` - The generated name of the certificate.
+
+* `public_data` - The public key of the certificate.
