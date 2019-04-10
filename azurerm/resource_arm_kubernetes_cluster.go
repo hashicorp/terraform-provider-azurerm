@@ -173,15 +173,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"min_count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ForceNew:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(0, 100),
+							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						"max_count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ForceNew:     true,
 							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
@@ -581,7 +579,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 				return fmt.Errorf("`count` must be greater than `min_count`.")
 			}
 
-			if *agentProfiles[0].Count > *agentProfiles[0].MinCount {
+			if *agentProfiles[0].Count > *agentProfiles[0].MaxCount {
 				return fmt.Errorf("`count` must be less than `max_count`.")
 			}
 		}
