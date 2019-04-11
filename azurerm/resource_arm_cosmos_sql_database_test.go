@@ -5,26 +5,27 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosMongoDatabase_basic(t *testing.T) {
+func TestAccAzureRMCosmosSQLDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_mongo_database.test"
+	resourceName := "azurerm_cosmos_sql_database.test"
 	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoDatabaseExists(resourceName),
+					testCheckAzureRMCosmosSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 				),
@@ -38,12 +39,12 @@ func TestAccAzureRMCosmosMongoDatabase_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosMongoDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosSQLDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for rn, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmos_mongo_database" {
+		if rs.Type != "azurerm_cosmos_sql_database" {
 			continue
 		}
 
@@ -54,22 +55,22 @@ func testCheckAzureRMCosmosMongoDatabaseDestroy(s *terraform.State) error {
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos Mongo Database %s (account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Database %s (account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos Mongo Database %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos SQL Database %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosSQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -87,7 +88,7 @@ func testCheckAzureRMCosmosMongoDatabaseExists(resourceName string) resource.Tes
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
@@ -100,14 +101,14 @@ func testCheckAzureRMCosmosMongoDatabaseExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMCosmosMongoDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosSQLDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_mongo_database" "test" {
+resource "azurerm_cosmos_sql_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 }
-`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
 }

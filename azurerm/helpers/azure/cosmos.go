@@ -65,3 +65,47 @@ func ParseCosmosDatabaseResourceID(id string) (*CosmosDatabaseResourceID, error)
 		Database:                db,
 	}, nil
 }
+
+type CosmosKeyspaceResourceID struct {
+	CosmosAccountResourceID
+	Keyspace string
+}
+
+func ParseCosmosKeyspaceResourceID(id string) (*CosmosKeyspaceResourceID, error) {
+	subid, err := ParseCosmosAccountResourceID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	ks, ok := subid.Path["keyspaces"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Keyspace Resource ID: keyspaces is missing from: %s", id)
+	}
+
+	return &CosmosKeyspaceResourceID{
+		CosmosAccountResourceID: *subid,
+		Keyspace:                ks,
+	}, nil
+}
+
+type CosmosTableResourceID struct {
+	CosmosAccountResourceID
+	Table string
+}
+
+func ParseCosmosTableResourceID(id string) (*CosmosTableResourceID, error) {
+	subid, err := ParseCosmosAccountResourceID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	table, ok := subid.Path["keyspaces"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Table Resource ID: keyspaces is missing from: %s", id)
+	}
+
+	return &CosmosTableResourceID{
+		CosmosAccountResourceID: *subid,
+		Table:                   table,
+	}, nil
+}

@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosMongoDatabase() *schema.Resource {
+func resourceArmCosmosSQLDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosMongoDatabaseCreate,
-		Read:   resourceArmCosmosMongoDatabaseRead,
-		Delete: resourceArmCosmosMongoDatabaseDelete,
+		Create: resourceArmCosmosSQLDatabaseCreate,
+		Read:   resourceArmCosmosSQLDatabaseRead,
+		Delete: resourceArmCosmosSQLDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -44,7 +44,7 @@ func resourceArmCosmosMongoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosMongoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -53,55 +53,55 @@ func resourceArmCosmosMongoDatabaseCreate(d *schema.ResourceData, meta interface
 	account := d.Get("account_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
+		existing, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
+				return fmt.Errorf("Error checking for presence of creating Cosmos SQL Database %s (Account %s): %+v", name, account, err)
 			}
 		} else {
 			id, err := azure.CosmosGetIDFromResponse(existing.Response)
 			if err != nil {
-				return fmt.Errorf("Error checking for presence of Cosmos Mongo Database '%s' (Account %s): %v", name, account, err)
+				return fmt.Errorf("Error checking for presence of Cosmos SQL Database '%s' (Account %s): %v", name, account, err)
 			}
 
-			return tf.ImportAsExistsError("azurerm_cosmos_mongo_database", id)
+			return tf.ImportAsExistsError("azurerm_cosmos_sql_database", id)
 		}
 	}
 
-	db := documentdb.MongoDatabaseCreateUpdateParameters{
-		MongoDatabaseCreateUpdateProperties: &documentdb.MongoDatabaseCreateUpdateProperties{
-			Resource: &documentdb.MongoDatabaseResource{
+	db := documentdb.SQLDatabaseCreateUpdateParameters{
+		SQLDatabaseCreateUpdateProperties: &documentdb.SQLDatabaseCreateUpdateProperties{
+			Resource: &documentdb.SQLDatabaseResource{
 				ID: &name,
 			},
 			Options: map[string]*string{},
 		},
 	}
 
-	future, err := client.CreateMongoDatabase(ctx, resourceGroup, account, db)
+	future, err := client.CreateSQLDatabase(ctx, resourceGroup, account, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Database %s (Account %s): %+v", name, account, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Database %s (Account %s): %+v", name, account, err)
 	}
 
 	//so  well resp.ID is not set...   guess instead grab the ID from response.request.url.path
-	resp, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
+	resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 	if err != nil {
-		return fmt.Errorf("Error making get request for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error making get request for Cosmos SQL Database %s (Account %s): %+v", name, account, err)
 	}
 
 	id, err := azure.CosmosGetIDFromResponse(resp.Response)
 	if err != nil {
-		return fmt.Errorf("Error creating Cosmos Mongo Database '%s' (Account %s) ID", name, account)
+		return fmt.Errorf("Error creating Cosmos SQL Database '%s' (Account %s) ID", name, account)
 	}
 	d.SetId(id)
 
-	return resourceArmCosmosMongoDatabaseRead(d, meta)
+	return resourceArmCosmosSQLDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -110,18 +110,18 @@ func resourceArmCosmosMongoDatabaseRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.GetMongoDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
+	resp, err := client.GetSQLDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Mongo Database %s (Account %s) - removing from state", id.Database, id.Account)
+			log.Printf("[INFO] Error reading Cosmos SQL Database %s (Account %s) - removing from state", id.Database, id.Account)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos SQL Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
-	if props := resp.MongoDatabaseProperties; props != nil {
+	if props := resp.SQLDatabaseProperties; props != nil {
 		d.Set("name", props.ID)
 		d.Set("resource_group_name", id.ResourceGroup)
 		d.Set("account_name", id.Account)
@@ -130,7 +130,7 @@ func resourceArmCosmosMongoDatabaseRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmCosmosMongoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -139,10 +139,10 @@ func resourceArmCosmosMongoDatabaseDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.DeleteMongoDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
+	resp, err := client.DeleteSQLDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+			return fmt.Errorf("Error deleting Cosmos SQL Database %s (Account %s): %+v", id.Database, id.Account, err)
 		}
 	}
 
