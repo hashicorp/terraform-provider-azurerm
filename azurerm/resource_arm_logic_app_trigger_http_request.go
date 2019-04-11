@@ -191,7 +191,7 @@ func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (wa
 
 	r, _ := regexp.Compile("^[A-Za-z0-9_/}{]+$")
 	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Relative PathBase can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
+		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
 	}
 
 	return warnings, errors

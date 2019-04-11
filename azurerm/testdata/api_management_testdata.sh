@@ -4,7 +4,7 @@
 # tests for Azure API Management
 
 declare -a certs=("api_management_api" "api_management_api2" "api_management_portal")
-declare -a domains=("capi.terraform.io" "api2.terraform.io" "portal.terraform.io")
+declare -a domains=("api.terraform.io" "api2.terraform.io" "portal.terraform.io")
 
 arraylength=${#certs[@]}
 

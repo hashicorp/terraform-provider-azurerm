@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// it seems the cosmos API is not returning and sort of valid ID in the main respone body
+// it seems the cosmos API is not returning any sort of valid ID in the main response body
 // so lets grab it from the response.request.url.path
 func CosmosGetIDFromResponse(resp autorest.Response) (string, error) {
 	if resp.Response == nil {

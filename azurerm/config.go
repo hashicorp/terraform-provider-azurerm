@@ -469,7 +469,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
-	client.registercosmosAccountsClients(endpoint, c.SubscriptionID, auth)
+	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
@@ -679,14 +679,10 @@ func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId str
 	c.cognitiveAccountsClient = accountsClient
 }
 
-func (c *ArmClient) registercosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ca := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ca.Client, auth)
 	c.cosmosAccountsClient = ca
-
-	/*cdb := cosmos.NewDatabasesClientWithDefaults(subscriptionId)
-	c.configureClient(&cdb.Client, auth)
-	c.cosmosDatabasesClient = cdb*/
 }
 
 func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

@@ -131,7 +131,7 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 		_, errors := ApiManagementApiPath(tc.Value, "azurerm_api_management_api")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Api Management Api PathBase to trigger a validation error for '%s'", tc.Value)
+			t.Fatalf("Expected the Api Management Api Path to trigger a validation error for '%s'", tc.Value)
 		}
 	}
 }
