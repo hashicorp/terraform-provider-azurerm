@@ -21,7 +21,8 @@ func TestAccDataSourceAzureRMFirewall_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceFirewall_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "ip_configuration.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_configuration.0.name", "configuration"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_configuration.0.private_ip_address"),
 				),
 			},
 		},
