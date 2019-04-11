@@ -79,6 +79,7 @@ resource "azurerm_lb_probe" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "http-probe"
+  protocol            = "Http"
   request_path        = "/health"
   port                = 8080
 }
