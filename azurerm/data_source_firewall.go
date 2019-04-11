@@ -20,9 +20,9 @@ func dataSourceArmFirewall() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"location": locationSchema(),
+			"location": locationForDataSourceSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"ip_configuration": {
 				Type:     schema.TypeList,
