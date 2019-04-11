@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall"
 sidebar_current: "docs-azurerm-datasource-firewall"
 description: |-
-  Gets information about an existing Firewall.
+  Gets information about an existing Azure Firewall.
 
 ---
 
 # Data Source: azurerm_firewall
 
-Use this data source to access information about an existing Firewall.
+Use this data source to access information about an existing Azure Firewall.
 
 ## Example Usage
 
@@ -17,7 +17,6 @@ Use this data source to access information about an existing Firewall.
 data "azurerm_firewall" "test" {
   name                = "firewall1"
   resource_group_name = "firewall-RG"
-  location            = "westus"
 }
 
 output "firewall_private_ip" {
@@ -27,9 +26,9 @@ output "firewall_private_ip" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Firewall.
+* `name` - (Required) The name of the Azure Firewall.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Firewall exists.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Azure Firewall exists.
 
 ## Attributes Reference
 
