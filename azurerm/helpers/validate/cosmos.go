@@ -15,3 +15,14 @@ func CosmosAccountName(v interface{}, k string) (warnings []string, errors []err
 
 	return warnings, errors
 }
+
+func CosmosEntityName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if len(value) < 1 || len(value) > 255 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be between 1 and 255 characters: %q", k, value))
+	}
+
+	return warnings, errors
+}

@@ -6,6 +6,8 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
+// it seems the cosmos API is not returning and sort of valid ID in the main respone body
+// so lets grab it from the response.request.url.path
 func CosmosGetIDFromResponse(resp autorest.Response) (string, error) {
 	if resp.Response == nil {
 		return "", fmt.Errorf("Error: Unable to get Cosmos ID from Response: http response is nil")
@@ -22,12 +24,12 @@ func CosmosGetIDFromResponse(resp autorest.Response) (string, error) {
 	return resp.Response.Request.URL.Path, nil
 }
 
-type CosmosAccountResourceID struct {
+type CosmosAccountID struct {
 	ResourceID
 	Account string
 }
 
-func ParseCosmosAccountResourceID(id string) (*CosmosAccountResourceID, error) {
+func ParseCosmosAccountID(id string) (*CosmosAccountID, error) {
 	subid, err := ParseAzureResourceID(id)
 	if err != nil {
 		return nil, err
@@ -38,19 +40,19 @@ func ParseCosmosAccountResourceID(id string) (*CosmosAccountResourceID, error) {
 		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Resource ID: databaseAccounts is missing from: %s", id)
 	}
 
-	return &CosmosAccountResourceID{
+	return &CosmosAccountID{
 		ResourceID: *subid,
 		Account:    account,
 	}, nil
 }
 
-type CosmosDatabaseResourceID struct {
-	CosmosAccountResourceID
+type CosmosDatabaseID struct {
+	CosmosAccountID
 	Database string
 }
 
-func ParseCosmosDatabaseResourceID(id string) (*CosmosDatabaseResourceID, error) {
-	subid, err := ParseCosmosAccountResourceID(id)
+func ParseCosmosDatabaseID(id string) (*CosmosDatabaseID, error) {
+	subid, err := ParseCosmosAccountID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -60,19 +62,41 @@ func ParseCosmosDatabaseResourceID(id string) (*CosmosDatabaseResourceID, error)
 		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Resource ID: databases is missing from: %s", id)
 	}
 
-	return &CosmosDatabaseResourceID{
-		CosmosAccountResourceID: *subid,
-		Database:                db,
+	return &CosmosDatabaseID{
+		CosmosAccountID: *subid,
+		Database:        db,
 	}, nil
 }
 
-type CosmosKeyspaceResourceID struct {
-	CosmosAccountResourceID
+type CosmosDatabaseCollectionID struct {
+	CosmosDatabaseID
+	Collection string
+}
+
+func ParseCosmosDatabaseCollectionID(id string) (*CosmosDatabaseCollectionID, error) {
+	subid, err := ParseCosmosDatabaseID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	collection, ok := subid.Path["collections"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Resource ID: databases is missing from: %s", id)
+	}
+
+	return &CosmosDatabaseCollectionID{
+		CosmosDatabaseID: *subid,
+		Collection:       collection,
+	}, nil
+}
+
+type CosmosKeyspaceID struct {
+	CosmosAccountID
 	Keyspace string
 }
 
-func ParseCosmosKeyspaceResourceID(id string) (*CosmosKeyspaceResourceID, error) {
-	subid, err := ParseCosmosAccountResourceID(id)
+func ParseCosmosKeyspaceID(id string) (*CosmosKeyspaceID, error) {
+	subid, err := ParseCosmosAccountID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -82,30 +106,30 @@ func ParseCosmosKeyspaceResourceID(id string) (*CosmosKeyspaceResourceID, error)
 		return nil, fmt.Errorf("Error: Unable to parse Cosmos Keyspace Resource ID: keyspaces is missing from: %s", id)
 	}
 
-	return &CosmosKeyspaceResourceID{
-		CosmosAccountResourceID: *subid,
-		Keyspace:                ks,
+	return &CosmosKeyspaceID{
+		CosmosAccountID: *subid,
+		Keyspace:        ks,
 	}, nil
 }
 
-type CosmosTableResourceID struct {
-	CosmosAccountResourceID
+type CosmosTableID struct {
+	CosmosAccountID
 	Table string
 }
 
-func ParseCosmosTableResourceID(id string) (*CosmosTableResourceID, error) {
-	subid, err := ParseCosmosAccountResourceID(id)
+func ParseCosmosTableID(id string) (*CosmosTableID, error) {
+	subid, err := ParseCosmosAccountID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	table, ok := subid.Path["keyspaces"]
+	table, ok := subid.Path["tables"]
 	if !ok {
-		return nil, fmt.Errorf("Error: Unable to parse Cosmos Table Resource ID: keyspaces is missing from: %s", id)
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Table Resource ID: tables is missing from: %s", id)
 	}
 
-	return &CosmosTableResourceID{
-		CosmosAccountResourceID: *subid,
-		Table:                   table,
+	return &CosmosTableID{
+		CosmosAccountID: *subid,
+		Table:           table,
 	}, nil
 }

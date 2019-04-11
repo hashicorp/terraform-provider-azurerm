@@ -87,13 +87,13 @@ func testCheckAzureRMCosmosTableExists(resourceName string) resource.TestCheckFu
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos database '%s' (account: '%s') does not exist", name, account)
+			return fmt.Errorf("Bad: Cosmos Table '%s' (account: '%s') does not exist", name, account)
 		}
 
 		return nil
@@ -109,5 +109,5 @@ resource "azurerm_cosmos_table" "test" {
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 }
-`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_capabilityTable(rInt, location), rInt)
 }

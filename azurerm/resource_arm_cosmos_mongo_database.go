@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -29,7 +28,7 @@ func resourceArmCosmosMongoDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 255),
+				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -61,7 +60,7 @@ func resourceArmCosmosMongoDatabaseCreate(d *schema.ResourceData, meta interface
 		} else {
 			id, err := azure.CosmosGetIDFromResponse(existing.Response)
 			if err != nil {
-				return fmt.Errorf("Error checking for presence of Cosmos Mongo Database '%s' (Account %s): %v", name, account, err)
+				return fmt.Errorf("Error generating import ID for Cosmos Mongo Database '%s' (Account %s)", name, account)
 			}
 
 			return tf.ImportAsExistsError("azurerm_cosmos_mongo_database", id)
@@ -86,7 +85,6 @@ func resourceArmCosmosMongoDatabaseCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
 	}
 
-	//so  well resp.ID is not set...   guess instead grab the ID from response.request.url.path
 	resp, err := client.GetMongoDatabase(ctx, resourceGroup, account, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
@@ -94,7 +92,7 @@ func resourceArmCosmosMongoDatabaseCreate(d *schema.ResourceData, meta interface
 
 	id, err := azure.CosmosGetIDFromResponse(resp.Response)
 	if err != nil {
-		return fmt.Errorf("Error creating Cosmos Mongo Database '%s' (Account %s) ID", name, account)
+		return fmt.Errorf("Error creating Cosmos Mongo Database '%s' (Account %s) ID: %v", name, account, err)
 	}
 	d.SetId(id)
 
@@ -105,7 +103,7 @@ func resourceArmCosmosMongoDatabaseRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := azure.ParseCosmosDatabaseResourceID(d.Id())
+	id, err := azure.ParseCosmosDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -134,16 +132,21 @@ func resourceArmCosmosMongoDatabaseDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := azure.ParseCosmosDatabaseResourceID(d.Id())
+	id, err := azure.ParseCosmosDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.DeleteMongoDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
+	future, err := client.DeleteMongoDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
-		if !response.WasNotFound(resp.Response()) {
+		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
 		}
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting on delete future for Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
 	return nil
