@@ -495,7 +495,7 @@ resource "azurerm_batch_pool" "import" {
     version   = "latest"
   }
 }
-`, testaccAzureRMBatchPool_basic(rInt, location, rString))
+`, testaccAzureRMBatchPool_basic(rInt, rString, location))
 }
 
 func testaccAzureRMBatchPoolStartTask_basic(rInt int, rString string, location string) string {
