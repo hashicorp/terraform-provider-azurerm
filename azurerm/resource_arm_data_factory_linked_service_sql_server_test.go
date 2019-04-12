@@ -65,10 +65,10 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 				),
 			},
 			{
@@ -76,10 +76,10 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 				),
 			},
 			{

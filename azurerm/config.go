@@ -227,6 +227,7 @@ type ArmClient struct {
 
 	// Data Factory
 	dataFactoryClient              datafactory.FactoriesClient
+	dataFactoryDatasetClient       datafactory.DatasetsClient
 	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
 
 	// Data Lake Store
@@ -890,6 +891,10 @@ func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, 
 	dataFactoryClient := datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryClient.Client, auth)
 	c.dataFactoryClient = dataFactoryClient
+
+	dataFactoryDatasetClient := datafactory.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryDatasetClient.Client, auth)
+	c.dataFactoryDatasetClient = dataFactoryDatasetClient
 
 	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
