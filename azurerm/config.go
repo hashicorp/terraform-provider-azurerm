@@ -163,8 +163,9 @@ type ArmClient struct {
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	// Batch
-	batchAccountClient batch.AccountClient
-	batchPoolClient    batch.PoolClient
+	batchAccountClient     batch.AccountClient
+	batchCertificateClient batch.CertificateClient
+	batchPoolClient        batch.PoolClient
 
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
@@ -666,6 +667,10 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchAccount.Client, auth)
 	c.batchAccountClient = batchAccount
+
+	batchCertificateClient := batch.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchCertificateClient.Client, auth)
+	c.batchCertificateClient = batchCertificateClient
 
 	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchPool.Client, auth)

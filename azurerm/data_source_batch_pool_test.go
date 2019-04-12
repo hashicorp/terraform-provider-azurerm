@@ -46,6 +46,13 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
 					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "certificate.0.id"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_location", "CurrentUser"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.store_name", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.3294600504", "StartTask"),
+					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.4077195354", "RemoteUser"),
 				),
 			},
 		},
@@ -78,6 +85,16 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
+resource "azurerm_batch_certificate" "test" {
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	account_name         = "${azurerm_batch_account.test.name}"
+	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
+	format               = "Pfx"
+	password             = "terraform"
+	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+	thumbprint_algorithm = "SHA1"
+}
+	
 
 resource "azurerm_batch_pool" "test" {
   name                   = "testaccpool%s"
@@ -100,6 +117,12 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
+  certificate = {
+    id             = "${azurerm_batch_certificate.test.id}"
+    store_location = "CurrentUser"
+    visibility     = [ "StartTask", "RemoteUser" ]
+  }
+  
   start_task {
     command_line         = "echo 'Hello World from $env'"
     max_task_retry_count = 1
