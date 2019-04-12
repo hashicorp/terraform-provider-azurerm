@@ -15,7 +15,32 @@ import (
 func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryDatasetSQLServerTable_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryDatasetSQLServerTable_update(ri, testLocation())
+	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataFactoryDatasetSQLServerTable_update(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMDataFactoryDatasetSQLServerTable_update1(ri, testLocation())
+	config2 := testAccAzureRMDataFactoryDatasetSQLServerTable_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,9 +162,38 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryDatasetSQLServerTable_update1(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_linked_service_sql_server" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+}
+
+resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+  name                = "acctestds%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
  
   description = "test description"
-	annotations = ["test1", "test2", "test3"]
+  annotations = ["test1", "test2", "test3"]
   table_name  = "testTable"
   folder      = "testFolder"
 
@@ -162,7 +216,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMDataFactoryDatasetSQLServerTable_update(rInt int, location string) string {
+func testAccAzureRMDataFactoryDatasetSQLServerTable_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -189,13 +243,13 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
  
   description = "test description 2"
-	annotations = ["test1", "test2"]
+  annotations = ["test1", "test2"]
   table_name  = "testTable"
   folder      = "testFolder"
 
   parameters {
-		"foo" = "test1"
-		"bar" = "test2"
+    "foo" = "test1"
+    "bar" = "test2"
     "buzz" = "test3"
   }
  

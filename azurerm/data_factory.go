@@ -19,16 +19,6 @@ func expandDataFactoryParameters(input map[string]interface{}) map[string]*dataf
 	return output
 }
 
-func expandDataFactoryAdditionalProperties(input map[string]interface{}) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		output[k] = v
-	}
-
-	return output
-}
-
 func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
 	output := make(map[string]interface{})
 
@@ -45,16 +35,6 @@ func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecifi
 	}
 
 	return output
-}
-
-func expandDataFactoryAnnotations(input []interface{}) *[]interface{} {
-	annotations := make([]interface{}, 0)
-
-	for _, annotation := range input {
-		annotations = append(annotations, annotation.(string))
-	}
-
-	return &annotations
 }
 
 func flattenDataFactoryAnnotations(input *[]interface{}) []string {

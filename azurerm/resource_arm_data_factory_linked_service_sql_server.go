@@ -128,11 +128,12 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerLinkedService.AdditionalProperties = expandDataFactoryAdditionalProperties(v.(map[string]interface{}))
+		sqlServerLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sqlServerLinkedService.Annotations = expandDataFactoryAnnotations(v.([]interface{}))
+		annotations := v.([]interface{})
+		sqlServerLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

@@ -180,11 +180,12 @@ func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.Resourc
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sqlServerTableset.Annotations = expandDataFactoryAnnotations(v.([]interface{}))
+		annotations := v.([]interface{})
+		sqlServerTableset.Annotations = &annotations
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerTableset.AdditionalProperties = expandDataFactoryAdditionalProperties(v.(map[string]interface{}))
+		sqlServerTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
