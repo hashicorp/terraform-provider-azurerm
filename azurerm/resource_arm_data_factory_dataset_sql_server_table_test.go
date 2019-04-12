@@ -16,7 +16,7 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryDatasetSQLServerTable_basic(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryDatasetSQLServerTable_update(ri, testLocation())
-	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
+	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -28,8 +28,8 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "schema_column.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
 				),
@@ -39,8 +39,8 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
 				),
@@ -74,11 +74,11 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableExists(name string) resourc
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
+			return fmt.Errorf("Bad: Get on dataFactoryDatasetClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service SQL Server %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset SQL Server Table %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
@@ -90,7 +90,7 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State)
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_sql_server" {
+		if rs.Type != "azurerm_data_factory_dataset_sql_server_table" {
 			continue
 		}
 
@@ -105,7 +105,7 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service SQL Server still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset SQL Server Table still exists:\n%#v", resp.Properties)
 		}
 	}
 
@@ -130,18 +130,36 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+}
+
+resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+  name                = "acctestds%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+ 
+  description = "test description"
+	annotations = ["test1", "test2", "test3"]
+  table_name  = "testTable"
+  folder      = "testFolder"
+
   parameters {
     "foo" = "test1"
     "bar" = "test2"
   }
+ 
   additional_properties {
     "foo" = "test1"
     "bar" = "test2"
+	}
+	
+  schema_column {
+    name = "test1"
+    type = "Byte"
+    description = "description"
   }
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMDataFactoryDatasetSQLServerTable_update(rInt int, location string) string {
@@ -162,16 +180,40 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+}
+
+resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+  name                = "acctestds%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+ 
+  description = "test description 2"
+	annotations = ["test1", "test2"]
+  table_name  = "testTable"
+  folder      = "testFolder"
+
   parameters {
-    "foo" = "test1"
-    "bar" = "test2"
+		"foo" = "test1"
+		"bar" = "test2"
     "buzz" = "test3"
   }
+ 
   additional_properties {
     "foo" = "test1"
+	}
+	
+  schema_column {
+    name = "test1"
+    type = "Byte"
+    description = "description"
+  }
+	
+  schema_column {
+    name = "test2"
+    type = "Byte"
+    description = "description"
   }
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
