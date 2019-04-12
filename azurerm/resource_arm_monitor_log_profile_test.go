@@ -7,45 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_monitor_log_profile", &resource.Sweeper{
-		Name: "azurerm_monitor_log_profile",
-		F:    testSweepMonitorLogProfiles,
-	})
-}
-
-func testSweepMonitorLogProfiles(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return fmt.Errorf("Error building config for sweepers: %+v", err)
-	}
-
-	client := (*armClient).monitorLogProfilesClient
-	ctx := (*armClient).StopContext
-
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on Log Profiles: %+v", err)
-	}
-
-	for _, logProfile := range *results.Value {
-		name := *logProfile.Name
-		// Use region as resource location as there's no location associated with a log profile
-		if !shouldSweepAcceptanceTestResource(name, region, region) {
-			continue
-		}
-
-		_, err := client.Delete(ctx, name)
-		if err != nil {
-			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
-		}
-	}
-
-	return nil
-}
 
 // NOTE: this is a combined test rather than separate split out tests due to
 // Azure only being happy about provisioning one per subscription at once
@@ -57,10 +21,11 @@ func testSweepMonitorLogProfiles(region string) error {
 func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":      testAccAzureRMMonitorLogProfile_basic,
-			"servicebus": testAccAzureRMMonitorLogProfile_servicebus,
-			"complete":   testAccAzureRMMonitorLogProfile_complete,
-			"disappears": testAccAzureRMMonitorLogProfile_disappears,
+			"basic":          testAccAzureRMMonitorLogProfile_basic,
+			"requiresImport": testAccAzureRMMonitorLogProfile_requiresImport,
+			"servicebus":     testAccAzureRMMonitorLogProfile_servicebus,
+			"complete":       testAccAzureRMMonitorLogProfile_complete,
+			"disappears":     testAccAzureRMMonitorLogProfile_disappears,
 		},
 		"datasource": {
 			"eventhub":       testAccDataSourceAzureRMMonitorLogProfile_eventhub,
@@ -83,7 +48,7 @@ func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -106,9 +71,39 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_log_profile.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(10)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogProfileExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorLogProfile_requiresImportConfig(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_log_profile"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -128,7 +123,7 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -148,7 +143,7 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 	config := testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, testLocation())
 
@@ -190,12 +185,12 @@ func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
@@ -215,12 +210,12 @@ func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -228,8 +223,7 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 		}
 
@@ -273,6 +267,25 @@ resource "azurerm_monitor_log_profile" "test" {
 `, rInt, location, rString, rInt, location)
 }
 
+func testAccAzureRMMonitorLogProfile_requiresImportConfig(rInt int, rString string, location string) string {
+	template := testAccAzureRMMonitorLogProfile_basicConfig(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_log_profile" "import" {
+  name               = "${azurerm_monitor_log_profile.test.name}"
+  categories         = "${azurerm_monitor_log_profile.test.categories}"
+  locations          = "${azurerm_monitor_log_profile.test.locations}"
+  storage_account_id = "${azurerm_monitor_log_profile.test.storage_account_id}"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+}
+`, template)
+}
+
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -284,7 +297,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestsbns-%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {

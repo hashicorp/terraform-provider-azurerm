@@ -4,26 +4,23 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
@@ -34,7 +31,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "character_set_server"),
@@ -46,18 +43,15 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
@@ -68,7 +62,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "interactive_timeout"),
@@ -80,18 +74,15 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 
 func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
@@ -102,7 +93,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "log_slow_admin_statements"),
@@ -240,10 +231,10 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {

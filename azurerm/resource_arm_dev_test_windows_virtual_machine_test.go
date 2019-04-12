@@ -15,7 +15,7 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
@@ -43,12 +43,41 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
+	rInt := acctest.RandIntRange(11111, 99999)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestWindowsVirtualMachine_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_windows_virtual_machine"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
@@ -84,7 +113,7 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
@@ -111,12 +140,12 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestWindowsVirtualMachineExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualMachineName := rs.Primary.Attributes["name"]
@@ -195,6 +224,33 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestWindowsVirtualMachine_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_windows_virtual_machine" "import" {
+  name                   = "${azurerm_dev_test_windows_virtual_machine.test.name}"
+  lab_name               = "${azurerm_dev_test_windows_virtual_machine.test.lab_name}"
+  resource_group_name    = "${azurerm_dev_test_windows_virtual_machine.test.resource_group_name}"
+  location               = "${azurerm_dev_test_windows_virtual_machine.test.location}"
+  size                   = "${azurerm_dev_test_windows_virtual_machine.test.size}"
+  username               = "acct5stU5er"
+  password               = "Pa$$w0rd1234!"
+  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
+  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  storage_type           = "Standard"
+
+  gallery_image_reference {
+    offer     = "WindowsServer"
+    publisher = "MicrosoftWindowsServer"
+    sku       = "2012-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
 func testAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(rInt int, location string) string {
 	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
 	return fmt.Sprintf(`
@@ -230,7 +286,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     backend_port = 3389
   }
 
-  tags {
+  tags = {
     "Acceptance" = "Test"
   }
 }

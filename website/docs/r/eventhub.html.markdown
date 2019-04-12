@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-x"
 description: |-
   Manages a Event Hubs as a nested resource within an Event Hubs namespace.
 ---
@@ -24,8 +24,9 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
   capacity            = 1
+  kafka_enabled       = false
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -49,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 
-* `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
+* `partition_count` - (Required) Specifies the current number of shards on the Event Hub. Changing this forces a new resource to be created.
 
 * `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub. Needs to be between 1 and 7 days; or 1 day when using a Basic SKU for the parent EventHub Namespace.
 
@@ -66,6 +67,8 @@ A `capture_description` block supports the following:
 * `interval_in_seconds` - (Optional) Specifies the time interval in seconds at which the capture will happen. Values can be between `60` and `900` seconds. Defaults to `300` seconds.
 
 * `size_limit_in_bytes` - (Optional) Specifies the amount of data built up in your EventHub before a Capture Operation occurs. Value should be between `10485760` and `524288000`  bytes. Defaults to `314572800` bytes.
+
+* `skip_empty_archives` - (Optional) Specifies if empty files should not be emitted if no events occur during the Capture time window.  Defaults to `false`.
 
 * `destination` - (Required) A `destination` block as defined below.
 

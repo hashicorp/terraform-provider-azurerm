@@ -11,8 +11,6 @@ description: |-
 
 Manages a Network Rule Collection within an Azure Firewall.
 
--> **NOTE** Azure Firewall is currently in Public Preview.
-
 ## Example Usage
 
 ```hcl
@@ -39,7 +37,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "testpip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   sku                          = "Standard"
 }
 
@@ -49,9 +47,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
 
@@ -92,7 +90,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Network Rule Collection which must be unique within the Firewall. Changing this forces a new resource to be created.
 
-* `azure_firewall_name` - (Required) Specifies the name of the Firewall in which to the Network Rule Collection should be created. Changing this forces a new resource to be created.
+* `azure_firewall_name` - (Required) Specifies the name of the Firewall in which the Network Rule Collection should be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Firewall exists. Changing this forces a new resource to be created.
 
@@ -120,7 +118,7 @@ A `rule` block supports the following:
 
 ## Import
 
-Azure Firewall Network Rule Collection's can be imported using the `resource id`, e.g.
+Azure Firewall Network Rule Collections can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_firewall_network_rule_collection.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/mycollection

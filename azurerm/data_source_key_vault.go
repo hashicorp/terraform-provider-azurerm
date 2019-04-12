@@ -87,6 +87,13 @@ func dataSourceArmKeyVault() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"storage_permissions": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -171,16 +178,16 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("vault_uri", props.VaultURI)
 
 		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultDataSourceNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("Error flattening `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 	}
 

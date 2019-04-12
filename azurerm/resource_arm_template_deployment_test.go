@@ -6,21 +6,21 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
@@ -28,17 +28,43 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 
-func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMTemplateDeployment_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_template_deployment"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					testCheckAzureRMTemplateDeploymentDisappears("azurerm_template_deployment.test"),
@@ -49,16 +75,34 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTemplateDeployment_withParams(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -69,15 +113,15 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -89,15 +133,15 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckOutput("tfIntOutput", "-123"),
@@ -117,27 +161,27 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMTemplateDeployment_withError(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
 				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -162,25 +206,24 @@ func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFun
 	}
 }
 
-func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		deploymentName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, deploymentName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
@@ -325,6 +368,79 @@ DEPLOY
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMTemplateDeployment_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_template_deployment" "import" {
+  name                = "${azurerm_template_deployment.test.name}"
+  resource_group_name = "${azurerm_template_deployment.test.resource_group_name}"
+
+  template_body   = "${azurerm_template_deployment.test.template_body}"
+  deployment_mode = "${azurerm_template_deployment.test.deployment_mode}"
+}
+`, testAccAzureRMTemplateDeployment_basicMultiple(rInt, location))
+}
+
+func testAccAzureRMTemplateDeployment_nestedTemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "resourceGroupName": "[resourceGroup().name]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "nested-template-deployment",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "variables": {
+            "location": "[variables('location')]",
+            "resourceGroupName": "[variables('resourceGroupName')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2015-06-15",
+              "name": "acctest-pip",
+              "location": "[variables('location')]",
+              "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+DEPLOY
+
+  deployment_mode = "Complete"
+}
+`, rInt, location, rInt)
+}
+
 func testaccAzureRMTemplateDeployment_withParamsBody(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -350,7 +466,7 @@ resource "azurerm_key_vault" "test-kv" {
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  "sku" {
+  sku {
     name = "standard"
   }
 
@@ -379,7 +495,7 @@ resource "azurerm_key_vault_secret" "test-secret" {
 }
 
 locals {
-  "templated-file" = <<TPL
+  templated-file = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
@@ -564,7 +680,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -688,7 +804,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -757,7 +873,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     storageAccountType = "Standard_GRS"
   }
 

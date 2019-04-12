@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue-x"
 description: |-
   Manages a ServiceBus Queue.
 ---
@@ -13,35 +13,26 @@ Manage and manage a ServiceBus Queue.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default     = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
 
-resource "azurerm_servicebus_queue" "test" {
-  name                = "testQueue"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_queue" "example" {
+  name                = "tfex_servicebus_queue"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }
@@ -57,7 +48,7 @@ The following arguments are supported:
 * `namespace_name` - (Required) The name of the ServiceBus Namespace to create
     this queue in. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
+* `location` - (Optional / **Deprecated**) Specifies the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to

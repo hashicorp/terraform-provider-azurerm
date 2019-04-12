@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,6 +63,20 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetByScope(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Management Lock %q (Scope %q): %s", name, scope, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_management_lock", *existing.ID)
+		}
+	}
+
 	lockLevel := d.Get("lock_level").(string)
 	notes := d.Get("notes").(string)
 
@@ -72,8 +87,7 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdateByScope(ctx, scope, name, lock)
-	if err != nil {
+	if _, err := client.CreateOrUpdateByScope(ctx, scope, name, lock); err != nil {
 		return err
 	}
 
@@ -160,16 +174,16 @@ func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 	return &lockId, nil
 }
 
-func validateArmManagementLockName(v interface{}, k string) (ws []string, es []error) {
+func validateArmManagementLockName(v interface{}, k string) (warnings []string, errors []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
-		es = append(es, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
+		errors = append(errors, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
 	}
 
 	if len(input) >= 260 {
-		es = append(es, fmt.Errorf("%s can only be a maximum of 260 characters", k))
+		errors = append(errors, fmt.Errorf("%s can only be a maximum of 260 characters", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }

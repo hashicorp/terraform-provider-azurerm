@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
-sidebar_current: "docs-azurerm-resource-recovery-services-protected-vm"
+sidebar_current: "docs-azurerm-recovery-services-protected-vm"
 description: |-
   Manages an Recovery Services Protected VM.
 ---
@@ -25,19 +25,18 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+resource "azurerm_recovery_services_protection_policy_vm" "example" {
+  name                = "tfex-recovery-vault-policy"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 }
 
-resource "azurerm_recovery_services_protected_vm" "example" {
-  location            = "${azurerm_resource_group.example.location}"
+resource "azurerm_recovery_services_protected_vm" "vm1" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
@@ -48,8 +47,6 @@ resource "azurerm_recovery_services_protected_vm" "example" {
 ## Argument Reference
 
 The following arguments are supported:
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
 

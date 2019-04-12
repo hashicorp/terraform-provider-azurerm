@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -38,11 +38,11 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -67,11 +67,11 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_networkAcls(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -96,7 +96,7 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMKeyVault_basic(rInt int, location string) string {
-	resource := testAccAzureRMKeyVault_basic(rInt, location)
+	r := testAccAzureRMKeyVault_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -104,11 +104,11 @@ data "azurerm_key_vault" "test" {
   name                = "${azurerm_key_vault.test.name}"
   resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKeyVault_complete(rInt int, location string) string {
-	resource := testAccAzureRMKeyVault_complete(rInt, location)
+	r := testAccAzureRMKeyVault_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -116,11 +116,11 @@ data "azurerm_key_vault" "test" {
   name                = "${azurerm_key_vault.test.name}"
   resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKeyVault_networkAcls(rInt int, location string) string {
-	resource := testAccAzureRMKeyVault_networkAclsUpdated(rInt, location)
+	r := testAccAzureRMKeyVault_networkAclsUpdated(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -128,5 +128,5 @@ data "azurerm_key_vault" "test" {
   name                = "${azurerm_key_vault.test.name}"
   resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

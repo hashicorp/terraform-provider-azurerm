@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic-x"
 description: |-
   Manages a ServiceBus Topic.
 ---
@@ -15,31 +15,26 @@ Manage a ServiceBus Topic.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default     = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "tfex-servicebus-topic"
+  location = "West Europe"
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "Standard"
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
+  tags = {
     source = "terraform"
   }
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_topic" "example" {
+  name                = "tfex_sevicebus_topic"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }

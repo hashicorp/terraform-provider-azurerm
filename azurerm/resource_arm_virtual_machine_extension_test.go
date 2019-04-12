@@ -6,19 +6,19 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_extension.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
 	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -47,13 +47,42 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_machine_extension.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineExtension_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExtensionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachineExtension_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine_extension"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_extension.test"
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -72,10 +101,10 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -90,12 +119,12 @@ func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -174,7 +203,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -185,7 +214,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -244,11 +273,31 @@ resource "azurerm_virtual_machine_extension" "test" {
 	}
 SETTINGS
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineExtension_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineExtension_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+
+resource "azurerm_virtual_machine_extension" "import" {
+  name                 = "${azurerm_virtual_machine_extension.test.name}"
+  resource_group_name  = "${azurerm_virtual_machine_extension.test.resource_group_name}"
+  virtual_machine_name = "${azurerm_virtual_machine_extension.test.virtual_machine_name}"
+  location             = "${azurerm_virtual_machine_extension.test.location}"
+  publisher            = "${azurerm_virtual_machine_extension.test.publisher}"
+  type                 = "${azurerm_virtual_machine_extension.test.type}"
+  type_handler_version = "${azurerm_virtual_machine_extension.test.type_handler_version}"
+  settings             = "${azurerm_virtual_machine_extension.test.settings}"
+  tags                 = "${azurerm_virtual_machine_extension.test.tags}"
+}
+`, template)
 }
 
 func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {
@@ -280,7 +329,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -291,7 +340,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -350,7 +399,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 	}
 SETTINGS
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -387,7 +436,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -398,7 +447,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -505,7 +554,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -516,7 +565,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -576,7 +625,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 	}
 SETTINGS
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

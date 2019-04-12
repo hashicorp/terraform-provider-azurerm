@@ -34,7 +34,11 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
   location            = "${data.azurerm_shared_image.existing.location}"
   managed_image_id    = "${data.azurerm_image.existing.id}"
-  regions             = ["${data.azurerm_shared_image.existing.location}"]
+
+  target_region {
+    name                   = "${data.azurerm_shared_image.existing.location}"
+    regional_replica_count = "5"
+  }
 }
 ```
 

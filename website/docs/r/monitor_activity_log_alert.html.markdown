@@ -52,7 +52,7 @@ resource "azurerm_monitor_activity_log_alert" "main" {
   action {
     action_group_id = "${azurerm_monitor_action_group.main.id}"
 
-    webhook_properties {
+    webhook_properties = {
       from = "terraform"
     }
   }

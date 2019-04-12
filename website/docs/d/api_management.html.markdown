@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
-sidebar_current: "docs-azurerm-datasource-api-management"
+sidebar_current: "docs-azurerm-datasource-api-management-x"
 description: |-
   Gets information about an existing API Management Service.
 ---
@@ -48,6 +48,8 @@ output "api_management_id" {
 * `notification_sender_email` - The email address from which the notification will be sent.
 
 * `portal_url` - The URL of the Publisher Portal.
+
+* `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
 * `publisher_name` - The name of the Publisher/Company of the API Management Service.
 

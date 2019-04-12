@@ -25,11 +25,11 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
-    capacity = 2
+    name     = "B_Gen5_2"
     tier     = "Basic"
-    family   = "Gen4"
-  }
+    family = "Gen5"
+    capacity = "2"
+ }
 
   storage_profile {
     storage_mb            = 5120
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
 
-* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enforced` and `Disabled`.
+* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

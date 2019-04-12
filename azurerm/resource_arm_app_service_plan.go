@@ -5,6 +5,9 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -17,6 +20,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 		Read:   resourceArmAppServicePlanRead,
 		Update: resourceArmAppServicePlanCreateUpdate,
 		Delete: resourceArmAppServicePlanDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +50,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 					"Linux",
 					"Windows",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"sku": {
@@ -73,29 +77,61 @@ func resourceArmAppServicePlan() *schema.Resource {
 			},
 
 			"properties": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "These properties have been moved to the top level",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"app_service_environment_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"app_service_environment_id"},
 						},
+
 						"reserved": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"reserved"},
 						},
+
 						"per_site_scaling": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"per_site_scaling"},
 						},
 					},
 				},
+			},
+
+			"app_service_environment_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.app_service_environment_id"},
+			},
+
+			"per_site_scaling": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.per_site_scaling"},
+			},
+
+			"reserved": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.reserved"},
 			},
 
 			"maximum_number_of_workers": {
@@ -116,6 +152,20 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_plan", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -125,10 +175,24 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
-		AppServicePlanProperties: properties,
 		Kind:                     &kind,
-		Tags:                     expandTags(tags),
 		Sku:                      &sku,
+		Tags:                     expandTags(tags),
+		AppServicePlanProperties: properties,
+	}
+
+	if v, exists := d.GetOkExists("app_service_environment_id"); exists {
+		appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, exists := d.GetOkExists("per_site_scaling"); exists {
+		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v.(bool))
+	}
+
+	if v, exists := d.GetOkExists("reserved"); exists {
+		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(v.(bool))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
@@ -136,8 +200,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -188,16 +251,23 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error flattening `properties`: %+v", err)
+			return fmt.Errorf("Error setting `properties`: %+v", err)
+		}
+
+		if profile := props.HostingEnvironmentProfile; profile != nil {
+			d.Set("app_service_environment_id", profile.ID)
 		}
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
+
+		d.Set("per_site_scaling", props.PerSiteScaling)
+		d.Set("reserved", props.Reserved)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -318,12 +388,12 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 	return result
 }
 
-func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
+func validateAppServicePlanName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }

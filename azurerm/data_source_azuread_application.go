@@ -11,6 +11,12 @@ import (
 
 func dataSourceArmAzureADApplication() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Read: dataSourceArmAzureADApplicationRead,
 
 		Schema: map[string]*schema.Schema{

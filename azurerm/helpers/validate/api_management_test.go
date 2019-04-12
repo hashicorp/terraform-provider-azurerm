@@ -95,3 +95,87 @@ func TestAzureRMApiManagementPublisherName_validation(t *testing.T) {
 		}
 	}
 }
+
+func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "",
+			ErrCount: 1,
+		},
+		{
+			Value:    "/",
+			ErrCount: 1,
+		},
+		{
+			Value:    "/abc",
+			ErrCount: 1,
+		},
+		{
+			Value:    "api1",
+			ErrCount: 0,
+		},
+		{
+			Value:    "api1/",
+			ErrCount: 1,
+		},
+		{
+			Value:    "api1/sub",
+			ErrCount: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := ApiManagementApiPath(tc.Value, "azurerm_api_management_api")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the Api Management Api Path to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}
+
+func TestAzureRMApiManagementApiName_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "",
+			ErrCount: 1,
+		},
+		{
+			Value:    "asdf+",
+			ErrCount: 1,
+		},
+		{
+			Value:    "adsf&",
+			ErrCount: 1,
+		},
+		{
+			Value:    "asdfasdf#",
+			ErrCount: 1,
+		},
+		{
+			Value:    "asdf*",
+			ErrCount: 1,
+		},
+		{
+			Value:    "alksdjl asdlfj laskdjflkjasdlfj lasdf",
+			ErrCount: 0,
+		},
+		{
+			Value:    "ddlfj laskdjflkjasdlfj lasdf alksdjflka sdlfjalsdjflajdsflkjasd alsdkjflaksjd flajksdl fjasldkjf lasjdflkajs dfljas ldfjj aljds fljasldkf jalsdjf lakjsdf ljasldkfjalskdjf lakjsd flkajs dlfkja lsdkjf laksdjf lkasjdf lkajsdlfk jasldkfj asldkjfal ksdjf laksjdf",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := ApiManagementApiName(tc.Value, "azurerm_api_management_api")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the Api Management Api Name to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}

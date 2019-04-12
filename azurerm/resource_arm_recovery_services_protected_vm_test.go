@@ -5,18 +5,18 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRecoveryServicesProtectedVm_basic(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protected_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
@@ -41,6 +41,68 @@ func TestAccAzureRMRecoveryServicesProtectedVm_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRecoveryServicesProtectedVm_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_recovery_services_protected_vm.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectedVm_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesProtectedVm_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_protected_vm"),
+			},
+			{ //vault cannot be deleted unless we unregister all backups
+				Config: testAccAzureRMRecoveryServicesProtectedVm_base(ri, testLocation()),
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(t *testing.T) {
+	resourceName := "azurerm_recovery_services_protected_vm.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{ //vault cannot be deleted unless we unregister all backups
+				Config: testAccAzureRMRecoveryServicesProtectedVm_additionalVault(ri, testLocation()),
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_protected_vm" {
@@ -49,10 +111,19 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		vmName := rs.Primary.Attributes["source_vm_name"]
+		vmId := rs.Primary.Attributes["source_vm_id"]
 
-		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
-		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
+		parsedVmId, err := azure.ParseAzureResourceID(vmId)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
+		}
+		vmName, hasName := parsedVmId.Path["virtualMachines"]
+		if !hasName {
+			return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
+		}
+
+		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
+		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
 		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -98,8 +169,8 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 			return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
 		}
 
-		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
-		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
+		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
+		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
 		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -118,6 +189,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_base(rInt int, location string) string {
+	rstr := strconv.Itoa(rInt)
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -152,11 +224,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-ip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestip%[1]d"
+  name                = "acctest-ip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestip%[1]d"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -234,16 +306,16 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:5])
+`, rInt, location, rstr[len(rstr)-5:])
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_basic(rInt int, location string) string {
@@ -256,6 +328,64 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test.id}"
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
+}
+
+func testAccAzureRMRecoveryServicesProtectedVm_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_protected_vm" "import" {
+  resource_group_name = "${azurerm_recovery_services_protected_vm.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_recovery_services_protected_vm.test.recovery_vault_name}"
+  source_vm_id        = "${azurerm_recovery_services_protected_vm.test.source_vm_id}"
+  backup_policy_id    = "${azurerm_recovery_services_protected_vm.test.backup_policy_id}"
+}
+`, testAccAzureRMRecoveryServicesProtectedVm_basic(rInt, location))
+}
+
+func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_recovery_services_vault" "test2" {
+  name                = "acctest2-%[2]d"
+  location            = "${azurerm_resource_group.test2.location}"
+  resource_group_name = "${azurerm_resource_group.test2.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_recovery_services_protection_policy_vm" "test2" {
+  name                = "acctest2-%[2]d"
+  resource_group_name = "${azurerm_resource_group.test2.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test2.name}"
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location), rInt, location)
+}
+
+func testAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_protected_vm" "test" {
+  resource_group_name = "${azurerm_resource_group.test2.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test2.name}"
+  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test2.id}"
+  source_vm_id        = "${azurerm_virtual_machine.test.id}"
+}
+`, testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt, location))
 }

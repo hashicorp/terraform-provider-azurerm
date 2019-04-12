@@ -42,14 +42,18 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "get",
     ]
+
+    storage_permissions = [
+      "get",
+    ]
   }
 
   network_acls {
-    default_action             = "Deny"
-    bypass                     = "AzureServices"
+    default_action = "Deny"
+    bypass         = "AzureServices"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -93,12 +97,13 @@ A `access_policy` block supports the following:
 
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
-* `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
+* `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
-* `key_permissions` - (Required) List of key permissions, must be one or more from the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
+* `key_permissions` - (Optional) List of key permissions, must be one or more from the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
-* `secret_permissions` - (Required) List of secret permissions, must be one or more from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
+* `secret_permissions` - (Optional) List of secret permissions, must be one or more from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
 
+* `storage_permissions` - (Optional) List of storage permissions, must be one or more from the following: `backup`, `delete`, `deletesas`, `get`, `getsas`, `list`, `listsas`, `purge`, `recover`, `regeneratekey`, `restore`, `set`, `setsas` and `update`.
 
 ---
 
@@ -116,7 +121,7 @@ A `network_acls` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `Standard` and `Premium`.
+* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 
 ## Attributes Reference

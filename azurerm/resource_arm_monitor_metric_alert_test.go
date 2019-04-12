@@ -9,21 +9,22 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorMetricAlert_basic(ri, rs, testLocation())
+	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorMetricAlert_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -46,13 +47,43 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorMetricAlert_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_metric_alert.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorMetricAlert_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorMetricAlert_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_metric_alert"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorMetricAlert_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
@@ -103,13 +134,13 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorMetricAlert_basic(ri, rs, location)
 	completeConfig := testAccAzureRMMonitorMetricAlert_complete(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
@@ -226,15 +257,36 @@ resource "azurerm_monitor_metric_alert" "test" {
 `, rInt, location, rString, rInt)
 }
 
+func testAccAzureRMMonitorMetricAlert_requiresImport(rInt int, rString, location string) string {
+	template := testAccAzureRMMonitorMetricAlert_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_metric_alert" "import" {
+  name                = "${azurerm_monitor_metric_alert.test.name}"
+  resource_group_name = "${azurerm_monitor_metric_alert.test.resource_group_name}"
+  scopes              = "${azurerm_monitor_metric_alert.test.scopes}"
+
+  criteria {
+    metric_namespace = "Microsoft.Storage/storageAccounts"
+    metric_name      = "UsedCapacity"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 55.5
+  }
+}
+`, template)
+}
+
 func testAccAzureRMMonitorMetricAlert_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa1%s"
+  name                     = "acctestsa1%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -242,19 +294,19 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
+  name                = "acctestActionGroup1-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag1"
 }
 
 resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
+  name                = "acctestActionGroup2-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag2"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
-  name                = "acctestMetricAlert-%d"
+  name                = "acctestMetricAlert-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   scopes              = ["${azurerm_storage_account.test.id}"]
   enabled             = true
@@ -272,15 +324,15 @@ resource "azurerm_monitor_metric_alert" "test" {
     threshold        = 99
 
     dimension {
-      "name"     = "GeoType"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "GeoType"
+      operator = "Include"
+      values   = ["*"]
     }
 
     dimension {
-      "name"     = "ApiName"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "ApiName"
+      operator = "Include"
+      values   = ["*"]
     }
   }
 
@@ -300,7 +352,7 @@ resource "azurerm_monitor_metric_alert" "test" {
     action_group_id = "${azurerm_monitor_action_group.test2.id}"
   }
 }
-`, rInt, location, rString, rInt, rInt, rInt)
+`, rInt, location, rString)
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
@@ -325,29 +377,29 @@ func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMonitorMetricAlertExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).monitorMetricAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on monitorMetricAlertsClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

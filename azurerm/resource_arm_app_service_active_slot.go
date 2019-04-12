@@ -11,9 +11,9 @@ import (
 
 func resourceArmAppServiceActiveSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceActiveSlotCreate,
+		Create: resourceArmAppServiceActiveSlotCreateUpdate,
 		Read:   resourceArmAppServiceActiveSlotRead,
-		Update: resourceArmAppServiceActiveSlotCreate,
+		Update: resourceArmAppServiceActiveSlotCreateUpdate,
 		Delete: resourceArmAppServiceActiveSlotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -36,7 +36,7 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceActiveSlotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -70,8 +70,7 @@ func resourceArmAppServiceActiveSlotCreate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 	d.SetId(*resp.ID)
@@ -106,7 +105,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmAppServiceActiveSlotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceActiveSlotDelete(_ *schema.ResourceData, _ interface{}) error {
 	// There is nothing to delete so return nil
 	return nil
 }

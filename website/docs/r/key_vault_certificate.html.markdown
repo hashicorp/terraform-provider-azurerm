@@ -83,14 +83,14 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "imported-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "imported-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = "${base64encode(file("certificate-to-import.pfx"))}"
@@ -158,14 +158,14 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "generated-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name     = "generated-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -194,6 +194,10 @@ resource "azurerm_key_vault_certificate" "test" {
     }
 
     x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
       key_usage = [
         "cRLSign",
         "dataEncipherment",
@@ -221,7 +225,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Certificate. Changing this forces a new resource to be created.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
@@ -275,7 +279,7 @@ The following arguments are supported:
 
 `x509_certificate_properties` supports the following:
 
-* `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. If this argument is not specified, it defaults to `["1.3.6.1.5.5.7.3.1","1.3.6.1.5.5.7.3.2"]` (Server Authentication and Client Authentication respectively). Changing this forces a new resource to be created.
+* `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. Changing this forces a new resource to be created.
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
 * `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
 * `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.

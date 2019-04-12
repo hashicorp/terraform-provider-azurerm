@@ -6,13 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -27,12 +28,12 @@ func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

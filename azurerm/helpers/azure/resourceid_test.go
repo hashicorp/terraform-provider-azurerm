@@ -127,6 +127,19 @@ func TestParseAzureResourceID(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/service1/subscriptions/22222222-2222-2222-2222-222222222222",
+			&ResourceID{
+				SubscriptionID: "11111111-1111-1111-1111-111111111111",
+				ResourceGroup:  "example-resources",
+				Provider:       "Microsoft.ApiManagement",
+				Path: map[string]string{
+					"service":       "service1",
+					"subscriptions": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+			false,
+		},
 	}
 
 	for _, test := range testCases {
@@ -140,96 +153,6 @@ func TestParseAzureResourceID(t *testing.T) {
 
 		if !reflect.DeepEqual(test.expectedResourceID, parsed) {
 			t.Fatalf("Unexpected resource ID:\nExpected: %+v\nGot:      %+v\n", test.expectedResourceID, parsed)
-		}
-	}
-}
-
-func TestComposeAzureResourceID(t *testing.T) {
-	testCases := []struct {
-		resourceID  *ResourceID
-		expectedID  string
-		expectError bool
-	}{
-		{
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k1": "v1",
-					"k2": "v2",
-					"k3": "v3",
-					"k4": "v4",
-					"k5": "v5",
-					"k6": "v6",
-					"k7": "v7",
-					"k8": "v8",
-				},
-			},
-			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1/providers/foo.bar/k1/v1/k2/v2/k3/v3/k4/v4/k5/v5/k6/v6/k7/v7/k8/v8",
-			false,
-		},
-		{
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-			},
-			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1",
-			false,
-		},
-		{
-			// If Provider is specified, there must be at least one element in Path.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-			},
-			"",
-			true,
-		},
-		{
-			// One of the keys in Path is an empty string.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k2": "v2",
-					"":   "v1",
-				},
-			},
-			"",
-			true,
-		},
-		{
-			// One of the values in Path is an empty string.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k1": "v1",
-					"k2": "",
-				},
-			},
-			"",
-			true,
-		},
-	}
-
-	for _, test := range testCases {
-		idString, err := composeAzureResourceID(test.resourceID)
-
-		if test.expectError && err != nil {
-			continue
-		}
-
-		if err != nil {
-			t.Fatalf("Unexpected error: %s", err)
-		}
-
-		if test.expectedID != idString {
-			t.Fatalf("Unexpected resource ID string:\nExpected: %s\nGot:      %s\n", test.expectedID, idString)
 		}
 	}
 }

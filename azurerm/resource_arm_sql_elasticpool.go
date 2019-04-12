@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -13,10 +16,11 @@ import (
 
 func resourceArmSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlElasticPoolCreate,
+		Create: resourceArmSqlElasticPoolCreateUpdate,
 		Read:   resourceArmSqlElasticPoolRead,
-		Update: resourceArmSqlElasticPoolCreate,
+		Update: resourceArmSqlElasticPoolCreateUpdate,
 		Delete: resourceArmSqlElasticPoolDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,9 +37,10 @@ func resourceArmSqlElasticPool() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"edition": {
@@ -78,7 +83,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -89,6 +94,19 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_elasticpool", *existing.ID)
+		}
+	}
 
 	elasticPool := sql.ElasticPool{
 		Name:                  &name,
@@ -102,8 +120,7 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -112,7 +129,7 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -135,7 +152,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Sql Elastic Pool %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
 	}
 
 	d.Set("name", resp.Name)

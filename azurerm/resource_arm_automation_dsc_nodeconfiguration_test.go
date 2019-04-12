@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
@@ -32,6 +32,35 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 				ImportStateVerify: true,
 				// Cannot check content_embedded at this time as it is not exposed via REST API / Azure SDK
 				ImportStateVerifyIgnore: []string{"content_embedded"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationDscNodeConfiguration_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_dsc_nodeconfiguration"),
 			},
 		},
 	})
@@ -71,13 +100,13 @@ func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) e
 	return nil
 }
 
-func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -161,4 +190,18 @@ instance of OMI_ConfigurationDocument
 mofcontent
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationDscNodeConfiguration_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationDscNodeConfiguration_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_dsc_nodeconfiguration" "import" {
+  name                    = "${azurerm_automation_dsc_nodeconfiguration.test.name}"
+  resource_group_name     = "${azurerm_automation_dsc_nodeconfiguration.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_dsc_nodeconfiguration.test.automation_account_name}"
+  content_embedded        = "${azurerm_automation_dsc_nodeconfiguration.test.content_embedded}"
+}
+`, template)
 }

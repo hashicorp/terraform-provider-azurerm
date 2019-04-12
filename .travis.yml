@@ -15,9 +15,8 @@ install:
 - make tools
 
 script:
-- make lint
 - make test
-- make vendor-status
+- make lint
 - make website-test
 
 branches:

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
+	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 )
 
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
@@ -14,8 +14,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	// this test intentionally checks all the RP's are registered - so this is intentional
-	skipProviderRegistration := true
-	armClient, err := getArmClient(config, skipProviderRegistration)
+	armClient, err := getArmClient(config, true, "")
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}

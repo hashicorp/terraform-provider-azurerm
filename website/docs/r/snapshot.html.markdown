@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `disk_size_gb` - (Optional) The size of the Snapshotted Disk in GB.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
 The following attributes are exported:

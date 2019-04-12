@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_version.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	username := "testadmin"
 	password := "Password1234!"
 	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
 	resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,

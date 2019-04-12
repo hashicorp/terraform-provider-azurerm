@@ -2,12 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -67,11 +66,11 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 
 func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), true)
 	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
@@ -105,12 +104,42 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_metric_alertrule.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	enabled := true
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, location, enabled),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, enabled),
+				ExpectError: testRequiresImportError("azurerm_metric_alertrule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
@@ -126,12 +155,12 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMetricAlertRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -185,31 +214,29 @@ func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
-	basicLinuxMachine := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
-
-	enabledString := strconv.FormatBool(enabled)
-
+	template := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_virtual_machine.test.name}-cpu"
+  name                = "${azurerm_virtual_machine.test.name}-cpu"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 
   description = "An alert rule to watch the metric Percentage CPU"
 
-  enabled = %s
+  enabled = %t
 
   resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
-  operator = "GreaterThan"
-  threshold = 75
+  operator    = "GreaterThan"
+  threshold   = 75
   aggregation = "Average"
-  period = "PT5M"
+  period      = "PT5M"
 
   email_action {
     send_to_service_owners = false
+
     custom_emails = [
       "support@azure.microsoft.com",
     ]
@@ -217,13 +244,53 @@ resource "azurerm_metric_alertrule" "test" {
 
   webhook_action {
     service_uri = "https://requestb.in/18jamc41"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
   }
 }
-`, basicLinuxMachine, enabledString)
+`, template, enabled)
+}
+
+func testAccAzureRMMetricAlertRule_requiresImport(rInt int, location string, enabled bool) string {
+	template := testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt, location, enabled)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_metric_alertrule" "import" {
+  name                = "${azurerm_metric_alertrule.test.name}"
+  resource_group_name = "${azurerm_metric_alertrule.test.resource_group_name}"
+  location            = "${azurerm_metric_alertrule.test.location}"
+  description         = "${azurerm_metric_alertrule.test.description}"
+  enabled             = "${azurerm_metric_alertrule.test.enabled}"
+
+  resource_id = "${azurerm_virtual_machine.test.id}"
+  metric_name = "Percentage CPU"
+  operator    = "GreaterThan"
+  threshold   = 75
+  aggregation = "Average"
+  period      = "PT5M"
+
+  email_action {
+    send_to_service_owners = false
+
+    custom_emails = [
+      "support@azure.microsoft.com",
+    ]
+  }
+
+  webhook_action {
+    service_uri = "https://requestb.in/18jamc41"
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
+  }
+}
+`, template)
 }
 
 func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string) string {
@@ -233,9 +300,9 @@ func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string)
 %s
 
 resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_sql_database.test.name}-storage"
+  name                = "${azurerm_sql_database.test.name}-storage"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 
   description = "An alert rule to watch the metric Storage"
 
@@ -243,13 +310,14 @@ resource "azurerm_metric_alertrule" "test" {
 
   resource_id = "${azurerm_sql_database.test.id}"
   metric_name = "storage"
-  operator = "GreaterThan"
-  threshold = 1073741824
+  operator    = "GreaterThan"
+  threshold   = 1073741824
   aggregation = "Maximum"
-  period = "PT10M"
+  period      = "PT10M"
 
   email_action {
     send_to_service_owners = false
+
     custom_emails = [
       "support@azure.microsoft.com",
     ]
@@ -257,10 +325,11 @@ resource "azurerm_metric_alertrule" "test" {
 
   webhook_action {
     service_uri = "https://requestb.in/18jamc41"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
   }
 }
 `, basicSqlServerDatabase)

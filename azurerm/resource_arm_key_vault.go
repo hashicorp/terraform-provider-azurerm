@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,9 +32,11 @@ func resourceArmKeyVault() *schema.Resource {
 		Read:   resourceArmKeyVaultRead,
 		Update: resourceArmKeyVaultCreateUpdate,
 		Delete: resourceArmKeyVaultDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		MigrateState:  resourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
 
@@ -81,7 +84,7 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				MaxItems: 16,
+				MaxItems: 1024,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
@@ -102,6 +105,7 @@ func resourceArmKeyVault() *schema.Resource {
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
 						"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
+						"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
 					},
 				},
 			},
@@ -171,6 +175,20 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
@@ -215,14 +233,15 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+		if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+		}
 	}
 
 	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -295,16 +314,16 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("vault_uri", props.VaultURI)
 
 		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("Error flattening `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 	}
 
@@ -350,8 +369,10 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						return err2
 					}
 
-					networkName := id.Path["virtualNetworks"]
-					virtualNetworkNames = append(virtualNetworkNames, networkName)
+					virtualNetworkName := id.Path["virtualNetworks"]
+					if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+					}
 				}
 			}
 		}
@@ -425,13 +446,13 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+func validateKeyVaultName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {

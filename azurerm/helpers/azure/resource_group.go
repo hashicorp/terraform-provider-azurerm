@@ -35,21 +35,21 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	}
 }
 
-func validateResourceGroupName(v interface{}, k string) (ws []string, es []error) {
+func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) > 80 {
-		es = append(es, fmt.Errorf("%q may not exceed 80 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may not exceed 80 characters in length", k))
 	}
 
 	if strings.HasSuffix(value, ".") {
-		es = append(es, fmt.Errorf("%q may not end with a period", k))
+		errors = append(errors, fmt.Errorf("%q may not end with a period", k))
 	}
 
 	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
 	if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }

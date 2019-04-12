@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +33,7 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"workspace_id": {
@@ -45,14 +46,28 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	priceClient := meta.(*ArmClient).securityCenterPricingClient
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	priceClient := meta.(*ArmClient).securityCenterPricingClient
+	name := securityCenterWorkspaceName
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Security Center Workspace: %+v", err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_security_center_workspace", *existing.ID)
+		}
+	}
 
 	//get pricing tier, workspace can only be configured when tier is not Free.
 	//API does not error, it just doesn't set the workspace scope
-	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
+	price, err := priceClient.Get(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
@@ -64,8 +79,6 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
-	name := securityCenterWorkspaceName
-
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
@@ -74,13 +87,11 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		_, err = client.Create(ctx, name, contact)
-		if err != nil {
+		if _, err = client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
 	} else {
-		_, err = client.Update(ctx, name, contact)
-		if err != nil {
+		if _, err = client.Update(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 		}
 	}
@@ -89,7 +100,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
-		Timeout:    15 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 

@@ -63,7 +63,11 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-  tags {
+  fallback_route {
+    enabled        = true
+  }
+
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -83,7 +87,11 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
+* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
+
 * `route` - (Optional) A `route` block as defined below.
+
+* `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -94,6 +102,8 @@ A `sku` block supports the following:
 * `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
 * `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Basic`, `Free` or `Standard`.
+
+~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
 
 * `capacity` - (Required) The number of provisioned IoT Hub units.
 
@@ -119,9 +129,19 @@ An `endpoint` block supports the following:
 
 ---
 
+An `ip_filter_rule` block supports the following:
+
+* `name` - (Required) The name of the filter.
+
+* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
+
+* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+
+---
+
 A `route` block supports the following:
 
-* `name` - (Required) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
+* `name` - (Required) The name of the route.
 
 * `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
 
@@ -130,6 +150,18 @@ A `route` block supports the following:
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
 * `enabled` - (Required) Used to specify whether a route is enabled.
+
+---
+
+A `fallback_route` block supports the following:
+
+* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
+
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+
+* `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
+
+* `enabled` - (Optional) Used to specify whether the fallback route is enabled.
 
 ## Attributes Reference
 

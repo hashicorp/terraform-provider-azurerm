@@ -5,6 +5,11 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -57,24 +62,27 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"GP_Gen5_8",
 								"GP_Gen5_16",
 								"GP_Gen5_32",
+								"GP_Gen5_64",
 								"MO_Gen5_2",
 								"MO_Gen5_4",
 								"MO_Gen5_8",
 								"MO_Gen5_16",
+								"MO_Gen5_32",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validateIntInSlice([]int{
+							ValidateFunc: validate.IntInSlice([]int{
 								1,
 								2,
 								4,
 								8,
 								16,
 								32,
+								64,
 							}),
 						},
 
@@ -86,7 +94,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								string(postgresql.GeneralPurpose),
 								string(postgresql.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -96,7 +104,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -121,10 +129,11 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
-					// TODO: Swap for the azure go api enum once supported.
-					"10.0",
+					string(postgresql.OneZero),
+					string(postgresql.OneZeroFullStopZero),
+					string(postgresql.OneZeroFullStopTwo),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_profile": {
@@ -136,7 +145,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
 						},
 
 						"backup_retention_days": {
@@ -152,7 +161,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -165,7 +174,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
@@ -207,6 +216,19 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+		}
+	}
+
 	sku := expandAzureRmPostgreSQLServerSku(d)
 	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
 
@@ -229,8 +251,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -280,8 +301,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -333,11 +353,11 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(resp.StorageProfile)); err != nil {
-		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
+		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -368,8 +388,7 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error deleting PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

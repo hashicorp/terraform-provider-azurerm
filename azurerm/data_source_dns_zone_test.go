@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -30,10 +30,10 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -51,11 +51,11 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 
 func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -100,7 +100,7 @@ resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     hello = "world"
   }
 }

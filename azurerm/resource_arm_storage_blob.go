@@ -13,6 +13,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
@@ -38,111 +43,88 @@ func resourceArmStorageBlob() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"storage_container_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobType,
+				ValidateFunc: validation.StringInSlice([]string{"block", "page"}, true),
 			},
+
 			"size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				ValidateFunc: validateArmStorageBlobSize,
+				ValidateFunc: validate.IntDivisibleBy(512),
 			},
+
 			"content_type": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "application/octet-stream",
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source"},
 			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parallelism": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      8,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobParallelism,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
+
 			"attempts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobAttempts,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"metadata": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
 			},
 		},
 	}
-}
-
-func validateArmStorageBlobParallelism(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobAttempts(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobSize(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value%512 != 0 {
-		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobType(v interface{}, _ string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	validTypes := map[string]struct{}{
-		"block": {},
-		"page":  {},
-	}
-
-	if _, ok := validTypes[value]; !ok {
-		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
-	}
-	return ws, errors
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
@@ -171,18 +153,29 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	container := blobClient.GetContainerReference(containerName)
 	blob := container.GetBlobReference(name)
 
+	// gives us https://example.blob.core.windows.net/container/file.vhd
+	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, containerName, name)
+	if requireResourcesToBeImported && d.IsNewResource() {
+		exists, err := blob.Exists()
+		if err != nil {
+			return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, storageAccountName, resourceGroupName, err)
+		}
+
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_blob", id)
+		}
+	}
+
 	if sourceUri != "" {
 		options := &storage.CopyOptions{}
-		err := blob.Copy(sourceUri, options)
-		if err != nil {
+		if err := blob.Copy(sourceUri, options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
 	} else {
 		switch strings.ToLower(blobType) {
 		case "block":
 			options := &storage.PutBlobOptions{}
-			err := blob.CreateBlockBlob(options)
-			if err != nil {
+			if err := blob.CreateBlockBlob(options); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
 
@@ -210,16 +203,20 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 				blob.Properties.ContentLength = size
 				blob.Properties.ContentType = contentType
-				err := blob.PutPageBlob(options)
-				if err != nil {
+				if err := blob.PutPageBlob(options); err != nil {
 					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 				}
 			}
 		}
 	}
 
-	// gives us https://example.blob.core.windows.net/container/file.vhd
-	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, containerName, name)
+	blob.Metadata = expandStorageAccountBlobMetadata(d)
+
+	opts := &storage.SetBlobMetadataOptions{}
+	if err := blob.SetMetadata(opts); err != nil {
+		return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
+	}
+
 	d.SetId(id)
 	return resourceArmStorageBlobRead(d, meta)
 }
@@ -530,8 +527,7 @@ func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUplo
 			container := ctx.client.GetContainerReference(ctx.container)
 			blob := container.GetBlobReference(ctx.name)
 			options := &storage.PutBlockOptions{}
-			err = blob.PutBlock(block.id, buffer, options)
-			if err == nil {
+			if err = blob.PutBlock(block.id, buffer, options); err == nil {
 				break
 			}
 		}
@@ -582,6 +578,15 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	err = blob.SetProperties(options)
 	if err != nil {
 		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+	}
+
+	if d.HasChange("metadata") {
+		blob.Metadata = expandStorageAccountBlobMetadata(d)
+
+		opts := &storage.SetBlobMetadataOptions{}
+		if err := blob.SetMetadata(opts); err != nil {
+			return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
+		}
 	}
 
 	return nil
@@ -635,6 +640,12 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 
+	metadataOptions := &storage.GetBlobMetadataOptions{}
+	err = blob.GetMetadata(metadataOptions)
+	if err != nil {
+		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+	}
+
 	d.Set("name", id.blobName)
 	d.Set("storage_container_name", id.containerName)
 	d.Set("storage_account_name", id.storageAccountName)
@@ -647,11 +658,12 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	blobType := strings.ToLower(strings.Replace(string(blob.Properties.BlobType), "Blob", "", 1))
 	d.Set("type", blobType)
 
-	url := blob.GetURL()
-	if url == "" {
+	u := blob.GetURL()
+	if u == "" {
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
-	d.Set("url", url)
+	d.Set("url", u)
+	d.Set("metadata", flattenStorageAccountBlobMetadata(blob.Metadata))
 
 	return nil
 }
@@ -749,4 +761,24 @@ func determineResourceGroupForStorageAccount(accountName string, client *ArmClie
 	}
 
 	return nil, nil
+}
+
+func expandStorageAccountBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
+	blobMetadata := make(map[string]string)
+
+	blobMetadataRaw := d.Get("metadata").(map[string]interface{})
+	for key, value := range blobMetadataRaw {
+		blobMetadata[key] = value.(string)
+	}
+	return storage.BlobMetadata(blobMetadata)
+}
+
+func flattenStorageAccountBlobMetadata(in storage.BlobMetadata) map[string]interface{} {
+	blobMetadata := make(map[string]interface{})
+
+	for key, value := range in {
+		blobMetadata[key] = value
+	}
+
+	return blobMetadata
 }

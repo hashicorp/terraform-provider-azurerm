@@ -10,7 +10,7 @@ import (
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testing.T) {
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -28,7 +28,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testing.T) {
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -46,7 +46,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t *testing.T) {
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing.T) {
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

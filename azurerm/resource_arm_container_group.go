@@ -1,13 +1,20 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strings"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,9 +29,10 @@ func resourceArmContainerGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -36,7 +44,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				Default:          "Public",
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Public),
 				}, true),
@@ -46,7 +54,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Windows),
 					string(containerinstance.Linux),
@@ -62,23 +70,23 @@ func resourceArmContainerGroup() *schema.Resource {
 						"server": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -91,22 +99,12 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.Always),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Always),
 					string(containerinstance.Never),
 					string(containerinstance.OnFailure),
 				}, true),
-			},
-
-			"ip_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"dns_name_label": {
@@ -122,15 +120,17 @@ func resourceArmContainerGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"image": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"cpu": {
@@ -145,22 +145,89 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"gpu": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"count": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validate.IntInSlice([]int{
+											1,
+											2,
+											4,
+										}),
+									},
+
+									"sku": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"K80",
+											"P100",
+											"V100",
+										}, false),
+									},
+								},
+							},
+						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.IntBetween(1, 65535),
+							Computed:     true,
+							Deprecated:   "Deprecated in favor of `ports`",
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"protocol": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Computed:         true,
+							Deprecated:       "Deprecated in favor of `ports`",
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerinstance.TCP),
 								string(containerinstance.UDP),
 							}, true),
+						},
+
+						"ports": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							Set:      resourceArmContainerGroupPortsHash,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Computed:     true,
+										ValidateFunc: validate.PortNumber,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										Computed: true,
+										//Default:  string(containerinstance.TCP), restore in 2.0
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerinstance.TCP),
+											string(containerinstance.UDP),
+										}, false),
+									},
+								},
+							},
 						},
 
 						"environment_variables": {
@@ -197,15 +264,17 @@ func resourceArmContainerGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"mount_path": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"read_only": {
@@ -216,21 +285,82 @@ func resourceArmContainerGroup() *schema.Resource {
 									},
 
 									"share_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_key": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+
+						"liveness_probe": azure.SchemaContainerGroupProbe(),
+
+						"readiness_probe": azure.SchemaContainerGroupProbe(),
+					},
+				},
+			},
+
+			"diagnostics": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"log_analytics": {
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"workspace_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.UUID,
+									},
+
+									"workspace_key": {
+										Type:         schema.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"log_type": {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerinstance.ContainerInsights),
+											string(containerinstance.ContainerInstanceLogs),
+										}, false),
+									},
+
+									"metadata": {
+										Type:     schema.TypeMap,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -238,21 +368,48 @@ func resourceArmContainerGroup() *schema.Resource {
 					},
 				},
 			},
+
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).containerGroupsClient
 	ctx := meta.(*ArmClient).StopContext
-	containerGroupsClient := meta.(*ArmClient).containerGroupsClient
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_container_group", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
+
+	diagnosticsRaw := d.Get("diagnostics").([]interface{})
+	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
@@ -261,6 +418,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:    containers,
+			Diagnostics:   diagnostics,
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
@@ -276,12 +434,16 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := containerGroupsClient.Get(ctx, resGroup, name)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -331,7 +493,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, props.ImageRegistryCredentials)); err != nil {
-			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+			return fmt.Errorf("Error setting `image_registry_credential`: %+v", err)
 		}
 
 		if address := props.IPAddress; address != nil {
@@ -343,7 +505,12 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+
+		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
+			return fmt.Errorf("Error setting `diagnostics`: %+v", err)
+		}
 	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -398,27 +565,59 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
-		if v := data["port"]; v != 0 {
-			port := int32(v.(int))
+		if v, ok := data["gpu"]; ok {
+			gpus := v.([]interface{})
+			for _, gpuRaw := range gpus {
+				v := gpuRaw.(map[string]interface{})
+				gpuCount := int32(v["count"].(int))
+				gpuSku := containerinstance.GpuSku(v["sku"].(string))
 
-			// container port (port number)
-			container.Ports = &[]containerinstance.ContainerPort{
-				{
-					Port: &port,
-				},
+				gpus := containerinstance.GpuResource{
+					Count: &gpuCount,
+					Sku:   gpuSku,
+				}
+				container.Resources.Requests.Gpu = &gpus
 			}
+		}
 
-			// container group port (port number + protocol)
-			containerGroupPort := containerinstance.Port{
-				Port: &port,
+		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
+			var ports []containerinstance.ContainerPort
+			for _, v := range v.List() {
+				portObj := v.(map[string]interface{})
+
+				port := int32(portObj["port"].(int))
+				proto := portObj["protocol"].(string)
+
+				ports = append(ports, containerinstance.ContainerPort{
+					Port:     &port,
+					Protocol: containerinstance.ContainerNetworkProtocol(proto),
+				})
+				containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
+					Port:     &port,
+					Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
+				})
 			}
+			container.Ports = &ports
+		} else {
+			if v := int32(data["port"].(int)); v != 0 {
+				ports := []containerinstance.ContainerPort{
+					{
+						Port: &v,
+					},
+				}
 
-			if v, ok := data["protocol"]; ok {
-				protocol := v.(string)
-				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
+				port := containerinstance.Port{
+					Port: &v,
+				}
+
+				if v, ok := data["protocol"].(string); ok {
+					ports[0].Protocol = containerinstance.ContainerNetworkProtocol(v)
+					port.Protocol = containerinstance.ContainerGroupNetworkProtocol(v)
+				}
+
+				container.Ports = &ports
+				containerGroupPorts = append(containerGroupPorts, port)
 			}
-
-			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
 		// Set both sensitive and non-secure environment variables
@@ -464,6 +663,14 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			if containerGroupVolumesPartial != nil {
 				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
 			}
+		}
+
+		if v, ok := data["liveness_probe"]; ok {
+			container.ContainerProperties.LivenessProbe = expandContainerProbe(v)
+		}
+
+		if v, ok := data["readiness_probe"]; ok {
+			container.ContainerProperties.ReadinessProbe = expandContainerProbe(v)
 		}
 
 		containers = append(containers, container)
@@ -567,6 +774,66 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	return &volumeMounts, &containerGroupVolumes
 }
 
+func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
+	probe := containerinstance.ContainerProbe{}
+	probeRaw := input.([]interface{})
+
+	if len(probeRaw) == 0 {
+		return nil
+	}
+
+	for _, p := range probeRaw {
+		probeConfig := p.(map[string]interface{})
+
+		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
+			probe.InitialDelaySeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["period_seconds"].(int); v > 0 {
+			probe.PeriodSeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["failure_threshold"].(int); v > 0 {
+			probe.FailureThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["success_threshold"].(int); v > 0 {
+			probe.SuccessThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["timeout_seconds"].(int); v > 0 {
+			probe.TimeoutSeconds = utils.Int32(int32(v))
+		}
+
+		commands := probeConfig["exec"].([]interface{})
+		if len(commands) > 0 {
+			exec := containerinstance.ContainerExec{
+				Command: utils.ExpandStringArray(commands),
+			}
+			probe.Exec = &exec
+		}
+
+		httpRaw := probeConfig["http_get"].([]interface{})
+		if len(httpRaw) > 0 {
+
+			for _, httpget := range httpRaw {
+				x := httpget.(map[string]interface{})
+
+				path := x["path"].(string)
+				port := x["port"].(int)
+				scheme := x["scheme"].(string)
+
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
+					Path:   utils.String(path),
+					Port:   utils.Int32(int32(port)),
+					Scheme: containerinstance.Scheme(scheme),
+				}
+			}
+		}
+	}
+	return &probe
+}
+
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
 		return nil
@@ -605,7 +872,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 	for i, c := range d.Get("container").([]interface{}) {
 		cfg := c.(map[string]interface{})
 		nameIndexMap[cfg["name"].(string)] = i
-
 	}
 
 	containerCfg := make([]interface{}, 0, len(*containers))
@@ -632,11 +898,34 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				if v := resourceRequests.MemoryInGB; v != nil {
 					containerConfig["memory"] = *v
 				}
+
+				gpus := make([]interface{}, 0)
+				if v := resourceRequests.Gpu; v != nil {
+					gpu := make(map[string]interface{})
+					if v.Count != nil {
+						gpu["count"] = *v.Count
+					}
+					gpu["sku"] = string(v.Sku)
+					gpus = append(gpus, gpu)
+				}
+				containerConfig["gpu"] = gpus
 			}
 		}
 
-		if len(*container.Ports) > 0 {
-			containerPort := *(*container.Ports)[0].Port
+		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
+			ports := make([]interface{}, 0)
+			for _, p := range *cPorts {
+				port := make(map[string]interface{})
+				if v := p.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(p.Protocol)
+				ports = append(ports, port)
+			}
+			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+
+			//old deprecated code
+			containerPort := *(*cPorts)[0].Port
 			containerConfig["port"] = containerPort
 			// protocol isn't returned in container config, have to search in container group ports
 			protocol := ""
@@ -689,6 +978,9 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
+
+		containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
+		containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
 
 		containerCfg = append(containerCfg, containerConfig)
 	}
@@ -783,4 +1075,147 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := make(map[string]interface{})
+
+	if v := input.Exec; v != nil {
+		output["exec"] = *v.Command
+	}
+
+	httpGets := make([]interface{}, 0)
+	if get := input.HTTPGet; get != nil {
+		httpGet := make(map[string]interface{})
+
+		if v := get.Path; v != nil {
+			httpGet["path"] = *v
+		}
+
+		if v := get.Port; v != nil {
+			httpGet["port"] = *v
+		}
+
+		if get.Scheme != "" {
+			httpGet["scheme"] = get.Scheme
+		}
+
+		httpGets = append(httpGets, httpGet)
+	}
+	output["http_get"] = httpGets
+
+	if v := input.FailureThreshold; v != nil {
+		output["failure_threshold"] = *v
+	}
+
+	if v := input.InitialDelaySeconds; v != nil {
+		output["initial_delay_seconds"] = *v
+	}
+
+	if v := input.PeriodSeconds; v != nil {
+		output["period_seconds"] = *v
+	}
+
+	if v := input.SuccessThreshold; v != nil {
+		output["success_threshold"] = *v
+	}
+
+	if v := input.TimeoutSeconds; v != nil {
+		output["timeout_seconds"] = *v
+	}
+
+	outputs = append(outputs, output)
+	return outputs
+}
+
+func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.ContainerGroupDiagnostics {
+	if len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	analyticsVs := vs["log_analytics"].([]interface{})
+	analyticsV := analyticsVs[0].(map[string]interface{})
+
+	workspaceId := analyticsV["workspace_id"].(string)
+	workspaceKey := analyticsV["workspace_key"].(string)
+	logType := containerinstance.LogAnalyticsLogType(analyticsV["log_type"].(string))
+
+	metadataMap := analyticsV["metadata"].(map[string]interface{})
+	metadata := make(map[string]*string)
+	for k, v := range metadataMap {
+		strValue := v.(string)
+		metadata[k] = &strValue
+	}
+
+	return &containerinstance.ContainerGroupDiagnostics{
+		LogAnalytics: &containerinstance.LogAnalytics{
+			WorkspaceID:  utils.String(workspaceId),
+			WorkspaceKey: utils.String(workspaceKey),
+			LogType:      logType,
+			Metadata:     metadata,
+		},
+	}
+}
+
+func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	logAnalytics := make([]interface{}, 0)
+
+	if la := input.LogAnalytics; la != nil {
+		output := make(map[string]interface{})
+
+		output["log_type"] = string(la.LogType)
+
+		metadata := make(map[string]interface{})
+		for k, v := range la.Metadata {
+			metadata[k] = *v
+		}
+		output["metadata"] = metadata
+
+		if la.WorkspaceID != nil {
+			output["workspace_id"] = *la.WorkspaceID
+		}
+
+		// the existing config may not exist at Import time, protect against it.
+		workspaceKey := ""
+		if existingDiags := d.Get("diagnostics").([]interface{}); len(existingDiags) > 0 {
+			existingDiag := existingDiags[0].(map[string]interface{})
+			if existingLA := existingDiag["log_analytics"].([]interface{}); len(existingLA) > 0 {
+				vs := existingLA[0].(map[string]interface{})
+				if key := vs["workspace_key"]; key != nil && key.(string) != "" {
+					workspaceKey = key.(string)
+				}
+			}
+		}
+		output["workspace_key"] = workspaceKey
+
+		logAnalytics = append(logAnalytics, output)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"log_analytics": logAnalytics,
+		},
+	}
+}
+
+func resourceArmContainerGroupPortsHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+	}
+
+	return hashcode.String(buf.String())
 }

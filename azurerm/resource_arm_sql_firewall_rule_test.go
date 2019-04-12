@@ -4,25 +4,23 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_sql_firewall_rule.test"
-	ri := acctest.RandInt()
-	preConfig := testAccAzureRMSqlFirewallRule_basic(ri, testLocation())
-	postConfig := testAccAzureRMSqlFirewallRule_withUpdates(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -35,7 +33,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlFirewallRule_withUpdates(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "10.0.17.62"),
@@ -45,19 +43,46 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 		},
 	})
 }
-
-func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
+func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 	resourceName := "azurerm_sql_firewall_rule.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMSqlFirewallRule_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlFirewallRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_firewall_rule"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_firewall_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					testCheckAzureRMSqlFirewallRuleDisappears(resourceName),
@@ -68,11 +93,11 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -123,12 +148,12 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -175,6 +200,20 @@ resource "azurerm_sql_firewall_rule" "test" {
   end_ip_address      = "255.255.255.255"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMSqlFirewallRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_firewall_rule" "import" {
+  name                = "${azurerm_sql_firewall_rule.test.name}"
+  resource_group_name = "${azurerm_sql_firewall_rule.test.resource_group_name}"
+  server_name         = "${azurerm_sql_firewall_rule.test.server_name}"
+  start_ip_address    = "${azurerm_sql_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_sql_firewall_rule.test.end_ip_address}"
+}
+`, testAccAzureRMSqlFirewallRule_basic(rInt, location))
 }
 
 func testAccAzureRMSqlFirewallRule_withUpdates(rInt int, location string) string {

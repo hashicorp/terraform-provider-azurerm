@@ -10,17 +10,18 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -40,18 +41,50 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_storage_container.test"
+	var c storage.Container
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageContainer_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_container"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	at1 := "private"
 	at2 := "container"
 	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
 	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -82,11 +115,11 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -107,11 +140,11 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -132,12 +165,12 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) resource.TestCheckFunc {
+func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -185,11 +218,11 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 	}
 }
 
-func testAccARMStorageContainerDisappears(name string, c *storage.Container) resource.TestCheckFunc {
+func testAccARMStorageContainerDisappears(resourceName string, c *storage.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -309,7 +342,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -321,6 +354,20 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "import" {
+  name                  = "${azurerm_storage_container.test.name}"
+  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
+  container_access_type = "${azurerm_storage_container.test.container_access_type}"
+}
+`, template)
 }
 
 func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
@@ -337,7 +384,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -365,7 +412,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,15 +15,19 @@ func dataSourceApiManagementService() *schema.Resource {
 		Read: dataSourceApiManagementRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ApiManagementServiceName,
-			},
+			"name": azure.SchemaApiManagementDataSourceName(),
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"location": locationForDataSourceSchema(),
+
+			"public_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 
 			"publisher_name": {
 				Type:     schema.TypeString,
@@ -195,7 +199,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

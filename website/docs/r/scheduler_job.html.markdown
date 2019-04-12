@@ -10,6 +10,8 @@ description: |-
 
 Manages a Scheduler Job.
 
+~> **NOTE:** Support for Scheduler Job has been deprecated by Microsoft in favour of Logic Apps ([more information can be found at this link](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such we plan to remove support for this resource as a part of version 2.0 of the AzureRM Provider.
+
 ## Example Usage (single web get now)
 
 ```hcl
@@ -153,7 +155,7 @@ resource "azurerm_scheduler_job" "storage-once-now" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-  action_storage_queue = {
+  action_storage_queue {
     storage_account_name = "${azurerm_storage_account.example.name}"
     storage_queue_name   = "${azurerm_storage_queue.example.name}"
     sas_token            = "${azurerm_storage_account.example.primary_access_key}"

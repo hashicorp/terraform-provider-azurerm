@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
+	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 )
 
 // requiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
@@ -37,11 +37,13 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.DocumentDB":           {},
 		"Microsoft.EventGrid":            {},
 		"Microsoft.EventHub":             {},
+		"Microsoft.HDInsight":            {},
 		"Microsoft.KeyVault":             {},
 		"microsoft.insights":             {},
 		"Microsoft.Logic":                {},
 		"Microsoft.ManagedIdentity":      {},
 		"Microsoft.Management":           {},
+		"Microsoft.Media":                {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},
 		"Microsoft.OperationalInsights":  {},
@@ -66,8 +68,7 @@ func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.
 
 	if len(providersToRegister) > 0 {
 		log.Printf("[DEBUG] Registering %d Resource Providers", len(providersToRegister))
-		err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister)
-		if err != nil {
+		if err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister); err != nil {
 			return err
 		}
 	} else {

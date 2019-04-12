@@ -10,17 +10,18 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
@@ -40,14 +41,46 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_storage_table.test"
+	var table storage.Table
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageTable_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName, &table),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageTable_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_table"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
@@ -64,12 +97,12 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.TestCheckFunc {
+func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -114,11 +147,11 @@ func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.
 	}
 }
 
-func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.TestCheckFunc {
+func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -237,7 +270,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -248,4 +281,17 @@ resource "azurerm_storage_table" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMStorageTable_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageTable_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_table" "import" {
+  name                 = "${azurerm_storage_table.test.name}"
+  resource_group_name  = "${azurerm_storage_table.test.resource_group_name}"
+  storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
+}
+`, template)
 }

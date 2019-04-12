@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceKeyVaultSecret_basic(rString, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceKeyVaultSecret_complete(rString, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -54,25 +54,25 @@ func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
 }
 
 func testAccDataSourceKeyVaultSecret_basic(rString string, location string) string {
-	resource := testAccAzureRMKeyVaultSecret_basic(rString, location)
+	r := testAccAzureRMKeyVaultSecret_basic(rString, location)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name 		= "${azurerm_key_vault_secret.test.name}"
-  vault_uri = "${azurerm_key_vault_secret.test.vault_uri}"
+  name         = "${azurerm_key_vault_secret.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceKeyVaultSecret_complete(rString string, location string) string {
-	resource := testAccAzureRMKeyVaultSecret_complete(rString, location)
+	r := testAccAzureRMKeyVaultSecret_complete(rString, location)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name 		= "${azurerm_key_vault_secret.test.name}"
-  vault_uri = "${azurerm_key_vault_secret.test.vault_uri}"
+  name         = "${azurerm_key_vault_secret.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
-`, resource)
+`, r)
 }

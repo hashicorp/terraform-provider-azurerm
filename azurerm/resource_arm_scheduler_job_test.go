@@ -8,17 +8,17 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -40,11 +40,41 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSchedulerJob_web_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_scheduler_job.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_web_basic(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMSchedulerJobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSchedulerJob_web_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_scheduler_job"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -71,9 +101,9 @@ func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -102,9 +132,9 @@ func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -129,9 +159,9 @@ func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -157,9 +187,9 @@ func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -194,7 +224,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	}
 
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
@@ -207,7 +237,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	}
 
 	audience := env.ServiceManagementEndpoint
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -235,9 +265,9 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -263,9 +293,9 @@ func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -292,9 +322,9 @@ func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -322,9 +352,9 @@ func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -351,9 +381,9 @@ func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -380,9 +410,9 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -415,9 +445,9 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -443,9 +473,9 @@ func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -502,12 +532,12 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSchedulerJobExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -545,14 +575,16 @@ resource "azurerm_scheduler_job_collection" "test" {
   name                = "acctest-%[1]d-job_collection"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 `, rInt, location)
 }
 
 func testAccAzureRMSchedulerJob_web_basic(rInt int, location string) string {
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -564,6 +596,24 @@ resource "azurerm_scheduler_job" "test" {
   }
 }
 `, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func testAccAzureRMSchedulerJob_web_requiresImport(rInt int, location string) string {
+	//need a valid URL here otherwise on a slow connection job might fault before the test check
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_scheduler_job" "import" {
+  name                = "${azurerm_scheduler_job.test.name}"
+  resource_group_name = "${azurerm_scheduler_job.test.resource_group_name}"
+  job_collection_name = "${azurerm_scheduler_job.test.job_collection_name}"
+
+  action_web {
+    url    = "http://example.com"
+    method = "get"
+  }
+}
+`, testAccAzureRMSchedulerJob_web_basic(rInt, location))
 }
 
 func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
@@ -769,20 +819,20 @@ resource "azurerm_scheduler_job" "test" {
     frequency = "month"
     count     = 100
 
-    monthly_occurrences = [
-      {
-        day        = "sunday"
-        occurrence = 1
-      },
-      {
-        day        = "sunday"
-        occurrence = 3
-      },
-      {
-        day        = "sunday"
-        occurrence = -1
-      },
-    ]
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 1
+	}
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = 3
+    }
+
+    monthly_occurrences {
+      day        = "sunday"
+      occurrence = -1
+    }
   }
 }
 `, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
@@ -863,7 +913,7 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-  action_storage_queue = {
+  action_storage_queue {
     storage_account_name = "${azurerm_storage_account.test.name}"
     storage_queue_name   = "${azurerm_storage_queue.test.name}"
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"
@@ -900,7 +950,7 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
   }
 
-  error_action_storage_queue = {
+  error_action_storage_queue {
     storage_account_name = "${azurerm_storage_account.test.name}"
     storage_queue_name   = "${azurerm_storage_queue.test.name}"
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"

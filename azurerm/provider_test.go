@@ -3,13 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -29,7 +30,7 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -97,4 +98,9 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 	}
 
 	return config
+}
+
+func testRequiresImportError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }

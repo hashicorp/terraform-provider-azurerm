@@ -6,15 +6,16 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -31,11 +32,11 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -84,7 +85,7 @@ resource "azurerm_data_lake_store" "test" {
   tier                = "Commitment_1TB"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     hello = "world"
   }
 }

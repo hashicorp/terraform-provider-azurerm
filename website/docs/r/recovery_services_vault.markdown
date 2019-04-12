@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_vault"
-sidebar_current: "docs-azurerm-resource-recovery-services-vault"
+sidebar_current: "docs-azurerm-recovery-services-vault"
 description: |-
   Manages a Recovery Services Vault.
 ---
@@ -22,7 +22,7 @@ resource "azurerm_recovery_services_vault" "vault" {
   name                = "example_recovery_vault"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 ```
 

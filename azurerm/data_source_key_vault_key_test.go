@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMKeyVaultKey_complete(t *testing.T) {
 	rString := acctest.RandString(8)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -31,13 +31,13 @@ func TestAccDataSourceAzureRMKeyVaultKey_complete(t *testing.T) {
 }
 
 func testAccDataSourceKeyVaultKey_complete(rString string, location string) string {
-	resource := testAccAzureRMKeyVaultKey_complete(rString, location)
+	t := testAccAzureRMKeyVaultKey_complete(rString, location)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_key_vault_key" "test" {
-  name 		= "${azurerm_key_vault_key.test.name}"
-  vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
+  name         = "${azurerm_key_vault_key.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
-`, resource)
+`, t)
 }

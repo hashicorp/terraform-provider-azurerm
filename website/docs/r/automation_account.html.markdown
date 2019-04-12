@@ -27,7 +27,7 @@ resource "azurerm_automation_account" "example" {
     name = "Basic"
   }
 
-  tags {
+  tags = {
     environment = "development"
   }
 }
