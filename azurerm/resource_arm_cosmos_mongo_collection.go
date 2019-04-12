@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -48,20 +49,34 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
+			// SDK shardkey doesn't seem to work. Send the exact same data across the wire and we get:
+			// The partition key component definition path ''$v'\\\\/akey\\\\/'$v'' could not be accepted, failed near position '0'.
+
+			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose it
+			"default_ttl_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"indexes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
-							Type:         schema.TypeString, // this is a list in the SDK, however any more then a single value causes a 404
+							Type:         schema.TypeString, // this is a list in the SDK/API, however any more then a single value causes a 404
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-					},
 
-					// expire_after_seconds & unique seem to always cause a 400: Unable to parse request payload
-					// so leaving them out.
+						"unique": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true, // portal defaults to true
+						},
+
+						// expire_after_seconds seem to always cause a 400: Unable to parse request payload so leaving itout.
+					},
 				},
 			},
 		},
@@ -93,11 +108,19 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
+	var ttl *int
+	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
+	}
+
 	db := documentdb.MongoCollectionCreateUpdateParameters{
 		MongoCollectionCreateUpdateProperties: &documentdb.MongoCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoCollectionResource{
 				ID:      &name,
-				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes")),
+				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
+				/*ShardKey: map[string]*string{ // errors
+					"akey": utils.String("Hash"),
+				},*/
 			},
 			Options: map[string]*string{},
 		},
@@ -163,7 +186,7 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 		d.Set("account_name", id.Account)
 		d.Set("database_name", id.Database)
 
-		// the API returns this data, but the SDK ignores it?? so lets too
+		// the API returns index data, but the SDK ignores it?? so lets too
 		// looks like they are using key.keys rather then key.key returned by the API
 		/*if err := d.Set("indexes", flattenCosmosMongoCollectionIndexes(props.Indexes)); err != nil {
 			return fmt.Errorf("Error setting `indexes`: %+v", err)
@@ -197,7 +220,7 @@ func resourceArmCosmosMongoCollectionDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func expandCosmosMongoCollectionIndexes(input interface{}) *[]documentdb.MongoIndex {
+func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
 	inputs := input.([]interface{})
 	outputs := make([]documentdb.MongoIndex, 0)
 
@@ -206,6 +229,21 @@ func expandCosmosMongoCollectionIndexes(input interface{}) *[]documentdb.MongoIn
 		outputs = append(outputs, documentdb.MongoIndex{
 			Key: &documentdb.MongoIndexKeys{
 				Keys: &[]string{b["key"].(string)},
+			},
+			Options: &documentdb.MongoIndexOptions{
+				Unique: utils.Bool(b["unique"].(bool)),
+				//ExpireAfterSeconds: utils.Int32(100), //404 if this is set to anything aside from the _ts field
+			},
+		})
+	}
+
+	if defaultTtl != nil {
+		outputs = append(outputs, documentdb.MongoIndex{
+			Key: &documentdb.MongoIndexKeys{
+				Keys: &[]string{"_ts"},
+			},
+			Options: &documentdb.MongoIndexOptions{
+				ExpireAfterSeconds: utils.Int32(100),
 			},
 		})
 	}
@@ -218,11 +256,24 @@ func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *[]ma
 
 	for _, i := range *indexes {
 		if key := i.Key; key != nil {
+			m := map[string]interface{}{}
+
+			if options := i.Options; options != nil {
+				if v := options.Unique; v != nil {
+					m["unique"] = *v
+				} else {
+					m["unique"] = false // todo required? API sends back nothing for false
+				}
+			}
+
 			if keys := key.Keys; keys != nil && len(*keys) > 0 {
 				k := (*keys)[0]
 
-				if k != "_id" {
-					slice = append(slice, map[string]interface{}{"keys": k})
+				if !strings.HasPrefix(k, "_") { // lets ignore system properties?
+					m["keys"] = k
+
+					// only append indexes with a non system key
+					slice = append(slice, m)
 				}
 			}
 		}

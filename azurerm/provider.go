@@ -219,6 +219,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cosmos_mongo_database":                  resourceArmCosmosMongoDatabase(),
 			"azurerm_cosmos_mongo_collection":                resourceArmCosmosMongoCollection(),
 			"azurerm_cosmos_sql_database":                    resourceArmCosmosSQLDatabase(),
+			"azurerm_cosmos_sql_container":                   resourceArmCosmosSQLContainer(),
 			"azurerm_cosmos_table":                           resourceArmCosmosTable(),
 			"azurerm_data_lake_analytics_account":            resourceArmDataLakeAnalyticsAccount(),
 			"azurerm_data_lake_analytics_firewall_rule":      resourceArmDataLakeAnalyticsFirewallRule(),

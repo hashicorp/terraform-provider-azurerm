@@ -11,20 +11,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosMongoCollection_basic(t *testing.T) {
+func TestAccAzureRMCosmosSQLContainer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_mongo_collection.test"
+	resourceName := "azurerm_cosmos_sql_container.test"
 	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoCollectionDestroy,
+		CheckDestroy: testCheckAzureRMCosmosSQLContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoCollection_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
@@ -39,20 +39,20 @@ func TestAccAzureRMCosmosMongoCollection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosMongoCollection_complete(t *testing.T) {
+func TestAccAzureRMCosmosSQLContainer_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_mongo_collection.test"
+	resourceName := "azurerm_cosmos_sql_container.test"
 	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoCollectionDestroy,
+		CheckDestroy: testCheckAzureRMCosmosSQLContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoCollection_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
@@ -67,29 +67,29 @@ func TestAccAzureRMCosmosMongoCollection_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosMongoCollection_update(t *testing.T) {
+func TestAccAzureRMCosmosSQLContainer_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_mongo_collection.test"
+	resourceName := "azurerm_cosmos_sql_container.test"
 	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoCollectionDestroy,
+		CheckDestroy: testCheckAzureRMCosmosSQLContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoCollection_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
 				),
 			},
 			{
-				Config: testAccAzureRMCosmosMongoCollection_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
@@ -102,9 +102,9 @@ func TestAccAzureRMCosmosMongoCollection_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosMongoCollection_updated(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_updated(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rn),
 					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
@@ -119,19 +119,19 @@ func TestAccAzureRMCosmosMongoCollection_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosMongoCollection_debug(t *testing.T) {
+func TestAccAzureRMCosmosSQLContainer_debug(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_mongo_collection.test"
+	resourceName := "azurerm_cosmos_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoCollectionDestroy,
+		CheckDestroy: testCheckAzureRMCosmosSQLContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoCollection_debug(ri, testLocation()),
+				Config: testAccAzureRMCosmosSQLContainer_debug(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosSQLContainerExists(resourceName),
 				),
 			},
 			{
@@ -143,12 +143,12 @@ func TestAccAzureRMCosmosMongoCollection_debug(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosMongoCollectionDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosSQLContainerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for rn, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmos_mongo_collection" {
+		if rs.Type != "azurerm_cosmos_sql_container" {
 			continue
 		}
 
@@ -160,22 +160,22 @@ func testCheckAzureRMCosmosMongoCollectionDestroy(s *terraform.State) error {
 		database := rs.Primary.Attributes["database_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+		resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos Mongo Collection %s (account %s, database %s) still exists:\n%v", name, account, database, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Container %s (account %s, database %s) still exists:\n%v", name, account, database, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos Mongo Collection %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos SQL Container %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosMongoCollectionExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosSQLContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -194,7 +194,7 @@ func testCheckAzureRMCosmosMongoCollectionExists(resourceName string) resource.T
 		database := rs.Primary.Attributes["database_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+		resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
@@ -207,108 +207,69 @@ func testCheckAzureRMCosmosMongoCollectionExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMCosmosMongoCollection_basic(rInt int, location string) string {
+func testAccAzureRMCosmosSQLContainer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_mongo_collection" "test" {
+resource "azurerm_cosmos_sql_container" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmos_sql_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmos_sql_database.test.account_name}"
+  database_name       = "${azurerm_cosmos_sql_database.test.name}"
 }
-`, testAccAzureRMCosmosMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosSQLDatabase_basic(rInt, location), rInt)
 }
 
-func testAccAzureRMCosmosMongoCollection_complete(rInt int, location string) string {
+func testAccAzureRMCosmosSQLContainer_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_mongo_collection" "test" {
+resource "azurerm_cosmos_sql_container" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmos_sql_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmos_sql_database.test.account_name}"
+  database_name       = "${azurerm_cosmos_sql_database.test.name}"
 
-  default_ttl_seconds = 707
 
-  indexes {
-    key = "seven"
-  }
-
-  indexes {
-    key    = "day"
-    unique = false
-  }
-
-  indexes {
-    key    = "fool"
-    unique = false
-  }
 }
-`, testAccAzureRMCosmosMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosSQLDatabase_basic(rInt, location), rInt)
 }
 
-func testAccAzureRMCosmosMongoCollection_updated(rInt int, location string) string {
+func testAccAzureRMCosmosSQLContainer_updated(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_mongo_collection" "test" {
+resource "azurerm_cosmos_sql_container" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmos_sql_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmos_sql_database.test.account_name}"
+  database_name       = "${azurerm_cosmos_sql_database.test.name}"
 
-  default_ttl_seconds = 70707
-
-  indexes {
-    key    = "seven"
-    unique = false
-  }
-
-  indexes {
-    key = "day"
-  }
-
-  indexes {
-    key = "fools"
-  }
 }
-`, testAccAzureRMCosmosMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosSQLDatabase_basic(rInt, location), rInt)
 }
 
-func testAccAzureRMCosmosMongoCollection_debug(rInt int, location string) string {
+func testAccAzureRMCosmosSQLContainer_debug(rInt int, location string) string {
 	return fmt.Sprintf(`
 
 
-resource "azurerm_cosmos_mongo_collection" "test" {
-  name                = "seven-day-tables-cola"
+resource "azurerm_cosmos_sql_container" "test" {
+  name                = "seven-day-container"
   resource_group_name = "kt-cosmos-201904"
-  account_name        = "kt-cosmos-mongo"
-  database_name       = "SevenDayDBs"
-
-  default_ttl_seconds = 10000
-
-  indexes {
-    key = "seven"
-    unique = false
-  }
-
-  indexes {
-    key = "seven11"
-  }
+  account_name        = "kt-cosmos-sql"
+  database_name       = "seven-day-db"
 }
 `)
 }
 
-func testAccAzureRMCosmosMongoCollection_debug2(rInt int, location string) string {
+func testAccAzureRMCosmosSQLContainer_debug2(rInt int, location string) string {
 	return fmt.Sprintf(`
 
 
-resource "azurerm_cosmos_mongo_collection" "test" {
+resource "azurerm_cosmos_sql_container" "test" {
   name                = "seven-day-tables-more123ugg"
   resource_group_name = "kt-cosmos-201904"
-  account_name        = "kt-cosmos-mongo"
+  account_name        = "kt-cosmos-sql"
   database_name       = "SevenDayDBs"
 
   indexes {
