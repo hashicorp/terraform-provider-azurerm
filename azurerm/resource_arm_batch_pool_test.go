@@ -503,7 +503,7 @@ EOF
     offer     = "UbuntuServer"
     sku       = "16.04.0-LTS"
     version   = "latest"
-	}
+  }
 }
 `, rInt, location, rString, rString, rString)
 }
@@ -604,8 +604,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-			env = "TEST",
-			bu  = "Research&Dev"
+      env = "TEST",
+      bu  = "Research&Dev"
     }
 
     user_identity {
@@ -613,11 +613,11 @@ resource "azurerm_batch_pool" "test" {
         elevation_level = "NonAdmin"
         scope           = "Task"
       }
-		}
-		
-  	resource_file {
-			"http_url"  = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/README.md"
-			"file_path" = "README.md"
+    }
+
+    resource_file {
+      "http_url"  = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/README.md"
+      "file_path" = "README.md"
     }
   }
 }
@@ -661,8 +661,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-			env = "TEST",
-			bu  = "Research&Dev"
+      env = "TEST",
+      bu  = "Research&Dev"
     }
 
     user_identity {
@@ -670,12 +670,12 @@ resource "azurerm_batch_pool" "test" {
         elevation_level = "NonAdmin"
         scope           = "Task"
       }
-		}
-		
-  	resource_file {
-			# no valid values for sources
-			"auto_storage_container_name" = ""
-			"file_mode"                   = "0770"
+    }
+
+    resource_file {
+      # no valid values for sources
+      "auto_storage_container_name" = ""
+      "file_mode"                   = "0770"
     }
   }
 }
@@ -719,8 +719,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-			env = "TEST",
-			bu  = "Research&Dev"
+      env = "TEST",
+      bu  = "Research&Dev"
     }
 
     user_identity {
@@ -728,12 +728,12 @@ resource "azurerm_batch_pool" "test" {
         elevation_level = "NonAdmin"
         scope           = "Task"
       }
-		}
-		
-  	resource_file {
-			"auto_storage_container_name" = "test"
-			"http_url"  = "test"
-			"file_path" = "README.md"
+    }
+
+    resource_file {
+      "auto_storage_container_name" = "test"
+      "http_url"  = "test"
+      "file_path" = "README.md"
     }
   }
 }
@@ -777,8 +777,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-			env = "TEST",
-			bu  = "Research&Dev"
+      env = "TEST",
+      bu  = "Research&Dev"
     }
 
     user_identity {
@@ -786,12 +786,12 @@ resource "azurerm_batch_pool" "test" {
         elevation_level = "NonAdmin"
         scope           = "Task"
       }
-		}
-		
-  	resource_file {
-			"http_url"    = "test"
-			"blob_prefix" = "test"
-			"file_path"   = "README.md"
+    }
+
+    resource_file {
+      "http_url"    = "test"
+      "blob_prefix" = "test"
+      "file_path"   = "README.md"
     }
   }
 }
@@ -835,8 +835,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-			env = "TEST",
-			bu  = "Research&Dev"
+      env = "TEST",
+      bu  = "Research&Dev"
     }
 
     user_identity {
@@ -844,11 +844,11 @@ resource "azurerm_batch_pool" "test" {
         elevation_level = "NonAdmin"
         scope           = "Task"
       }
-		}
-		
-  	resource_file {
-			"http_url"  = "test"
-			"file_path" = ""
+    }
+
+    resource_file {
+      "http_url"  = "test"
+      "file_path" = ""
     }
   }
 }
