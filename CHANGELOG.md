@@ -7,6 +7,7 @@ FEATURES:
 * **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
 * **New Resource:** `azurerm_batch_certificate` [GH-3097]
 * **New Resource:** `azurerm_data_factory` [GH-3159]
+* **New Resource:** `azurerm_data_factory_dataset_sql_server_table` [GH-3236]
 * **New Resource:** `azurerm_data_factory_linked_service_sql_server` [GH-3205]
 * **New Resource:** `azurerm_hdinsight_kafka_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_kbase_cluster` [GH-3196]
