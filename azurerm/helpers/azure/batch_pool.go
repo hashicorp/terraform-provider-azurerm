@@ -296,38 +296,38 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	for _, resourceFileValueTemp := range resourceFileList {
 		resourceFileValue := resourceFileValueTemp.(map[string]interface{})
 		resourceFile := batch.ResourceFile{}
-		if autoStorageContainerNameValue, ok := resourceFileValue["auto_storage_container_name"]; ok {
-			autoStorageContainerName := autoStorageContainerNameValue.(string)
+		if v, ok := resourceFileValue["auto_storage_container_name"]; ok {
+			autoStorageContainerName := v.(string)
 			if autoStorageContainerName != "" {
 				resourceFile.AutoStorageContainerName = &autoStorageContainerName
 			}
 		}
-		if storageContainerURLValue, ok := resourceFileValue["storage_container_url"]; ok {
-			storageContainerURL := storageContainerURLValue.(string)
+		if v, ok := resourceFileValue["storage_container_url"]; ok {
+			storageContainerURL := v.(string)
 			if storageContainerURL != "" {
 				resourceFile.StorageContainerURL = &storageContainerURL
 			}
 		}
-		if httpURLValue, ok := resourceFileValue["http_url"]; ok {
-			httpURL := httpURLValue.(string)
+		if v, ok := resourceFileValue["http_url"]; ok {
+			httpURL := v.(string)
 			if httpURL != "" {
 				resourceFile.HTTPURL = &httpURL
 			}
 		}
-		if blobPrefixValue, ok := resourceFileValue["blob_prefix"]; ok {
-			blobPrefix := blobPrefixValue.(string)
+		if v, ok := resourceFileValue["blob_prefix"]; ok {
+			blobPrefix := v.(string)
 			if blobPrefix != "" {
 				resourceFile.BlobPrefix = &blobPrefix
 			}
 		}
-		if filePathValue, ok := resourceFileValue["file_path"]; ok {
-			filePath := filePathValue.(string)
+		if v, ok := resourceFileValue["file_path"]; ok {
+			filePath := v.(string)
 			if filePath != "" {
 				resourceFile.FilePath = &filePath
 			}
 		}
-		if fileModeValue, ok := resourceFileValue["file_mode"]; ok {
-			fileMode := fileModeValue.(string)
+		if v, ok := resourceFileValue["file_mode"]; ok {
+			fileMode := v.(string)
 			if fileMode != "" {
 				resourceFile.FileMode = &fileMode
 			}
