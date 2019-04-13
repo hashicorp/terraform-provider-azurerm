@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Shared Image Gallery exists. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identifier` - (Required) An `identifier` block as defined below.
 
 * `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`.
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+A `identifier` block supports the following:
 
 * `offer` - (Required) The Offer Name for this Shared Image.
 

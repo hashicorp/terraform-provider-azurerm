@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -135,6 +136,34 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	return append(results, result)
 }
 
+// FlattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
+func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
+	if armCertificates == nil {
+		return []interface{}{}
+	}
+	output := make([]interface{}, 0)
+
+	for _, armCertificate := range *armCertificates {
+		certificate := map[string]interface{}{}
+		if armCertificate.ID != nil {
+			certificate["id"] = *armCertificate.ID
+		}
+		certificate["store_location"] = string(armCertificate.StoreLocation)
+		if armCertificate.StoreName != nil {
+			certificate["store_name"] = *armCertificate.StoreName
+		}
+		visibility := &schema.Set{F: schema.HashString}
+		if armCertificate.Visibility != nil {
+			for _, armVisibility := range *armCertificate.Visibility {
+				visibility.Add(string(armVisibility))
+			}
+		}
+		certificate["visibility"] = visibility
+		output = append(output, certificate)
+	}
+	return output
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -156,6 +185,46 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	return imageRef, nil
+}
+
+// ExpandBatchPoolCertificateReferences expands Batch pool certificate references
+func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
+	result := []batch.CertificateReference{}
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		certificateReference, err := expandBatchPoolCertificateReference(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *certificateReference)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.CertificateReference, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: storage image reference should be defined")
+	}
+
+	id := ref["id"].(string)
+	storeLocation := ref["store_location"].(string)
+	storeName := ref["store_name"].(string)
+	visibilityRefs := ref["visibility"].(*schema.Set)
+	visibility := []batch.CertificateVisibility{}
+	if visibilityRefs != nil {
+		for _, visibilityRef := range visibilityRefs.List() {
+			visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
+		}
+	}
+
+	certificateReference := &batch.CertificateReference{
+		ID:            &id,
+		StoreLocation: batch.CertificateStoreLocation(storeLocation),
+		StoreName:     &storeName,
+		Visibility:    &visibility,
+	}
+	return certificateReference, nil
 }
 
 // ExpandBatchPoolStartTask expands Batch pool start task

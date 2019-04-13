@@ -1,4 +1,3 @@
-
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
@@ -64,7 +63,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
-    ip_rules                   = ["127.0.0.1"]
+    ip_rules                   = ["100.0.0.1"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
@@ -104,6 +103,8 @@ The following arguments are supported:
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
+    
+* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 * `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
 
@@ -128,8 +129,10 @@ The following arguments are supported:
 
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
-* `ip_rules` - (Optional) List of IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
+
+~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
@@ -178,6 +181,26 @@ The following attributes are exported in addition to the arguments listed above:
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
+
+* `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
+
+* `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
+
+* `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
+
+* `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
+
+* `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
+
+* `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the storage account.
 

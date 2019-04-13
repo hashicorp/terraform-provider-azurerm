@@ -112,13 +112,13 @@ The following arguments are supported:
     specified within the template, and Terraform will not be aware of this.
 * `template_body` - (Optional) Specifies the JSON definition for the template.
 
-~> **Note:** There's an [`file` interpolation function available](https://www.terraform.io/docs/configuration/interpolation.html#file-path-) which allows you to read this from an external file, which helps makes this more resource more readable.
+~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
 * `parameters` - (Optional) Specifies the name and value pairs that define the deployment parameters for the template.
 
 * `parameters_body` - (Optional) Specifies a valid Azure JSON parameters file that define the deployment parameters. It can contain KeyVault references
 
-~> **Note:** There's an [`file` interpolation function available](https://www.terraform.io/docs/configuration/interpolation.html#file-path-) which allows you to read this from an external file, which helps makes this more resource more readable.
+~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
 ## Attributes Reference
 

@@ -73,6 +73,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Average",
+								"Count",
 								"Minimum",
 								"Maximum",
 								"Total",

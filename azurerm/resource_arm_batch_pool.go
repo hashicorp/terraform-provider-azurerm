@@ -163,6 +163,49 @@ func resourceArmBatchPool() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							// The ID returned for the certificate in the batch account and the certificate applied to the pool
+							// are not consistent in their casing which causes issues when referencing IDs across resources
+							// (as Terraform still sees differences to apply due to the casing)
+							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"store_location": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"CurrentUser",
+								"LocalMachine",
+							}, false),
+						},
+						"store_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"visibility": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"StartTask",
+									"Task",
+									"RemoteUser",
+								}, false),
+							},
+						},
+					},
+				},
+			},
 			"start_task": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -312,6 +355,13 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
+	certificates := d.Get("certificate").([]interface{})
+	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	if err != nil {
+		return fmt.Errorf("Error expanding `certificate`: %+v", err)
+	}
+	parameters.PoolProperties.Certificates = certificateReferences
+
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -404,6 +454,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 		parameters.PoolProperties.StartTask = startTask
 	}
+	certificates := d.Get("certificate").([]interface{})
+	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	if err != nil {
+		return fmt.Errorf("Error expanding `certificate`: %+v", err)
+	}
+	parameters.PoolProperties.Certificates = certificateReferences
 
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
@@ -464,6 +520,10 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+			return fmt.Errorf("Error flattening `certificate`: %+v", err)
 		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -68,32 +67,6 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 			t.Fatalf("Expected the Azure RM Container Registry Name to trigger a validation error: %v", errors)
 		}
 	}
-}
-
-func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
-	resourceName := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
 }
 
 func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
@@ -232,8 +205,7 @@ func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
+	config := testAccAzureRMContainerRegistry_complete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -258,10 +230,9 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccAzureRMContainerRegistry_complete(ri, rs, location)
-	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs, location)
+	config := testAccAzureRMContainerRegistry_complete(ri, location)
+	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -488,44 +459,11 @@ resource "azurerm_container_registry" "import" {
 `, template)
 }
 
-func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {
+func testAccAzureRMContainerRegistry_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRg-%d"
   location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "%s"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
-}
-`, rInt, location, rStr, rInt, sku)
-}
-
-func testAccAzureRMContainerRegistry_complete(rInt int, rStr string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRg-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
 }
 
 resource "azurerm_container_registry" "test" {
@@ -533,29 +471,20 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
-  sku                 = "Classic"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  sku                 = "Basic"
 
   tags = {
     environment = "production"
   }
 }
-`, rInt, location, rStr, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string, location string) string {
+func testAccAzureRMContainerRegistry_completeUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRg-%d"
   location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
 }
 
 resource "azurerm_container_registry" "test" {
@@ -563,14 +492,13 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
-  sku                 = "Classic"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  sku                 = "Basic"
 
   tags = {
     environment = "production"
   }
 }
-`, rInt, location, rStr, rInt)
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMContainerRegistry_geoReplication(rInt int, location string, sku string, georeplicationLocations string) string {
