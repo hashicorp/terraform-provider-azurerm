@@ -92,6 +92,40 @@ func resourceArmContainerGroup() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+								"UserAssigned",
+								"SystemAssignedUserAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsForceNewSchema(),
 
 			"restart_policy": {
@@ -416,6 +450,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
+		Identity: expandContainerGroupIdentity(d),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:    containers,
 			Diagnostics:   diagnostics,
@@ -484,6 +519,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
+	if err := d.Set("identity", flattenContainerGroupIdentity(d, resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
@@ -709,6 +748,28 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	return &output
 }
 
+func expandContainerGroupIdentity(d *schema.ResourceData) *containerinstance.ContainerGroupIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := containerinstance.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &containerinstance.ContainerGroupIdentityUserAssignedIdentitiesValue{}
+	}
+
+	cgIdentity := containerinstance.ContainerGroupIdentity{
+		Type: identityType,
+	}
+
+	if cgIdentity.Type == containerinstance.UserAssigned || cgIdentity.Type == containerinstance.SystemAssignedUserAssigned {
+		cgIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &cgIdentity
+}
+
 func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containerinstance.ImageRegistryCredential {
 	credsRaw := d.Get("image_registry_credential").([]interface{})
 	if len(credsRaw) == 0 {
@@ -832,6 +893,36 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		}
 	}
 	return &probe
+}
+
+func flattenContainerGroupIdentity(d *schema.ResourceData, identity *containerinstance.ContainerGroupIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		/*
+			"userAssignedIdentities": {
+			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
+				"principalId": "00000000-0000-0000-0000-000000000000",
+				"clientId": "00000000-0000-0000-0000-000000000000"
+			  }
+			}
+		*/
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
 }
 
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
