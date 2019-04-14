@@ -295,7 +295,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 func testaccAzureRMBatchPool_fixedScale_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchpool"
   location = "%s"
 }
 
@@ -345,7 +345,7 @@ resource "azurerm_batch_pool" "test" {
 func testaccAzureRMBatchPool_autoScale_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchpool"
   location = "%s"
 }
 
@@ -402,7 +402,7 @@ EOF
 func testaccAzureRMBatchPool_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchpool"
   location = "%s"
 }
 
@@ -461,7 +461,7 @@ resource "azurerm_batch_pool" "import" {
 func testaccAzureRMBatchPoolStartTask_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchpool"
   location = "%s"
 }
 

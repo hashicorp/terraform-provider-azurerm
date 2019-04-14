@@ -55,7 +55,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 func testAccDataSourceAzureRMBatchPool_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batch"
   location = "%s"
 }
 
