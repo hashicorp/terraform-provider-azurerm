@@ -13,7 +13,8 @@ import (
 func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryPipeline_basic(ri, testLocation())
+	location := testLocation()
+	config := testAccAzureRMDataFactoryPipeline_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -38,8 +39,9 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryPipeline_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, testLocation())
+	location := testLocation()
+	config := testAccAzureRMDataFactoryPipeline_update1(ri, location)
+	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -116,7 +118,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / Data Factory %q) does not exist", name, resourceGroup, dataFactoryName)
+				return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) does not exist", name, resourceGroup, dataFactoryName)
 			}
 			return fmt.Errorf("Bad: Get on DataFactoryPipelineClient: %+v", err)
 		}

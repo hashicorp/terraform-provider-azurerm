@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,6 +34,10 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
+					`Invalid data_factory_name, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
+				),
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -96,14 +101,16 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
 		pipeline.Annotations = &annotations
+	} else {
+		annotations := make([]interface{}, 0)
+		pipeline.Annotations = &annotations
 	}
 
 	config := datafactory.PipelineResource{
 		Pipeline: pipeline,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, name, config, "")
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, name, config, ""); err != nil {
 		return fmt.Errorf("Error creating Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
 	}
 
@@ -131,26 +138,23 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 	}
 	dataFactoryName := id.Path["factories"]
 	name := id.Path["pipelines"]
-	resourceGroupName := id.ResourceGroup
 
-	resp, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, dataFactoryName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", name, resourceGroupName)
+			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", name, id.ResourceGroup)
 			return nil
 		}
 		return fmt.Errorf("Error reading the state of Data Factory Pipeline %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroupName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
 	if props := resp.Pipeline; props != nil {
-		if props.Description != nil {
-			d.Set("description", props.Description)
-		}
+		d.Set("description", props.Description)
 
 		parameters := flattenDataFactoryParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
@@ -184,8 +188,7 @@ func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface
 	name := id.Path["pipelines"]
 	resourceGroupName := id.ResourceGroup
 
-	_, err = client.Delete(ctx, resourceGroupName, dataFactoryName, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroupName, dataFactoryName, name); err != nil {
 		return fmt.Errorf("Error deleting Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
 	}
 
