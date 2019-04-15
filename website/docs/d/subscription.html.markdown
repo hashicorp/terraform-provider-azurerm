@@ -26,7 +26,7 @@ output "current_subscription_display_name" {
 
 ## Attributes Reference
 
-* `id` - The ID of the Subscription.
+* `id` - Returns the ID of the Subscription, for exmple "/subscriptions/309717cb-7112-1001-af5b-8cd3df0f3615".
 * `display_name` - The subscription display name.
 * `state` - The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted.
 * `location_placement_id` - The subscription location placement ID.
