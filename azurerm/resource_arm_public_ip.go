@@ -189,8 +189,6 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	publicIpPrefixId := d.Get("public_ip_prefix_id").(string)
-
 	publicIp := network.PublicIPAddress{
 		Name:     &name,
 		Location: &location,
@@ -201,12 +199,17 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			PublicIPAllocationMethod: network.IPAllocationMethod(ipAllocationMethod),
 			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
-			PublicIPPrefix: &network.SubResource{
-				ID: utils.String(publicIpPrefixId),
-			},
 		},
 		Tags:  expandTags(tags),
 		Zones: zones,
+	}
+
+	publicIpPrefixId, publicIpPrefixIdOk := d.GetOk("public_ip_prefix_id")
+
+	if publicIpPrefixIdOk {
+		publicIpPrefix := network.SubResource{}
+		publicIpPrefix.ID = utils.String(publicIpPrefixId.(string))
+		publicIp.PublicIPAddressPropertiesFormat.PublicIPPrefix = &publicIpPrefix
 	}
 
 	dnl, dnlOk := d.GetOk("domain_name_label")
