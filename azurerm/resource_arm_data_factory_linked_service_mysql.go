@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
+func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceSQLServerRead,
-		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceSQLServerDelete,
+		Create: resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate,
+		Read:   resourceArmDataFactoryLinkedServiceMySQLRead,
+		Update: resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate,
+		Delete: resourceArmDataFactoryLinkedServiceMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -84,7 +84,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -96,67 +96,73 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_server", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_mysql", *existing.ID)
 		}
 	}
 
-	sqlServerProperties := &datafactory.SQLServerLinkedServiceTypeProperties{
-		ConnectionString: d.Get("connection_string").(string),
+	connectionString := d.Get("connection_string").(string)
+	secureString := datafactory.SecureString{
+		Value: &connectionString,
+		Type:  datafactory.TypeSecureString,
+	}
+
+	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
+		ConnectionString: &secureString,
 	}
 
 	description := d.Get("description").(string)
 
-	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
-		Description:                          &description,
-		SQLServerLinkedServiceTypeProperties: sqlServerProperties,
-		Type:                                 datafactory.TypeSQLServer,
+	mysqlLinkedService := &datafactory.MySQLLinkedService{
+		Description:                      &description,
+		MySQLLinkedServiceTypeProperties: mysqlProperties,
+		Type:                             datafactory.TypeMySQL,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		mysqlLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		sqlServerLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		mysqlLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerLinkedService.AdditionalProperties = v.(map[string]interface{})
+		mysqlLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		sqlServerLinkedService.Annotations = &annotations
+		mysqlLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: sqlServerLinkedService,
+		Properties: mysqlLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceSQLServerRead(d, meta)
+	return resourceArmDataFactoryLinkedServiceMySQLRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -175,42 +181,42 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	sqlServer, ok := resp.Properties.AsSQLServerLinkedService()
+	mysql, ok := resp.Properties.AsMySQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServer, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServer, *resp.Type)
 	}
 
-	d.Set("additional_properties", sqlServer.AdditionalProperties)
+	d.Set("additional_properties", mysql.AdditionalProperties)
 
-	if sqlServer.Description != nil {
-		d.Set("description", *sqlServer.Description)
+	if mysql.Description != nil {
+		d.Set("description", *mysql.Description)
 	}
 
-	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
+	annotations := flattenDataFactoryAnnotations(mysql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(sqlServer.Parameters)
+	parameters := flattenDataFactoryParameters(mysql.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := sqlServer.ConnectVia; connectVia != nil {
+	if connectVia := mysql.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
 	}
 
 	connectionString := ""
-	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
+	if properties := mysql.MySQLLinkedServiceTypeProperties; properties != nil {
 		if properties.ConnectionString != nil {
 			val, ok := properties.ConnectionString.(string)
 			if ok {
@@ -225,7 +231,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
