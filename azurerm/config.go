@@ -226,14 +226,10 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Factory
-<<<<<<< HEAD
-	dataFactoryClient         datafactory.FactoriesClient
-	dataFactoryPipelineClient datafactory.PipelinesClient
-=======
+	dataFactoryPipelineClient      datafactory.PipelinesClient
 	dataFactoryClient              datafactory.FactoriesClient
 	dataFactoryDatasetClient       datafactory.DatasetsClient
 	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
->>>>>>> master
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient

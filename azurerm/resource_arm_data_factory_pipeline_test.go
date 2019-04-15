@@ -14,7 +14,32 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryPipeline_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryPipeline_update(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryPipelineExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
+	resourceName := "azurerm_data_factory_pipeline.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMDataFactoryPipeline_update1(ri, testLocation())
+	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,7 +51,9 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameters.test", "testparameter"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+					resource.TestCheckResourceAttr(resourceName, "variables.%", "2"),
 				),
 			},
 			{
@@ -34,8 +61,9 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "parameters.test", "testparameter"),
-					resource.TestCheckResourceAttr(resourceName, "parameters.test2", "testparameter2"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description2"),
+					resource.TestCheckResourceAttr(resourceName, "variables.%", "3"),
 				),
 			},
 			{
@@ -104,7 +132,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_factory_v2" "test" {
+resource "azurerm_data_factory" "test" {
   name                = "acctestdfv2%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -113,23 +141,19 @@ resource "azurerm_data_factory_v2" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory_v2.test.name}"
-
-  parameters = {
-	test = "testparameter"
-  }
+  data_factory_name   = "${azurerm_data_factory.test.name}"
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDataFactoryPipeline_update(rInt int, location string) string {
+func testAccAzureRMDataFactoryPipeline_update1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
   location = "%s"
 }
 
-resource "azurerm_data_factory_v2" "test" {
+resource "azurerm_data_factory" "test" {
   name                = "acctestdfv2%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -138,11 +162,53 @@ resource "azurerm_data_factory_v2" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory_v2.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+
+  annotations         = ["test1", "test2", "test3"]
+  description         = "test description"
 
   parameters = {
-	test = "testparameter"
-	test2 = "testparameter2"
+    test = "testparameter"
+  }
+	
+  variables {
+    "foo" = "test1"
+    "bar" = "test2"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryPipeline_update2(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfv2%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+
+  annotations         = ["test1", "test2"]
+  description         = "test description2"
+	
+  parameters = {
+    test = "testparameter"
+    test2 = "testparameter2"
+  }
+
+  variables {
+    "foo" = "test1"
+		"bar" = "test2"
+    "baz" = "test3"
   }
 }
 `, rInt, location, rInt, rInt)

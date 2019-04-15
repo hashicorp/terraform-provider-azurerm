@@ -42,14 +42,23 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 				Optional: true,
 			},
 
-			/*
-				"activity": {
-					Type:     schema.TypeList,
-					Required: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{},
-					},
-				},*/
+			"variables": {
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"annotations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -77,10 +86,16 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	parameters := expandDataFactoryPipelineParameters(d.Get("parameters").(map[string]interface{}))
-
+	description := d.Get("description").(string)
 	pipeline := &datafactory.Pipeline{
-		Parameters: parameters,
+		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
+		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
+		Description: &description,
+	}
+
+	if v, ok := d.GetOk("annotations"); ok {
+		annotations := v.([]interface{})
+		pipeline.Annotations = &annotations
 	}
 
 	config := datafactory.PipelineResource{
@@ -133,10 +148,25 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 	d.Set("data_factory_name", dataFactoryName)
 
 	if props := resp.Pipeline; props != nil {
-		parameters := flattenDataFactoryPipelineParameters(props.Parameters)
+		if props.Description != nil {
+			d.Set("description", props.Description)
+		}
+
+		parameters := flattenDataFactoryParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
 			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
+
+		annotations := flattenDataFactoryAnnotations(props.Annotations)
+		if err := d.Set("annotations", annotations); err != nil {
+			return fmt.Errorf("Error setting `annotations`: %+v", err)
+		}
+
+		variables := flattenDataFactoryVariables(props.Variables)
+		if err := d.Set("variables", variables); err != nil {
+			return fmt.Errorf("Error setting `variables`: %+v", err)
+		}
+
 	}
 
 	return nil
@@ -169,35 +199,4 @@ func validateAzureRMDataFactoryPipelineName(v interface{}, k string) (warnings [
 	}
 
 	return warnings, errors
-}
-
-func expandDataFactoryPipelineParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
-	output := make(map[string]*datafactory.ParameterSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.ParameterSpecification{
-			Type:         datafactory.ParameterTypeString,
-			DefaultValue: v.(string),
-		}
-	}
-
-	return output
-}
-
-func flattenDataFactoryPipelineParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
-			}
-
-			output[k] = val
-		}
-	}
-
-	return output
 }
