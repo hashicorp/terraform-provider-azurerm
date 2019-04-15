@@ -291,6 +291,7 @@ type ArmClient struct {
 	localNetConnClient              network.LocalNetworkGatewaysClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
+	publicIPPrefixClient            network.PublicIPPrefixesClient
 	routesClient                    network.RoutesClient
 	routeTablesClient               network.RouteTablesClient
 	secGroupClient                  network.SecurityGroupsClient
@@ -1123,6 +1124,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	publicIPAddressesClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&publicIPAddressesClient.Client, auth)
 	c.publicIPClient = publicIPAddressesClient
+
+	publicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&publicIPPrefixesClient.Client, auth)
+	c.publicIPPrefixClient = publicIPPrefixesClient
 
 	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&routesClient.Client, auth)
