@@ -29,6 +29,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for specifying `liveness_probe` and `readiness_probe` blocks [GH-3118]
 * `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
 * `azurerm_key_vault_access_policy` - support for setting `storage_permissions` [GH-3153]
+* `azurerm_kubernetes_cluster` - `network_policy` now supports `azure` [GH-3213]
 * `azurerm_iothub` - support for configuring `ip_filter_rule` [GH-3173]
 * `azurerm_public_ip` - support for attaching a `azurerm_public_ip_prefix` [GH-3139]
 * `azurerm_storage_blob` - support for the `metadata` property [GH-3206]
