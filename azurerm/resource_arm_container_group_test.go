@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -16,7 +17,7 @@ import (
 func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerGroupSystemAssignedIdentity(ri, testLocation())
+	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -47,7 +48,7 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMContainerGroupUserAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMContainerGroup_UserAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -71,11 +72,11 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerGroup_multipleAssignedIdentity(t *testing.T) {
+func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMContainerGroupMultipleAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
