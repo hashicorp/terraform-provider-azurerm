@@ -39,6 +39,15 @@ resource "azurerm_batch_account" "test" {
   }
 }
 
+resource "azurerm_batch_certificate" "testcer" {
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${base64encode(file("certificate.cer"))}"
+  format               = "Cer"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
+  thumbprint_algorithm = "SHA1"
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -81,6 +90,11 @@ EOF
       }
     }
   }
+
+  certificate = {
+    id             = "${azurerm_batch_certificate.testcer.id}"
+    visibility = [ "StartTask" ]
+  }
 }
 ```
 
@@ -110,6 +124,10 @@ The following arguments are supported:
 
 * `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
 
+* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
+
+-> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
@@ -132,7 +150,7 @@ A `auto_scale` block supports the following:
 
 ---
 
-A `start_task` block exports the following:
+A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
@@ -146,7 +164,7 @@ A `start_task` block exports the following:
 
 ---
 
-A `user_identity` block exports the following:
+A `user_identity` block supports the following:
 
 * `user_name` - (Optional) The username to be used by the Batch pool start task.
 
@@ -156,11 +174,25 @@ A `user_identity` block exports the following:
 
 ---
 
-A `auto_user` block exports the following:
+A `auto_user` block supports the following:
 
 * `elevation_level` - (Optional) The elevation level of the user identity under which the start task runs. Possible values are `Admin` or `NonAdmin`. Defaults to `NonAdmin`.
 
 * `scope` - (Optional) The scope of the user identity under which the start task runs. Possible values are `Task` or `Pool`. Defaults to `Task`.
+
+---
+
+A `certificate` block supports the following:
+
+* `id` - (Required) The ID of the Batch Certificate to install on the Batch Pool, which must be inside the same Batch Account.
+
+* `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
+
+ -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+
+* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
+
+* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
 
 ## Attributes Reference
 
