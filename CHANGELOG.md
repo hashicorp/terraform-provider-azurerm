@@ -5,10 +5,12 @@ FEATURES:
 * **New Data Source:** `azurerm_batch_certificate` [GH-3097]
 * **New Data Source:** `azurerm_firewall` [GH-3235]
 * **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
+* **New Data Source:** `azurerm_stream_analytics_job` [GH-3227]
 * **New Resource:** `azurerm_batch_certificate` [GH-3097]
 * **New Resource:** `azurerm_data_factory` [GH-3159]
 * **New Resource:** `azurerm_data_factory_dataset_sql_server_table` [GH-3236]
 * **New Resource:** `azurerm_data_factory_linked_service_sql_server` [GH-3205]
+* **New Resource:** `azurerm_data_factory_pipeline` [GH-3244]
 * **New Resource:** `azurerm_hdinsight_kafka_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_kbase_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_hadoop_cluster` [GH-3196]
@@ -17,7 +19,10 @@ FEATURES:
 * **New Resource:** `azurerm_hdinsight_rserver_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_spark_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_storm_cluster` [GH-3196]
+* **New Resource:** `azurerm_public_ip_prefix` [GH-3139]
 * **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
+* **New Resource:** `azurerm_stream_analytics_job` [GH-3227]
+* **New Resource:** `azurerm_stream_analytics_function_javascript_udf` [GH-3249]
 
 IMPROVEMENTS:
 
@@ -28,7 +33,9 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for specifying `liveness_probe` and `readiness_probe` blocks [GH-3118]
 * `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
 * `azurerm_key_vault_access_policy` - support for setting `storage_permissions` [GH-3153]
+* `azurerm_kubernetes_cluster` - `network_policy` now supports `azure` [GH-3213]
 * `azurerm_iothub` - support for configuring `ip_filter_rule` [GH-3173]
+* `azurerm_public_ip` - support for attaching a `azurerm_public_ip_prefix` [GH-3139]
 * `azurerm_storage_blob` - support for the `metadata` property [GH-3206]
 * `azurerm_traffic_manager_profile` - support the `MultiValue` and `Weighted` values for the `traffic_routing_method` property [GH-3207]
 * `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's [GH-3171]

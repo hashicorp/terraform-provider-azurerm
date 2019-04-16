@@ -52,3 +52,34 @@ func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	}
 	return annotations
 }
+
+func expandDataFactoryVariables(input map[string]interface{}) map[string]*datafactory.VariableSpecification {
+	output := make(map[string]*datafactory.VariableSpecification)
+
+	for k, v := range input {
+		output[k] = &datafactory.VariableSpecification{
+			Type:         datafactory.VariableTypeString,
+			DefaultValue: v.(string),
+		}
+	}
+
+	return output
+}
+
+func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		if v != nil {
+			// we only support string parameters at this time
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping variable %q since it's not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}

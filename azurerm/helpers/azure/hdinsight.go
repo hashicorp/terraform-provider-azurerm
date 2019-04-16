@@ -162,7 +162,7 @@ func SchemaHDInsightsStorageAccounts() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: ValidateResourceID,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"is_default": {
 					Type:     schema.TypeBool,
