@@ -48,9 +48,10 @@ IMPROVEMENTS:
 * `azurerm_traffic_manager_profile` - support the `MultiValue` and `Weighted` values for the `traffic_routing_method` property [GH-3207]
 * `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's [GH-3171]
 
-
 BUG FIXES:
 
+* `azurerm_app_service` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
+* `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
 * `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
 * `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
 * `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
