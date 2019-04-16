@@ -577,10 +577,15 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 }
 
 func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRuleSet {
-	configs := d.Get("network_access_profile").([]interface{})
-	config := configs[0].(map[string]interface{})
+	profiles := d.Get("network_access_profile").([]interface{})
 
-	virtualNetworkRuleConfigs := config["subnet_rule"].([]interface{})
+	if len(profiles) == 0 {
+		return nil
+	}
+
+	profile := profiles[0].(map[string]interface{})
+
+	virtualNetworkRuleConfigs := profile["subnet_rule"].([]interface{})
 	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
 
 	for _, virtualNetworkRuleInterface := range virtualNetworkRuleConfigs {
@@ -592,7 +597,7 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 			})
 	}
 
-	ipRuleConfigs := config["ip_rule"].([]interface{})
+	ipRuleConfigs := profile["ip_rule"].([]interface{})
 	ipRules := make([]containerregistry.IPRule, 0)
 
 	for _, ipRuleInterface := range ipRuleConfigs {
@@ -605,7 +610,7 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 	}
 
 	networkRuleSet := containerregistry.NetworkRuleSet{
-		DefaultAction:       containerregistry.DefaultAction(config["default_action"].(string)),
+		DefaultAction:       containerregistry.DefaultAction(profile["default_action"].(string)),
 		VirtualNetworkRules: &virtualNetworkRules,
 		IPRules:             &ipRules,
 	}
