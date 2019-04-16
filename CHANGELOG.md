@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_batch_certificate` [GH-3097]
+* **New Data Source:** `azurerm_express_route_circuit` [GH-3158]
 * **New Data Source:** `azurerm_firewall` [GH-3235]
 * **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
 * **New Data Source:** `azurerm_stream_analytics_job` [GH-3227]
