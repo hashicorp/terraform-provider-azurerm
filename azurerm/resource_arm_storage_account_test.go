@@ -594,7 +594,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.#", "0"),
 				),
 			},
 		},
