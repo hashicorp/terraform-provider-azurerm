@@ -71,25 +71,16 @@ var (
 //
 // See NewClient and ClientConfig for using a Client.
 type Client struct {
-	config            *ClientConfig
-	exited            bool
-	l                 sync.Mutex
-	address           net.Addr
-	process           *os.Process
-	client            ClientProtocol
-	protocol          Protocol
-	logger            hclog.Logger
-	doneCtx           context.Context
-	ctxCancel         context.CancelFunc
-	negotiatedVersion int
-
-	// clientWaitGroup is used to manage the lifecycle of the plugin management
-	// goroutines.
-	clientWaitGroup sync.WaitGroup
-
-	// processKilled is used for testing only, to flag when the process was
-	// forcefully killed.
-	processKilled bool
+	config      *ClientConfig
+	exited      bool
+	doneLogging chan struct{}
+	l           sync.Mutex
+	address     net.Addr
+	process     *os.Process
+	client      ClientProtocol
+	protocol    Protocol
+	logger      hclog.Logger
+	doneCtx     context.Context
 }
 
 // NegotiatedVersion returns the protocol version negotiated with the server.
@@ -489,6 +480,12 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		}
 	}
 
+	// Create the logging channel for when we kill
+	c.doneLogging = make(chan struct{})
+	// Create a context for when we kill
+	var ctxCancel context.CancelFunc
+	c.doneCtx, ctxCancel = context.WithCancel(context.Background())
+
 	if c.config.Reattach != nil {
 		return c.reattach()
 	}
@@ -507,9 +504,28 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		c.config.VersionedPlugins[version] = c.config.Plugins
 	}
 
-	var versionStrings []string
-	for v := range c.config.VersionedPlugins {
-		versionStrings = append(versionStrings, strconv.Itoa(v))
+			// Mark it
+			c.l.Lock()
+			defer c.l.Unlock()
+			c.exited = true
+
+			// Close the logging channel since that doesn't work on reattach
+			close(c.doneLogging)
+
+			// Cancel the context
+			ctxCancel()
+		}(p.Pid)
+
+		// Set the address and process
+		c.address = c.config.Reattach.Addr
+		c.process = p
+		c.protocol = c.config.Reattach.Protocol
+		if c.protocol == "" {
+			// Default the protocol to net/rpc for backwards compatibility
+			c.protocol = ProtocolNetRPC
+		}
+
+		return c.address, nil
 	}
 
 	env := []string{
@@ -618,6 +634,12 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		c.logger.Debug("plugin process exited", debugMsgArgs...)
 		os.Stderr.Sync()
 
+		// Mark that we exited
+		close(exitCh)
+
+		// Cancel the context, marking that we exited
+		ctxCancel()
+
 		// Set that we exited, which takes a lock
 		c.l.Lock()
 		defer c.l.Unlock()
@@ -703,12 +725,12 @@ func (c *Client) Start() (addr net.Addr, err error) {
 			return addr, err
 		}
 
-		// set the Plugins value to the compatible set, so the version
-		// doesn't need to be passed through to the ClientProtocol
-		// implementation.
-		c.config.Plugins = pluginSet
-		c.negotiatedVersion = version
-		c.logger.Debug("using plugin", "version", version)
+		// Test the API version
+		if uint(protocol) != c.config.ProtocolVersion {
+			err = fmt.Errorf("Incompatible API version with plugin. "+
+				"Plugin version: %s, Core version: %d", parts[1], c.config.ProtocolVersion)
+			return
+		}
 
 		switch parts[2] {
 		case "tcp":

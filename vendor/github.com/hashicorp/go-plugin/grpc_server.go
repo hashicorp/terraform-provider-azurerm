@@ -54,8 +54,6 @@ type GRPCServer struct {
 	config GRPCServerConfig
 	server *grpc.Server
 	broker *GRPCBroker
-
-	logger hclog.Logger
 }
 
 // ServerProtocol impl.
@@ -75,15 +73,9 @@ func (s *GRPCServer) Init() error {
 
 	// Register the broker service
 	brokerServer := newGRPCBrokerServer()
-	plugin.RegisterGRPCBrokerServer(s.server, brokerServer)
+	RegisterGRPCBrokerServer(s.server, brokerServer)
 	s.broker = newGRPCBroker(brokerServer, s.TLS)
 	go s.broker.Run()
-
-	// Register the controller
-	controllerServer := &grpcControllerServer{
-		server: s,
-	}
-	plugin.RegisterGRPCControllerServer(s.server, controllerServer)
 
 	// Register all our plugins onto the gRPC server.
 	for k, raw := range s.Plugins {
@@ -93,7 +85,7 @@ func (s *GRPCServer) Init() error {
 		}
 
 		if err := p.GRPCServer(s.broker, s.server); err != nil {
-			return fmt.Errorf("error registering %q: %s", k, err)
+			return fmt.Errorf("error registring %q: %s", k, err)
 		}
 	}
 

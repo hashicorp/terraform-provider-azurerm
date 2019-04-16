@@ -1,6 +1,6 @@
-# Azure Batch Sample
+## Example: Azure Batch
 
-Sample to deploy an Azure Batch instance
+This example provisions the following Resources:
 
 ## Creates
 

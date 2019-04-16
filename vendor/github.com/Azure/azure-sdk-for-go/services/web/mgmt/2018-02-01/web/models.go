@@ -965,6 +965,27 @@ func PossiblePublishingProfileFormatValues() []PublishingProfileFormat {
 	return []PublishingProfileFormat{FileZilla3, Ftp, WebDeploy}
 }
 
+// RedundancyMode enumerates the values for redundancy mode.
+type RedundancyMode string
+
+const (
+	// RedundancyModeActiveActive ...
+	RedundancyModeActiveActive RedundancyMode = "ActiveActive"
+	// RedundancyModeFailover ...
+	RedundancyModeFailover RedundancyMode = "Failover"
+	// RedundancyModeGeoRedundant ...
+	RedundancyModeGeoRedundant RedundancyMode = "GeoRedundant"
+	// RedundancyModeManual ...
+	RedundancyModeManual RedundancyMode = "Manual"
+	// RedundancyModeNone ...
+	RedundancyModeNone RedundancyMode = "None"
+)
+
+// PossibleRedundancyModeValues returns an array of possible values for the RedundancyMode const type.
+func PossibleRedundancyModeValues() []RedundancyMode {
+	return []RedundancyMode{RedundancyModeActiveActive, RedundancyModeFailover, RedundancyModeGeoRedundant, RedundancyModeManual, RedundancyModeNone}
+}
+
 // RenderingType enumerates the values for rendering type.
 type RenderingType string
 
@@ -4342,8 +4363,6 @@ type AppServicePlanPatchResourceProperties struct {
 	Status StatusOptions `json:"status,omitempty"`
 	// Subscription - App Service plan subscription.
 	Subscription *string `json:"subscription,omitempty"`
-	// AdminSiteName - App Service plan administration site.
-	AdminSiteName *string `json:"adminSiteName,omitempty"`
 	// HostingEnvironmentProfile - Specification for the App Service Environment to use for the App Service plan.
 	HostingEnvironmentProfile *HostingEnvironmentProfile `json:"hostingEnvironmentProfile,omitempty"`
 	// MaximumNumberOfWorkers - Maximum number of instances that can be assigned to this App Service plan.
@@ -4387,8 +4406,6 @@ type AppServicePlanProperties struct {
 	Status StatusOptions `json:"status,omitempty"`
 	// Subscription - App Service plan subscription.
 	Subscription *string `json:"subscription,omitempty"`
-	// AdminSiteName - App Service plan administration site.
-	AdminSiteName *string `json:"adminSiteName,omitempty"`
 	// HostingEnvironmentProfile - Specification for the App Service Environment to use for the App Service plan.
 	HostingEnvironmentProfile *HostingEnvironmentProfile `json:"hostingEnvironmentProfile,omitempty"`
 	// MaximumNumberOfWorkers - Maximum number of instances that can be assigned to this App Service plan.
@@ -10516,6 +10533,14 @@ type FunctionSecretsProperties struct {
 	TriggerURL *string `json:"trigger_url,omitempty"`
 }
 
+// GeoDistribution a global distribution definition.
+type GeoDistribution struct {
+	// Location - Location.
+	Location *string `json:"location,omitempty"`
+	// NumberOfWorkers - NumberOfWorkers.
+	NumberOfWorkers *int32 `json:"numberOfWorkers,omitempty"`
+}
+
 // GeoRegion geographical region.
 type GeoRegion struct {
 	// GeoRegionProperties - GeoRegion resource specific properties
@@ -11857,6 +11882,12 @@ type IPSecurityRestriction struct {
 	IPAddress *string `json:"ipAddress,omitempty"`
 	// SubnetMask - Subnet mask for the range of IP addresses the restriction is valid for.
 	SubnetMask *string `json:"subnetMask,omitempty"`
+	// VnetSubnetResourceID - Virtual network resource id
+	VnetSubnetResourceID *string `json:"vnetSubnetResourceId,omitempty"`
+	// VnetTrafficTag - (internal) Vnet traffic tag
+	VnetTrafficTag *int32 `json:"vnetTrafficTag,omitempty"`
+	// SubnetTrafficTag - (internal) Subnet traffic tag
+	SubnetTrafficTag *int32 `json:"subnetTrafficTag,omitempty"`
 	// Action - Allow or Deny access for this IP range.
 	Action *string `json:"action,omitempty"`
 	// Tag - Defines what this IP filter will be used for. This is to support IP filtering on proxies. Possible values include: 'Default', 'XffProxy'
@@ -19068,6 +19099,8 @@ type SitePatchResourceProperties struct {
 	ClientAffinityEnabled *bool `json:"clientAffinityEnabled,omitempty"`
 	// ClientCertEnabled - <code>true</code> to enable client certificate authentication (TLS mutual authentication); otherwise, <code>false</code>. Default is <code>false</code>.
 	ClientCertEnabled *bool `json:"clientCertEnabled,omitempty"`
+	// ClientCertExclusionPaths - client certificate authentication comma-separated exclusion paths
+	ClientCertExclusionPaths *string `json:"clientCertExclusionPaths,omitempty"`
 	// HostNamesDisabled - <code>true</code> to disable the public hostnames of the app; otherwise, <code>false</code>.
 	//  If <code>true</code>, the app is only accessible via API management process.
 	HostNamesDisabled *bool `json:"hostNamesDisabled,omitempty"`
@@ -19097,6 +19130,12 @@ type SitePatchResourceProperties struct {
 	// HTTPSOnly - HttpsOnly: configures a web site to accept only https requests. Issues redirect for
 	// http requests
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
+	// RedundancyMode - Site redundancy mode. Possible values include: 'RedundancyModeNone', 'RedundancyModeManual', 'RedundancyModeFailover', 'RedundancyModeActiveActive', 'RedundancyModeGeoRedundant'
+	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
+	// InProgressOperationID - Specifies an operation id if this site has a pending operation.
+	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
+	// GeoDistributions - GeoDistributions for this site
+	GeoDistributions *[]GeoDistribution `json:"geoDistributions,omitempty"`
 }
 
 // SitePhpErrorLogFlag used for getting PHP error logging flag.
@@ -19250,6 +19289,8 @@ type SiteProperties struct {
 	ClientAffinityEnabled *bool `json:"clientAffinityEnabled,omitempty"`
 	// ClientCertEnabled - <code>true</code> to enable client certificate authentication (TLS mutual authentication); otherwise, <code>false</code>. Default is <code>false</code>.
 	ClientCertEnabled *bool `json:"clientCertEnabled,omitempty"`
+	// ClientCertExclusionPaths - client certificate authentication comma-separated exclusion paths
+	ClientCertExclusionPaths *string `json:"clientCertExclusionPaths,omitempty"`
 	// HostNamesDisabled - <code>true</code> to disable the public hostnames of the app; otherwise, <code>false</code>.
 	//  If <code>true</code>, the app is only accessible via API management process.
 	HostNamesDisabled *bool `json:"hostNamesDisabled,omitempty"`
@@ -19279,6 +19320,12 @@ type SiteProperties struct {
 	// HTTPSOnly - HttpsOnly: configures a web site to accept only https requests. Issues redirect for
 	// http requests
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
+	// RedundancyMode - Site redundancy mode. Possible values include: 'RedundancyModeNone', 'RedundancyModeManual', 'RedundancyModeFailover', 'RedundancyModeActiveActive', 'RedundancyModeGeoRedundant'
+	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
+	// InProgressOperationID - Specifies an operation id if this site has a pending operation.
+	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
+	// GeoDistributions - GeoDistributions for this site
+	GeoDistributions *[]GeoDistribution `json:"geoDistributions,omitempty"`
 }
 
 // SiteSeal site seal
@@ -20655,6 +20702,8 @@ type StackMinorVersion struct {
 	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
 	// IsDefault - <code>true</code> if this is the default minor version; otherwise, <code>false</code>.
 	IsDefault *bool `json:"isDefault,omitempty"`
+	// IsRemoteDebuggingEnabled - <code>true</code> if this supports Remote Debugging, otherwise <code>false</code>.
+	IsRemoteDebuggingEnabled *bool `json:"isRemoteDebuggingEnabled,omitempty"`
 }
 
 // StampCapacity stamp capacity information.
@@ -22658,6 +22707,22 @@ type UserProperties struct {
 	PublishingPasswordHashSalt *string `json:"publishingPasswordHashSalt,omitempty"`
 	// ScmURI - Url of SCM site.
 	ScmURI *string `json:"scmUri,omitempty"`
+}
+
+// ValidateContainerSettingsRequest container settings validation request context
+type ValidateContainerSettingsRequest struct {
+	// BaseURL - Base URL of the container registry
+	BaseURL *string `json:"baseUrl,omitempty"`
+	// Username - Username for to access the container registry
+	Username *string `json:"username,omitempty"`
+	// Password - Password for to access the container registry
+	Password *string `json:"password,omitempty"`
+	// Repository - Repository name (image name)
+	Repository *string `json:"repository,omitempty"`
+	// Tag - Image tag
+	Tag *string `json:"tag,omitempty"`
+	// Platform - Platform (windows or linux)
+	Platform *string `json:"platform,omitempty"`
 }
 
 // ValidateProperties app properties used for validation.

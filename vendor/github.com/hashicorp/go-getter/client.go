@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
-	safetemp "github.com/hashicorp/go-safetemp"
+	"github.com/hashicorp/go-safetemp"
 )
 
 // Client is a client for downloading things.

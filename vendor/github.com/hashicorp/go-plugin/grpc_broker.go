@@ -11,8 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hashicorp/go-plugin/internal/plugin"
-
 	"github.com/oklog/run"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -21,14 +19,14 @@ import (
 // streamer interface is used in the broker to send/receive connection
 // information.
 type streamer interface {
-	Send(*plugin.ConnInfo) error
-	Recv() (*plugin.ConnInfo, error)
+	Send(*ConnInfo) error
+	Recv() (*ConnInfo, error)
 	Close()
 }
 
 // sendErr is used to pass errors back during a send.
 type sendErr struct {
-	i  *plugin.ConnInfo
+	i  *ConnInfo
 	ch chan error
 }
 
@@ -40,7 +38,7 @@ type gRPCBrokerServer struct {
 	send chan *sendErr
 
 	// recv is used to receive connection info from the gRPC stream.
-	recv chan *plugin.ConnInfo
+	recv chan *ConnInfo
 
 	// quit closes down the stream.
 	quit chan struct{}
@@ -52,7 +50,7 @@ type gRPCBrokerServer struct {
 func newGRPCBrokerServer() *gRPCBrokerServer {
 	return &gRPCBrokerServer{
 		send: make(chan *sendErr),
-		recv: make(chan *plugin.ConnInfo),
+		recv: make(chan *ConnInfo),
 		quit: make(chan struct{}),
 	}
 }
@@ -60,7 +58,7 @@ func newGRPCBrokerServer() *gRPCBrokerServer {
 // StartStream implements the GRPCBrokerServer interface and will block until
 // the quit channel is closed or the context reports Done. The stream will pass
 // connection information to/from the client.
-func (s *gRPCBrokerServer) StartStream(stream plugin.GRPCBroker_StartStreamServer) error {
+func (s *gRPCBrokerServer) StartStream(stream GRPCBroker_StartStreamServer) error {
 	doneCh := stream.Context().Done()
 	defer s.Close()
 
@@ -99,7 +97,7 @@ func (s *gRPCBrokerServer) StartStream(stream plugin.GRPCBroker_StartStreamServe
 
 // Send is used by the GRPCBroker to pass connection information into the stream
 // to the client.
-func (s *gRPCBrokerServer) Send(i *plugin.ConnInfo) error {
+func (s *gRPCBrokerServer) Send(i *ConnInfo) error {
 	ch := make(chan error)
 	defer close(ch)
 
@@ -117,7 +115,7 @@ func (s *gRPCBrokerServer) Send(i *plugin.ConnInfo) error {
 
 // Recv is used by the GRPCBroker to pass connection information that has been
 // sent from the client from the stream to the broker.
-func (s *gRPCBrokerServer) Recv() (*plugin.ConnInfo, error) {
+func (s *gRPCBrokerServer) Recv() (*ConnInfo, error) {
 	select {
 	case <-s.quit:
 		return nil, errors.New("broker closed")
@@ -138,13 +136,13 @@ func (s *gRPCBrokerServer) Close() {
 // streamer interfaces.
 type gRPCBrokerClientImpl struct {
 	// client is the underlying GRPC client used to make calls to the server.
-	client plugin.GRPCBrokerClient
+	client GRPCBrokerClient
 
 	// send is used to send connection info to the gRPC stream.
 	send chan *sendErr
 
 	// recv is used to receive connection info from the gRPC stream.
-	recv chan *plugin.ConnInfo
+	recv chan *ConnInfo
 
 	// quit closes down the stream.
 	quit chan struct{}
@@ -155,9 +153,9 @@ type gRPCBrokerClientImpl struct {
 
 func newGRPCBrokerClient(conn *grpc.ClientConn) *gRPCBrokerClientImpl {
 	return &gRPCBrokerClientImpl{
-		client: plugin.NewGRPCBrokerClient(conn),
+		client: NewGRPCBrokerClient(conn),
 		send:   make(chan *sendErr),
-		recv:   make(chan *plugin.ConnInfo),
+		recv:   make(chan *ConnInfo),
 		quit:   make(chan struct{}),
 	}
 }
@@ -209,7 +207,7 @@ func (s *gRPCBrokerClientImpl) StartStream() error {
 
 // Send is used by the GRPCBroker to pass connection information into the stream
 // to the plugin.
-func (s *gRPCBrokerClientImpl) Send(i *plugin.ConnInfo) error {
+func (s *gRPCBrokerClientImpl) Send(i *ConnInfo) error {
 	ch := make(chan error)
 	defer close(ch)
 
@@ -227,7 +225,7 @@ func (s *gRPCBrokerClientImpl) Send(i *plugin.ConnInfo) error {
 
 // Recv is used by the GRPCBroker to pass connection information that has been
 // sent from the plugin to the broker.
-func (s *gRPCBrokerClientImpl) Recv() (*plugin.ConnInfo, error) {
+func (s *gRPCBrokerClientImpl) Recv() (*ConnInfo, error) {
 	select {
 	case <-s.quit:
 		return nil, errors.New("broker closed")
@@ -268,7 +266,7 @@ type GRPCBroker struct {
 }
 
 type gRPCBrokerPending struct {
-	ch     chan *plugin.ConnInfo
+	ch     chan *ConnInfo
 	doneCh chan struct{}
 }
 
@@ -290,7 +288,7 @@ func (b *GRPCBroker) Accept(id uint32) (net.Listener, error) {
 		return nil, err
 	}
 
-	err = b.streamer.Send(&plugin.ConnInfo{
+	err = b.streamer.Send(&ConnInfo{
 		ServiceId: id,
 		Network:   listener.Addr().Network(),
 		Address:   listener.Addr().String(),
@@ -365,7 +363,7 @@ func (b *GRPCBroker) Close() error {
 
 // Dial opens a connection by ID.
 func (b *GRPCBroker) Dial(id uint32) (conn *grpc.ClientConn, err error) {
-	var c *plugin.ConnInfo
+	var c *ConnInfo
 
 	// Open the stream
 	p := b.getStream(id)
@@ -435,7 +433,7 @@ func (m *GRPCBroker) getStream(id uint32) *gRPCBrokerPending {
 	}
 
 	m.streams[id] = &gRPCBrokerPending{
-		ch:     make(chan *plugin.ConnInfo, 1),
+		ch:     make(chan *ConnInfo, 1),
 		doneCh: make(chan struct{}),
 	}
 	return m.streams[id]

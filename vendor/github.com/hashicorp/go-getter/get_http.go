@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	safetemp "github.com/hashicorp/go-safetemp"
+	"github.com/hashicorp/go-safetemp"
 )
 
 // HttpGetter is a Getter implementation that will download from an HTTP
@@ -217,7 +217,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 
 // getSubdir downloads the source into the destination, but with
 // the proper subdir.
-func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string) error {
+func (g *HttpGetter) getSubdir(dst, source, subDir string) error {
 	// Create a temporary directory to store the full source. This has to be
 	// a non-existent directory.
 	td, tdcloser, err := safetemp.Dir("", "getter")
@@ -226,10 +226,6 @@ func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string) 
 	}
 	defer tdcloser.Close()
 
-	var opts []ClientOption
-	if g.client != nil {
-		opts = g.client.Options
-	}
 	// Download that into the given directory
 	if err := Get(td, source, opts...); err != nil {
 		return err

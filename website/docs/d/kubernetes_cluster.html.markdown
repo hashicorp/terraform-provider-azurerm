@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
-* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below.
+* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
@@ -147,7 +147,7 @@ A `linux_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
-* `ssh_key` - One or more `ssh_key` blocks as defined below.
+* `ssh_key` - An `ssh_key` block as defined below.
 
 ---
 
@@ -158,6 +158,8 @@ A `network_profile` block exports the following:
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
+
+* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 

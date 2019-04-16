@@ -99,7 +99,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  virtual_machine_id = "${azurerm_virtual_machine.windows.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   lun                = "10"
   caching            = "ReadWrite"
 }

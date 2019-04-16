@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -145,6 +145,38 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"gpu": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"count": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validate.IntInSlice([]int{
+											1,
+											2,
+											4,
+										}),
+									},
+
+									"sku": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"K80",
+											"P100",
+											"V100",
+										}, false),
+									},
+								},
+							},
+						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -275,6 +307,64 @@ func resourceArmContainerGroup() *schema.Resource {
 								},
 							},
 						},
+
+						"liveness_probe": azure.SchemaContainerGroupProbe(),
+
+						"readiness_probe": azure.SchemaContainerGroupProbe(),
+					},
+				},
+			},
+
+			"diagnostics": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"log_analytics": {
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"workspace_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.UUID,
+									},
+
+									"workspace_key": {
+										Type:         schema.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"log_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerinstance.ContainerInsights),
+											string(containerinstance.ContainerInstanceLogs),
+										}, false),
+									},
+
+									"metadata": {
+										Type:     schema.TypeMap,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -318,6 +408,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
 
+	diagnosticsRaw := d.Get("diagnostics").([]interface{})
+	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
+
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
@@ -325,6 +418,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:    containers,
+			Diagnostics:   diagnostics,
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
@@ -340,8 +434,13 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -394,7 +493,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, props.ImageRegistryCredentials)); err != nil {
-			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+			return fmt.Errorf("Error setting `image_registry_credential`: %+v", err)
 		}
 
 		if address := props.IPAddress; address != nil {
@@ -406,7 +505,12 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+
+		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
+			return fmt.Errorf("Error setting `diagnostics`: %+v", err)
+		}
 	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -459,6 +563,21 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 					},
 				},
 			},
+		}
+
+		if v, ok := data["gpu"]; ok {
+			gpus := v.([]interface{})
+			for _, gpuRaw := range gpus {
+				v := gpuRaw.(map[string]interface{})
+				gpuCount := int32(v["count"].(int))
+				gpuSku := containerinstance.GpuSku(v["sku"].(string))
+
+				gpus := containerinstance.GpuResource{
+					Count: &gpuCount,
+					Sku:   gpuSku,
+				}
+				container.Resources.Requests.Gpu = &gpus
+			}
 		}
 
 		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
@@ -544,6 +663,14 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			if containerGroupVolumesPartial != nil {
 				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
 			}
+		}
+
+		if v, ok := data["liveness_probe"]; ok {
+			container.ContainerProperties.LivenessProbe = expandContainerProbe(v)
+		}
+
+		if v, ok := data["readiness_probe"]; ok {
+			container.ContainerProperties.ReadinessProbe = expandContainerProbe(v)
 		}
 
 		containers = append(containers, container)
@@ -647,6 +774,66 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	return &volumeMounts, &containerGroupVolumes
 }
 
+func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
+	probe := containerinstance.ContainerProbe{}
+	probeRaw := input.([]interface{})
+
+	if len(probeRaw) == 0 {
+		return nil
+	}
+
+	for _, p := range probeRaw {
+		probeConfig := p.(map[string]interface{})
+
+		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
+			probe.InitialDelaySeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["period_seconds"].(int); v > 0 {
+			probe.PeriodSeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["failure_threshold"].(int); v > 0 {
+			probe.FailureThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["success_threshold"].(int); v > 0 {
+			probe.SuccessThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["timeout_seconds"].(int); v > 0 {
+			probe.TimeoutSeconds = utils.Int32(int32(v))
+		}
+
+		commands := probeConfig["exec"].([]interface{})
+		if len(commands) > 0 {
+			exec := containerinstance.ContainerExec{
+				Command: utils.ExpandStringArray(commands),
+			}
+			probe.Exec = &exec
+		}
+
+		httpRaw := probeConfig["http_get"].([]interface{})
+		if len(httpRaw) > 0 {
+
+			for _, httpget := range httpRaw {
+				x := httpget.(map[string]interface{})
+
+				path := x["path"].(string)
+				port := x["port"].(int)
+				scheme := x["scheme"].(string)
+
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
+					Path:   utils.String(path),
+					Port:   utils.Int32(int32(port)),
+					Scheme: containerinstance.Scheme(scheme),
+				}
+			}
+		}
+	}
+	return &probe
+}
+
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
 		return nil
@@ -711,6 +898,17 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				if v := resourceRequests.MemoryInGB; v != nil {
 					containerConfig["memory"] = *v
 				}
+
+				gpus := make([]interface{}, 0)
+				if v := resourceRequests.Gpu; v != nil {
+					gpu := make(map[string]interface{})
+					if v.Count != nil {
+						gpu["count"] = *v.Count
+					}
+					gpu["sku"] = string(v.Sku)
+					gpus = append(gpus, gpu)
+				}
+				containerConfig["gpu"] = gpus
 			}
 		}
 
@@ -780,6 +978,9 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
+
+		containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
+		containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
 
 		containerCfg = append(containerCfg, containerConfig)
 	}
@@ -874,6 +1075,138 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := make(map[string]interface{})
+
+	if v := input.Exec; v != nil {
+		output["exec"] = *v.Command
+	}
+
+	httpGets := make([]interface{}, 0)
+	if get := input.HTTPGet; get != nil {
+		httpGet := make(map[string]interface{})
+
+		if v := get.Path; v != nil {
+			httpGet["path"] = *v
+		}
+
+		if v := get.Port; v != nil {
+			httpGet["port"] = *v
+		}
+
+		if get.Scheme != "" {
+			httpGet["scheme"] = get.Scheme
+		}
+
+		httpGets = append(httpGets, httpGet)
+	}
+	output["http_get"] = httpGets
+
+	if v := input.FailureThreshold; v != nil {
+		output["failure_threshold"] = *v
+	}
+
+	if v := input.InitialDelaySeconds; v != nil {
+		output["initial_delay_seconds"] = *v
+	}
+
+	if v := input.PeriodSeconds; v != nil {
+		output["period_seconds"] = *v
+	}
+
+	if v := input.SuccessThreshold; v != nil {
+		output["success_threshold"] = *v
+	}
+
+	if v := input.TimeoutSeconds; v != nil {
+		output["timeout_seconds"] = *v
+	}
+
+	outputs = append(outputs, output)
+	return outputs
+}
+
+func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.ContainerGroupDiagnostics {
+	if len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	analyticsVs := vs["log_analytics"].([]interface{})
+	analyticsV := analyticsVs[0].(map[string]interface{})
+
+	workspaceId := analyticsV["workspace_id"].(string)
+	workspaceKey := analyticsV["workspace_key"].(string)
+	logType := containerinstance.LogAnalyticsLogType(analyticsV["log_type"].(string))
+
+	metadataMap := analyticsV["metadata"].(map[string]interface{})
+	metadata := make(map[string]*string)
+	for k, v := range metadataMap {
+		strValue := v.(string)
+		metadata[k] = &strValue
+	}
+
+	return &containerinstance.ContainerGroupDiagnostics{
+		LogAnalytics: &containerinstance.LogAnalytics{
+			WorkspaceID:  utils.String(workspaceId),
+			WorkspaceKey: utils.String(workspaceKey),
+			LogType:      logType,
+			Metadata:     metadata,
+		},
+	}
+}
+
+func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	logAnalytics := make([]interface{}, 0)
+
+	if la := input.LogAnalytics; la != nil {
+		output := make(map[string]interface{})
+
+		output["log_type"] = string(la.LogType)
+
+		metadata := make(map[string]interface{})
+		for k, v := range la.Metadata {
+			metadata[k] = *v
+		}
+		output["metadata"] = metadata
+
+		if la.WorkspaceID != nil {
+			output["workspace_id"] = *la.WorkspaceID
+		}
+
+		// the existing config may not exist at Import time, protect against it.
+		workspaceKey := ""
+		if existingDiags := d.Get("diagnostics").([]interface{}); len(existingDiags) > 0 {
+			existingDiag := existingDiags[0].(map[string]interface{})
+			if existingLA := existingDiag["log_analytics"].([]interface{}); len(existingLA) > 0 {
+				vs := existingLA[0].(map[string]interface{})
+				if key := vs["workspace_key"]; key != nil && key.(string) != "" {
+					workspaceKey = key.(string)
+				}
+			}
+		}
+		output["workspace_key"] = workspaceKey
+
+		logAnalytics = append(logAnalytics, output)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"log_analytics": logAnalytics,
+		},
+	}
 }
 
 func resourceArmContainerGroupPortsHash(v interface{}) int {

@@ -507,7 +507,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
 	config := testAccAzureRMVirtualMachineScaleSet_customImage(ri, testLocation(), userName, password, hostName)
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, testLocation())
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, testLocation(), "LRS")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -1335,6 +1335,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode = "Manual"
+  zones               = []
 
   sku {
     name     = "Standard_D1_v2"

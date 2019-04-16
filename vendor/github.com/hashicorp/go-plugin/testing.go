@@ -3,7 +3,6 @@ package plugin
 import (
 	"bytes"
 	"context"
-	"io"
 	"net"
 	"net/rpc"
 
@@ -169,11 +168,10 @@ func TestPluginGRPCConn(t testing.T, ps map[string]Plugin) (*GRPCClient, *GRPCSe
 
 	// Create the client
 	client := &GRPCClient{
-		Conn:       conn,
-		Plugins:    ps,
-		broker:     broker,
-		doneCtx:    context.Background(),
-		controller: plugin.NewGRPCControllerClient(conn),
+		Conn:    conn,
+		Plugins: ps,
+		broker:  broker,
+		doneCtx: context.Background(),
 	}
 
 	return client, server

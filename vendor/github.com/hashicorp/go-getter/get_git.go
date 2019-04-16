@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
-	safetemp "github.com/hashicorp/go-safetemp"
-	version "github.com/hashicorp/go-version"
+	"github.com/hashicorp/go-safetemp"
+	"github.com/hashicorp/go-version"
 )
 
 // GitGetter is a Getter implementation that will download a module from

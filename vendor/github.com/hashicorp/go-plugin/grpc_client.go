@@ -17,7 +17,7 @@ func dialGRPCConn(tls *tls.Config, dialer func(string, time.Duration) (net.Conn,
 	// Build dialing options.
 	opts := make([]grpc.DialOption, 0, 5)
 
-	// We use a custom dialer so that we can connect over unix domain sockets.
+	// We use a custom dialer so that we can connect over unix domain sockets
 	opts = append(opts, grpc.WithDialer(dialer))
 
 	// Fail right away
@@ -56,6 +56,28 @@ func newGRPCClient(doneCtx context.Context, c *Client) (*GRPCClient, error) {
 	go broker.Run()
 	go brokerGRPCClient.StartStream()
 
+	return &GRPCClient{
+		Conn:    conn,
+		Plugins: c.config.Plugins,
+		doneCtx: doneCtx,
+		broker:  broker,
+	}, nil
+}
+
+// newGRPCClient creates a new GRPCClient. The Client argument is expected
+// to be successfully started already with a lock held.
+func newGRPCClient(doneCtx context.Context, c *Client) (*GRPCClient, error) {
+	conn, err := dialGRPCConn(c.config.TLSConfig, c.dialer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Start the broker.
+	brokerGRPCClient := newGRPCBrokerClient(conn)
+	broker := newGRPCBroker(brokerGRPCClient, c.config.TLSConfig)
+	go broker.Run()
+	go brokerGRPCClient.StartStream()
+
 	cl := &GRPCClient{
 		Conn:       conn,
 		Plugins:    c.config.Plugins,
@@ -74,14 +96,11 @@ type GRPCClient struct {
 
 	doneCtx context.Context
 	broker  *GRPCBroker
-
-	controller plugin.GRPCControllerClient
 }
 
 // ClientProtocol impl.
 func (c *GRPCClient) Close() error {
 	c.broker.Close()
-	c.controller.Shutdown(c.doneCtx, &plugin.Empty{})
 	return c.Conn.Close()
 }
 

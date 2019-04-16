@@ -8,19 +8,15 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/hashicorp/terraform/addrs"
 	"github.com/hashicorp/terraform/config"
-	"github.com/hashicorp/terraform/configs"
-	"github.com/hashicorp/terraform/lang"
-	"github.com/hashicorp/terraform/plans"
-	"github.com/hashicorp/terraform/providers"
-	"github.com/hashicorp/terraform/provisioners"
-	"github.com/hashicorp/terraform/states"
-	"github.com/hashicorp/terraform/states/statefile"
+	"github.com/hashicorp/terraform/config/module"
 	"github.com/hashicorp/terraform/tfdiags"
+	"github.com/hashicorp/terraform/version"
 )
 
 // InputMode defines what sort of input will be asked for when Input
@@ -390,13 +386,79 @@ func (c *Context) Eval(path addrs.ModuleInstance) (*lang.Scope, tfdiags.Diagnost
 	c.state = c.state.DeepCopy()
 	var walker *ContextGraphWalker
 
-	graph, graphDiags := c.Graph(GraphTypeEval, nil)
-	diags = diags.Append(graphDiags)
-	if !diags.HasErrors() {
-		var walkDiags tfdiags.Diagnostics
-		walker, walkDiags = c.walk(graph, walkEval)
-		diags = diags.Append(walker.NonFatalDiagnostics)
-		diags = diags.Append(walkDiags)
+			var valueType config.VariableType
+
+			v := m[n]
+			switch valueType = v.Type(); valueType {
+			case config.VariableTypeUnknown:
+				continue
+			case config.VariableTypeMap:
+				// OK
+			case config.VariableTypeList:
+				// OK
+			case config.VariableTypeString:
+				// OK
+			default:
+				panic(fmt.Sprintf("Unknown variable type: %#v", v.Type()))
+			}
+
+			// If the variable is not already set, and the variable defines a
+			// default, use that for the value.
+			if _, ok := c.variables[n]; !ok {
+				if v.Default != nil {
+					c.variables[n] = v.Default.(string)
+					continue
+				}
+			}
+
+			// this should only happen during tests
+			if c.uiInput == nil {
+				log.Println("[WARN] Content.uiInput is nil")
+				continue
+			}
+
+			// Ask the user for a value for this variable
+			var value string
+			retry := 0
+			for {
+				var err error
+				value, err = c.uiInput.Input(context.Background(), &InputOpts{
+					Id:          fmt.Sprintf("var.%s", n),
+					Query:       fmt.Sprintf("var.%s", n),
+					Description: v.Description,
+				})
+				if err != nil {
+					return fmt.Errorf(
+						"Error asking for %s: %s", n, err)
+				}
+
+				if value == "" && v.Required() {
+					// Redo if it is required, but abort if we keep getting
+					// blank entries
+					if retry > 2 {
+						return fmt.Errorf("missing required value for %q", n)
+					}
+					retry++
+					continue
+				}
+
+				break
+			}
+
+			// no value provided, so don't set the variable at all
+			if value == "" {
+				continue
+			}
+
+			decoded, err := parseVariableAsHCL(n, value, valueType)
+			if err != nil {
+				return err
+			}
+
+			if decoded != nil {
+				c.variables[n] = decoded
+			}
+		}
 	}
 
 	if walker == nil {

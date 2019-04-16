@@ -210,7 +210,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 }
 
 resource "azurerm_data_lake_analytics_firewall_rule" "test" {
-  name                = "acctest"
+  name                = "acctest%[3]s"
   account_name        = "${azurerm_data_lake_analytics_account.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   start_ip_address    = "%[4]s"
