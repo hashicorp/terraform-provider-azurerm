@@ -15,23 +15,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func resourceArmConnectionMonitor() *schema.Resource {
+func resourceArmNetworkConnectionMonitor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmConnectionMonitorCreateUpdate,
-		Read:   resourceArmConnectionMonitorRead,
-		Update: resourceArmConnectionMonitorCreateUpdate,
-		Delete: resourceArmConnectionMonitorDelete,
+		Create: resourceArmNetworkConnectionMonitorCreateUpdate,
+		Read:   resourceArmNetworkConnectionMonitorRead,
+		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
+		Delete: resourceArmNetworkConnectionMonitorDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
-		DeprecationMessage: `The 'azurerm_connection_monitor' resource is deprecated in favour of the renamed version 'azurerm_network_connection_monitor'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
-
-As such the existing 'azurerm_connection_monitor' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -118,7 +111,7 @@ As such the existing 'azurerm_connection_monitor' resource is deprecated and wil
 	}
 }
 
-func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).connectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -129,12 +122,12 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 	autoStart := d.Get("auto_start").(bool)
 	intervalInSeconds := int32(d.Get("interval_in_seconds").(int))
 
-	source, err := expandArmConnectionMonitorSource(d)
+	source, err := expandArmNetworkConnectionMonitorSource(d)
 	if err != nil {
 		return err
 	}
 
-	dest, err := expandArmConnectionMonitorDestination(d)
+	dest, err := expandArmNetworkConnectionMonitorDestination(d)
 	if err != nil {
 		return err
 	}
@@ -148,7 +141,7 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_connection_monitor", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_network_connection_monitor", *existing.ID)
 		}
 	}
 
@@ -184,10 +177,10 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmConnectionMonitorRead(d, meta)
+	return resourceArmNetworkConnectionMonitorRead(d, meta)
 }
 
-func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).connectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -197,7 +190,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 	}
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["connectionMonitors"]
+	name := id.Path["NetworkConnectionMonitors"]
 
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
@@ -219,12 +212,12 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("auto_start", props.AutoStart)
 		d.Set("interval_in_seconds", props.MonitoringIntervalInSeconds)
 
-		source := flattenArmConnectionMonitorSource(props.Source)
+		source := flattenArmNetworkConnectionMonitorSource(props.Source)
 		if err := d.Set("source", source); err != nil {
 			return fmt.Errorf("Error setting `source`: %+v", err)
 		}
 
-		dest := flattenArmConnectionMonitorDestination(props.Destination)
+		dest := flattenArmNetworkConnectionMonitorDestination(props.Destination)
 		if err := d.Set("destination", dest); err != nil {
 			return fmt.Errorf("Error setting `destination`: %+v", err)
 		}
@@ -235,7 +228,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).connectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -245,7 +238,7 @@ func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}
 	}
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["connectionMonitors"]
+	name := id.Path["NetworkConnectionMonitors"]
 
 	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
 	if err != nil {
@@ -261,7 +254,7 @@ func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenArmConnectionMonitorSource(input *network.ConnectionMonitorSource) []interface{} {
+func flattenArmNetworkConnectionMonitorSource(input *network.ConnectionMonitorSource) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -278,7 +271,7 @@ func flattenArmConnectionMonitorSource(input *network.ConnectionMonitorSource) [
 	return []interface{}{output}
 }
 
-func expandArmConnectionMonitorSource(d *schema.ResourceData) (*network.ConnectionMonitorSource, error) {
+func expandArmNetworkConnectionMonitorSource(d *schema.ResourceData) (*network.ConnectionMonitorSource, error) {
 	sources := d.Get("source").([]interface{})
 	source := sources[0].(map[string]interface{})
 
@@ -293,7 +286,7 @@ func expandArmConnectionMonitorSource(d *schema.ResourceData) (*network.Connecti
 	return &monitorSource, nil
 }
 
-func flattenArmConnectionMonitorDestination(input *network.ConnectionMonitorDestination) []interface{} {
+func flattenArmNetworkConnectionMonitorDestination(input *network.ConnectionMonitorDestination) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -316,7 +309,7 @@ func flattenArmConnectionMonitorDestination(input *network.ConnectionMonitorDest
 	return []interface{}{output}
 }
 
-func expandArmConnectionMonitorDestination(d *schema.ResourceData) (*network.ConnectionMonitorDestination, error) {
+func expandArmNetworkConnectionMonitorDestination(d *schema.ResourceData) (*network.ConnectionMonitorDestination, error) {
 	dests := d.Get("destination").([]interface{})
 	dest := dests[0].(map[string]interface{})
 
