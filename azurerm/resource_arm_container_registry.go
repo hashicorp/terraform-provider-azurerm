@@ -218,7 +218,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	networkRuleSet := expandNetworkRuleSet(d)
 	//NetworkRuleSet is only supported by Premium SDK
-	if &networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
 	}
 
@@ -302,7 +302,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	networkRuleSet := expandNetworkRuleSet(d)
 	//NetworkRuleSet is only supported by Premium SDK
-	if &networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
 	}
 
