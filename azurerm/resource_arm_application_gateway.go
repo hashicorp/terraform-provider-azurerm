@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -32,6 +32,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"location": locationSchema(),
+
+			"zones": zonesSchema(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -999,9 +1001,11 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
+		Zones:    zones,
 
 		Tags: expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
@@ -1103,6 +1107,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	if location := applicationGateway.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+	d.Set("zones", applicationGateway.Zones)
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)

@@ -139,6 +139,10 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
+
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
+
 ---
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.

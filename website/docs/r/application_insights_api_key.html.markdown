@@ -22,7 +22,7 @@ resource "azurerm_application_insights" "test" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "Web"
+  application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "read_telemetry" {
