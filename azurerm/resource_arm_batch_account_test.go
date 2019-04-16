@@ -186,7 +186,7 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 func testAccAzureRMBatchAccount_basic(rInt int, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchaccount"
   location = "%s"
 }
 
@@ -215,7 +215,7 @@ resource "azurerm_batch_account" "import" {
 func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchaccount"
   location = "%s"
 }
 
@@ -244,7 +244,7 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batchaccount"
   location = "%s"
 }
 
