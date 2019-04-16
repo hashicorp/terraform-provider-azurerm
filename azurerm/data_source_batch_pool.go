@@ -199,6 +199,39 @@ func dataSourceArmBatchPool() *schema.Resource {
 								},
 							},
 						},
+
+						"resource_file": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auto_storage_container_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"blob_prefix": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"file_mode": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"file_path": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"http_url": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"storage_container_url": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},

@@ -79,6 +79,8 @@ A `start_task` block exports the following:
 
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
+* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
 ---
 
 A `user_identity` block exports the following:
@@ -110,3 +112,19 @@ A `certificate` block exports the following:
 -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference).
 
 * `visibility` - Which user accounts on the compute node have access to the private data of the certificate.
+
+---
+
+A `resource_file` block exports the following:
+
+* `auto_storage_container_name` - The storage container name in the auto storage account.
+
+* `blob_prefix` - The blob prefix used when downloading blobs from an Azure Storage container.
+
+* `file_mode` - The file permission mode attribute represented as a string in octal format (e.g. `"0644"`).
+
+* `file_path` - The location on the compute node to which to download the file, relative to the task's working directory. If the `http_url` property is specified, the `file_path` is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the `auto_storage_container_name` or `storage_container_url` property is specified.
+
+* `http_url` - The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access.
+
+* `storage_container_url` - The URL of the blob container within Azure Blob Storage.
