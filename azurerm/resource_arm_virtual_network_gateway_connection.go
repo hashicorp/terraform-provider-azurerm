@@ -108,6 +108,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"express_route_gateway_bypass": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"ipsec_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -350,6 +356,10 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
+	if conn.ExpressRouteGatewayBypass != nil {
+		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
+	}
+
 	if conn.IpsecPolicies != nil {
 		ipsecPolicies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
 
@@ -390,6 +400,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
 		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
+		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
 	}
 

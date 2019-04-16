@@ -122,6 +122,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_dev_test_lab":                           dataSourceArmDevTestLab(),
 			"azurerm_dns_zone":                               dataSourceArmDnsZone(),
 			"azurerm_eventhub_namespace":                     dataSourceEventHubNamespace(),
+			"azurerm_express_route_circuit":                  dataSourceArmExpressRouteCircuit(),
 			"azurerm_firewall":                               dataSourceArmFirewall(),
 			"azurerm_image":                                  dataSourceArmImage(),
 			"azurerm_hdinsight_cluster":                      dataSourceArmHDInsightSparkCluster(),
