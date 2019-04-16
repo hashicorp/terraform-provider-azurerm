@@ -318,6 +318,9 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 
 func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -326,9 +329,6 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		NetworkConnectionMonitorName := rs.Primary.Attributes["name"]
-
-		client := testAccProvider.Meta().(*ArmClient).NetworkConnectionMonitorsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkConnectionMonitorName)
 		if err != nil {
@@ -344,7 +344,7 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NetworkConnectionMonitorsClient
+	client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
