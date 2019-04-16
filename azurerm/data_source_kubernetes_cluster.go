@@ -612,7 +612,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
