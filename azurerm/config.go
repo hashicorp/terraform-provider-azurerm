@@ -227,6 +227,7 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Factory
+	dataFactoryPipelineClient      datafactory.PipelinesClient
 	dataFactoryClient              datafactory.FactoriesClient
 	dataFactoryDatasetClient       datafactory.DatasetsClient
 	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
@@ -292,6 +293,7 @@ type ArmClient struct {
 	localNetConnClient              network.LocalNetworkGatewaysClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
+	publicIPPrefixClient            network.PublicIPPrefixesClient
 	routesClient                    network.RoutesClient
 	routeTablesClient               network.RouteTablesClient
 	secGroupClient                  network.SecurityGroupsClient
@@ -907,6 +909,10 @@ func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, 
 	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
 	c.dataFactoryLinkedServiceClient = dataFactoryLinkedServiceClient
+
+	dataFactoryPipelineClient := datafactory.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryPipelineClient.Client, auth)
+	c.dataFactoryPipelineClient = dataFactoryPipelineClient
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1131,6 +1137,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	publicIPAddressesClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&publicIPAddressesClient.Client, auth)
 	c.publicIPClient = publicIPAddressesClient
+
+	publicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&publicIPPrefixesClient.Client, auth)
+	c.publicIPPrefixClient = publicIPPrefixesClient
 
 	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&routesClient.Client, auth)
