@@ -106,7 +106,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 								"UserAssigned",
-								"SystemAssignedUserAssigned",
+								"SystemAssigned, UserAssigned",
 							}, false),
 						},
 						"principal_id": {
