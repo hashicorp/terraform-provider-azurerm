@@ -1109,7 +1109,7 @@ resource "azurerm_storage_account" "testsa" {
   network_rules {
     default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
-	virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
   tags = {
@@ -1149,7 +1149,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
-	default_action         = "Deny"
+    default_action         = "Deny"
     ip_rules               = ["127.0.0.1", "127.0.0.2"]
     bypass                 = ["Logging", "Metrics"]
   }
