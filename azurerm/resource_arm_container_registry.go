@@ -564,11 +564,11 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 }
 
 func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRuleSet {
-	configs := d.Get("network_access_profile").(*schema.Set).List()
+	configs := d.Get("network_access_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
 
 	virtualNetworkRuleConfigs := config["subnet_rule"].([]interface{})
-	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0, len(virtualNetworkRuleConfigs))
+	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
 
 	for _, virtualNetworkRuleInterface := range virtualNetworkRuleConfigs {
 		config := virtualNetworkRuleInterface.(map[string]interface{})
@@ -580,7 +580,7 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 	}
 
 	ipRuleConfigs := config["ip_rule"].([]interface{})
-	ipRules := make([]containerregistry.IPRule, 0, len(ipRuleConfigs))
+	ipRules := make([]containerregistry.IPRule, 0)
 
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
