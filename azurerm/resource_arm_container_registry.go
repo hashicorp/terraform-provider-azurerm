@@ -217,7 +217,8 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d)
-	if &networkRuleSet != nil && sku != string(containerregistry.Premium) {
+	//NetworkRuleSet is only supported by Premium SDK
+	if &networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
 	}
 
@@ -300,7 +301,8 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	newGeoReplicationLocations := new.(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d)
-	if networkRuleSet != nil && sku != string(containerregistry.Premium) {
+	//NetworkRuleSet is only supported by Premium SDK
+	if &networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
 	}
 
