@@ -146,7 +146,7 @@ func resourceArmDataFactoryDatasetMySQLCreateOrUpdate(d *schema.ResourceData, me
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_sql_server", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_mysql", *existing.ID)
 		}
 	}
 
@@ -192,7 +192,7 @@ func resourceArmDataFactoryDatasetMySQLCreateOrUpdate(d *schema.ResourceData, me
 		mysqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeSQLServerTable)
+	datasetType := string(datafactory.TypeRelationalTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &mysqlTableset,
 		Type:       &datasetType,
@@ -244,7 +244,7 @@ func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interfa
 
 	mysqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServerTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysqlTable.AdditionalProperties)
