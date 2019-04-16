@@ -37,7 +37,11 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameSchema(),
+
+			// TODO: make this case sensitive once this API bug has been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5574
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
