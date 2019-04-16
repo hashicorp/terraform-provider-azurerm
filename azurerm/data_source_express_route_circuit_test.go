@@ -21,8 +21,8 @@ func testAccDataSourceAzureRMExpressRoute_basicMetered(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMExpressRoute_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "service_provider_properties.0.service_provider_name", "Equinix Test"),
-					resource.TestCheckResourceAttr(dataSourceName, "service_provider_properties.0.peering_location", "Silicon Valley Test"),
+					resource.TestCheckResourceAttr(dataSourceName, "service_provider_properties.0.service_provider_name", "Equinix"),
+					resource.TestCheckResourceAttr(dataSourceName, "service_provider_properties.0.peering_location", "Silicon Valley"),
 					resource.TestCheckResourceAttr(dataSourceName, "service_provider_properties.0.bandwidth_in_mbps", "50"),
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.tier", "Standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.family", "MeteredData"),
