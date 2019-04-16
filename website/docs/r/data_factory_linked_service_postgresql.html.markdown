@@ -30,7 +30,7 @@ resource "azurerm_data_factory_linked_service_postgresql" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  connection_string   ="Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 ```
 
