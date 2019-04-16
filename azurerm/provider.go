@@ -384,6 +384,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_storage_share":                                                          resourceArmStorageShare(),
 			"azurerm_storage_table":                                                          resourceArmStorageTable(),
 			"azurerm_stream_analytics_job":                                                   resourceArmStreamAnalyticsJob(),
+			"azurerm_stream_analytics_function_javascript_udf":                               resourceArmStreamAnalyticsFunctionUDF(),
 			"azurerm_subnet_network_security_group_association":                              resourceArmSubnetNetworkSecurityGroupAssociation(),
 			"azurerm_subnet_route_table_association":                                         resourceArmSubnetRouteTableAssociation(),
 			"azurerm_subnet":                                                                 resourceArmSubnet(),
