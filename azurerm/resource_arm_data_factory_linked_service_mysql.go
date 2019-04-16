@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -190,7 +189,7 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 
 	mysql, ok := resp.Properties.AsMySQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServer, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeMySQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)
@@ -215,19 +214,6 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 		}
 	}
 
-	connectionString := ""
-	if properties := mysql.MySQLLinkedServiceTypeProperties; properties != nil {
-		if properties.ConnectionString != nil {
-			val, ok := properties.ConnectionString.(string)
-			if ok {
-				connectionString = val
-			} else {
-				log.Printf("[DEBUG] Skipping connection string %q since it's not a string", val)
-			}
-		}
-	}
-	d.Set("connection_string", connectionString)
-
 	return nil
 }
 
@@ -246,7 +232,7 @@ func resourceArmDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 

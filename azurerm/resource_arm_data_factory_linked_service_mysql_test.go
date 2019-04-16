@@ -12,86 +12,80 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 )
 
-func TestAzureRmDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
-	cases := []struct {
-		Old    string
-		New    string
-		NoDiff bool
-	}{
-		{
-			Old:    "",
-			New:    "",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test2;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
-			NoDiff: false,
-		},
-	}
-
-	for _, tc := range cases {
-		noDiff := azureRmDataFactoryLinkedServiceConnectionStringDiff("", tc.Old, tc.New, nil)
-
-		if noDiff != tc.NoDiff {
-			t.Fatalf("Expected azureRmDataFactoryLinkedServiceConnectionStringDiff to be '%t' for '%s' '%s' - got '%t'", tc.NoDiff, tc.Old, tc.New, noDiff)
-		}
-	}
-}
-
-func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, testLocation())
-	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
+	config := testAccAzureRMDataFactoryLinkedServiceMySQL_basic(ri, testLocation())
+	resourceName := "azurerm_data_factory_linked_service_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
-				),
-			},
-			{
-				Config: config2,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(resourceName),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// returned as ***** from the api
+					"connection_string",
+				},
 			},
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resource.TestCheckFunc {
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMDataFactoryLinkedServiceMySQL_update1(ri, testLocation())
+	config2 := testAccAzureRMDataFactoryLinkedServiceMySQL_update2(ri, testLocation())
+	resourceName := "azurerm_data_factory_linked_service_mysql.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+				),
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
+					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// returned as ***** from the api
+					"connection_string",
+				},
+			},
+		},
+	})
+}
+
+func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -115,19 +109,19 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service SQL Server %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).dataFactoryLinkedServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_sql_server" {
+		if rs.Type != "azurerm_data_factory_linked_service_mysql" {
 			continue
 		}
 
@@ -142,14 +136,14 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service SQL Server still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service MySQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -162,7 +156,29 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_linked_service_sql_server" "test" {
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update1(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_linked_service_mysql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
@@ -181,7 +197,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -194,7 +210,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_linked_service_sql_server" "test" {
+resource "azurerm_data_factory_linked_service_mysql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
