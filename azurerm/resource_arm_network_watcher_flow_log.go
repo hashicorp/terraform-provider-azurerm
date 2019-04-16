@@ -288,13 +288,12 @@ func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *network.Retention
 	}
 
 	result := make(map[string]interface{})
-	if input != nil {
-		if input.Enabled != nil {
-			result["enabled"] = *input.Enabled
-		}
-		if input.Days != nil {
-			result["days"] = *input.Days
-		}
+
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
+	}
+	if input.Days != nil {
+		result["days"] = *input.Days
 	}
 
 	return []interface{}{result}
@@ -308,20 +307,19 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 	}
 
 	result := make(map[string]interface{})
-	if input != nil {
-		if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
-			if cfg.Enabled != nil {
-				result["enabled"] = *cfg.Enabled
-			}
-			if cfg.WorkspaceID != nil {
-				result["workspace_id"] = *cfg.WorkspaceID
-			}
-			if cfg.WorkspaceRegion != nil {
-				result["workspace_region"] = *cfg.WorkspaceRegion
-			}
-			if cfg.WorkspaceResourceID != nil {
-				result["workspace_resource_id"] = *cfg.WorkspaceResourceID
-			}
+
+	if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
+		if cfg.Enabled != nil {
+			result["enabled"] = *cfg.Enabled
+		}
+		if cfg.WorkspaceID != nil {
+			result["workspace_id"] = *cfg.WorkspaceID
+		}
+		if cfg.WorkspaceRegion != nil {
+			result["workspace_region"] = *cfg.WorkspaceRegion
+		}
+		if cfg.WorkspaceResourceID != nil {
+			result["workspace_resource_id"] = *cfg.WorkspaceResourceID
 		}
 	}
 
