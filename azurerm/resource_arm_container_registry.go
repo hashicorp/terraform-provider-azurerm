@@ -113,7 +113,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"network_access_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
