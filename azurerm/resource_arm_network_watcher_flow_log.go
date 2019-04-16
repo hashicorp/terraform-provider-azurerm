@@ -349,7 +349,7 @@ func isDefaultDisabledFlowLogTrafficAnalytics(input *network.TrafficAnalyticsPro
 	// Azure returns `/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/` by default when traffic analytics is not set
 	// along with empty strings for the rest of the values
 	if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
-		return  ! (cfg.Enabled != nil && *cfg.Enabled &&
+		return !(cfg.Enabled != nil && *cfg.Enabled &&
 			cfg.WorkspaceID != nil && *cfg.WorkspaceID != "" &&
 			cfg.WorkspaceRegion != nil && *cfg.WorkspaceRegion != "" &&
 			cfg.WorkspaceResourceID != nil && *cfg.WorkspaceResourceID != "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/")
