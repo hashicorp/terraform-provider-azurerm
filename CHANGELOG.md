@@ -23,6 +23,9 @@ FEATURES:
 * **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
 * **New Resource:** `azurerm_stream_analytics_job` [GH-3227]
 * **New Resource:** `azurerm_stream_analytics_function_javascript_udf` [GH-3249]
+* **New Resource:** `azurerm_stream_analytics_output_blob` [GH-3250]
+* **New Resource:** `azurerm_stream_analytics_output_eventhub` [GH-3250]
+* **New Resource:** `azurerm_stream_analytics_output_servicebus_queue` [GH-3250]
 
 IMPROVEMENTS:
 
