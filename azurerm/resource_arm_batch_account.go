@@ -31,8 +31,12 @@ func resourceArmBatchAccount() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameSchema(),
-			"location":            locationSchema(),
+
+			// TODO: make this case sensitive once this API bug has been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5574
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
+			"location": locationSchema(),
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
