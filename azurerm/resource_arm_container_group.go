@@ -750,6 +750,9 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 func expandContainerGroupIdentity(d *schema.ResourceData) *containerinstance.ContainerGroupIdentity {
 	v := d.Get("identity")
 	identities := v.([]interface{})
+	if len(identities) == 0 {
+	  return nil
+	}
 	identity := identities[0].(map[string]interface{})
 	identityType := containerinstance.ResourceIdentityType(identity["type"].(string))
 
