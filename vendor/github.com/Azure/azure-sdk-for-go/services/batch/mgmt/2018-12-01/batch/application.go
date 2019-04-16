@@ -45,9 +45,9 @@ func NewApplicationClientWithBaseURI(baseURI string, subscriptionID string) Appl
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
-// applicationID - the ID of the application.
+// applicationName - the name of the application. This must be unique within the account.
 // parameters - the parameters for the request.
-func (client ApplicationClient) Create(ctx context.Context, resourceGroupName string, accountName string, applicationID string, parameters *ApplicationCreateParameters) (result Application, err error) {
+func (client ApplicationClient) Create(ctx context.Context, resourceGroupName string, accountName string, applicationName string, parameters *Application) (result Application, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationClient.Create")
 		defer func() {
@@ -62,11 +62,15 @@ func (client ApplicationClient) Create(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: applicationName,
+			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "applicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9_-]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("batch.ApplicationClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, applicationID, parameters)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, applicationName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Create", nil, "Failure preparing request")
 		return
@@ -88,15 +92,15 @@ func (client ApplicationClient) Create(ctx context.Context, resourceGroupName st
 }
 
 // CreatePreparer prepares the Create request.
-func (client ApplicationClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationID string, parameters *ApplicationCreateParameters) (*http.Request, error) {
+func (client ApplicationClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationName string, parameters *Application) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"applicationId":     autorest.Encode("path", applicationID),
+		"applicationName":   autorest.Encode("path", applicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -105,7 +109,7 @@ func (client ApplicationClient) CreatePreparer(ctx context.Context, resourceGrou
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	if parameters != nil {
 		preparer = autorest.DecoratePreparer(preparer,
@@ -127,7 +131,7 @@ func (client ApplicationClient) CreateResponder(resp *http.Response) (result App
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -138,8 +142,8 @@ func (client ApplicationClient) CreateResponder(resp *http.Response) (result App
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
-// applicationID - the ID of the application.
-func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName string, accountName string, applicationID string) (result autorest.Response, err error) {
+// applicationName - the name of the application. This must be unique within the account.
+func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName string, accountName string, applicationName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationClient.Delete")
 		defer func() {
@@ -154,11 +158,15 @@ func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: applicationName,
+			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "applicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9_-]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("batch.ApplicationClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, applicationID)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, applicationName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Delete", nil, "Failure preparing request")
 		return
@@ -180,15 +188,15 @@ func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName st
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ApplicationClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationID string) (*http.Request, error) {
+func (client ApplicationClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"applicationId":     autorest.Encode("path", applicationID),
+		"applicationName":   autorest.Encode("path", applicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,7 +204,7 @@ func (client ApplicationClient) DeletePreparer(ctx context.Context, resourceGrou
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -224,8 +232,8 @@ func (client ApplicationClient) DeleteResponder(resp *http.Response) (result aut
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
-// applicationID - the ID of the application.
-func (client ApplicationClient) Get(ctx context.Context, resourceGroupName string, accountName string, applicationID string) (result Application, err error) {
+// applicationName - the name of the application. This must be unique within the account.
+func (client ApplicationClient) Get(ctx context.Context, resourceGroupName string, accountName string, applicationName string) (result Application, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationClient.Get")
 		defer func() {
@@ -240,11 +248,15 @@ func (client ApplicationClient) Get(ctx context.Context, resourceGroupName strin
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: applicationName,
+			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "applicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9_-]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("batch.ApplicationClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, applicationID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, applicationName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Get", nil, "Failure preparing request")
 		return
@@ -266,15 +278,15 @@ func (client ApplicationClient) Get(ctx context.Context, resourceGroupName strin
 }
 
 // GetPreparer prepares the Get request.
-func (client ApplicationClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, applicationID string) (*http.Request, error) {
+func (client ApplicationClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, applicationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"applicationId":     autorest.Encode("path", applicationID),
+		"applicationName":   autorest.Encode("path", applicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -282,7 +294,7 @@ func (client ApplicationClient) GetPreparer(ctx context.Context, resourceGroupNa
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -361,7 +373,7 @@ func (client ApplicationClient) ListPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -438,15 +450,15 @@ func (client ApplicationClient) ListComplete(ctx context.Context, resourceGroupN
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
-// applicationID - the ID of the application.
+// applicationName - the name of the application. This must be unique within the account.
 // parameters - the parameters for the request.
-func (client ApplicationClient) Update(ctx context.Context, resourceGroupName string, accountName string, applicationID string, parameters ApplicationUpdateParameters) (result autorest.Response, err error) {
+func (client ApplicationClient) Update(ctx context.Context, resourceGroupName string, accountName string, applicationName string, parameters Application) (result Application, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -455,11 +467,15 @@ func (client ApplicationClient) Update(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: applicationName,
+			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "applicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9_-]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("batch.ApplicationClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, applicationID, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, applicationName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Update", nil, "Failure preparing request")
 		return
@@ -467,7 +483,7 @@ func (client ApplicationClient) Update(ctx context.Context, resourceGroupName st
 
 	resp, err := client.UpdateSender(req)
 	if err != nil {
-		result.Response = resp
+		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Update", resp, "Failure sending request")
 		return
 	}
@@ -481,15 +497,15 @@ func (client ApplicationClient) Update(ctx context.Context, resourceGroupName st
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ApplicationClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationID string, parameters ApplicationUpdateParameters) (*http.Request, error) {
+func (client ApplicationClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, applicationName string, parameters Application) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"applicationId":     autorest.Encode("path", applicationID),
+		"applicationName":   autorest.Encode("path", applicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -498,7 +514,7 @@ func (client ApplicationClient) UpdatePreparer(ctx context.Context, resourceGrou
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/applications/{applicationName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -513,12 +529,13 @@ func (client ApplicationClient) UpdateSender(req *http.Request) (*http.Response,
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client ApplicationClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ApplicationClient) UpdateResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }

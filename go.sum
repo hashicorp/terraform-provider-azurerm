@@ -40,10 +40,12 @@ github.com/apparentlymart/go-cidr v0.0.0-20170616213631-2bd8b58cf427/go.mod h1:E
 github.com/apparentlymart/go-rundeck-api v0.0.0-20160826143032-f6af74d34d1e/go.mod h1:U6OjNHcY3edY04ILn+KNrWZm3j15cPzW7PyjtIQOh1Y=
 github.com/apparentlymart/go-textseg v0.0.0-20170531203952-b836f5c4d331 h1:AIKxo1t7QE7MAqADwrmzMiaFC+QfHfXOk8lrmibN5Lk=
 github.com/apparentlymart/go-textseg v0.0.0-20170531203952-b836f5c4d331/go.mod h1:z96Txxhf3xSFMPmb5X/1W05FF/Nj9VFpLOpjS5yuumk=
-github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e h1:QEF07wC0T1rKkctt1RINW/+RMTVmiwxETico2l3gxJA=
+github.com/apparentlymart/go-textseg v1.0.0 h1:rRmlIsPEEhUTIKQb7T++Nz/A5Q6C9IuX2wFoYVvnCs0=
+github.com/apparentlymart/go-textseg v1.0.0/go.mod h1:z96Txxhf3xSFMPmb5X/1W05FF/Nj9VFpLOpjS5yuumk=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20160115234725-4239b77079c7/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
+github.com/armon/go-radix v0.0.0-20170727155443-1fca145dffbc/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 h1:BUAU3CGlLvorLI26FmByPp2eC2qla6E1Tw+scpcg/to=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aws/aws-sdk-go v1.8.34 h1:zDNBtR25rYYUi7aEh2HRa2f2WTm6LSHWSAMCNY2WdXA=

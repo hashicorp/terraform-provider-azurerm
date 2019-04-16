@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -124,6 +124,32 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		result["user_identity"] = []interface{}{userIdentity}
 	}
 
+	resourceFiles := make([]interface{}, 0)
+	if startTask.ResourceFiles != nil {
+		for _, armResourceFile := range *startTask.ResourceFiles {
+			resourceFile := make(map[string]interface{})
+			if armResourceFile.AutoStorageContainerName != nil {
+				resourceFile["auto_storage_container_name"] = *armResourceFile.AutoStorageContainerName
+			}
+			if armResourceFile.StorageContainerURL != nil {
+				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerURL
+			}
+			if armResourceFile.HTTPURL != nil {
+				resourceFile["http_url"] = *armResourceFile.HTTPURL
+			}
+			if armResourceFile.BlobPrefix != nil {
+				resourceFile["blob_prefix"] = *armResourceFile.BlobPrefix
+			}
+			if armResourceFile.FilePath != nil {
+				resourceFile["file_path"] = *armResourceFile.FilePath
+			}
+			if armResourceFile.FileMode != nil {
+				resourceFile["file_mode"] = *armResourceFile.FileMode
+			}
+			resourceFiles = append(resourceFiles, resourceFile)
+		}
+	}
+
 	if startTask.EnvironmentSettings != nil {
 		environment := make(map[string]interface{})
 		for _, envSetting := range *startTask.EnvironmentSettings {
@@ -132,6 +158,7 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 
 		result["environment"] = environment
 	}
+	result["resource_file"] = resourceFiles
 
 	return append(results, result)
 }
@@ -264,11 +291,56 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		return nil, fmt.Errorf("Error: either auto_user or user_name should be speicfied for Batch pool start task")
 	}
 
+	resourceFileList := startTaskValue["resource_file"].([]interface{})
+	resourceFiles := make([]batch.ResourceFile, 0)
+	for _, resourceFileValueTemp := range resourceFileList {
+		resourceFileValue := resourceFileValueTemp.(map[string]interface{})
+		resourceFile := batch.ResourceFile{}
+		if v, ok := resourceFileValue["auto_storage_container_name"]; ok {
+			autoStorageContainerName := v.(string)
+			if autoStorageContainerName != "" {
+				resourceFile.AutoStorageContainerName = &autoStorageContainerName
+			}
+		}
+		if v, ok := resourceFileValue["storage_container_url"]; ok {
+			storageContainerURL := v.(string)
+			if storageContainerURL != "" {
+				resourceFile.StorageContainerURL = &storageContainerURL
+			}
+		}
+		if v, ok := resourceFileValue["http_url"]; ok {
+			httpURL := v.(string)
+			if httpURL != "" {
+				resourceFile.HTTPURL = &httpURL
+			}
+		}
+		if v, ok := resourceFileValue["blob_prefix"]; ok {
+			blobPrefix := v.(string)
+			if blobPrefix != "" {
+				resourceFile.BlobPrefix = &blobPrefix
+			}
+		}
+		if v, ok := resourceFileValue["file_path"]; ok {
+			filePath := v.(string)
+			if filePath != "" {
+				resourceFile.FilePath = &filePath
+			}
+		}
+		if v, ok := resourceFileValue["file_mode"]; ok {
+			fileMode := v.(string)
+			if fileMode != "" {
+				resourceFile.FileMode = &fileMode
+			}
+		}
+		resourceFiles = append(resourceFiles, resourceFile)
+	}
+
 	startTask := &batch.StartTask{
 		CommandLine:       &startTaskCmdLine,
 		MaxTaskRetryCount: &maxTaskRetryCount,
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
+		ResourceFiles:     &resourceFiles,
 	}
 
 	// populate environment settings, if defined

@@ -1,7 +1,7 @@
-// Package batch implements the Azure ARM Batch service API version 2017-09-01.
+// Package streamanalytics implements the Azure ARM Streamanalytics service API version 2016-03-01.
 //
-//
-package batch
+// Stream Analytics Client
+package streamanalytics
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Batch
+	// DefaultBaseURI is the default URI used for the service Streamanalytics
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Batch.
+// BaseClient is the base client for Streamanalytics.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string
