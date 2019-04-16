@@ -3,12 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,8 +82,9 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							Required: true,
 						},
 						"workspace_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
 						},
 						"workspace_region": {
 							Type:             schema.TypeString,
@@ -173,7 +175,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	}
 	future, err := client.GetFlowLogStatus(ctx, resourceGroupName, networkWatcherName, statusParameters)
 	if err != nil {
-		if strings.Contains(err.Error(), "StatusCode=0 -- Original Error: Code=\"NotFound\"") {
+		if !response.WasNotFound(future.Response()) {
 			// One of storage account, NSG, or flow log is missing
 			log.Printf("[INFO] Error getting Flow Log Configuration %q for target %q - removing from state", d.Id(), networkSecurityGroupID)
 			d.SetId("")
