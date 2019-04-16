@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_batch_certificate` [GH-3097]
+* **New Data Source:** `azurerm_express_route_circuit` [GH-3158]
 * **New Data Source:** `azurerm_firewall` [GH-3235]
 * **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
 * **New Data Source:** `azurerm_stream_analytics_job` [GH-3227]
@@ -12,6 +13,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_factory_linked_service_sql_server` [GH-3205]
 * **New Resource:** `azurerm_data_factory_pipeline` [GH-3244]
 * **New Resource:** `azurerm_data_factory_linked_service_mysql` [GH-3265]
+* **New Resource:** `azurerm_data_factory_linked_service_postgresql` [GH-3266]
 * **New Resource:** `azurerm_hdinsight_kafka_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_kbase_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_hadoop_cluster` [GH-3196]
@@ -20,8 +22,8 @@ FEATURES:
 * **New Resource:** `azurerm_hdinsight_rserver_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_spark_cluster` [GH-3196]
 * **New Resource:** `azurerm_hdinsight_storm_cluster` [GH-3196]
-* **New Resource:** `azurerm_public_ip_prefix` [GH-3139]
 * **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
+* **New Resource:** `azurerm_public_ip_prefix` [GH-3139]
 * **New Resource:** `azurerm_stream_analytics_job` [GH-3227]
 * **New Resource:** `azurerm_stream_analytics_function_javascript_udf` [GH-3249]
 * **New Resource:** `azurerm_stream_analytics_stream_input_eventhub` [GH-3250]
@@ -35,7 +37,7 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
 * dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
-* dependencies: upgrading `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
+* dependencies: updating `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
 * Data Source: `azurerm_batch_pool`: adding the `resource_file` block to the `start_task` block [GH-3192]
 * Data Source: `azurerm_subnet` - exposing the `service_endpoint` field [GH-3184]
 * `azurerm_batch_pool`: adding the `resource_file` block to the `start_task` block [GH-3192]
@@ -55,7 +57,7 @@ BUG FIXES:
 * `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
 * `azurerm_batch_account` - temporarily treating the Resource Group Name as case insensitive to work around an API bug [GH-3260]
 * `azurerm_batch_pool` - temporarily treating the Resource Group Name as case insensitive to work around an API bug [GH-3260]
-* `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
+* `azurerm_app_service` - ensuring deleted App Services are detected correctly [GH-3198]
 * `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
 * `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
 
