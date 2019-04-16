@@ -216,6 +216,11 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	tags := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
+	networkRuleSet := expandNetworkRuleSet(d)
+	if &networkRuleSet != nil && sku != string(containerregistry.Premium) {
+		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
+	}
+
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -224,7 +229,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		},
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
-			NetworkRuleSet:   expandNetworkRuleSet(d),
+			NetworkRuleSet:   networkRuleSet,
 		},
 
 		Tags: expandTags(tags),
@@ -294,10 +299,15 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
+	networkRuleSet := expandNetworkRuleSet(d)
+	if networkRuleSet != nil && sku != string(containerregistry.Premium) {
+		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
+	}
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
-			NetworkRuleSet:   expandNetworkRuleSet(d),
+			NetworkRuleSet:   networkRuleSet,
 		},
 		Sku: &containerregistry.Sku{
 			Name: containerregistry.SkuName(sku),

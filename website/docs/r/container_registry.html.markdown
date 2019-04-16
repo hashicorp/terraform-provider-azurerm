@@ -64,9 +64,11 @@ The following arguments are supported:
 
 * `subnet_rule` - (Optional) Can be specified a number of times to allow access to the Registry from a subnet. Each `subnet_rule` block support the fields documented below.
 
+~> **NOTE:** `network_access_profile ` only supports `Premium` SDK at this time.
+
 `ip_rule` supports the following:
 
-* `action` - (Required) The behaviour for requests matching this rule. Can only be `Allow`
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
 
