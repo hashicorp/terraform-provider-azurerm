@@ -51,7 +51,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
 			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics": testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
 		},
 	}
 
