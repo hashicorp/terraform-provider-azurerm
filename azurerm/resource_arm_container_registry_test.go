@@ -429,6 +429,31 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 	}
 }
 
+func TestAccAzureRMContainerRegistry_networkAccessProfile(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile(ri, location, "Basic"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -532,4 +557,52 @@ resource "azurerm_container_registry" "test" {
   sku                 = "%s"
 }
 `, rInt, location, rInt, sku)
+}
+
+func testAccAzureRMContainerRegistry_networkAccessProfile(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+name     = "testAccRg-%d"
+location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+name     = "testAccVnet-%d"
+location = "${azurerm_resource_group.test.location}"
+resource_group_name = "${azurerm_resource_group.test.name}"
+address_space = [
+"10.0.0.0/16"
+]
+}
+
+resource "azurerm_subnet" "test" {
+name     = "testAccSubnet-%d"
+resource_group_name = "${azurerm_resource_group.test.name}"
+virtual_network_name = "${azurerm_virtual_network.test.name}"
+address_prefix = "10.0.1.0/24"
+}
+
+resource "azurerm_container_registry" "test" {
+name     = "testAccCr-%d"
+resource_group_name = "${azurerm_resource_group.test.name}"
+location = "${azurerm_resource_group.test.location}"
+sku                 = "%s"
+admin_enabled = false
+
+network_access_profile {
+default_action = "Deny"
+
+subnet_rule {
+action = "Allow"
+subnet_id = "${azurerm_subnet.test.id}"
+}
+
+ip_rule {
+action = "Allow"
+ip_range = "8.8.8.8/32"
+}
+}
+}
+}
+`, rInt, location, rInt, rInt, rInt, sku)
 }
