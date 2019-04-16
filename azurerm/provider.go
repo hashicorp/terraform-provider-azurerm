@@ -223,6 +223,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cosmosdb_account":                       resourceArmCosmosDBAccount(),
 			"azurerm_data_factory":                           resourceArmDataFactory(),
 			"azurerm_data_factory_dataset_mysql":             resourceArmDataFactoryDatasetMySQL(),
+			"azurerm_data_factory_dataset_postgresql":        resourceArmDataFactoryDatasetPostgreSQL(),
 			"azurerm_data_factory_dataset_sql_server_table":  resourceArmDataFactoryDatasetSQLServerTable(),
 			"azurerm_data_factory_linked_service_mysql":      resourceArmDataFactoryLinkedServiceMySQL(),
 			"azurerm_data_factory_linked_service_postgresql": resourceArmDataFactoryLinkedServicePostgreSQL(),
