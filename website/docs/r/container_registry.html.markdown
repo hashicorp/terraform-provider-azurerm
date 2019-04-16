@@ -72,9 +72,9 @@ The following arguments are supported:
 
 `subnet_rule` supports the following:
 
-* `action` - (Required) The behaviour for requests matching this rule. Can only be `Allow`
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
-* `subnet_id` - (Required) Resource ID of the subnet from which requests will match the rule.
+* `subnet_id` - (Required) The ID of the Subnet from which requests will match the rule.
 
 ---
 ## Attributes Reference
