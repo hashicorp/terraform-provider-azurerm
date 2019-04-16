@@ -10,25 +10,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const azureDDoSProtectionPlanResourceName = "azurerm_ddos_protection_plan"
+const azureNetworkDDoSProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
-func resourceArmDDoSProtectionPlan() *schema.Resource {
+func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDDoSProtectionPlanCreateUpdate,
-		Read:   resourceArmDDoSProtectionPlanRead,
-		Update: resourceArmDDoSProtectionPlanCreateUpdate,
-		Delete: resourceArmDDoSProtectionPlanDelete,
+		Create: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
+		Read:   resourceArmNetworkDDoSProtectionPlanRead,
+		Update: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
+		Delete: resourceArmNetworkDDoSProtectionPlanDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
-		DeprecationMessage: `The 'azurerm_ddos_protection_plan' resource is deprecated in favour of the renamed version 'azurerm_network_ddos_protection_plan'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
-
-As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -53,7 +47,7 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 	}
 }
 
-func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -71,20 +65,20 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_ddos_protection_plan", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_network_ddos_protection_plan", *existing.ID)
 		}
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	vnetsToLock, err := extractVnetNames(d)
+	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureDDoSProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureDDoSProtectionPlanResourceName)
+	azureRMLockByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	defer azureRMUnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
 
 	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
@@ -114,10 +108,10 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*plan.ID)
 
-	return resourceArmDDoSProtectionPlanRead(d, meta)
+	return resourceArmNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -126,7 +120,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["ddosProtectionPlans"]
+	name := id.Path["NetworkDDoSProtectionPlans"]
 
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -146,7 +140,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
-		vNetIDs := flattenArmVirtualNetworkIDs(props.VirtualNetworks)
+		vNetIDs := flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
 		}
@@ -157,7 +151,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -166,7 +160,7 @@ func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["ddosProtectionPlans"]
+	name := id.Path["NetworkDDoSProtectionPlans"]
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -184,8 +178,8 @@ func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureDDoSProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureDDoSProtectionPlanResourceName)
+	azureRMLockByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	defer azureRMUnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
 
 	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
@@ -202,7 +196,7 @@ func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{
 	return err
 }
 
-func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
+func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
 	vnetIDs := d.Get("virtual_network_ids").([]interface{})
 	vnetNames := make([]string, 0)
 
@@ -222,7 +216,7 @@ func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
 	return &vnetNames, nil
 }
 
-func flattenArmVirtualNetworkIDs(input *[]network.SubResource) []string {
+func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
 	vnetIDs := make([]string, 0)
 	if input == nil {
 		return vnetIDs

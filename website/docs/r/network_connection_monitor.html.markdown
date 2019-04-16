@@ -1,17 +1,15 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_connection_monitor"
-sidebar_current: "docs-azurerm-resource-connection-monitor"
+page_title: "Azure Resource Manager: azurerm_network_connection_monitor"
+sidebar_current: "docs-azurerm-resource-network-connection-monitor"
 description: |-
-  Configures a Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
+  Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
 
 ---
 
 # azurerm_connection_monitor
 
-Configures a Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
-
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_network_connection_monitor` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
 
 ## Example Usage
 
@@ -96,7 +94,7 @@ resource "azurerm_virtual_machine_extension" "test" {
   auto_upgrade_minor_version = true
 }
 
-resource "azurerm_connection_monitor" "test" {
+resource "azurerm_network_connection_monitor" "test" {
   name                 = "cmtest-connectionmonitor"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -121,7 +119,7 @@ resource "azurerm_connection_monitor" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Connection Monitor. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Connection Monitor. Changing this forces a new resource to be created.
 
 * `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new resource to be created.
 
@@ -168,5 +166,5 @@ The following attributes are exported:
 Connection Monitors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_connection_monitor.monitor1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/monitor1
+terraform import azurerm_network_connection_monitor.monitor1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/monitor1
 ```
