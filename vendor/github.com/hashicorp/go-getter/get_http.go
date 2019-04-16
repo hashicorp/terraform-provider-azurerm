@@ -4,12 +4,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hashicorp/go-safetemp"
 )
 
 // HttpGetter is a Getter implementation that will download from an HTTP
@@ -149,16 +150,13 @@ func (g *HttpGetter) GetFile(dst string, u *url.URL) error {
 // getSubdir downloads the source into the destination, but with
 // the proper subdir.
 func (g *HttpGetter) getSubdir(dst, source, subDir string) error {
-	// Create a temporary directory to store the full source
-	td, err := ioutil.TempDir("", "tf")
+	// Create a temporary directory to store the full source. This has to be
+	// a non-existent directory.
+	td, tdcloser, err := safetemp.Dir("", "getter")
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(td)
-
-	// We have to create a subdirectory that doesn't exist for the file
-	// getter to work.
-	td = filepath.Join(td, "data")
+	defer tdcloser.Close()
 
 	// Download that into the given directory
 	if err := Get(td, source); err != nil {

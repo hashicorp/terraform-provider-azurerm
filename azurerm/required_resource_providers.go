@@ -37,6 +37,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.DocumentDB":           {},
 		"Microsoft.EventGrid":            {},
 		"Microsoft.EventHub":             {},
+		"Microsoft.HDInsight":            {},
 		"Microsoft.KeyVault":             {},
 		"microsoft.insights":             {},
 		"Microsoft.Logic":                {},
@@ -57,6 +58,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.ServiceFabric":        {},
 		"Microsoft.Sql":                  {},
 		"Microsoft.Storage":              {},
+		"Microsoft.StreamAnalytics":      {},
 		"Microsoft.Web":                  {},
 	}
 }

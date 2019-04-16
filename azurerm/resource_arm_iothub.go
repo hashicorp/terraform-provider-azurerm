@@ -21,6 +21,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var iothubResourceName = "azurerm_iothub"
+
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
 		path := strings.Split(k, ".")
@@ -323,6 +325,33 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"ip_filter_rule": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"ip_mask": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.CIDR,
+						},
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.Accept),
+								string(devices.Reject),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -336,6 +365,9 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -375,12 +407,14 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	routes := expandIoTHubRoutes(d)
+	ipFilterRules := expandIPFilterRules(d)
 
 	properties := devices.IotHubDescription{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
+			IPFilterRules: ipFilterRules,
 			Routing: &devices.RoutingProperties{
 				Endpoints:     endpoints,
 				Routes:        routes,
@@ -476,6 +510,12 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("fallback_route", fallbackRoute); err != nil {
 			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
+
+		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
+		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
+		}
+
 	}
 
 	d.Set("name", name)
@@ -504,6 +544,9 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
+
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -906,4 +949,47 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
+	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	if len(ipFilterRuleList) == 0 {
+		return nil
+	}
+
+	rules := make([]devices.IPFilterRule, 0)
+
+	for _, r := range ipFilterRuleList {
+		rawRule := r.(map[string]interface{})
+		rule := &devices.IPFilterRule{
+			FilterName: utils.String(rawRule["name"].(string)),
+			Action:     devices.IPFilterActionType(rawRule["action"].(string)),
+			IPMask:     utils.String(rawRule["ip_mask"].(string)),
+		}
+
+		rules = append(rules, *rule)
+	}
+	return &rules
+}
+
+func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
+	rules := make([]interface{}, 0)
+	if in == nil {
+		return rules
+	}
+
+	for _, r := range *in {
+		rawRule := make(map[string]interface{})
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
+		rawRule["action"] = string(r.Action)
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
+		rules = append(rules, rawRule)
+	}
+	return rules
 }

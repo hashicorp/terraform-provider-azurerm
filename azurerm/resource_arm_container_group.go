@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -307,6 +307,10 @@ func resourceArmContainerGroup() *schema.Resource {
 								},
 							},
 						},
+
+						"liveness_probe": azure.SchemaContainerGroupProbe(),
+
+						"readiness_probe": azure.SchemaContainerGroupProbe(),
 					},
 				},
 			},
@@ -661,6 +665,14 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			}
 		}
 
+		if v, ok := data["liveness_probe"]; ok {
+			container.ContainerProperties.LivenessProbe = expandContainerProbe(v)
+		}
+
+		if v, ok := data["readiness_probe"]; ok {
+			container.ContainerProperties.ReadinessProbe = expandContainerProbe(v)
+		}
+
 		containers = append(containers, container)
 	}
 
@@ -760,6 +772,66 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	}
 
 	return &volumeMounts, &containerGroupVolumes
+}
+
+func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
+	probe := containerinstance.ContainerProbe{}
+	probeRaw := input.([]interface{})
+
+	if len(probeRaw) == 0 {
+		return nil
+	}
+
+	for _, p := range probeRaw {
+		probeConfig := p.(map[string]interface{})
+
+		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
+			probe.InitialDelaySeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["period_seconds"].(int); v > 0 {
+			probe.PeriodSeconds = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["failure_threshold"].(int); v > 0 {
+			probe.FailureThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["success_threshold"].(int); v > 0 {
+			probe.SuccessThreshold = utils.Int32(int32(v))
+		}
+
+		if v := probeConfig["timeout_seconds"].(int); v > 0 {
+			probe.TimeoutSeconds = utils.Int32(int32(v))
+		}
+
+		commands := probeConfig["exec"].([]interface{})
+		if len(commands) > 0 {
+			exec := containerinstance.ContainerExec{
+				Command: utils.ExpandStringArray(commands),
+			}
+			probe.Exec = &exec
+		}
+
+		httpRaw := probeConfig["http_get"].([]interface{})
+		if len(httpRaw) > 0 {
+
+			for _, httpget := range httpRaw {
+				x := httpget.(map[string]interface{})
+
+				path := x["path"].(string)
+				port := x["port"].(int)
+				scheme := x["scheme"].(string)
+
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
+					Path:   utils.String(path),
+					Port:   utils.Int32(int32(port)),
+					Scheme: containerinstance.Scheme(scheme),
+				}
+			}
+		}
+	}
+	return &probe
 }
 
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -907,6 +979,9 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
 
+		containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
+		containerConfig["readiness_probe"] = flattenContainerProbes(container.ReadinessProbe)
+
 		containerCfg = append(containerCfg, containerConfig)
 	}
 
@@ -1000,6 +1075,62 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := make(map[string]interface{})
+
+	if v := input.Exec; v != nil {
+		output["exec"] = *v.Command
+	}
+
+	httpGets := make([]interface{}, 0)
+	if get := input.HTTPGet; get != nil {
+		httpGet := make(map[string]interface{})
+
+		if v := get.Path; v != nil {
+			httpGet["path"] = *v
+		}
+
+		if v := get.Port; v != nil {
+			httpGet["port"] = *v
+		}
+
+		if get.Scheme != "" {
+			httpGet["scheme"] = get.Scheme
+		}
+
+		httpGets = append(httpGets, httpGet)
+	}
+	output["http_get"] = httpGets
+
+	if v := input.FailureThreshold; v != nil {
+		output["failure_threshold"] = *v
+	}
+
+	if v := input.InitialDelaySeconds; v != nil {
+		output["initial_delay_seconds"] = *v
+	}
+
+	if v := input.PeriodSeconds; v != nil {
+		output["period_seconds"] = *v
+	}
+
+	if v := input.SuccessThreshold; v != nil {
+		output["success_threshold"] = *v
+	}
+
+	if v := input.TimeoutSeconds; v != nil {
+		output["timeout_seconds"] = *v
+	}
+
+	outputs = append(outputs, output)
+	return outputs
 }
 
 func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.ContainerGroupDiagnostics {
