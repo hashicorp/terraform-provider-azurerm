@@ -187,12 +187,11 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 						"default_action": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.DefaultActionAllow),
 								string(storage.DefaultActionDeny),
-							}, true),
-							Default: string(storage.DefaultActionAllow),
+							}, false),
 						},
 					},
 				},
@@ -918,7 +917,7 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	networkRule := networkRules[0].(map[string]interface{})
 	networkRuleSet := &storage.NetworkRuleSet{}
 
-	if networkRule["default_action"].(string) == "Allow" {
+	if networkRule["default_action"].(string) == string(storage.DefaultActionAllow) {
 		// If Default Access is enabled then no network rules are set.
 		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
 	}
