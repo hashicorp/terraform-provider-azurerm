@@ -102,7 +102,6 @@ func resourceArmContainerGroup() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 								"UserAssigned",
