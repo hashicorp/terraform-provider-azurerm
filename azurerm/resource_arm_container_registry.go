@@ -124,7 +124,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerregistry.DefaultActionAllow),
 								string(containerregistry.DefaultActionDeny),
-							}, true),
+							}, false),
 						},
 
 						"subnet_rule": {
@@ -137,7 +137,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerregistry.Allow),
-										}, true),
+										}, false),
 									},
 									"subnet_id": {
 										Type:     schema.TypeString,
@@ -157,7 +157,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerregistry.Allow),
-										}, true),
+										}, false),
 									},
 									"ip_range": {
 										Type:     schema.TypeString,
