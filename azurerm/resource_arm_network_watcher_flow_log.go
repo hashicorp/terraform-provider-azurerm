@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -196,20 +196,22 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	d.Set("resource_group_name", resourceGroupName)
 
 	d.Set("network_security_group_id", fli.TargetResourceID)
-	d.Set("enabled", fli.FlowLogProperties.Enabled)
-
-	// Azure API returns "" when flow log is disabled
-	// Don't overwrite to prevent storage account ID diff when that is the case
-	if *fli.FlowLogProperties.StorageID != "" {
-		d.Set("storage_account_id", fli.FlowLogProperties.StorageID)
-	}
-
-	if err := d.Set("retention_policy", flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(fli.FlowLogProperties.RetentionPolicy)); err != nil {
-		return fmt.Errorf("Error setting `retention_policy`: %+v", err)
-	}
-
 	if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(fli.FlowAnalyticsConfiguration)); err != nil {
 		return fmt.Errorf("Error setting `traffic_analytics`: %+v", err)
+	}
+
+	if props := fli.FlowLogProperties; props != nil {
+		d.Set("enabled", props.Enabled)
+
+		// Azure API returns "" when flow log is disabled
+		// Don't overwrite to prevent storage account ID diff when that is the case
+		if *props.StorageID != "" {
+			d.Set("storage_account_id", props.StorageID)
+		}
+
+		if err := d.Set("retention_policy", flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
+			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
+		}
 	}
 
 	return nil
@@ -346,5 +348,12 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) 
 func isDefaultDisabledFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) bool {
 	// Azure returns `/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/` by default when traffic analytics is not set
 	// along with empty strings for the rest of the values
-	return !*input.NetworkWatcherFlowAnalyticsConfiguration.Enabled && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID == "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/"
+	if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
+		return  ! (cfg.Enabled != nil && *cfg.Enabled &&
+			cfg.WorkspaceID != nil && *cfg.WorkspaceID != "" &&
+			cfg.WorkspaceRegion != nil && *cfg.WorkspaceRegion != "" &&
+			cfg.WorkspaceResourceID != nil && *cfg.WorkspaceResourceID != "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/")
+	}
+
+	return true
 }
