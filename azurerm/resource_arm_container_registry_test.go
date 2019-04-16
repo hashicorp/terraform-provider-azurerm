@@ -440,7 +440,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile(ri, location, "Basic"),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile(ri, location, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
