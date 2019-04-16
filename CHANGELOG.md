@@ -22,6 +22,7 @@ FEATURES:
 * **New Resource:** `azurerm_public_ip_prefix` [GH-3139]
 * **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
 * **New Resource:** `azurerm_stream_analytics_job` [GH-3227]
+* **New Resource:** `azurerm_stream_analytics_function_javascript_udf` [GH-3249]
 
 IMPROVEMENTS:
 
