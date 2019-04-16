@@ -53,6 +53,8 @@ BUG FIXES:
 
 * `azurerm_app_service` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
 * `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
+* `azurerm_batch_account` - temporarily treating the Resource Group Name as case insensitive to work around an API bug [GH-3260]
+* `azurerm_batch_pool` - temporarily treating the Resource Group Name as case insensitive to work around an API bug [GH-3260]
 * `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
 * `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
 * `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
