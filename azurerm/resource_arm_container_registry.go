@@ -162,8 +162,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 										}, false),
 									},
 									"ip_range": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
 									},
 								},
 							},
