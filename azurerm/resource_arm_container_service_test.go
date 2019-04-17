@@ -183,26 +183,6 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 		},
 	})
 }
-func TestAccAzureRMContainerService_apiServerAuthorizedIpRanges(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_apiServerAuthorizedIpRanges(ri, clientId, clientSecret, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
-				),
-			},
-		},
-	})
-}
 
 func testAccAzureRMContainerService_dcosBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
@@ -414,55 +394,6 @@ resource "azurerm_container_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
-}
-
-func testAccAzureRMContainerService_apiServerAuthorizedIpRanges(rInt int, clientId string, clientSecret string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_service" "test" {
-  name                   = "acctestcontservice%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  orchestration_platform = "Kubernetes"
-
-  master_profile {
-    count      = 1
-    dns_prefix = "acctestmaster%d"
-  }
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  agent_pool_profile {
-    name       = "default"
-    count      = 1
-    dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_F2"
-  }
-
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
-  }
-
-  diagnostics_profile {
-    enabled = false
-  }
-
-  api_server_authorized_ip_ranges = [
-    "8.8.8.8/32",
-  ]
-}
-`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
 func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCheckFunc {
