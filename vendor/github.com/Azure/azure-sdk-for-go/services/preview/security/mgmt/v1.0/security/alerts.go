@@ -97,7 +97,7 @@ func (client AlertsClient) GetResourceGroupLevelAlertsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,7 +179,7 @@ func (client AlertsClient) GetSubscriptionLevelAlertPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,7 +262,7 @@ func (client AlertsClient) ListPreparer(ctx context.Context, filter string, sele
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -398,7 +398,7 @@ func (client AlertsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -536,7 +536,7 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -667,7 +667,7 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -804,7 +804,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStatePreparer(ctx contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -887,7 +887,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStatePreparer(ctx context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2015-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

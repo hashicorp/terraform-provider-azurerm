@@ -1,10 +1,63 @@
 package azurerm
 
 import (
+	"fmt"
 	"log"
+	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/hashicorp/terraform/helper/schema"
 )
+
+func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
+	}
+
+	return warnings, errors
+}
+
+func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
+	typeString := "IntegrationRuntimeReference"
+
+	return &datafactory.IntegrationRuntimeReference{
+		ReferenceName: &integrationRuntimeName,
+		Type:          &typeString,
+	}
+}
+
+// Because the password isn't returned from the api in the connection string, we'll check all
+// but the password string and return true if they match.
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
+	oldSplit := strings.Split(strings.ToLower(old), ";")
+	newSplit := strings.Split(strings.ToLower(new), ";")
+
+	sort.Strings(oldSplit)
+	sort.Strings(newSplit)
+
+	// We need to remove the password from the new string since it isn't returned from the api
+	for i, v := range newSplit {
+		if strings.HasPrefix(v, "password") {
+			newSplit = append(newSplit[:i], newSplit[i+1:]...)
+		}
+	}
+
+	if len(oldSplit) != len(newSplit) {
+		return false
+	}
+
+	// We'll error out if we find any differences between the old and the new connection strings
+	for i := range oldSplit {
+		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+			return false
+		}
+	}
+
+	return true
+}
 
 func expandDataFactoryParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
 	output := make(map[string]*datafactory.ParameterSpecification)
@@ -81,5 +134,59 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 		}
 	}
 
+	return output
+}
+
+// DatasetColumn describes the attributes needed to specify a structure column for a dataset
+type DatasetColumn struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Type        string `json:"type,omitempty"`
+}
+
+func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
+	columns := make([]DatasetColumn, 0)
+	for _, column := range input {
+		attrs := column.(map[string]interface{})
+
+		datasetColumn := DatasetColumn{
+			Name: attrs["name"].(string),
+		}
+		if attrs["description"] != nil {
+			datasetColumn.Description = attrs["description"].(string)
+		}
+		if attrs["type"] != nil {
+			datasetColumn.Type = attrs["type"].(string)
+		}
+		columns = append(columns, datasetColumn)
+	}
+	return columns
+}
+
+func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
+	output := make([]interface{}, 0)
+
+	columns, ok := input.([]interface{})
+	if !ok {
+		return columns
+	}
+
+	for _, v := range columns {
+		column, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		result := make(map[string]interface{})
+		if column["name"] != nil {
+			result["name"] = column["name"]
+		}
+		if column["type"] != nil {
+			result["type"] = column["type"]
+		}
+		if column["description"] != nil {
+			result["description"] = column["description"]
+		}
+		output = append(output, result)
+	}
 	return output
 }

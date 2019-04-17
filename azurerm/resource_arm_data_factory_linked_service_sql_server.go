@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"sort"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -103,7 +101,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_sql_server_linked_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_server", *existing.ID)
 		}
 	}
 
@@ -247,52 +245,4 @@ func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, 
 	}
 
 	return nil
-}
-
-// Because the password isn't returned from the api in the connection string, we'll check all
-// but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
-
-	sort.Strings(oldSplit)
-	sort.Strings(newSplit)
-
-	// We need to remove the password from the new string since it isn't returned from the api
-	for i, v := range newSplit {
-		if strings.HasPrefix(v, "password") {
-			newSplit = append(newSplit[:i], newSplit[i+1:]...)
-		}
-	}
-
-	if len(oldSplit) != len(newSplit) {
-		return false
-	}
-
-	// We'll error out if we find any differences between the old and the new connection strings
-	for i := range oldSplit {
-		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
-	}
-
-	return warnings, errors
-}
-
-func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
-	typeString := "IntegrationRuntimeReference"
-
-	return &datafactory.IntegrationRuntimeReference{
-		ReferenceName: &integrationRuntimeName,
-		Type:          &typeString,
-	}
 }

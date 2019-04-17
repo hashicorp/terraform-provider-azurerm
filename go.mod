@@ -6,6 +6,8 @@ require (
 	github.com/Azure/azure-sdk-for-go v26.7.0+incompatible
 	github.com/Azure/go-autorest v11.7.0+incompatible
 	github.com/apparentlymart/go-rundeck-api v0.0.0-20160826143032-f6af74d34d1e // indirect
+	github.com/apparentlymart/go-textseg v1.0.0 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/chzyer/logex v1.1.11-0.20160617073814-96a4d311aa9b // indirect
 	github.com/coreos/bbolt v1.3.1-coreos.1 // indirect
 	github.com/davecgh/go-spew v1.1.1
