@@ -10,7 +10,7 @@ import (
 	"runtime"
 
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/go-safetemp"
+	safetemp "github.com/hashicorp/go-safetemp"
 )
 
 // HgGetter is a Getter implementation that will download a module from

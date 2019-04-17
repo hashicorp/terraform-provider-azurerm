@@ -59,10 +59,10 @@ func NewClient(services *disco.Disco, client *http.Client) *Client {
 }
 
 // Discover queries the host, and returns the url for the registry.
-func (c *Client) Discover(host svchost.Hostname) (*url.URL, error) {
+func (c *Client) Discover(host svchost.Hostname, serviceID string) (*url.URL, error) {
 	service, err := c.services.DiscoverServiceURL(host, serviceID)
 	if err != nil {
-		return nil, err
+		return nil, &ServiceUnreachableError{err}
 	}
 	if !strings.HasSuffix(service.Path, "/") {
 		service.Path += "/"
@@ -77,7 +77,7 @@ func (c *Client) ModuleVersions(module *regsrc.Module) (*response.ModuleVersions
 		return nil, err
 	}
 
-	service, err := c.Discover(host)
+	service, err := c.Discover(host, modulesServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (c *Client) ModuleLocation(module *regsrc.Module, version string) (string, 
 		return "", err
 	}
 
-	service, err := c.Discover(host)
+	service, err := c.Discover(host, modulesServiceID)
 	if err != nil {
 		return "", err
 	}

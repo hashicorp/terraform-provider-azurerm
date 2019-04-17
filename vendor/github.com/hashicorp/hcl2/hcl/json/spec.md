@@ -403,4 +403,3 @@ to that expression.
 
 If the original expression is not a string or its contents cannot be parsed
 as a native syntax expression then static call analysis is not supported.
-

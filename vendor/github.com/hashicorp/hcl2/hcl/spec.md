@@ -631,20 +631,20 @@ diagnostics if they are applied to inappropriate expressions.
 
 The following are the required static analysis functions:
 
-* **Static List**: Require list/tuple construction syntax to be used and
+- **Static List**: Require list/tuple construction syntax to be used and
   return a list of expressions for each of the elements given.
 
-* **Static Map**: Require map/object construction syntax to be used and
+- **Static Map**: Require map/object construction syntax to be used and
   return a list of key/value pairs -- both expressions -- for each of
   the elements given. The usual constraint that a map key must be a string
   must not apply to this analysis, thus allowing applications to interpret
   arbitrary keys as they see fit.
 
-* **Static Call**: Require function call syntax to be used and return an
+- **Static Call**: Require function call syntax to be used and return an
   object describing the called function name and a list of expressions
   representing each of the call arguments.
 
-* **Static Traversal**: Require a reference to a symbol in the variable
+- **Static Traversal**: Require a reference to a symbol in the variable
   scope and return a description of the path from the root scope to the
   accessed attribute or index.
 
@@ -681,7 +681,7 @@ are implemented separately for each syntax:
 - Providing an evaluation function for all possible expressions that produces
   a value given an evaluation context.
 
-* Providing the static analysis functionality described above in a manner that
+- Providing the static analysis functionality described above in a manner that
   makes sense within the convention of the syntax.
 
 The suggested implementation strategy is to use an implementation language's

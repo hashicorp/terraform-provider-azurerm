@@ -158,10 +158,11 @@ These constructs correspond to the similarly-named concepts in the
 language-agnostic HCL information model.
 
 ```ebnf
-ConfigFile = Body;
-Body       = (Attribute | Block)*;
-Attribute  = Identifier "=" Expression Newline;
-Block      = Identifier (StringLit|Identifier)* "{" Newline Body "}" Newline;
+ConfigFile   = Body;
+Body         = (Attribute | Block | OneLineBlock)*;
+Attribute    = Identifier "=" Expression Newline;
+Block        = Identifier (StringLit|Identifier)* "{" Newline Body "}" Newline;
+OneLineBlock = Identifier (StringLit|Identifier)* "{" (Identifier "=" Expression)? "}" Newline;
 ```
 
 ### Configuration Files
@@ -186,7 +187,7 @@ for later evaluation by the calling application.
 ### Blocks
 
 A _block_ creates a child body that is annotated with a block _type_ and
-zero or more block _labels_. Blocks create a structural heirachy which can be
+zero or more block _labels_. Blocks create a structural hierachy which can be
 interpreted by the calling application.
 
 Block labels can either be quoted literal strings or naked identifiers.
@@ -905,7 +906,7 @@ key/value pairs given are returned as the static pairs, with no further
 interpretation.
 
 The usual requirement that an attribute name be interpretable as a string
-does not apply to this static analyis, allowing callers to provide map-like
+does not apply to this static analysis, allowing callers to provide map-like
 constructs with different key types by building on the map syntax.
 
 ### Static Call

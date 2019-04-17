@@ -95,6 +95,34 @@ type Schema struct {
 	// behavior, and SchemaConfigModeBlock is not permitted.
 	ConfigMode SchemaConfigMode
 
+	// SkipCoreTypeCheck, if set, will advertise this attribute to Terraform Core
+	// has being dynamically-typed rather than deriving a type from the schema.
+	// This has the effect of making Terraform Core skip all type-checking of
+	// the value, and thus leaves all type checking up to a combination of this
+	// SDK and the provider's own code.
+	//
+	// This flag does nothing for Terraform versions prior to v0.12, because
+	// in prior versions there was no Core-side typecheck anyway.
+	//
+	// The most practical effect of this flag is to allow object-typed schemas
+	// (specified with Elem: schema.Resource) to pass through Terraform Core
+	// even without all of the object type attributes specified, which may be
+	// useful when using ConfigMode: SchemaConfigModeAttr to achieve
+	// nested-block-like behaviors while using attribute syntax.
+	//
+	// However, by doing so we require type information to be sent and stored
+	// per-object rather than just once statically in the schema, and so this
+	// will change the wire serialization of a resource type in state. Changing
+	// the value of SkipCoreTypeCheck will therefore require a state migration
+	// if there has previously been any release of the provider compatible with
+	// Terraform v0.12.
+	//
+	// SkipCoreTypeCheck can only be set when ConfigMode is SchemaConfigModeAttr,
+	// because nested blocks cannot be decoded by Terraform Core without at
+	// least shallow information about the next level of nested attributes and
+	// blocks.
+	SkipCoreTypeCheck bool
+
 	// If one of these is set, then this item can come from the configuration.
 	// Both cannot be set. If Optional is set, the value is optional. If
 	// Required is set, the value is required.
@@ -167,7 +195,8 @@ type Schema struct {
 	// The following fields are only set for a TypeList, TypeSet, or TypeMap.
 	//
 	// Elem represents the element type. For a TypeMap, it must be a *Schema
-	// with a Type of TypeString, otherwise it may be either a *Schema or a
+	// with a Type that is one of the primitives: TypeString, TypeBool,
+	// TypeInt, or TypeFloat. Otherwise it may be either a *Schema or a
 	// *Resource. If it is *Schema, the element type is just a simple value.
 	// If it is *Resource, the element type is a complex structure,
 	// potentially with its own lifecycle.
@@ -187,21 +216,8 @@ type Schema struct {
 	//
 	// If the field Optional is set to true then MinItems is ignored and thus
 	// effectively zero.
-	//
-	// If MaxItems is 1, you may optionally also set AsSingle in order to have
-	// Terraform v0.12 or later treat a TypeList or TypeSet as if it were a
-	// single value. It will remain a list or set in Terraform v0.10 and v0.11.
-	// Enabling this for an existing attribute after you've made at least one
-	// v0.12-compatible provider release is a breaking change. AsSingle is
-	// likely to misbehave when used with deeply-nested set structures due to
-	// the imprecision of set diffs, so be sure to test it thoroughly,
-	// including updates that change the set members at all levels. AsSingle
-	// exists primarily to be used in conjunction with ConfigMode when forcing
-	// a nested resource to be treated as an attribute, so it can be considered
-	// an attribute of object type rather than of list/set of object.
 	MaxItems int
 	MinItems int
-	AsSingle bool
 
 	// PromoteSingle originally allowed for a single element to be assigned
 	// where a primitive list was expected, but this no longer works from
@@ -718,6 +734,8 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 
 		computedOnly := v.Computed && !v.Optional
 
+		isBlock := false
+
 		switch v.ConfigMode {
 		case SchemaConfigModeBlock:
 			if _, ok := v.Elem.(*Resource); !ok {
@@ -729,17 +747,25 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 			if computedOnly {
 				return fmt.Errorf("%s: ConfigMode of block cannot be used for computed schema", k)
 			}
+			isBlock = true
 		case SchemaConfigModeAttr:
 			// anything goes
 		case SchemaConfigModeAuto:
 			// Since "Auto" for Elem: *Resource would create a nested block,
 			// and that's impossible inside an attribute, we require it to be
 			// explicitly overridden as mode "Attr" for clarity.
-			if _, ok := v.Elem.(*Resource); ok && attrsOnly {
-				return fmt.Errorf("%s: in *schema.Resource with ConfigMode of attribute, so must also have ConfigMode of attribute", k)
+			if _, ok := v.Elem.(*Resource); ok {
+				isBlock = true
+				if attrsOnly {
+					return fmt.Errorf("%s: in *schema.Resource with ConfigMode of attribute, so must also have ConfigMode of attribute", k)
+				}
 			}
 		default:
 			return fmt.Errorf("%s: invalid ConfigMode value", k)
+		}
+
+		if isBlock && v.SkipCoreTypeCheck {
+			return fmt.Errorf("%s: SkipCoreTypeCheck must be false unless ConfigMode is attribute", k)
 		}
 
 		if v.Computed && v.Default != nil {
@@ -821,15 +847,6 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 		} else {
 			if v.MaxItems > 0 || v.MinItems > 0 {
 				return fmt.Errorf("%s: MaxItems and MinItems are only supported on lists or sets", k)
-			}
-		}
-
-		if v.AsSingle {
-			if v.MaxItems != 1 {
-				return fmt.Errorf("%s: MaxItems must be 1 when AsSingle is set", k)
-			}
-			if v.Type != TypeList && v.Type != TypeSet {
-				return fmt.Errorf("%s: AsSingle can be used only with TypeList and TypeSet schemas", k)
 			}
 		}
 

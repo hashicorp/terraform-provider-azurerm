@@ -253,6 +253,9 @@ func (p *blockBodyDiffPrinter) writeAttrDiff(name string, attrS *configschema.At
 		switch {
 		case showJustNew:
 			p.writeValue(new, action, indent+2)
+			if p.pathForcesNewResource(path) {
+				p.buf.WriteString(p.color.Color(forcesNewResourceCaption))
+			}
 		default:
 			// We show new even if it is null to emphasize the fact
 			// that it is being unset, since otherwise it is easy to
@@ -275,19 +278,20 @@ func (p *blockBodyDiffPrinter) writeNestedBlockDiffs(name string, blockS *config
 	// the objects within are computed.
 
 	switch blockS.Nesting {
-	case configschema.NestingSingle:
+	case configschema.NestingSingle, configschema.NestingGroup:
 		var action plans.Action
+		eqV := new.Equals(old)
 		switch {
 		case old.IsNull():
 			action = plans.Create
 		case new.IsNull():
 			action = plans.Delete
-		case !new.IsKnown() || !old.IsKnown():
+		case !new.IsWhollyKnown() || !old.IsWhollyKnown():
 			// "old" should actually always be known due to our contract
 			// that old values must never be unknown, but we'll allow it
 			// anyway to be robust.
 			action = plans.Update
-		case !(new.Equals(old).True()):
+		case !eqV.IsKnown() || !eqV.True():
 			action = plans.Update
 		}
 
@@ -1067,7 +1071,7 @@ func ctySequenceDiff(old, new []cty.Value) []*plans.Change {
 	var oldI, newI, lcsI int
 	for oldI < len(old) || newI < len(new) || lcsI < len(lcs) {
 		for oldI < len(old) && (lcsI >= len(lcs) || !old[oldI].RawEquals(lcs[lcsI])) {
-			isObjectDiff := old[oldI].Type().IsObjectType() && new[newI].Type().IsObjectType()
+			isObjectDiff := old[oldI].Type().IsObjectType() && (newI >= len(new) || new[newI].Type().IsObjectType())
 			if isObjectDiff && newI < len(new) {
 				ret = append(ret, &plans.Change{
 					Action: plans.Update,

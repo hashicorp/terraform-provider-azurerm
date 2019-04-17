@@ -130,7 +130,7 @@ func (p *parser) ParseBodyItem() (Node, hcl.Diagnostics) {
 
 	switch next.Type {
 	case TokenEqual:
-		return p.finishParsingBodyAttribute(ident)
+		return p.finishParsingBodyAttribute(ident, false)
 	case TokenOQuote, TokenOBrace, TokenIdent:
 		return p.finishParsingBodyBlock(ident)
 	default:
@@ -230,16 +230,32 @@ func (p *parser) finishParsingBodyAttribute(ident Token, singleLine bool) (Node,
 		endRange = p.PrevRange()
 		p.recoverAfterBodyItem()
 	} else {
-		end := p.Peek()
-		if end.Type != TokenNewline && end.Type != TokenEOF {
-			if !p.recovery {
-				diags = append(diags, &hcl.Diagnostic{
-					Severity: hcl.DiagError,
-					Summary:  "Missing newline after attribute definition",
-					Detail:   "An attribute definition must end with a newline.",
-					Subject:  &end.Range,
-					Context:  hcl.RangeBetween(ident.Range, end.Range).Ptr(),
-				})
+		endRange = p.PrevRange()
+		if !singleLine {
+			end := p.Peek()
+			if end.Type != TokenNewline && end.Type != TokenEOF {
+				if !p.recovery {
+					summary := "Missing newline after argument"
+					detail := "An argument definition must end with a newline."
+
+					if end.Type == TokenComma {
+						summary = "Unexpected comma after argument"
+						detail = "Argument definitions must be separated by newlines, not commas. " + detail
+					}
+
+					diags = append(diags, &hcl.Diagnostic{
+						Severity: hcl.DiagError,
+						Summary:  summary,
+						Detail:   detail,
+						Subject:  &end.Range,
+						Context:  hcl.RangeBetween(ident.Range, end.Range).Ptr(),
+					})
+				}
+				endRange = p.PrevRange()
+				p.recoverAfterBodyItem()
+			} else {
+				endRange = p.PrevRange()
+				p.Read() // eat newline
 			}
 		}
 	}
@@ -280,12 +296,6 @@ Token:
 			// parseQuoteStringLiteral recovers up to the closing quote
 			// if it encounters problems, so we can continue looking for
 			// more labels and eventually the block body even.
-
-		case TokenIdent:
-			tok = p.Read() // eat token
-			label, labelRange := string(tok.Bytes), tok.Range
-			labels = append(labels, label)
-			labelRanges = append(labelRanges, labelRange)
 
 		case TokenIdent:
 			tok = p.Read() // eat token
