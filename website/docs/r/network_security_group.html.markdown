@@ -61,7 +61,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
-Elements of `security_rule` accept the following arguments:
+Elements of `security_rule` support:
 
 * `name` - (Required) The name of the security rule.
 
