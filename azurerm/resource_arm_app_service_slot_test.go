@@ -716,6 +716,29 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "JETTY", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -754,6 +777,29 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "TOMCAT", "9.0")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
