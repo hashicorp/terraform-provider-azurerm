@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/go-getter v1.1.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1
-	github.com/hashicorp/terraform v0.12.0-alpha4.0.20190410234817-9e158400c228
+	github.com/hashicorp/terraform v0.12.0-alpha4.0.20190417210818-177a7afb781f
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
