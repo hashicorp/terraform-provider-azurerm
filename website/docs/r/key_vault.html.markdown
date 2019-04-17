@@ -89,7 +89,7 @@ The following arguments are supported:
 
 ---
 
-Elements of `access_policy` accept the following arguments:
+Elements of `access_policy` support:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.
 
