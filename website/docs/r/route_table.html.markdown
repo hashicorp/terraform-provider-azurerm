@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `route` accept the following arguments:
+Elements of `route` support:
 
 * `name` - (Required) The name of the route.
 
