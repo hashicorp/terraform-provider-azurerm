@@ -347,11 +347,21 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 
 	configResp, err := client.GetConfigurationSlot(ctx, resGroup, appServiceName, slot)
 	if err != nil {
+		if utils.ResponseWasNotFound(configResp.Response) {
+			log.Printf("[DEBUG] Configuration of App Service Slot %q/%q (resource group %q) was not found", appServiceName, slot, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot Configuration %q/%q: %+v", appServiceName, slot, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, resGroup, appServiceName, slot)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of App Service Slot %q/%q (resource group %q) were not found", appServiceName, slot, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot AppSettings %q/%q: %+v", appServiceName, slot, err)
 	}
 

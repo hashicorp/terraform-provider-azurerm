@@ -511,15 +511,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.CIDR,
-				},
-			},
 		},
 	}
 }
@@ -574,22 +565,19 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
-	apiServerAuthorizedIPRanges := expandApiServerAuthorizedIPRangeInterfaces(d)
-
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
-			AadProfile:                  azureADProfile,
-			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
-			DNSPrefix:                   utils.String(dnsPrefix),
-			EnableRBAC:                  utils.Bool(rbacEnabled),
-			KubernetesVersion:           utils.String(kubernetesVersion),
-			LinuxProfile:                linuxProfile,
-			NetworkProfile:              networkProfile,
-			ServicePrincipalProfile:     servicePrincipalProfile,
+			AadProfile:              azureADProfile,
+			AddonProfiles:           addonProfiles,
+			AgentPoolProfiles:       &agentProfiles,
+			DNSPrefix:               utils.String(dnsPrefix),
+			EnableRBAC:              utils.Bool(rbacEnabled),
+			KubernetesVersion:       utils.String(kubernetesVersion),
+			LinuxProfile:            linuxProfile,
+			NetworkProfile:          networkProfile,
+			ServicePrincipalProfile: servicePrincipalProfile,
 		},
 		Tags: expandTags(tags),
 	}
@@ -896,11 +884,12 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 	osType := config["os_type"].(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
-		Name:         utils.String(name),
-		Count:        utils.Int32(count),
-		VMSize:       containerservice.VMSizeTypes(vmSize),
-		OsDiskSizeGB: utils.Int32(osDiskSizeGB),
-		OsType:       containerservice.OSType(osType),
+		Name:           utils.String(name),
+		Count:          utils.Int32(count),
+		VMSize:         containerservice.VMSizeTypes(vmSize),
+		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
+		StorageProfile: containerservice.ManagedDisks,
+		OsType:         containerservice.OSType(osType),
 	}
 
 	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
@@ -1025,7 +1014,7 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfileType {
+func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfile {
 	configs := d.Get("network_profile").([]interface{})
 	if len(configs) == 0 {
 		return nil
@@ -1037,7 +1026,7 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 
 	networkPolicy := config["network_policy"].(string)
 
-	networkProfile := containerservice.NetworkProfileType{
+	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin: containerservice.NetworkPlugin(networkPlugin),
 		NetworkPolicy: containerservice.NetworkPolicy(networkPolicy),
 	}
@@ -1065,7 +1054,7 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 	return &networkProfile
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1270,21 +1259,4 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}
-}
-
-func expandApiServerAuthorizedIPRangeInterfaces(d *schema.ResourceData) *[]string {
-	value, exists := d.GetOk("api_server_authorized_ip_ranges")
-
-	if !exists {
-		return nil
-	}
-
-	apiServerAuthorizedIPRangeConfigs := value.([]interface{})
-	apiServerAuthorizedIPRanges := make([]string, 0)
-
-	for _, element := range apiServerAuthorizedIPRangeConfigs {
-		apiServerAuthorizedIPRanges = append(apiServerAuthorizedIPRanges, element.(string))
-	}
-
-	return &apiServerAuthorizedIPRanges
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -25,6 +25,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,

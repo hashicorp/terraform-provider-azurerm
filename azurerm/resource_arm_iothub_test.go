@@ -35,6 +35,30 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_ipFilterRules(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -263,6 +287,37 @@ resource "azurerm_iothub" "test" {
     tier     = "Standard"
     capacity = "1"
   }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_ipFilterRules(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+	}
+	
+	ip_filter_rule {
+		name        = "test"
+		ip_mask     = "10.0.0.0/31"
+		action      = "Accept"
+	}
 
   tags {
     "purpose" = "testing"
