@@ -37,6 +37,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
 * dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
 * dependencies: updating `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
@@ -55,6 +56,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* dependencies: downgrading the Security API to `2017-08-01-preview` to work around a breaking API change [GH-3269]
 * `azurerm_app_service` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
 * `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block [GH-3219]
 * `azurerm_batch_account` - temporarily treating the Resource Group Name as case insensitive to work around an API bug [GH-3260]
