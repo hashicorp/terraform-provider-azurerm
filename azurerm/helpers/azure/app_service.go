@@ -79,6 +79,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.7",
 						"1.8",
+						"11",
 					}, false),
 				},
 
