@@ -514,7 +514,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -575,7 +575,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
-	apiServerAuthorizedIPRanges := expandApiServerAuthorizedIPRangeInterfaces(d)
+	apiServerAuthorizedIPRanges := utils.ExpandStringArray(d.Get("api_server_authorized_ip_ranges").([]interface{}))
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -656,6 +656,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
+
+		apiServerAuthorizedIPRanges := utils.FlattenStringArray(props.APIServerAuthorizedIPRanges)
+		if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
+			return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+		}
 
 		addonProfiles := flattenKubernetesClusterAddonProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
@@ -1271,21 +1276,4 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}
-}
-
-func expandApiServerAuthorizedIPRangeInterfaces(d *schema.ResourceData) *[]string {
-	value, exists := d.GetOk("api_server_authorized_ip_ranges")
-
-	if !exists {
-		return nil
-	}
-
-	apiServerAuthorizedIPRangeConfigs := value.([]interface{})
-	apiServerAuthorizedIPRanges := make([]string, 0)
-
-	for _, element := range apiServerAuthorizedIPRangeConfigs {
-		apiServerAuthorizedIPRanges = append(apiServerAuthorizedIPRanges, element.(string))
-	}
-
-	return &apiServerAuthorizedIPRanges
 }
