@@ -42,7 +42,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "testcer" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${base64encode(file("certificate.cer"))}"
+  certificate          = "${filebase64("certificate.cer")}"
   format               = "Cer"
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
