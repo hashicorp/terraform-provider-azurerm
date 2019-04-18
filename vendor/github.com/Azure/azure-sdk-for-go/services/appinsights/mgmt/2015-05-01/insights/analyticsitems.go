@@ -21,7 +21,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -43,7 +42,7 @@ func NewAnalyticsItemsClientWithBaseURI(baseURI string, subscriptionID string) A
 
 // Delete deletes a specific Analytics Items defined within an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // resourceName - the name of the Application Insights component resource.
 // scopePath - enum indicating if this item definition is owned by a specific user or is shared between all
 // users with access to the Application Insights component.
@@ -60,16 +59,6 @@ func (client AnalyticsItemsClient) Delete(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("insights.AnalyticsItemsClient", "Delete", err.Error())
-	}
-
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, scopePath, ID, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Delete", nil, "Failure preparing request")
@@ -140,7 +129,7 @@ func (client AnalyticsItemsClient) DeleteResponder(resp *http.Response) (result 
 
 // Get gets a specific Analytics Items defined within an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // resourceName - the name of the Application Insights component resource.
 // scopePath - enum indicating if this item definition is owned by a specific user or is shared between all
 // users with access to the Application Insights component.
@@ -157,16 +146,6 @@ func (client AnalyticsItemsClient) Get(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("insights.AnalyticsItemsClient", "Get", err.Error())
-	}
-
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, scopePath, ID, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Get", nil, "Failure preparing request")
@@ -238,7 +217,7 @@ func (client AnalyticsItemsClient) GetResponder(resp *http.Response) (result App
 
 // List gets a list of Analytics Items defined within an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // resourceName - the name of the Application Insights component resource.
 // scopePath - enum indicating if this item definition is owned by a specific user or is shared between all
 // users with access to the Application Insights component.
@@ -258,16 +237,6 @@ func (client AnalyticsItemsClient) List(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("insights.AnalyticsItemsClient", "List", err.Error())
-	}
-
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName, scopePath, scope, typeParameter, includeContent)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "List", nil, "Failure preparing request")
@@ -346,7 +315,7 @@ func (client AnalyticsItemsClient) ListResponder(resp *http.Response) (result Li
 
 // Put adds or Updates a specific Analytics Item within an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // resourceName - the name of the Application Insights component resource.
 // scopePath - enum indicating if this item definition is owned by a specific user or is shared between all
 // users with access to the Application Insights component.
@@ -365,16 +334,6 @@ func (client AnalyticsItemsClient) Put(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("insights.AnalyticsItemsClient", "Put", err.Error())
-	}
-
 	req, err := client.PutPreparer(ctx, resourceGroupName, resourceName, scopePath, itemProperties, overrideItem)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Put", nil, "Failure preparing request")

@@ -55,9 +55,10 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"ip_restriction": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Computed: true,
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
@@ -79,6 +80,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.7",
 						"1.8",
+						"11",
 					}, false),
 				},
 
@@ -182,7 +184,6 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Computed: true,
 				},
 
 				"websockets_enabled": {

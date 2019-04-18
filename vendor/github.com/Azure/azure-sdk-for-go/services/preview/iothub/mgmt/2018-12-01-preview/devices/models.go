@@ -266,6 +266,25 @@ func PossibleJobTypeValues() []JobType {
 	return []JobType{JobTypeBackup, JobTypeExport, JobTypeFactoryResetDevice, JobTypeFirmwareUpdate, JobTypeImport, JobTypeReadDeviceProperties, JobTypeRebootDevice, JobTypeUnknown, JobTypeUpdateDeviceConfiguration, JobTypeWriteDeviceProperties}
 }
 
+// OperationMonitoringLevel enumerates the values for operation monitoring level.
+type OperationMonitoringLevel string
+
+const (
+	// OperationMonitoringLevelError ...
+	OperationMonitoringLevelError OperationMonitoringLevel = "Error"
+	// OperationMonitoringLevelErrorInformation ...
+	OperationMonitoringLevelErrorInformation OperationMonitoringLevel = "Error, Information"
+	// OperationMonitoringLevelInformation ...
+	OperationMonitoringLevelInformation OperationMonitoringLevel = "Information"
+	// OperationMonitoringLevelNone ...
+	OperationMonitoringLevelNone OperationMonitoringLevel = "None"
+)
+
+// PossibleOperationMonitoringLevelValues returns an array of possible values for the OperationMonitoringLevel const type.
+func PossibleOperationMonitoringLevelValues() []OperationMonitoringLevel {
+	return []OperationMonitoringLevel{OperationMonitoringLevelError, OperationMonitoringLevelErrorInformation, OperationMonitoringLevelInformation, OperationMonitoringLevelNone}
+}
+
 // RouteErrorSeverity enumerates the values for route error severity.
 type RouteErrorSeverity string
 
@@ -1051,7 +1070,7 @@ type IotHubProperties struct {
 	State *string `json:"state,omitempty"`
 	// HostName - The name of the host.
 	HostName *string `json:"hostName,omitempty"`
-	// EventHubEndpoints - The Event Hub-compatible endpoint properties. The only possible keys to this dictionary is events. This key has to be present in the dictionary while making create or update calls for the IoT hub.
+	// EventHubEndpoints - The Event Hub-compatible endpoint properties. The possible keys to this dictionary are events and operationsMonitoringEvents. Both of these keys have to be present in the dictionary while making create or update calls for the IoT hub.
 	EventHubEndpoints map[string]*EventHubProperties `json:"eventHubEndpoints"`
 	Routing           *RoutingProperties             `json:"routing,omitempty"`
 	// StorageEndpoints - The list of Azure Storage endpoints where you can upload files. Currently you can configure only one Azure Storage account and that MUST have its key as $default. Specifying more than one storage account causes an error to be thrown. Not specifying a value for this property when the enableFileUploadNotifications property is set to True, causes an error to be thrown.
@@ -1062,7 +1081,8 @@ type IotHubProperties struct {
 	EnableFileUploadNotifications *bool                    `json:"enableFileUploadNotifications,omitempty"`
 	CloudToDevice                 *CloudToDeviceProperties `json:"cloudToDevice,omitempty"`
 	// Comments - IoT hub comments.
-	Comments *string `json:"comments,omitempty"`
+	Comments                       *string                         `json:"comments,omitempty"`
+	OperationsMonitoringProperties *OperationsMonitoringProperties `json:"operationsMonitoringProperties,omitempty"`
 	// DeviceStreams - The device streams properties of iothub.
 	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'None', 'DeviceManagement'
@@ -1107,6 +1127,9 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihp.Comments != nil {
 		objectMap["comments"] = ihp.Comments
+	}
+	if ihp.OperationsMonitoringProperties != nil {
+		objectMap["operationsMonitoringProperties"] = ihp.OperationsMonitoringProperties
 	}
 	if ihp.DeviceStreams != nil {
 		objectMap["deviceStreams"] = ihp.DeviceStreams
@@ -1910,6 +1933,23 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// OperationsMonitoringProperties the operations monitoring properties for the IoT hub. The possible keys
+// to the dictionary are Connections, DeviceTelemetry, C2DCommands, DeviceIdentityOperations,
+// FileUploadOperations, Routes, D2CTwinOperations, C2DTwinOperations, TwinQueries, JobsOperations,
+// DirectMethods.
+type OperationsMonitoringProperties struct {
+	Events map[string]*OperationMonitoringLevel `json:"events"`
+}
+
+// MarshalJSON is the custom marshaler for OperationsMonitoringProperties.
+func (omp OperationsMonitoringProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if omp.Events != nil {
+		objectMap["events"] = omp.Events
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegistryStatistics identity registry statistics.
 type RegistryStatistics struct {
 	autorest.Response `json:"-"`
@@ -2014,7 +2054,7 @@ type RoutingEndpoints struct {
 type RoutingEventHubProperties struct {
 	// ConnectionString - The connection string of the event hub endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the event hub endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2061,7 +2101,7 @@ type RoutingProperties struct {
 type RoutingServiceBusQueueEndpointProperties struct {
 	// ConnectionString - The connection string of the service bus queue endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types. The name need not be the same as the actual queue name.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types. The name need not be the same as the actual queue name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus queue endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2073,7 +2113,7 @@ type RoutingServiceBusQueueEndpointProperties struct {
 type RoutingServiceBusTopicEndpointProperties struct {
 	// ConnectionString - The connection string of the service bus topic endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.  The name need not be the same as the actual topic name.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.  The name need not be the same as the actual topic name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus topic endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2085,7 +2125,7 @@ type RoutingServiceBusTopicEndpointProperties struct {
 type RoutingStorageContainerProperties struct {
 	// ConnectionString - The connection string of the storage account.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the storage account.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`

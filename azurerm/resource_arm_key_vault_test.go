@@ -238,6 +238,8 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
 	postConfig := testAccAzureRMKeyVault_update(ri, testLocation())
+	noAccessPolicyConfig := testAccAzureRMKeyVault_noAccessPolicyBlocks(ri, testLocation())
+	forceZeroAccessPolicyConfig := testAccAzureRMKeyVault_accessPolicyExplicitZero(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -262,6 +264,23 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_template_deployment", "true"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
+				),
+			},
+			{
+				Config: noAccessPolicyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					// There are no access_policy blocks in this configuration
+					// at all, which means to ignore any existing policies and
+					// so the one created in previous steps is still present.
+					resource.TestCheckResourceAttr(resourceName, "access_policy.#", "1"),
+				),
+			},
+			{
+				Config: forceZeroAccessPolicyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					// This config explicitly sets access_policy = [], which
+					// means to delete any existing policies.
+					resource.TestCheckResourceAttr(resourceName, "access_policy.#", "0"),
 				),
 			},
 		},
@@ -586,6 +605,68 @@ resource "azurerm_key_vault" "test" {
       "get",
     ]
   }
+
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+
+  tags = {
+    environment = "Staging"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_noAccessPolicyBlocks(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+
+  tags = {
+    environment = "Staging"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_accessPolicyExplicitZero(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy = []
 
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true

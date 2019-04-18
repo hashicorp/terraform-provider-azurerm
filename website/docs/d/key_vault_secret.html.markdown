@@ -19,7 +19,7 @@ Use this data source to access information about an existing Key Vault Secret.
 ```hcl
 data "azurerm_key_vault_secret" "test" {
   name      = "secret-sauce"
-  vault_uri = "https://rickslab.vault.azure.net/"
+  key_vault_id = "${data.azurerm_key_vault.existing.id}"
 }
 
 output "secret_value" {
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret.
 
-* `vault_uri` - (Required) Specifies the ID of the Key Vault Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
+* `key_vault_id` - (Required) Specifies the ID of the Key Vault Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
 
 
 ## Attributes Reference

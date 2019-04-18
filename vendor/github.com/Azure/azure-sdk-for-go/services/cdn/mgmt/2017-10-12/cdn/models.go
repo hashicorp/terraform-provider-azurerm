@@ -47,38 +47,6 @@ func PossibleCacheBehaviorValues() []CacheBehavior {
 	return []CacheBehavior{BypassCache, Override, SetIfMissing}
 }
 
-// CertificateSource enumerates the values for certificate source.
-type CertificateSource string
-
-const (
-	// CertificateSourceAzureKeyVault ...
-	CertificateSourceAzureKeyVault CertificateSource = "AzureKeyVault"
-	// CertificateSourceCdn ...
-	CertificateSourceCdn CertificateSource = "Cdn"
-	// CertificateSourceCustomDomainHTTPSParameters ...
-	CertificateSourceCustomDomainHTTPSParameters CertificateSource = "CustomDomainHttpsParameters"
-)
-
-// PossibleCertificateSourceValues returns an array of possible values for the CertificateSource const type.
-func PossibleCertificateSourceValues() []CertificateSource {
-	return []CertificateSource{CertificateSourceAzureKeyVault, CertificateSourceCdn, CertificateSourceCustomDomainHTTPSParameters}
-}
-
-// CertificateType enumerates the values for certificate type.
-type CertificateType string
-
-const (
-	// Dedicated ...
-	Dedicated CertificateType = "Dedicated"
-	// Shared ...
-	Shared CertificateType = "Shared"
-)
-
-// PossibleCertificateTypeValues returns an array of possible values for the CertificateType const type.
-func PossibleCertificateTypeValues() []CertificateType {
-	return []CertificateType{Dedicated, Shared}
-}
-
 // CustomDomainResourceState enumerates the values for custom domain resource state.
 type CustomDomainResourceState string
 
@@ -290,21 +258,6 @@ func PossibleProfileResourceStateValues() []ProfileResourceState {
 	return []ProfileResourceState{ProfileResourceStateActive, ProfileResourceStateCreating, ProfileResourceStateDeleting, ProfileResourceStateDisabled}
 }
 
-// ProtocolType enumerates the values for protocol type.
-type ProtocolType string
-
-const (
-	// IPBased ...
-	IPBased ProtocolType = "IPBased"
-	// ServerNameIndication ...
-	ServerNameIndication ProtocolType = "ServerNameIndication"
-)
-
-// PossibleProtocolTypeValues returns an array of possible values for the ProtocolType const type.
-func PossibleProtocolTypeValues() []ProtocolType {
-	return []ProtocolType{IPBased, ServerNameIndication}
-}
-
 // QueryStringCachingBehavior enumerates the values for query string caching behavior.
 type QueryStringCachingBehavior string
 
@@ -343,8 +296,6 @@ type SkuName string
 const (
 	// CustomVerizon ...
 	CustomVerizon SkuName = "Custom_Verizon"
-	// PremiumChinaCdn ...
-	PremiumChinaCdn SkuName = "Premium_ChinaCdn"
 	// PremiumVerizon ...
 	PremiumVerizon SkuName = "Premium_Verizon"
 	// StandardAkamai ...
@@ -359,7 +310,7 @@ const (
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{CustomVerizon, PremiumChinaCdn, PremiumVerizon, StandardAkamai, StandardChinaCdn, StandardMicrosoft, StandardVerizon}
+	return []SkuName{CustomVerizon, PremiumVerizon, StandardAkamai, StandardChinaCdn, StandardMicrosoft, StandardVerizon}
 }
 
 // CacheExpirationActionParameters defines the parameters for the cache expiration action.
@@ -371,14 +322,6 @@ type CacheExpirationActionParameters struct {
 	CacheType *string `json:"cacheType,omitempty"`
 	// CacheDuration - The duration for which the content needs to be cached. Allowed format is [d.]hh:mm:ss
 	CacheDuration *string `json:"cacheDuration,omitempty"`
-}
-
-// CertificateSourceParameters defines the parameters for using CDN managed certificate for securing custom
-// domain.
-type CertificateSourceParameters struct {
-	OdataType *string `json:"@odata.type,omitempty"`
-	// CertificateType - Type of certificate used. Possible values include: 'Shared', 'Dedicated'
-	CertificateType CertificateType `json:"certificateType,omitempty"`
 }
 
 // CheckNameAvailabilityInput input of CheckNameAvailability API.
@@ -488,95 +431,6 @@ func (cd *CustomDomain) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
-}
-
-// BasicCustomDomainHTTPSParameters the JSON object that contains the properties to secure a custom domain.
-type BasicCustomDomainHTTPSParameters interface {
-	AsManagedHTTPSParameters() (*ManagedHTTPSParameters, bool)
-	AsUserManagedHTTPSParameters() (*UserManagedHTTPSParameters, bool)
-	AsCustomDomainHTTPSParameters() (*CustomDomainHTTPSParameters, bool)
-}
-
-// CustomDomainHTTPSParameters the JSON object that contains the properties to secure a custom domain.
-type CustomDomainHTTPSParameters struct {
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
-	ProtocolType ProtocolType `json:"protocolType,omitempty"`
-	// CertificateSource - Possible values include: 'CertificateSourceCustomDomainHTTPSParameters', 'CertificateSourceCdn', 'CertificateSourceAzureKeyVault'
-	CertificateSource CertificateSource `json:"certificateSource,omitempty"`
-}
-
-func unmarshalBasicCustomDomainHTTPSParameters(body []byte) (BasicCustomDomainHTTPSParameters, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["certificateSource"] {
-	case string(CertificateSourceCdn):
-		var mhp ManagedHTTPSParameters
-		err := json.Unmarshal(body, &mhp)
-		return mhp, err
-	case string(CertificateSourceAzureKeyVault):
-		var umhp UserManagedHTTPSParameters
-		err := json.Unmarshal(body, &umhp)
-		return umhp, err
-	default:
-		var cdhp CustomDomainHTTPSParameters
-		err := json.Unmarshal(body, &cdhp)
-		return cdhp, err
-	}
-}
-func unmarshalBasicCustomDomainHTTPSParametersArray(body []byte) ([]BasicCustomDomainHTTPSParameters, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	cdhpArray := make([]BasicCustomDomainHTTPSParameters, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		cdhp, err := unmarshalBasicCustomDomainHTTPSParameters(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		cdhpArray[index] = cdhp
-	}
-	return cdhpArray, nil
-}
-
-// MarshalJSON is the custom marshaler for CustomDomainHTTPSParameters.
-func (cdhp CustomDomainHTTPSParameters) MarshalJSON() ([]byte, error) {
-	cdhp.CertificateSource = CertificateSourceCustomDomainHTTPSParameters
-	objectMap := make(map[string]interface{})
-	if cdhp.ProtocolType != "" {
-		objectMap["protocolType"] = cdhp.ProtocolType
-	}
-	if cdhp.CertificateSource != "" {
-		objectMap["certificateSource"] = cdhp.CertificateSource
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for CustomDomainHTTPSParameters.
-func (cdhp CustomDomainHTTPSParameters) AsManagedHTTPSParameters() (*ManagedHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsUserManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for CustomDomainHTTPSParameters.
-func (cdhp CustomDomainHTTPSParameters) AsUserManagedHTTPSParameters() (*UserManagedHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for CustomDomainHTTPSParameters.
-func (cdhp CustomDomainHTTPSParameters) AsCustomDomainHTTPSParameters() (*CustomDomainHTTPSParameters, bool) {
-	return &cdhp, true
-}
-
-// AsBasicCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for CustomDomainHTTPSParameters.
-func (cdhp CustomDomainHTTPSParameters) AsBasicCustomDomainHTTPSParameters() (BasicCustomDomainHTTPSParameters, bool) {
-	return &cdhp, true
 }
 
 // CustomDomainListResult result of the request to list custom domains. It contains a list of custom domain
@@ -2059,77 +1913,10 @@ type IPAddressGroup struct {
 	Ipv6Addresses *[]CidrIPAddress `json:"ipv6Addresses,omitempty"`
 }
 
-// KeyVaultCertificateSourceParameters describes the parameters for using a user's KeyVault certificate for
-// securing custom domain.
-type KeyVaultCertificateSourceParameters struct {
-	OdataType *string `json:"@odata.type,omitempty"`
-	// SubscriptionID - Subscription Id of the user's Key Vault containing the SSL certificate
-	SubscriptionID *string `json:"subscriptionId,omitempty"`
-	// ResourceGroupName - Resource group of the user's Key Vault containing the SSL certificate
-	ResourceGroupName *string `json:"resourceGroupName,omitempty"`
-	// VaultName - The name of the user's Key Vault containing the SSL certificate
-	VaultName *string `json:"vaultName,omitempty"`
-	// SecretName - The name of Key Vault Secret (representing the full certificate PFX) in Key Vault.
-	SecretName *string `json:"secretName,omitempty"`
-	// SecretVersion - The version(GUID) of Key Vault Secret in Key Vault.
-	SecretVersion *string `json:"secretVersion,omitempty"`
-	// UpdateRule - Describes the action that shall be taken when the certificate is updated in Key Vault.
-	UpdateRule *string `json:"updateRule,omitempty"`
-	// DeleteRule - Describes the action that shall be taken when the certificate is removed from Key Vault.
-	DeleteRule *string `json:"deleteRule,omitempty"`
-}
-
 // LoadParameters parameters required for content load.
 type LoadParameters struct {
 	// ContentPaths - The path to the content to be loaded. Path should be a relative file URL of the origin.
 	ContentPaths *[]string `json:"contentPaths,omitempty"`
-}
-
-// ManagedHTTPSParameters defines the certificate source parameters using CDN managed certificate for
-// enabling SSL.
-type ManagedHTTPSParameters struct {
-	// CertificateSourceParameters - Defines the certificate source parameters using CDN managed certificate for enabling SSL.
-	CertificateSourceParameters *CertificateSourceParameters `json:"certificateSourceParameters,omitempty"`
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
-	ProtocolType ProtocolType `json:"protocolType,omitempty"`
-	// CertificateSource - Possible values include: 'CertificateSourceCustomDomainHTTPSParameters', 'CertificateSourceCdn', 'CertificateSourceAzureKeyVault'
-	CertificateSource CertificateSource `json:"certificateSource,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ManagedHTTPSParameters.
-func (mhp ManagedHTTPSParameters) MarshalJSON() ([]byte, error) {
-	mhp.CertificateSource = CertificateSourceCdn
-	objectMap := make(map[string]interface{})
-	if mhp.CertificateSourceParameters != nil {
-		objectMap["certificateSourceParameters"] = mhp.CertificateSourceParameters
-	}
-	if mhp.ProtocolType != "" {
-		objectMap["protocolType"] = mhp.ProtocolType
-	}
-	if mhp.CertificateSource != "" {
-		objectMap["certificateSource"] = mhp.CertificateSource
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for ManagedHTTPSParameters.
-func (mhp ManagedHTTPSParameters) AsManagedHTTPSParameters() (*ManagedHTTPSParameters, bool) {
-	return &mhp, true
-}
-
-// AsUserManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for ManagedHTTPSParameters.
-func (mhp ManagedHTTPSParameters) AsUserManagedHTTPSParameters() (*UserManagedHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for ManagedHTTPSParameters.
-func (mhp ManagedHTTPSParameters) AsCustomDomainHTTPSParameters() (*CustomDomainHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsBasicCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for ManagedHTTPSParameters.
-func (mhp ManagedHTTPSParameters) AsBasicCustomDomainHTTPSParameters() (BasicCustomDomainHTTPSParameters, bool) {
-	return &mhp, true
 }
 
 // Operation CDN REST API operation
@@ -3208,7 +2995,7 @@ func NewResourceUsageListResultPage(getNextPage func(context.Context, ResourceUs
 
 // Sku the pricing tier (defines a CDN provider, feature list and rate) of the CDN profile.
 type Sku struct {
-	// Name - Name of the pricing tier. Possible values include: 'StandardVerizon', 'PremiumVerizon', 'CustomVerizon', 'StandardAkamai', 'StandardChinaCdn', 'PremiumChinaCdn', 'StandardMicrosoft'
+	// Name - Name of the pricing tier. Possible values include: 'StandardVerizon', 'PremiumVerizon', 'CustomVerizon', 'StandardAkamai', 'StandardChinaCdn', 'StandardMicrosoft'
 	Name SkuName `json:"name,omitempty"`
 }
 
@@ -3275,53 +3062,6 @@ type URLPathConditionParameters struct {
 	Path *string `json:"path,omitempty"`
 	// MatchType - The match type for the condition of the delivery rule. Possible values include: 'Literal', 'Wildcard'
 	MatchType MatchType `json:"matchType,omitempty"`
-}
-
-// UserManagedHTTPSParameters defines the certificate source parameters using user's keyvault certificate
-// for enabling SSL.
-type UserManagedHTTPSParameters struct {
-	// CertificateSourceParameters - Defines the certificate source parameters using user's keyvault certificate for enabling SSL.
-	CertificateSourceParameters *KeyVaultCertificateSourceParameters `json:"certificateSourceParameters,omitempty"`
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
-	ProtocolType ProtocolType `json:"protocolType,omitempty"`
-	// CertificateSource - Possible values include: 'CertificateSourceCustomDomainHTTPSParameters', 'CertificateSourceCdn', 'CertificateSourceAzureKeyVault'
-	CertificateSource CertificateSource `json:"certificateSource,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for UserManagedHTTPSParameters.
-func (umhp UserManagedHTTPSParameters) MarshalJSON() ([]byte, error) {
-	umhp.CertificateSource = CertificateSourceAzureKeyVault
-	objectMap := make(map[string]interface{})
-	if umhp.CertificateSourceParameters != nil {
-		objectMap["certificateSourceParameters"] = umhp.CertificateSourceParameters
-	}
-	if umhp.ProtocolType != "" {
-		objectMap["protocolType"] = umhp.ProtocolType
-	}
-	if umhp.CertificateSource != "" {
-		objectMap["certificateSource"] = umhp.CertificateSource
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for UserManagedHTTPSParameters.
-func (umhp UserManagedHTTPSParameters) AsManagedHTTPSParameters() (*ManagedHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsUserManagedHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for UserManagedHTTPSParameters.
-func (umhp UserManagedHTTPSParameters) AsUserManagedHTTPSParameters() (*UserManagedHTTPSParameters, bool) {
-	return &umhp, true
-}
-
-// AsCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for UserManagedHTTPSParameters.
-func (umhp UserManagedHTTPSParameters) AsCustomDomainHTTPSParameters() (*CustomDomainHTTPSParameters, bool) {
-	return nil, false
-}
-
-// AsBasicCustomDomainHTTPSParameters is the BasicCustomDomainHTTPSParameters implementation for UserManagedHTTPSParameters.
-func (umhp UserManagedHTTPSParameters) AsBasicCustomDomainHTTPSParameters() (BasicCustomDomainHTTPSParameters, bool) {
-	return &umhp, true
 }
 
 // ValidateCustomDomainInput input of the custom domain to be validated for DNS mapping.

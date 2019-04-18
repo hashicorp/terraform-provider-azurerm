@@ -516,21 +516,6 @@ func PossibleProvisioningState2Values() []ProvisioningState2 {
 	return []ProvisioningState2{ProvisioningState2Creating, ProvisioningState2Deleting, ProvisioningState2Failed, ProvisioningState2Migrating, ProvisioningState2Succeeded, ProvisioningState2Updating}
 }
 
-// ProximityPlacementGroupType enumerates the values for proximity placement group type.
-type ProximityPlacementGroupType string
-
-const (
-	// Standard ...
-	Standard ProximityPlacementGroupType = "Standard"
-	// Ultra ...
-	Ultra ProximityPlacementGroupType = "Ultra"
-)
-
-// PossibleProximityPlacementGroupTypeValues returns an array of possible values for the ProximityPlacementGroupType const type.
-func PossibleProximityPlacementGroupTypeValues() []ProximityPlacementGroupType {
-	return []ProximityPlacementGroupType{Standard, Ultra}
-}
-
 // ReplicationState enumerates the values for replication state.
 type ReplicationState string
 
@@ -1522,8 +1507,6 @@ type AvailabilitySetProperties struct {
 	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
 	// VirtualMachines - A list of references to all virtual machines in the availability set.
 	VirtualMachines *[]SubResource `json:"virtualMachines,omitempty"`
-	// ProximityPlacementGroup - Specifies information about the proximity placement group that the availability set should be assigned to. <br><br>Minimum api-version: 2018-04-01.
-	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
 	// Statuses - The resource status information.
 	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
 }
@@ -4763,290 +4746,6 @@ type Plan struct {
 	PromotionCode *string `json:"promotionCode,omitempty"`
 }
 
-// ProximityPlacementGroup specifies information about the proximity placement group.
-type ProximityPlacementGroup struct {
-	autorest.Response `json:"-"`
-	// ProximityPlacementGroupProperties - Describes the properties of a Proximity Placement Group.
-	*ProximityPlacementGroupProperties `json:"properties,omitempty"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for ProximityPlacementGroup.
-func (ppg ProximityPlacementGroup) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ppg.ProximityPlacementGroupProperties != nil {
-		objectMap["properties"] = ppg.ProximityPlacementGroupProperties
-	}
-	if ppg.ID != nil {
-		objectMap["id"] = ppg.ID
-	}
-	if ppg.Name != nil {
-		objectMap["name"] = ppg.Name
-	}
-	if ppg.Type != nil {
-		objectMap["type"] = ppg.Type
-	}
-	if ppg.Location != nil {
-		objectMap["location"] = ppg.Location
-	}
-	if ppg.Tags != nil {
-		objectMap["tags"] = ppg.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ProximityPlacementGroup struct.
-func (ppg *ProximityPlacementGroup) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var proximityPlacementGroupProperties ProximityPlacementGroupProperties
-				err = json.Unmarshal(*v, &proximityPlacementGroupProperties)
-				if err != nil {
-					return err
-				}
-				ppg.ProximityPlacementGroupProperties = &proximityPlacementGroupProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ppg.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ppg.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ppg.Type = &typeVar
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				ppg.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				ppg.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// ProximityPlacementGroupListResult the List Proximity Placement Group operation response.
-type ProximityPlacementGroupListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of proximity placement groups
-	Value *[]ProximityPlacementGroup `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page of proximity placement groups.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// ProximityPlacementGroupListResultIterator provides access to a complete listing of
-// ProximityPlacementGroup values.
-type ProximityPlacementGroupListResultIterator struct {
-	i    int
-	page ProximityPlacementGroupListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *ProximityPlacementGroupListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ProximityPlacementGroupListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *ProximityPlacementGroupListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter ProximityPlacementGroupListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter ProximityPlacementGroupListResultIterator) Response() ProximityPlacementGroupListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter ProximityPlacementGroupListResultIterator) Value() ProximityPlacementGroup {
-	if !iter.page.NotDone() {
-		return ProximityPlacementGroup{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the ProximityPlacementGroupListResultIterator type.
-func NewProximityPlacementGroupListResultIterator(page ProximityPlacementGroupListResultPage) ProximityPlacementGroupListResultIterator {
-	return ProximityPlacementGroupListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (ppglr ProximityPlacementGroupListResult) IsEmpty() bool {
-	return ppglr.Value == nil || len(*ppglr.Value) == 0
-}
-
-// proximityPlacementGroupListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (ppglr ProximityPlacementGroupListResult) proximityPlacementGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ppglr.NextLink == nil || len(to.String(ppglr.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(ppglr.NextLink)))
-}
-
-// ProximityPlacementGroupListResultPage contains a page of ProximityPlacementGroup values.
-type ProximityPlacementGroupListResultPage struct {
-	fn    func(context.Context, ProximityPlacementGroupListResult) (ProximityPlacementGroupListResult, error)
-	ppglr ProximityPlacementGroupListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *ProximityPlacementGroupListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ProximityPlacementGroupListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.ppglr)
-	if err != nil {
-		return err
-	}
-	page.ppglr = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *ProximityPlacementGroupListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page ProximityPlacementGroupListResultPage) NotDone() bool {
-	return !page.ppglr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page ProximityPlacementGroupListResultPage) Response() ProximityPlacementGroupListResult {
-	return page.ppglr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page ProximityPlacementGroupListResultPage) Values() []ProximityPlacementGroup {
-	if page.ppglr.IsEmpty() {
-		return nil
-	}
-	return *page.ppglr.Value
-}
-
-// Creates a new instance of the ProximityPlacementGroupListResultPage type.
-func NewProximityPlacementGroupListResultPage(getNextPage func(context.Context, ProximityPlacementGroupListResult) (ProximityPlacementGroupListResult, error)) ProximityPlacementGroupListResultPage {
-	return ProximityPlacementGroupListResultPage{fn: getNextPage}
-}
-
-// ProximityPlacementGroupProperties describes the properties of a Proximity Placement Group.
-type ProximityPlacementGroupProperties struct {
-	// ProximityPlacementGroupType - Specifies the type of the proximity placement group. <br><br> Possible values are: <br><br> **Standard** <br><br> **Ultra**. Possible values include: 'Standard', 'Ultra'
-	ProximityPlacementGroupType ProximityPlacementGroupType `json:"proximityPlacementGroupType,omitempty"`
-	// VirtualMachines - A list of references to all virtual machines in the proximity placement group.
-	VirtualMachines *[]SubResource `json:"virtualMachines,omitempty"`
-	// VirtualMachineScaleSets - A list of references to all virtual machine scale sets in the proximity placement group.
-	VirtualMachineScaleSets *[]SubResource `json:"virtualMachineScaleSets,omitempty"`
-	// AvailabilitySets - A list of references to all availability sets in the proximity placement group.
-	AvailabilitySets *[]SubResource `json:"availabilitySets,omitempty"`
-}
-
-// ProximityPlacementGroupUpdate specifies information about the proximity placement group.
-type ProximityPlacementGroupUpdate struct {
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for ProximityPlacementGroupUpdate.
-func (ppgu ProximityPlacementGroupUpdate) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ppgu.Tags != nil {
-		objectMap["tags"] = ppgu.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
 // PurchasePlan used for establishing the purchase context of any 3rd Party artifact through MarketPlace.
 type PurchasePlan struct {
 	// Publisher - The publisher ID.
@@ -7474,8 +7173,6 @@ type VirtualMachineProperties struct {
 	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
 	// AvailabilitySet - Specifies information about the availability set that the virtual machine should be assigned to. Virtual machines specified in the same availability set are allocated to different nodes to maximize availability. For more information about availability sets, see [Manage the availability of virtual machines](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-manage-availability?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json). <br><br> For more information on Azure planned maintenance, see [Planned maintenance for virtual machines in Azure](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-planned-maintenance?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json) <br><br> Currently, a VM can only be added to availability set at creation time. An existing VM cannot be added to an availability set.
 	AvailabilitySet *SubResource `json:"availabilitySet,omitempty"`
-	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine should be assigned to. <br><br>Minimum api-version: 2018-04-01.
-	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
 	// ProvisioningState - The provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// InstanceView - The virtual machine instance view.
@@ -8878,8 +8575,6 @@ type VirtualMachineScaleSetProperties struct {
 	ZoneBalance *bool `json:"zoneBalance,omitempty"`
 	// PlatformFaultDomainCount - Fault Domain count for each placement group.
 	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
-	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine scale set should be assigned to. <br><br>Minimum api-version: 2018-04-01.
-	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
 }
 
 // VirtualMachineScaleSetPublicIPAddressConfiguration describes a virtual machines scale set IP

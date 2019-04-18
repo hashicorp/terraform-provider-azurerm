@@ -31,6 +31,9 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.test", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.test2", "value2"),
 				),
 			},
 			{
@@ -491,6 +494,11 @@ resource "azurerm_storage_blob" "test" {
 
   type = "page"
   size = 5120
+  
+  metadata {
+    test = "value1"
+    test2 = "value2"
+  }
 }
 `, rInt, location, rString)
 }

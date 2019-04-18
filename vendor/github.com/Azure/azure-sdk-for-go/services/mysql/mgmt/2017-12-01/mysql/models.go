@@ -184,23 +184,6 @@ func PossibleVirtualNetworkRuleStateValues() []VirtualNetworkRuleState {
 	return []VirtualNetworkRuleState{Deleting, Initializing, InProgress, Ready, Unknown}
 }
 
-// CloudError an error response from the Batch service.
-type CloudError struct {
-	Error *CloudErrorBody `json:"error,omitempty"`
-}
-
-// CloudErrorBody an error response from the Batch service.
-type CloudErrorBody struct {
-	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
-	Code *string `json:"code,omitempty"`
-	// Message - A message describing the error, intended to be suitable for display in a user interface.
-	Message *string `json:"message,omitempty"`
-	// Target - The target of the particular error. For example, the name of the property in error.
-	Target *string `json:"target,omitempty"`
-	// Details - A list of additional details about the error.
-	Details *[]CloudErrorBody `json:"details,omitempty"`
-}
-
 // Configuration represents a Configuration.
 type Configuration struct {
 	autorest.Response `json:"-"`
@@ -1677,29 +1660,6 @@ func (ssap *ServerSecurityAlertPolicy) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
-}
-
-// ServersRestartFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type ServersRestartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ServersRestartFuture) Result(client ServersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysql.ServersRestartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("mysql.ServersRestartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
 }
 
 // ServersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running

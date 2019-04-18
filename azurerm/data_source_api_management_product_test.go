@@ -62,6 +62,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = true
+  subscriptions_limit   = 2
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"

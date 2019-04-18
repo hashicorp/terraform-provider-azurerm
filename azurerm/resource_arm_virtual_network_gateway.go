@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -91,6 +91,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
 					string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
 					string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 				}, true),
 			},
 

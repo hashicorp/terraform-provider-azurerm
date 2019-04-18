@@ -6,7 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -41,9 +41,10 @@ func resourceArmRouteTable() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"route": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeList,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
