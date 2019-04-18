@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which requests will match the rule.
 
+~> **NOTE:** The `subnet_id` target subnet must have Service Endpoint `Microsoft.ContainerRegistry` enabled.
+
 ---
 ## Attributes Reference
 
