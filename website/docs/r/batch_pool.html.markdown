@@ -39,6 +39,15 @@ resource "azurerm_batch_account" "test" {
   }
 }
 
+resource "azurerm_batch_certificate" "testcer" {
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${base64encode(file("certificate.cer"))}"
+  format               = "Cer"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
+  thumbprint_algorithm = "SHA1"
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -81,6 +90,11 @@ EOF
       }
     }
   }
+
+  certificate = {
+    id             = "${azurerm_batch_certificate.testcer.id}"
+    visibility = [ "StartTask" ]
+  }
 }
 ```
 
@@ -91,6 +105,8 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Batch pool. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch pool. Changing this forces a new resource to be created.
+
+~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
 
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
@@ -109,6 +125,10 @@ The following arguments are supported:
 * `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale.
 
 * `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
+
+* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
+
+-> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
@@ -132,7 +152,7 @@ A `auto_scale` block supports the following:
 
 ---
 
-A `start_task` block exports the following:
+A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
@@ -144,9 +164,11 @@ A `start_task` block exports the following:
 
 * `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
 
+* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
 ---
 
-A `user_identity` block exports the following:
+A `user_identity` block supports the following:
 
 * `user_name` - (Optional) The username to be used by the Batch pool start task.
 
@@ -156,11 +178,43 @@ A `user_identity` block exports the following:
 
 ---
 
-A `auto_user` block exports the following:
+A `auto_user` block supports the following:
 
 * `elevation_level` - (Optional) The elevation level of the user identity under which the start task runs. Possible values are `Admin` or `NonAdmin`. Defaults to `NonAdmin`.
 
 * `scope` - (Optional) The scope of the user identity under which the start task runs. Possible values are `Task` or `Pool`. Defaults to `Task`.
+
+---
+
+A `certificate` block supports the following:
+
+* `id` - (Required) The ID of the Batch Certificate to install on the Batch Pool, which must be inside the same Batch Account.
+
+* `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
+
+ -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+
+* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
+
+* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
+
+---
+
+A `resource_file` block supports the following:
+
+* `auto_storage_container_name` - (Optional) The storage container name in the auto storage account.
+
+* `blob_prefix` - (Optional) The blob prefix to use when downloading blobs from an Azure Storage container. Only the blobs whose names begin with the specified prefix will be downloaded. The property is valid only when `auto_storage_container_name` or `storage_container_url` is used. This prefix can be a partial filename or a subdirectory. If a prefix is not specified, all the files in the container will be downloaded.
+
+* `file_mode` - (Optional) The file permission mode represented as a string in octal format (e.g. `"0644"`). This property applies only to files being downloaded to Linux compute nodes. It will be ignored if it is specified for a `resource_file` which will be downloaded to a Windows node. If this property is not specified for a Linux node, then a default value of 0770 is applied to the file.
+
+* `file_path` - (Optional) The location on the compute node to which to download the file, relative to the task's working directory. If the `http_url` property is specified, the `file_path` is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the `auto_storage_container_name` or `storage_container_url` property is specified, `file_path` is optional and is the directory to download the files to. In the case where `file_path` is used as a directory, any directory structure already associated with the input data will be retained in full and appended to the specified filePath directory. The specified relative path cannot break out of the task's working directory (for example by using '..').
+
+* `http_url` - (Optional) The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, or set the ACL for the blob or its container to allow public access.
+
+* `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
+
+~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ## Attributes Reference
 
