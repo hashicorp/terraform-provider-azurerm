@@ -193,7 +193,7 @@ resource "azurerm_dev_test_lab" "test" {
   storage_type        = "Standard"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

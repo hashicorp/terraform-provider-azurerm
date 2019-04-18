@@ -185,13 +185,15 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
+
   parameters {
-    "foo" = "test1"
-    "bar" = "test2"
+    foo = "test1"
+    bar = "test2"
   }
+
   additional_properties {
-    "foo" = "test1"
-    "bar" = "test2"
+    foo = "test1"
+    bar = "test2"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -217,13 +219,15 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
+
   parameters {
-    "foo" = "test1"
-    "bar" = "test2"
-    "buzz" = "test3"
+    foo = "test1"
+    bar = "test2"
+    buzz = "test3"
   }
+
   additional_properties {
-    "foo" = "test1"
+    foo = "test1"
   }
 }
 `, rInt, location, rInt, rInt)

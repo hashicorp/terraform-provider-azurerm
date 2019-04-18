@@ -452,8 +452,8 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     }
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, template, rInt)
@@ -610,8 +610,8 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     }
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, template, rInt, rInt, rInt)
