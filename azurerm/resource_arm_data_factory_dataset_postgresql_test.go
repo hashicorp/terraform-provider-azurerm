@@ -198,18 +198,18 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
   folder      = "testFolder"
 
   parameters {
-    "foo" = "test1"
-    "bar" = "test2"
+    foo = "test1"
+    bar = "test2"
   }
  
   additional_properties {
-    "foo" = "test1"
-    "bar" = "test2"
-	}
+    foo = "test1"
+    bar = "test2"
+  }
 	
   schema_column {
-    name = "test1"
-    type = "Byte"
+    name        = "test1"
+    type        = "Byte"
     description = "description"
   }
 }
@@ -248,24 +248,24 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
   folder      = "testFolder"
 
   parameters {
-    "foo" = "test1"
-    "bar" = "test2"
-    "buzz" = "test3"
+    foo  = "test1"
+    bar  = "test2"
+    buzz = "test3"
   }
  
   additional_properties {
-    "foo" = "test1"
-	}
+    foo = "test1"
+  }
 	
   schema_column {
-    name = "test1"
-    type = "Byte"
+    name        = "test1"
+    type        = "Byte"
     description = "description"
   }
 	
   schema_column {
-    name = "test2"
-    type = "Byte"
+    name        = "test2"
+    type        = "Byte"
     description = "description"
   }
 }

@@ -205,7 +205,7 @@ resource "azurerm_relay_namespace" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)
