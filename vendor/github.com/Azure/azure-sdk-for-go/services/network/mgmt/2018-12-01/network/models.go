@@ -29681,8 +29681,7 @@ func (wafp *WebApplicationFirewallPolicy) UnmarshalJSON(body []byte) error {
 }
 
 // WebApplicationFirewallPolicyListResult result of the request to list WebApplicationFirewallPolicies. It
-// contains a list of WebApplicationFirewallPolicy objects and a URL link to get the the next set of
-// results.
+// contains a list of WebApplicationFirewallPolicy objects and a URL link to get the next set of results.
 type WebApplicationFirewallPolicyListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of WebApplicationFirewallPolicies within a resource group.

@@ -486,6 +486,22 @@ func (c Cluster) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ClusterConfigurations the configuration object for the specified cluster.
+type ClusterConfigurations struct {
+	autorest.Response `json:"-"`
+	// Configurations - The configuration object for the specified configuration for the specified cluster.
+	Configurations map[string]map[string]*string `json:"configurations"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterConfigurations.
+func (cc ClusterConfigurations) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cc.Configurations != nil {
+		objectMap["configurations"] = cc.Configurations
+	}
+	return json.Marshal(objectMap)
+}
+
 // ClusterCreateParametersExtended the CreateCluster request parameters.
 type ClusterCreateParametersExtended struct {
 	// Location - The location of the cluster.
@@ -965,6 +981,29 @@ func (future *ClustersRotateDiskEncryptionKeyFuture) Result(client ClustersClien
 	return
 }
 
+// ClustersUpdateGatewaySettingsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ClustersUpdateGatewaySettingsFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ClustersUpdateGatewaySettingsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateGatewaySettingsFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateGatewaySettingsFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ComputeProfile describes the compute profile.
 type ComputeProfile struct {
 	// Roles - The list of roles in the cluster.
@@ -1153,6 +1192,17 @@ func (future *ExtensionsEnableMonitoringFuture) Result(client ExtensionsClient) 
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// GatewaySettings gateway settings.
+type GatewaySettings struct {
+	autorest.Response `json:"-"`
+	// IsCredentialEnabled - Indicates whether or not the gateway settings based authorization is enabled.
+	IsCredentialEnabled *string `json:"restAuthCredential.isEnabled,omitempty"`
+	// UserName - The gateway settings user name.
+	UserName *string `json:"restAuthCredential.username,omitempty"`
+	// Password - The gateway settings user password.
+	Password *string `json:"restAuthCredential.password,omitempty"`
 }
 
 // HardwareProfile the hardware profile.
@@ -1879,6 +1929,16 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
+}
+
+// UpdateGatewaySettingsParameters the update gateway settings request parameters.
+type UpdateGatewaySettingsParameters struct {
+	// IsCredentialEnabled - Indicates whether or not the gateway settings based authorization is enabled.
+	IsCredentialEnabled *bool `json:"restAuthCredential.isEnabled,omitempty"`
+	// UserName - The gateway settings user name.
+	UserName *string `json:"restAuthCredential.username,omitempty"`
+	// Password - The gateway settings user password.
+	Password *string `json:"restAuthCredential.password,omitempty"`
 }
 
 // Usage the details about the usage of a particular limited resource.
