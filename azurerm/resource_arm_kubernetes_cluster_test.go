@@ -576,6 +576,9 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttrSet(resourceName, "api_server_authorized_ip_ranges"),
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "api_server_authorized_ip_ranges.0"),
 				),
 			},
 			{
