@@ -284,6 +284,7 @@ func testAccAzureRMDataFactory_basic(rInt int, location string) string {
     name     = "acctestrg-%d"
     location = "%s"
   }
+
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
@@ -298,10 +299,12 @@ func testAccAzureRMDataFactory_tags(rInt int, location string) string {
     name     = "acctestrg-%d"
     location = "%s"
   }
+
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     tags = {
       environment = "production"
     }
@@ -315,10 +318,12 @@ func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
     name     = "acctestrg-%d"
     location = "%s"
   }
+
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     tags = {
       environment = "production"
       updated     = "true"
@@ -333,6 +338,7 @@ func testAccAzureRMDataFactory_identity(rInt int, location string) string {
     name     = "acctestrg-%d"
     location = "%s"
   }
+
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
@@ -351,18 +357,19 @@ func testAccAzureRMDataFactory_github(rInt int, location string) string {
     name     = "acctestrg-%d"
     location = "%s"
   }
+
   resource "azurerm_data_factory" "test" {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 		
-		github_configuration {
-			git_url         = "https://github.com/terraform-providers/"
-			repository_name = "terraform-provider-azurerm"
-			branch_name     = "master"
-			root_folder     = "/"
-			account_name    = "acctestrg-%d"
-		}
+    github_configuration {
+      git_url         = "https://github.com/terraform-providers/"
+      repository_name = "terraform-provider-azurerm"
+      branch_name     = "master"
+      root_folder     = "/"
+      account_name    = "acctestrg-%d"
+    }
   }
 `, rInt, location, rInt, rInt)
 }
@@ -378,13 +385,13 @@ func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 		
-		github_configuration {
-			git_url         = "https://github.com/terraform-providers/"
-			repository_name = "terraform-provider-azuread"
-			branch_name     = "stable-website"
-			root_folder     = "/azuread"
-			account_name    = "acctestrg-%d"
-		}
+    github_configuration {
+      git_url         = "https://github.com/terraform-providers/"
+      repository_name = "terraform-provider-azuread"
+      branch_name     = "stable-website"
+      root_folder     = "/azuread"
+      account_name    = "acctestrg-%d"
+    }
   }
 `, rInt, location, rInt, rInt)
 }
