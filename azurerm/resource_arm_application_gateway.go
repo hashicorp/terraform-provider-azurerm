@@ -744,6 +744,105 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"rewrite_rule_set": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"rewrite_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"rule_sequence": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+
+									"condition": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"variable": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"pattern": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"ignore_case": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"negate": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+											},
+										},
+									},
+
+									"request_header_configuration": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"header_name": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"header_value": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+
+									"response_header_configuration": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"header_name": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"header_value": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"ssl_certificate": {
 				// TODO: should this become a Set?
 				Type:     schema.TypeList,
@@ -1096,6 +1195,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
+	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d.Get("rewrite_rule_set").([]interface{}))
 	zones := expandZones(d.Get("zones").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
@@ -1134,6 +1234,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     sslPolicy,
 			CustomErrorConfigurations:     customErrorConfigurations,
+			RewriteRuleSets:               rewriteRuleSets,
 			URLPathMaps:                   urlPathMaps,
 			AutoscaleConfiguration:        autoscaleConfiguration,
 		},
@@ -1282,6 +1383,14 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 		if setErr := d.Set("redirect_configuration", redirectConfigurations); setErr != nil {
 			return fmt.Errorf("Error setting `redirect configuration`: %+v", setErr)
+		}
+
+		rewriteRuleSets, err := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
+		if err != nil {
+			return fmt.Errorf("Error flattening `rewrite rule sets`: %+v", err)
+		}
+		if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
+			return fmt.Errorf("Error setting `rewrite_rule_set`: %+v", setErr)
 		}
 
 		if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
@@ -2196,6 +2305,13 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 			}
 		}
 
+		if redirectConfigName := v["redirect_configuration_name"].(string); redirectConfigName != "" {
+			redirectConfigID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RedirectConfiguration = &network.SubResource{
+				ID: utils.String(redirectConfigID),
+			}
+		}
+
 		results = append(results, rule)
 	}
 
@@ -2288,6 +2404,70 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	}
 
 	return results, nil
+}
+
+func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRewriteRuleSet {
+	vs := d.Get("rewrite_rule_set").([]interface{})
+	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+		rules := make([]network.ApplicationGatewayRewriteRule, 0)
+
+		name := v["name"].(string)
+
+		for _, ruleConfig := range v["rewrite_rule"].([]interface{}) {
+			r := ruleConfig.(map[string]interface{})
+			conditions := make([]network.ApplicationGatewayRewriteRuleCondition, 0)
+			requestConfigurations := make([]network.ApplicationGatewayHeaderConfiguration, 0)
+			responseConfigurations := make([]network.ApplicationGatewayHeaderConfiguration, 0)
+
+			rule := network.ApplicationGatewayRewriteRule{
+				Name:         utils.String(r["name"].(string)),
+				RuleSequence: utils.Int32(int32(r["rule_sequence"].(int))),
+			}
+
+			for _, rawCondition := range v["condition"].([]interface{}) {
+				c := rawCondition.(map[string]interface{})
+				condition := network.ApplicationGatewayRewriteRuleCondition{
+					Variable:   utils.String(c["variable"].(string)),
+					Pattern:    utils.String(c["pattern"].(string)),
+					IgnoreCase: utils.Bool(c["ignore_case"].(bool)),
+					Negate:     utils.Bool(c["negate"].(bool)),
+				}
+				conditions = append(conditions, condition)
+			}
+			rule.Conditions = &conditions
+
+			for _, rawConfig := range v["request_header_configuration"].([]interface{}) {
+				r := rawConfig.(map[string]interface{})
+				config := network.ApplicationGatewayRewriteRuleCondition{
+					HeaderName:  utils.String(r["header_name"].(string)),
+					HeaderValue: utils.String(r["header_value"].(string)),
+				}
+				requestConfigurations = append(requestConfigurations, config)
+			}
+
+			for _, rawConfig := range v["response_header_configuration"].([]interface{}) {
+				r := rawConfig.(map[string]interface{})
+				config := network.ApplicationGatewayRewriteRuleCondition{
+					HeaderName:  utils.String(r["header_name"].(string)),
+					HeaderValue: utils.String(r["header_value"].(string)),
+				}
+				responseConfigurations = append(responseConfigurations, config)
+			}
+
+			rule.ActionSet = &network.ApplicationGatewayRewriteRuleActionSet{
+				RequestHeaderConfiurations:  &requestConfigurations,
+				ResponseHeaderConfiurations: &responseConfigurations,
+			}
+			rules = append(rules, rule)
+		}
+
+		ruleSets = append(ruleSets, rules)
+	}
+
+	return &ruleSets
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
