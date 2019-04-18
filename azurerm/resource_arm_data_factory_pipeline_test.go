@@ -173,8 +173,8 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 	
   variables {
-    "foo" = "test1"
-    "bar" = "test2"
+    foo = "test1"
+    bar = "test2"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -206,9 +206,9 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 
   variables {
-    "foo" = "test1"
-     "bar" = "test2"
-    "baz" = "test3"
+    foo = "test1"
+    bar = "test2"
+    baz = "test3"
   }
 }
 `, rInt, location, rInt, rInt)
