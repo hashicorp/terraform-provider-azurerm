@@ -429,7 +429,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, template, rInt)
@@ -577,7 +577,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, template, rInt, rInt, rInt)

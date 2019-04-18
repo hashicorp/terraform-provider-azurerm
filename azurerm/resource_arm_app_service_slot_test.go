@@ -1808,7 +1808,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1892,7 +1892,7 @@ resource "azurerm_app_service_slot" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)

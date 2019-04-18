@@ -106,7 +106,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 
@@ -156,7 +156,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 

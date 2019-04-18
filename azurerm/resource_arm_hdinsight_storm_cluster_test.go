@@ -426,7 +426,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, template, rInt)
@@ -572,7 +572,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, template, rInt, rInt, rInt)

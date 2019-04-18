@@ -241,7 +241,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
@@ -264,7 +264,7 @@ resource "azurerm_iothub" "import" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, template)
@@ -289,7 +289,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
@@ -320,7 +320,7 @@ resource "azurerm_iothub" "test" {
 	}
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
@@ -416,7 +416,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, rInt, location, rStr, rInt, rInt)
@@ -447,7 +447,7 @@ resource "azurerm_iothub" "test" {
   }
 
 	tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
