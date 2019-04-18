@@ -443,6 +443,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile(t *testing.T) {
 				Config: testAccAzureRMContainerRegistry_networkAccessProfile(ri, location, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_access_profile"),
 				),
 			},
 			{

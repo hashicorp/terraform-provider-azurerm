@@ -477,6 +477,11 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
 
+	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
+	if err := d.Set("network_access_profile", networkRuleSet); err != nil {
+		return fmt.Errorf("Error setting `network_access_profile`: %+v", err)
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
 	}
@@ -615,4 +620,42 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 		IPRules:             &ipRules,
 	}
 	return &networkRuleSet
+}
+
+func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {
+	if networkRuleSet == nil {
+		return []interface{}{}
+	}
+
+	values := make(map[string]interface{})
+
+	values["default_action"] = string(networkRuleSet.DefaultAction)
+
+	ipRules := make([]interface{}, 0)
+	for _, ipRule := range *networkRuleSet.IPRules {
+		value := make(map[string]interface{})
+		value["action"] = string(ipRule.Action)
+
+		//When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
+		if !strings.Contains(*ipRule.IPAddressOrRange, "/") {
+			*ipRule.IPAddressOrRange += "/32"
+		}
+
+		value["ip_range"] = ipRule.IPAddressOrRange
+		ipRules = append(ipRules, value)
+	}
+
+	values["ip_rule"] = ipRules
+
+	virtualNetworkRules := make([]interface{}, 0)
+	for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+		value := make(map[string]interface{})
+		value["action"] = string(virtualNetworkRule.Action)
+		value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
+		virtualNetworkRules = append(virtualNetworkRules, value)
+	}
+
+	values["subnet_rule"] = virtualNetworkRules
+
+	return []interface{}{values}
 }
