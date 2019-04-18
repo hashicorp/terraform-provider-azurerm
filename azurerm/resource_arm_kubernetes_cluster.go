@@ -514,7 +514,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -575,7 +575,8 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
-	apiServerAuthorizedIPRanges := utils.ExpandStringArray(d.Get("api_server_authorized_ip_ranges").([]interface{}))
+	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+	apiServerAuthorizedIPRanges := utils.ExpandStringArray(apiServerAuthorizedIPRangesRaw)
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
