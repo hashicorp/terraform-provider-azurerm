@@ -31,6 +31,21 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 
+// ConflictResolutionMode enumerates the values for conflict resolution mode.
+type ConflictResolutionMode string
+
+const (
+	// Custom ...
+	Custom ConflictResolutionMode = "Custom"
+	// LastWriterWins ...
+	LastWriterWins ConflictResolutionMode = "LastWriterWins"
+)
+
+// PossibleConflictResolutionModeValues returns an array of possible values for the ConflictResolutionMode const type.
+func PossibleConflictResolutionModeValues() []ConflictResolutionMode {
+	return []ConflictResolutionMode{Custom, LastWriterWins}
+}
+
 // DatabaseAccountKind enumerates the values for database account kind.
 type DatabaseAccountKind string
 
@@ -61,6 +76,29 @@ func PossibleDatabaseAccountOfferTypeValues() []DatabaseAccountOfferType {
 	return []DatabaseAccountOfferType{Standard}
 }
 
+// DataType enumerates the values for data type.
+type DataType string
+
+const (
+	// LineString ...
+	LineString DataType = "LineString"
+	// MultiPolygon ...
+	MultiPolygon DataType = "MultiPolygon"
+	// Number ...
+	Number DataType = "Number"
+	// Point ...
+	Point DataType = "Point"
+	// Polygon ...
+	Polygon DataType = "Polygon"
+	// String ...
+	String DataType = "String"
+)
+
+// PossibleDataTypeValues returns an array of possible values for the DataType const type.
+func PossibleDataTypeValues() []DataType {
+	return []DataType{LineString, MultiPolygon, Number, Point, Polygon, String}
+}
+
 // DefaultConsistencyLevel enumerates the values for default consistency level.
 type DefaultConsistencyLevel string
 
@@ -82,6 +120,40 @@ func PossibleDefaultConsistencyLevelValues() []DefaultConsistencyLevel {
 	return []DefaultConsistencyLevel{BoundedStaleness, ConsistentPrefix, Eventual, Session, Strong}
 }
 
+// IndexingMode enumerates the values for indexing mode.
+type IndexingMode string
+
+const (
+	// Consistent ...
+	Consistent IndexingMode = "Consistent"
+	// Lazy ...
+	Lazy IndexingMode = "Lazy"
+	// None ...
+	None IndexingMode = "None"
+)
+
+// PossibleIndexingModeValues returns an array of possible values for the IndexingMode const type.
+func PossibleIndexingModeValues() []IndexingMode {
+	return []IndexingMode{Consistent, Lazy, None}
+}
+
+// IndexKind enumerates the values for index kind.
+type IndexKind string
+
+const (
+	// Hash ...
+	Hash IndexKind = "Hash"
+	// Range ...
+	Range IndexKind = "Range"
+	// Spatial ...
+	Spatial IndexKind = "Spatial"
+)
+
+// PossibleIndexKindValues returns an array of possible values for the IndexKind const type.
+func PossibleIndexKindValues() []IndexKind {
+	return []IndexKind{Hash, Range, Spatial}
+}
+
 // KeyKind enumerates the values for key kind.
 type KeyKind string
 
@@ -101,27 +173,42 @@ func PossibleKeyKindValues() []KeyKind {
 	return []KeyKind{Primary, PrimaryReadonly, Secondary, SecondaryReadonly}
 }
 
+// PartitionKind enumerates the values for partition kind.
+type PartitionKind string
+
+const (
+	// PartitionKindHash ...
+	PartitionKindHash PartitionKind = "Hash"
+	// PartitionKindRange ...
+	PartitionKindRange PartitionKind = "Range"
+)
+
+// PossiblePartitionKindValues returns an array of possible values for the PartitionKind const type.
+func PossiblePartitionKindValues() []PartitionKind {
+	return []PartitionKind{PartitionKindHash, PartitionKindRange}
+}
+
 // PrimaryAggregationType enumerates the values for primary aggregation type.
 type PrimaryAggregationType string
 
 const (
-	// Average ...
-	Average PrimaryAggregationType = "Average"
-	// Last ...
-	Last PrimaryAggregationType = "Last"
-	// Maximum ...
-	Maximum PrimaryAggregationType = "Maximum"
-	// Minimimum ...
-	Minimimum PrimaryAggregationType = "Minimimum"
-	// None ...
-	None PrimaryAggregationType = "None"
-	// Total ...
-	Total PrimaryAggregationType = "Total"
+	// PrimaryAggregationTypeAverage ...
+	PrimaryAggregationTypeAverage PrimaryAggregationType = "Average"
+	// PrimaryAggregationTypeLast ...
+	PrimaryAggregationTypeLast PrimaryAggregationType = "Last"
+	// PrimaryAggregationTypeMaximum ...
+	PrimaryAggregationTypeMaximum PrimaryAggregationType = "Maximum"
+	// PrimaryAggregationTypeMinimimum ...
+	PrimaryAggregationTypeMinimimum PrimaryAggregationType = "Minimimum"
+	// PrimaryAggregationTypeNone ...
+	PrimaryAggregationTypeNone PrimaryAggregationType = "None"
+	// PrimaryAggregationTypeTotal ...
+	PrimaryAggregationTypeTotal PrimaryAggregationType = "Total"
 )
 
 // PossiblePrimaryAggregationTypeValues returns an array of possible values for the PrimaryAggregationType const type.
 func PossiblePrimaryAggregationTypeValues() []PrimaryAggregationType {
-	return []PrimaryAggregationType{Average, Last, Maximum, Minimimum, None, Total}
+	return []PrimaryAggregationType{PrimaryAggregationTypeAverage, PrimaryAggregationTypeLast, PrimaryAggregationTypeMaximum, PrimaryAggregationTypeMinimimum, PrimaryAggregationTypeNone, PrimaryAggregationTypeTotal}
 }
 
 // UnitType enumerates the values for unit type.
@@ -155,6 +242,433 @@ type Capability struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// CassandraKeyspace an Azure Cosmos DB Cassandra keyspace.
+type CassandraKeyspace struct {
+	autorest.Response `json:"-"`
+	// CassandraKeyspaceProperties - The properties of an Azure Cosmos DB Cassandra keyspace
+	*CassandraKeyspaceProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraKeyspace.
+func (ck CassandraKeyspace) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ck.CassandraKeyspaceProperties != nil {
+		objectMap["properties"] = ck.CassandraKeyspaceProperties
+	}
+	if ck.ID != nil {
+		objectMap["id"] = ck.ID
+	}
+	if ck.Name != nil {
+		objectMap["name"] = ck.Name
+	}
+	if ck.Type != nil {
+		objectMap["type"] = ck.Type
+	}
+	if ck.Location != nil {
+		objectMap["location"] = ck.Location
+	}
+	if ck.Tags != nil {
+		objectMap["tags"] = ck.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CassandraKeyspace struct.
+func (ck *CassandraKeyspace) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var cassandraKeyspaceProperties CassandraKeyspaceProperties
+				err = json.Unmarshal(*v, &cassandraKeyspaceProperties)
+				if err != nil {
+					return err
+				}
+				ck.CassandraKeyspaceProperties = &cassandraKeyspaceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ck.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ck.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ck.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ck.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ck.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// CassandraKeyspaceCreateUpdateParameters parameters to create and update Cosmos DB Cassandra keyspace.
+type CassandraKeyspaceCreateUpdateParameters struct {
+	// CassandraKeyspaceCreateUpdateProperties - Properties to create and update Azure Cosmos DB Cassandra keyspace.
+	*CassandraKeyspaceCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraKeyspaceCreateUpdateParameters.
+func (ckcup CassandraKeyspaceCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckcup.CassandraKeyspaceCreateUpdateProperties != nil {
+		objectMap["properties"] = ckcup.CassandraKeyspaceCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CassandraKeyspaceCreateUpdateParameters struct.
+func (ckcup *CassandraKeyspaceCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var cassandraKeyspaceCreateUpdateProperties CassandraKeyspaceCreateUpdateProperties
+				err = json.Unmarshal(*v, &cassandraKeyspaceCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				ckcup.CassandraKeyspaceCreateUpdateProperties = &cassandraKeyspaceCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// CassandraKeyspaceCreateUpdateProperties properties to create and update Azure Cosmos DB Cassandra
+// keyspace.
+type CassandraKeyspaceCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Cassandra keyspace
+	Resource *CassandraKeyspaceResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraKeyspaceCreateUpdateProperties.
+func (ckcup CassandraKeyspaceCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckcup.Resource != nil {
+		objectMap["resource"] = ckcup.Resource
+	}
+	if ckcup.Options != nil {
+		objectMap["options"] = ckcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// CassandraKeyspaceListResult the List operation response, that contains the Cassandra keyspaces and their
+// properties.
+type CassandraKeyspaceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Cassandra keyspaces and their properties.
+	Value *[]CassandraKeyspace `json:"value,omitempty"`
+}
+
+// CassandraKeyspaceProperties the properties of an Azure Cosmos DB Cassandra keyspace
+type CassandraKeyspaceProperties struct {
+	// ID - Name of the Cosmos DB Cassandra keyspace
+	ID *string `json:"id,omitempty"`
+}
+
+// CassandraKeyspaceResource cosmos DB Cassandra keyspace id object
+type CassandraKeyspaceResource struct {
+	// ID - Name of the Cosmos DB Cassandra keyspace
+	ID *string `json:"id,omitempty"`
+}
+
+// CassandraPartitionKey cosmos DB Cassandra table partition key
+type CassandraPartitionKey struct {
+	// Name - Name of the Cosmos DB Cassandra table partition key
+	Name *string `json:"name,omitempty"`
+}
+
+// CassandraSchema cosmos DB Cassandra table schema
+type CassandraSchema struct {
+	// Columns - List of Cassandra table columns.
+	Columns *[]Column `json:"columns,omitempty"`
+	// PartitionKeys - List of partition key.
+	PartitionKeys *[]CassandraPartitionKey `json:"partitionKeys,omitempty"`
+	// ClusterKeys - List of cluster key.
+	ClusterKeys *[]ClusterKey `json:"clusterKeys,omitempty"`
+}
+
+// CassandraTable an Azure Cosmos DB Cassandra table.
+type CassandraTable struct {
+	autorest.Response `json:"-"`
+	// CassandraTableProperties - The properties of an Azure Cosmos DB Cassandra table
+	*CassandraTableProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraTable.
+func (ct CassandraTable) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ct.CassandraTableProperties != nil {
+		objectMap["properties"] = ct.CassandraTableProperties
+	}
+	if ct.ID != nil {
+		objectMap["id"] = ct.ID
+	}
+	if ct.Name != nil {
+		objectMap["name"] = ct.Name
+	}
+	if ct.Type != nil {
+		objectMap["type"] = ct.Type
+	}
+	if ct.Location != nil {
+		objectMap["location"] = ct.Location
+	}
+	if ct.Tags != nil {
+		objectMap["tags"] = ct.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CassandraTable struct.
+func (ct *CassandraTable) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var cassandraTableProperties CassandraTableProperties
+				err = json.Unmarshal(*v, &cassandraTableProperties)
+				if err != nil {
+					return err
+				}
+				ct.CassandraTableProperties = &cassandraTableProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ct.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ct.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ct.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ct.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ct.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// CassandraTableCreateUpdateParameters parameters to create and update Cosmos DB Cassandra table.
+type CassandraTableCreateUpdateParameters struct {
+	// CassandraTableCreateUpdateProperties - Properties to create and update Azure Cosmos DB Cassandra table.
+	*CassandraTableCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraTableCreateUpdateParameters.
+func (ctcup CassandraTableCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ctcup.CassandraTableCreateUpdateProperties != nil {
+		objectMap["properties"] = ctcup.CassandraTableCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CassandraTableCreateUpdateParameters struct.
+func (ctcup *CassandraTableCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var cassandraTableCreateUpdateProperties CassandraTableCreateUpdateProperties
+				err = json.Unmarshal(*v, &cassandraTableCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				ctcup.CassandraTableCreateUpdateProperties = &cassandraTableCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// CassandraTableCreateUpdateProperties properties to create and update Azure Cosmos DB Cassandra table.
+type CassandraTableCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Cassandra table
+	Resource *CassandraTableResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraTableCreateUpdateProperties.
+func (ctcup CassandraTableCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ctcup.Resource != nil {
+		objectMap["resource"] = ctcup.Resource
+	}
+	if ctcup.Options != nil {
+		objectMap["options"] = ctcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// CassandraTableListResult the List operation response, that contains the Cassandra tables and their
+// properties.
+type CassandraTableListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Cassandra tables and their properties.
+	Value *[]CassandraTable `json:"value,omitempty"`
+}
+
+// CassandraTableProperties the properties of an Azure Cosmos DB Cassandra table
+type CassandraTableProperties struct {
+	// ID - Name of the Cosmos DB Cassandra table
+	ID *string `json:"id,omitempty"`
+	// DefaultTTL - Time to live of the Cosmos DB Cassandra table
+	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
+	// Schema - Schema of the Cosmos DB Cassandra table
+	Schema *CassandraSchema `json:"schema,omitempty"`
+}
+
+// CassandraTableResource cosmos DB Cassandra table id object
+type CassandraTableResource struct {
+	// ID - Name of the Cosmos DB Cassandra table
+	ID *string `json:"id,omitempty"`
+	// DefaultTTL - Time to live of the Cosmos DB Cassandra table
+	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
+	// Schema - Schema of the Cosmos DB Cassandra table
+	Schema *CassandraSchema `json:"schema,omitempty"`
+}
+
+// ClusterKey cosmos DB Cassandra table cluster key
+type ClusterKey struct {
+	// Name - Name of the Cosmos DB Cassandra table cluster key
+	Name *string `json:"name,omitempty"`
+	// OrderBy - Order of the Cosmos DB Cassandra table cluster key, only support "Asc" and "Desc"
+	OrderBy *string `json:"orderBy,omitempty"`
+}
+
+// Column cosmos DB Cassandra table column
+type Column struct {
+	// Name - Name of the Cosmos DB Cassandra table column
+	Name *string `json:"name,omitempty"`
+	// Type - Type of the Cosmos DB Cassandra table column
+	Type *string `json:"type,omitempty"`
+}
+
+// ConflictResolutionPolicy the conflict resolution policy for the container.
+type ConflictResolutionPolicy struct {
+	// Mode - Indicates the conflict resolution mode. Possible values include: 'LastWriterWins', 'Custom'
+	Mode ConflictResolutionMode `json:"mode,omitempty"`
+	// ConflictResolutionPath - The conflict resolution path in the case of LastWriterWins mode.
+	ConflictResolutionPath *string `json:"conflictResolutionPath,omitempty"`
+	// ConflictResolutionProcedure - The procedure to resolve conflicts in the case of custom mode.
+	ConflictResolutionProcedure *string `json:"conflictResolutionProcedure,omitempty"`
+}
+
 // ConsistencyPolicy the consistency policy for the Cosmos DB database account.
 type ConsistencyPolicy struct {
 	// DefaultConsistencyLevel - The default consistency level and configuration settings of the Cosmos DB account. Possible values include: 'Eventual', 'Session', 'BoundedStaleness', 'Strong', 'ConsistentPrefix'
@@ -163,6 +677,228 @@ type ConsistencyPolicy struct {
 	MaxStalenessPrefix *int64 `json:"maxStalenessPrefix,omitempty"`
 	// MaxIntervalInSeconds - When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is 5 - 86400. Required when defaultConsistencyPolicy is set to 'BoundedStaleness'.
 	MaxIntervalInSeconds *int32 `json:"maxIntervalInSeconds,omitempty"`
+}
+
+// Container an Azure Cosmos DB container.
+type Container struct {
+	autorest.Response `json:"-"`
+	// ContainerProperties - The properties of an Azure Cosmos DB container
+	*ContainerProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Container.
+func (c Container) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if c.ContainerProperties != nil {
+		objectMap["properties"] = c.ContainerProperties
+	}
+	if c.ID != nil {
+		objectMap["id"] = c.ID
+	}
+	if c.Name != nil {
+		objectMap["name"] = c.Name
+	}
+	if c.Type != nil {
+		objectMap["type"] = c.Type
+	}
+	if c.Location != nil {
+		objectMap["location"] = c.Location
+	}
+	if c.Tags != nil {
+		objectMap["tags"] = c.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Container struct.
+func (c *Container) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var containerProperties ContainerProperties
+				err = json.Unmarshal(*v, &containerProperties)
+				if err != nil {
+					return err
+				}
+				c.ContainerProperties = &containerProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				c.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				c.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				c.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				c.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				c.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// ContainerCreateUpdateParameters parameters to create and update Cosmos DB container.
+type ContainerCreateUpdateParameters struct {
+	// ContainerCreateUpdateProperties - Properties to create and update Azure Cosmos DB container.
+	*ContainerCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerCreateUpdateParameters.
+func (ccup ContainerCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ccup.ContainerCreateUpdateProperties != nil {
+		objectMap["properties"] = ccup.ContainerCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ContainerCreateUpdateParameters struct.
+func (ccup *ContainerCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var containerCreateUpdateProperties ContainerCreateUpdateProperties
+				err = json.Unmarshal(*v, &containerCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				ccup.ContainerCreateUpdateProperties = &containerCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// ContainerCreateUpdateProperties properties to create and update Azure Cosmos DB container.
+type ContainerCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a container
+	Resource *ContainerResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerCreateUpdateProperties.
+func (ccup ContainerCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ccup.Resource != nil {
+		objectMap["resource"] = ccup.Resource
+	}
+	if ccup.Options != nil {
+		objectMap["options"] = ccup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// ContainerListResult the List operation response, that contains the containers and their properties.
+type ContainerListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of containers and their properties.
+	Value *[]Container `json:"value,omitempty"`
+}
+
+// ContainerPartitionKey the configuration of the partition key to be used for partitioning data into
+// multiple partitions
+type ContainerPartitionKey struct {
+	// Paths - List of paths using which data within the container can be partitioned
+	Paths *[]string `json:"paths,omitempty"`
+	// Kind - Indicates the kind of algorithm used for partitioning. Possible values include: 'PartitionKindHash', 'PartitionKindRange'
+	Kind PartitionKind `json:"kind,omitempty"`
+}
+
+// ContainerProperties the properties of an Azure Cosmos DB container
+type ContainerProperties struct {
+	// ID - Name of the Cosmos DB container
+	ID *string `json:"id,omitempty"`
+	// IndexingPolicy - The configuration of the indexing policy. By default, the indexing is automatic for all document paths within the container
+	IndexingPolicy *IndexingPolicy `json:"indexingPolicy,omitempty"`
+	// PartitionKey - The configuration of the partition key to be used for partitioning data into multiple partitions
+	PartitionKey *ContainerPartitionKey `json:"partitionKey,omitempty"`
+	// DefaultTTL - Default time to live
+	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
+	// UniqueKeyPolicy - The unique key policy configuration for specifying uniqueness constraints on documents in the collection in the Azure Cosmos DB service.
+	UniqueKeyPolicy *UniqueKeyPolicy `json:"uniqueKeyPolicy,omitempty"`
+	// ConflictResolutionPolicy - The conflict resolution policy for the container.
+	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
+	// Rid - A system generated property. A unique identifier.
+	Rid *string `json:"_rid,omitempty"`
+	// Ts - A system generated property that denotes the last updated timestamp of the resource.
+	Ts interface{} `json:"_ts,omitempty"`
+	// Etag - A system generated property representing the resource etag required for optimistic concurrency control.
+	Etag *string `json:"_etag,omitempty"`
+}
+
+// ContainerResource cosmos DB container resource object
+type ContainerResource struct {
+	// ID - Name of the Cosmos DB container
+	ID *string `json:"id,omitempty"`
+	// IndexingPolicy - The configuration of the indexing policy. By default, the indexing is automatic for all document paths within the container
+	IndexingPolicy *IndexingPolicy `json:"indexingPolicy,omitempty"`
+	// PartitionKey - The configuration of the partition key to be used for partitioning data into multiple partitions
+	PartitionKey *ContainerPartitionKey `json:"partitionKey,omitempty"`
+	// DefaultTTL - Default time to live
+	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
+	// UniqueKeyPolicy - The unique key policy configuration for specifying uniqueness constraints on documents in the collection in the Azure Cosmos DB service.
+	UniqueKeyPolicy *UniqueKeyPolicy `json:"uniqueKeyPolicy,omitempty"`
+	// ConflictResolutionPolicy - The conflict resolution policy for the container.
+	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
 }
 
 // DatabaseAccount an Azure Cosmos DB database account.
@@ -421,8 +1157,9 @@ type DatabaseAccountCreateUpdateProperties struct {
 	// ConsistencyPolicy - The consistency policy for the Cosmos DB account.
 	ConsistencyPolicy *ConsistencyPolicy `json:"consistencyPolicy,omitempty"`
 	// Locations - An array that contains the georeplication locations enabled for the Cosmos DB account.
-	Locations                *[]Location `json:"locations,omitempty"`
-	DatabaseAccountOfferType *string     `json:"databaseAccountOfferType,omitempty"`
+	Locations *[]Location `json:"locations,omitempty"`
+	// DatabaseAccountOfferType - The offer type for the database
+	DatabaseAccountOfferType *string `json:"databaseAccountOfferType,omitempty"`
 	// IPRangeFilter - Cosmos DB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 	IPRangeFilter *string `json:"ipRangeFilter,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
@@ -641,6 +1378,313 @@ func (future *DatabaseAccountsCreateOrUpdateFuture) Result(client DatabaseAccoun
 	return
 }
 
+// DatabaseAccountsCreateUpdateCassandraKeyspaceFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type DatabaseAccountsCreateUpdateCassandraKeyspaceFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateCassandraKeyspaceFuture) Result(client DatabaseAccountsClient) (ck CassandraKeyspace, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateCassandraKeyspaceFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateCassandraKeyspaceFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ck.Response.Response, err = future.GetResult(sender); err == nil && ck.Response.Response.StatusCode != http.StatusNoContent {
+		ck, err = client.CreateUpdateCassandraKeyspaceResponder(ck.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateCassandraKeyspaceFuture", "Result", ck.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateCassandraTableFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type DatabaseAccountsCreateUpdateCassandraTableFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateCassandraTableFuture) Result(client DatabaseAccountsClient) (ct CassandraTable, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateCassandraTableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateCassandraTableFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ct.Response.Response, err = future.GetResult(sender); err == nil && ct.Response.Response.StatusCode != http.StatusNoContent {
+		ct, err = client.CreateUpdateCassandraTableResponder(ct.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateCassandraTableFuture", "Result", ct.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateGremlinContainerFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type DatabaseAccountsCreateUpdateGremlinContainerFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateGremlinContainerFuture) Result(client DatabaseAccountsClient) (c Container, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateGremlinContainerFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateGremlinContainerFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+		c, err = client.CreateUpdateGremlinContainerResponder(c.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateGremlinContainerFuture", "Result", c.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateGremlinDatabaseFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type DatabaseAccountsCreateUpdateGremlinDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateGremlinDatabaseFuture) Result(client DatabaseAccountsClient) (gd GremlinDatabase, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateGremlinDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateGremlinDatabaseFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if gd.Response.Response, err = future.GetResult(sender); err == nil && gd.Response.Response.StatusCode != http.StatusNoContent {
+		gd, err = client.CreateUpdateGremlinDatabaseResponder(gd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateGremlinDatabaseFuture", "Result", gd.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateMongoCollectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type DatabaseAccountsCreateUpdateMongoCollectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateMongoCollectionFuture) Result(client DatabaseAccountsClient) (mc MongoCollection, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateMongoCollectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateMongoCollectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if mc.Response.Response, err = future.GetResult(sender); err == nil && mc.Response.Response.StatusCode != http.StatusNoContent {
+		mc, err = client.CreateUpdateMongoCollectionResponder(mc.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateMongoCollectionFuture", "Result", mc.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateMongoDatabaseFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type DatabaseAccountsCreateUpdateMongoDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateMongoDatabaseFuture) Result(client DatabaseAccountsClient) (md MongoDatabase, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateMongoDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateMongoDatabaseFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if md.Response.Response, err = future.GetResult(sender); err == nil && md.Response.Response.StatusCode != http.StatusNoContent {
+		md, err = client.CreateUpdateMongoDatabaseResponder(md.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateMongoDatabaseFuture", "Result", md.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateSQLContainerFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type DatabaseAccountsCreateUpdateSQLContainerFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateSQLContainerFuture) Result(client DatabaseAccountsClient) (c Container, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateSQLContainerFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateSQLContainerFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+		c, err = client.CreateUpdateSQLContainerResponder(c.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateSQLContainerFuture", "Result", c.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateSQLDatabaseFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type DatabaseAccountsCreateUpdateSQLDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateSQLDatabaseFuture) Result(client DatabaseAccountsClient) (sd SQLDatabase, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateSQLDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateSQLDatabaseFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sd.Response.Response, err = future.GetResult(sender); err == nil && sd.Response.Response.StatusCode != http.StatusNoContent {
+		sd, err = client.CreateUpdateSQLDatabaseResponder(sd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateSQLDatabaseFuture", "Result", sd.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsCreateUpdateTableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsCreateUpdateTableFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsCreateUpdateTableFuture) Result(client DatabaseAccountsClient) (t Table, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateTableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsCreateUpdateTableFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if t.Response.Response, err = future.GetResult(sender); err == nil && t.Response.Response.StatusCode != http.StatusNoContent {
+		t, err = client.CreateUpdateTableResponder(t.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsCreateUpdateTableFuture", "Result", t.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabaseAccountsDeleteCassandraKeyspaceFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type DatabaseAccountsDeleteCassandraKeyspaceFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteCassandraKeyspaceFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteCassandraKeyspaceFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteCassandraKeyspaceFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteCassandraTableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsDeleteCassandraTableFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteCassandraTableFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteCassandraTableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteCassandraTableFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // DatabaseAccountsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DatabaseAccountsDeleteFuture struct {
@@ -658,6 +1702,167 @@ func (future *DatabaseAccountsDeleteFuture) Result(client DatabaseAccountsClient
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteGremlinContainerFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type DatabaseAccountsDeleteGremlinContainerFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteGremlinContainerFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteGremlinContainerFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteGremlinContainerFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteGremlinDatabaseFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type DatabaseAccountsDeleteGremlinDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteGremlinDatabaseFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteGremlinDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteGremlinDatabaseFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteMongoCollectionFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type DatabaseAccountsDeleteMongoCollectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteMongoCollectionFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteMongoCollectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteMongoCollectionFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteMongoDatabaseFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsDeleteMongoDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteMongoDatabaseFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteMongoDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteMongoDatabaseFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteSQLContainerFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsDeleteSQLContainerFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteSQLContainerFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteSQLContainerFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteSQLContainerFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteSQLDatabaseFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsDeleteSQLDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteSQLDatabaseFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteSQLDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteSQLDatabaseFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DatabaseAccountsDeleteTableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DatabaseAccountsDeleteTableFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DatabaseAccountsDeleteTableFuture) Result(client DatabaseAccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsDeleteTableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.DatabaseAccountsDeleteTableFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -801,6 +2006,23 @@ type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// ExcludedPath ...
+type ExcludedPath struct {
+	// Path - The path for which the indexing behavior applies to. Index paths typically start with root and end with wildcard (/path/*)
+	Path *string `json:"path,omitempty"`
+}
+
+// ExtendedResourceProperties the system generated resource properties associated with SQL databases and
+// SQL containers.
+type ExtendedResourceProperties struct {
+	// Rid - A system generated property. A unique identifier.
+	Rid *string `json:"_rid,omitempty"`
+	// Ts - A system generated property that denotes the last updated timestamp of the resource.
+	Ts interface{} `json:"_ts,omitempty"`
+	// Etag - A system generated property representing the resource etag required for optimistic concurrency control.
+	Etag *string `json:"_etag,omitempty"`
+}
+
 // FailoverPolicies the list of new failover policies for the failover priority change.
 type FailoverPolicies struct {
 	// FailoverPolicies - List of failover policies.
@@ -815,6 +2037,230 @@ type FailoverPolicy struct {
 	LocationName *string `json:"locationName,omitempty"`
 	// FailoverPriority - The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists.
 	FailoverPriority *int32 `json:"failoverPriority,omitempty"`
+}
+
+// GremlinDatabase an Azure Cosmos DB Gremlin database.
+type GremlinDatabase struct {
+	autorest.Response `json:"-"`
+	// GremlinDatabaseProperties - The properties of an Azure Cosmos DB SQL database
+	*GremlinDatabaseProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for GremlinDatabase.
+func (gd GremlinDatabase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gd.GremlinDatabaseProperties != nil {
+		objectMap["properties"] = gd.GremlinDatabaseProperties
+	}
+	if gd.ID != nil {
+		objectMap["id"] = gd.ID
+	}
+	if gd.Name != nil {
+		objectMap["name"] = gd.Name
+	}
+	if gd.Type != nil {
+		objectMap["type"] = gd.Type
+	}
+	if gd.Location != nil {
+		objectMap["location"] = gd.Location
+	}
+	if gd.Tags != nil {
+		objectMap["tags"] = gd.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for GremlinDatabase struct.
+func (gd *GremlinDatabase) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gremlinDatabaseProperties GremlinDatabaseProperties
+				err = json.Unmarshal(*v, &gremlinDatabaseProperties)
+				if err != nil {
+					return err
+				}
+				gd.GremlinDatabaseProperties = &gremlinDatabaseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				gd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				gd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				gd.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				gd.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				gd.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// GremlinDatabaseCreateUpdateParameters parameters to create and update Cosmos DB Gremlin database.
+type GremlinDatabaseCreateUpdateParameters struct {
+	// GremlinDatabaseCreateUpdateProperties - Properties to create and update Azure Cosmos DB Gremlin database.
+	*GremlinDatabaseCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GremlinDatabaseCreateUpdateParameters.
+func (gdcup GremlinDatabaseCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gdcup.GremlinDatabaseCreateUpdateProperties != nil {
+		objectMap["properties"] = gdcup.GremlinDatabaseCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for GremlinDatabaseCreateUpdateParameters struct.
+func (gdcup *GremlinDatabaseCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gremlinDatabaseCreateUpdateProperties GremlinDatabaseCreateUpdateProperties
+				err = json.Unmarshal(*v, &gremlinDatabaseCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				gdcup.GremlinDatabaseCreateUpdateProperties = &gremlinDatabaseCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// GremlinDatabaseCreateUpdateProperties properties to create and update Azure Cosmos DB Gremlin database.
+type GremlinDatabaseCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Gremlin database
+	Resource *GremlinDatabaseResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for GremlinDatabaseCreateUpdateProperties.
+func (gdcup GremlinDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gdcup.Resource != nil {
+		objectMap["resource"] = gdcup.Resource
+	}
+	if gdcup.Options != nil {
+		objectMap["options"] = gdcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// GremlinDatabaseListResult the List operation response, that contains the Gremlin databases and their
+// properties.
+type GremlinDatabaseListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Gremlin databases and their properties.
+	Value *[]GremlinDatabase `json:"value,omitempty"`
+}
+
+// GremlinDatabaseProperties the properties of an Azure Cosmos DB SQL database
+type GremlinDatabaseProperties struct {
+	// Rid - A system generated property. A unique identifier.
+	Rid *string `json:"_rid,omitempty"`
+	// Ts - A system generated property that denotes the last updated timestamp of the resource.
+	Ts interface{} `json:"_ts,omitempty"`
+	// Etag - A system generated property representing the resource etag required for optimistic concurrency control.
+	Etag *string `json:"_etag,omitempty"`
+	// ID - Name of the Cosmos DB Gremlin database
+	ID *string `json:"id,omitempty"`
+}
+
+// GremlinDatabaseResource cosmos DB Gremlin database id object
+type GremlinDatabaseResource struct {
+	// ID - Name of the Cosmos DB Gremlin database
+	ID *string `json:"id,omitempty"`
+}
+
+// IncludedPath the paths that are included in indexing
+type IncludedPath struct {
+	// Path - The path for which the indexing behavior applies to. Index paths typically start with root and end with wildcard (/path/*)
+	Path *string `json:"path,omitempty"`
+	// Indexes - List of indexes for this path
+	Indexes *[]Indexes `json:"indexes,omitempty"`
+}
+
+// Indexes the indexes for the path.
+type Indexes struct {
+	// DataType - The datatype for which the indexing behavior is applied to. Possible values include: 'String', 'Number', 'Point', 'Polygon', 'LineString', 'MultiPolygon'
+	DataType DataType `json:"dataType,omitempty"`
+	// Precision - The precision of the index. -1 is maximum precision.
+	Precision *int32 `json:"precision,omitempty"`
+	// Kind - Indicates the type of index. Possible values include: 'Hash', 'Range', 'Spatial'
+	Kind IndexKind `json:"kind,omitempty"`
+}
+
+// IndexingPolicy cosmos DB indexing policy
+type IndexingPolicy struct {
+	// Automatic - Indicates if the indexing policy is automatic
+	Automatic *bool `json:"automatic,omitempty"`
+	// IndexingMode - Indicates the indexing mode. Possible values include: 'Consistent', 'Lazy', 'None'
+	IndexingMode IndexingMode `json:"indexingMode,omitempty"`
+	// IncludedPaths - List of paths to include in the indexing
+	IncludedPaths *[]IncludedPath `json:"includedPaths,omitempty"`
+	// ExcludedPaths - List of paths to exclude from indexing
+	ExcludedPaths *[]ExcludedPath `json:"excludedPaths,omitempty"`
 }
 
 // Location a region in which the Azure Cosmos DB database account is deployed.
@@ -858,7 +2304,7 @@ type MetricAvailability struct {
 type MetricDefinition struct {
 	// MetricAvailabilities - The list of metric availabilities for the account.
 	MetricAvailabilities *[]MetricAvailability `json:"metricAvailabilities,omitempty"`
-	// PrimaryAggregationType - The primary aggregation type of the metric. Possible values include: 'None', 'Average', 'Total', 'Minimimum', 'Maximum', 'Last'
+	// PrimaryAggregationType - The primary aggregation type of the metric. Possible values include: 'PrimaryAggregationTypeNone', 'PrimaryAggregationTypeAverage', 'PrimaryAggregationTypeTotal', 'PrimaryAggregationTypeMinimimum', 'PrimaryAggregationTypeMaximum', 'PrimaryAggregationTypeLast'
 	PrimaryAggregationType PrimaryAggregationType `json:"primaryAggregationType,omitempty"`
 	// Unit - The unit of the metric. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountPerSecond', 'BytesPerSecond', 'Milliseconds'
 	Unit UnitType `json:"unit,omitempty"`
@@ -904,6 +2350,442 @@ type MetricValue struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 	// Total - The total value of the metric.
 	Total *float64 `json:"total,omitempty"`
+}
+
+// MongoCollection an Azure Cosmos DB Mongo collection.
+type MongoCollection struct {
+	autorest.Response `json:"-"`
+	// MongoCollectionProperties - The properties of an Azure Cosmos DB Mongo collection
+	*MongoCollectionProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MongoCollection.
+func (mc MongoCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mc.MongoCollectionProperties != nil {
+		objectMap["properties"] = mc.MongoCollectionProperties
+	}
+	if mc.ID != nil {
+		objectMap["id"] = mc.ID
+	}
+	if mc.Name != nil {
+		objectMap["name"] = mc.Name
+	}
+	if mc.Type != nil {
+		objectMap["type"] = mc.Type
+	}
+	if mc.Location != nil {
+		objectMap["location"] = mc.Location
+	}
+	if mc.Tags != nil {
+		objectMap["tags"] = mc.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MongoCollection struct.
+func (mc *MongoCollection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mongoCollectionProperties MongoCollectionProperties
+				err = json.Unmarshal(*v, &mongoCollectionProperties)
+				if err != nil {
+					return err
+				}
+				mc.MongoCollectionProperties = &mongoCollectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mc.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mc.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mc.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// MongoCollectionCreateUpdateParameters parameters to create and update Cosmos DB Mongo collection.
+type MongoCollectionCreateUpdateParameters struct {
+	// MongoCollectionCreateUpdateProperties - Properties to create and update Azure Cosmos DB Mongo collection.
+	*MongoCollectionCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MongoCollectionCreateUpdateParameters.
+func (mccup MongoCollectionCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mccup.MongoCollectionCreateUpdateProperties != nil {
+		objectMap["properties"] = mccup.MongoCollectionCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MongoCollectionCreateUpdateParameters struct.
+func (mccup *MongoCollectionCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mongoCollectionCreateUpdateProperties MongoCollectionCreateUpdateProperties
+				err = json.Unmarshal(*v, &mongoCollectionCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				mccup.MongoCollectionCreateUpdateProperties = &mongoCollectionCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// MongoCollectionCreateUpdateProperties properties to create and update Azure Cosmos DB Mongo collection.
+type MongoCollectionCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Mongo collection
+	Resource *MongoCollectionResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for MongoCollectionCreateUpdateProperties.
+func (mccup MongoCollectionCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mccup.Resource != nil {
+		objectMap["resource"] = mccup.Resource
+	}
+	if mccup.Options != nil {
+		objectMap["options"] = mccup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// MongoCollectionListResult the List operation response, that contains the Mongo collections and their
+// properties.
+type MongoCollectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Mongo collections and their properties.
+	Value *[]MongoCollection `json:"value,omitempty"`
+}
+
+// MongoCollectionProperties the properties of an Azure Cosmos DB Mongo collection
+type MongoCollectionProperties struct {
+	// ID - Name of the Cosmos DB Mongo collection
+	ID *string `json:"id,omitempty"`
+	// ShardKey - A key-value pair of shard keys to be applied for the request.
+	ShardKey map[string]*string `json:"shardKey"`
+	// Indexes - List of index keys
+	Indexes *[]MongoIndex `json:"indexes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MongoCollectionProperties.
+func (mcp MongoCollectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcp.ID != nil {
+		objectMap["id"] = mcp.ID
+	}
+	if mcp.ShardKey != nil {
+		objectMap["shardKey"] = mcp.ShardKey
+	}
+	if mcp.Indexes != nil {
+		objectMap["indexes"] = mcp.Indexes
+	}
+	return json.Marshal(objectMap)
+}
+
+// MongoCollectionResource cosmos DB Mongo collection resource object
+type MongoCollectionResource struct {
+	// ID - Name of the Cosmos DB Mongo collection
+	ID *string `json:"id,omitempty"`
+	// ShardKey - A key-value pair of shard keys to be applied for the request.
+	ShardKey map[string]*string `json:"shardKey"`
+	// Indexes - List of index keys
+	Indexes *[]MongoIndex `json:"indexes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MongoCollectionResource.
+func (mcr MongoCollectionResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcr.ID != nil {
+		objectMap["id"] = mcr.ID
+	}
+	if mcr.ShardKey != nil {
+		objectMap["shardKey"] = mcr.ShardKey
+	}
+	if mcr.Indexes != nil {
+		objectMap["indexes"] = mcr.Indexes
+	}
+	return json.Marshal(objectMap)
+}
+
+// MongoDatabase an Azure Cosmos DB Mongo database.
+type MongoDatabase struct {
+	autorest.Response `json:"-"`
+	// MongoDatabaseProperties - The properties of an Azure Cosmos DB Mongo database
+	*MongoDatabaseProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MongoDatabase.
+func (md MongoDatabase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if md.MongoDatabaseProperties != nil {
+		objectMap["properties"] = md.MongoDatabaseProperties
+	}
+	if md.ID != nil {
+		objectMap["id"] = md.ID
+	}
+	if md.Name != nil {
+		objectMap["name"] = md.Name
+	}
+	if md.Type != nil {
+		objectMap["type"] = md.Type
+	}
+	if md.Location != nil {
+		objectMap["location"] = md.Location
+	}
+	if md.Tags != nil {
+		objectMap["tags"] = md.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MongoDatabase struct.
+func (md *MongoDatabase) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mongoDatabaseProperties MongoDatabaseProperties
+				err = json.Unmarshal(*v, &mongoDatabaseProperties)
+				if err != nil {
+					return err
+				}
+				md.MongoDatabaseProperties = &mongoDatabaseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				md.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				md.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				md.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				md.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				md.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// MongoDatabaseCreateUpdateParameters parameters to create and update Cosmos DB Mongo database.
+type MongoDatabaseCreateUpdateParameters struct {
+	// MongoDatabaseCreateUpdateProperties - Properties to create and update Azure Cosmos DB Mongo database.
+	*MongoDatabaseCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MongoDatabaseCreateUpdateParameters.
+func (mdcup MongoDatabaseCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mdcup.MongoDatabaseCreateUpdateProperties != nil {
+		objectMap["properties"] = mdcup.MongoDatabaseCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MongoDatabaseCreateUpdateParameters struct.
+func (mdcup *MongoDatabaseCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mongoDatabaseCreateUpdateProperties MongoDatabaseCreateUpdateProperties
+				err = json.Unmarshal(*v, &mongoDatabaseCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				mdcup.MongoDatabaseCreateUpdateProperties = &mongoDatabaseCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// MongoDatabaseCreateUpdateProperties properties to create and update Azure Cosmos DB Mongo database.
+type MongoDatabaseCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Mongo database
+	Resource *MongoDatabaseResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for MongoDatabaseCreateUpdateProperties.
+func (mdcup MongoDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mdcup.Resource != nil {
+		objectMap["resource"] = mdcup.Resource
+	}
+	if mdcup.Options != nil {
+		objectMap["options"] = mdcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// MongoDatabaseListResult the List operation response, that contains the Mongo databases and their
+// properties.
+type MongoDatabaseListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Mongo databases and their properties.
+	Value *[]MongoDatabase `json:"value,omitempty"`
+}
+
+// MongoDatabaseProperties the properties of an Azure Cosmos DB Mongo database
+type MongoDatabaseProperties struct {
+	// ID - Name of the Cosmos DB Mongo database
+	ID *string `json:"id,omitempty"`
+}
+
+// MongoDatabaseResource cosmos DB Mongo database id object
+type MongoDatabaseResource struct {
+	// ID - Name of the Cosmos DB Mongo database
+	ID *string `json:"id,omitempty"`
+}
+
+// MongoIndex cosmos DB Mongo collection index key
+type MongoIndex struct {
+	// Key - Cosmos DB Mongo collection index keys
+	Key *MongoIndexKeys `json:"key,omitempty"`
+	// Options - Cosmos DB Mongo collection index key options
+	Options *MongoIndexOptions `json:"options,omitempty"`
+}
+
+// MongoIndexKeys cosmos DB Mongo collection resource object
+type MongoIndexKeys struct {
+	// Keys - List of keys for each Mongo collection in the Azure Cosmos DB service
+	Keys *[]string `json:"keys,omitempty"`
+}
+
+// MongoIndexOptions cosmos DB Mongo collection index options
+type MongoIndexOptions struct {
+	// ExpireAfterSeconds - Expire after seconds
+	ExpireAfterSeconds *int32 `json:"expireAfterSeconds,omitempty"`
+	// Unique - Is unique or not
+	Unique *bool `json:"unique,omitempty"`
 }
 
 // Operation REST API operation
@@ -1184,7 +3066,7 @@ type RegionForOnlineOffline struct {
 	Region *string `json:"region,omitempty"`
 }
 
-// Resource a database account resource.
+// Resource the core properties of ARM resources.
 type Resource struct {
 	// ID - The unique resource identifier of the database account.
 	ID *string `json:"id,omitempty"`
@@ -1216,6 +3098,404 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = r.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// SQLDatabase an Azure Cosmos DB SQL database.
+type SQLDatabase struct {
+	autorest.Response `json:"-"`
+	// SQLDatabaseProperties - The properties of an Azure Cosmos DB SQL database
+	*SQLDatabaseProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDatabase.
+func (sd SQLDatabase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sd.SQLDatabaseProperties != nil {
+		objectMap["properties"] = sd.SQLDatabaseProperties
+	}
+	if sd.ID != nil {
+		objectMap["id"] = sd.ID
+	}
+	if sd.Name != nil {
+		objectMap["name"] = sd.Name
+	}
+	if sd.Type != nil {
+		objectMap["type"] = sd.Type
+	}
+	if sd.Location != nil {
+		objectMap["location"] = sd.Location
+	}
+	if sd.Tags != nil {
+		objectMap["tags"] = sd.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SQLDatabase struct.
+func (sd *SQLDatabase) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var SQLDatabaseProperties SQLDatabaseProperties
+				err = json.Unmarshal(*v, &SQLDatabaseProperties)
+				if err != nil {
+					return err
+				}
+				sd.SQLDatabaseProperties = &SQLDatabaseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sd.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				sd.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				sd.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// SQLDatabaseCreateUpdateParameters parameters to create and update Cosmos DB SQL database.
+type SQLDatabaseCreateUpdateParameters struct {
+	// SQLDatabaseCreateUpdateProperties - Properties to create and update Azure Cosmos DB SQL database.
+	*SQLDatabaseCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDatabaseCreateUpdateParameters.
+func (sdcup SQLDatabaseCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdcup.SQLDatabaseCreateUpdateProperties != nil {
+		objectMap["properties"] = sdcup.SQLDatabaseCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SQLDatabaseCreateUpdateParameters struct.
+func (sdcup *SQLDatabaseCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var SQLDatabaseCreateUpdateProperties SQLDatabaseCreateUpdateProperties
+				err = json.Unmarshal(*v, &SQLDatabaseCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				sdcup.SQLDatabaseCreateUpdateProperties = &SQLDatabaseCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// SQLDatabaseCreateUpdateProperties properties to create and update Azure Cosmos DB SQL database.
+type SQLDatabaseCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a SQL database
+	Resource *SQLDatabaseResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDatabaseCreateUpdateProperties.
+func (sdcup SQLDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdcup.Resource != nil {
+		objectMap["resource"] = sdcup.Resource
+	}
+	if sdcup.Options != nil {
+		objectMap["options"] = sdcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// SQLDatabaseListResult the List operation response, that contains the SQL databases and their properties.
+type SQLDatabaseListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of SQL databases and their properties.
+	Value *[]SQLDatabase `json:"value,omitempty"`
+}
+
+// SQLDatabaseProperties the properties of an Azure Cosmos DB SQL database
+type SQLDatabaseProperties struct {
+	// ID - Name of the Cosmos DB SQL database
+	ID *string `json:"id,omitempty"`
+	// Rid - A system generated property. A unique identifier.
+	Rid *string `json:"_rid,omitempty"`
+	// Ts - A system generated property that denotes the last updated timestamp of the resource.
+	Ts interface{} `json:"_ts,omitempty"`
+	// Etag - A system generated property representing the resource etag required for optimistic concurrency control.
+	Etag *string `json:"_etag,omitempty"`
+	// Colls - A system generated property that specified the addressable path of the collections resource.
+	Colls *string `json:"_colls,omitempty"`
+	// Users - A system generated property that specifies the addressable path of the users resource.
+	Users *string `json:"_users,omitempty"`
+}
+
+// SQLDatabaseResource cosmos DB SQL database id object
+type SQLDatabaseResource struct {
+	// ID - Name of the Cosmos DB SQL database
+	ID *string `json:"id,omitempty"`
+}
+
+// Table an Azure Cosmos DB Table.
+type Table struct {
+	autorest.Response `json:"-"`
+	// TableProperties - The properties of an Azure Cosmos DB Table
+	*TableProperties `json:"properties,omitempty"`
+	// ID - The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string            `json:"location,omitempty"`
+	Tags     map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Table.
+func (t Table) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if t.TableProperties != nil {
+		objectMap["properties"] = t.TableProperties
+	}
+	if t.ID != nil {
+		objectMap["id"] = t.ID
+	}
+	if t.Name != nil {
+		objectMap["name"] = t.Name
+	}
+	if t.Type != nil {
+		objectMap["type"] = t.Type
+	}
+	if t.Location != nil {
+		objectMap["location"] = t.Location
+	}
+	if t.Tags != nil {
+		objectMap["tags"] = t.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Table struct.
+func (t *Table) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var tableProperties TableProperties
+				err = json.Unmarshal(*v, &tableProperties)
+				if err != nil {
+					return err
+				}
+				t.TableProperties = &tableProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				t.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				t.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				t.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				t.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				t.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// TableCreateUpdateParameters parameters to create and update Cosmos DB Table.
+type TableCreateUpdateParameters struct {
+	// TableCreateUpdateProperties - Properties to create and update Azure Cosmos DB Table.
+	*TableCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TableCreateUpdateParameters.
+func (tcup TableCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tcup.TableCreateUpdateProperties != nil {
+		objectMap["properties"] = tcup.TableCreateUpdateProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for TableCreateUpdateParameters struct.
+func (tcup *TableCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var tableCreateUpdateProperties TableCreateUpdateProperties
+				err = json.Unmarshal(*v, &tableCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				tcup.TableCreateUpdateProperties = &tableCreateUpdateProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// TableCreateUpdateProperties properties to create and update Azure Cosmos DB Table.
+type TableCreateUpdateProperties struct {
+	// Resource - The standard JSON format of a Table
+	Resource *TableResource `json:"resource,omitempty"`
+	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
+	Options map[string]*string `json:"options"`
+}
+
+// MarshalJSON is the custom marshaler for TableCreateUpdateProperties.
+func (tcup TableCreateUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tcup.Resource != nil {
+		objectMap["resource"] = tcup.Resource
+	}
+	if tcup.Options != nil {
+		objectMap["options"] = tcup.Options
+	}
+	return json.Marshal(objectMap)
+}
+
+// TableListResult the List operation response, that contains the Table and their properties.
+type TableListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Table and their properties.
+	Value *[]Table `json:"value,omitempty"`
+}
+
+// TableProperties the properties of an Azure Cosmos Table
+type TableProperties struct {
+	// ID - Name of the Cosmos DB table
+	ID *string `json:"id,omitempty"`
+}
+
+// TableResource cosmos DB table id object
+type TableResource struct {
+	// ID - Name of the Cosmos DB table
+	ID *string `json:"id,omitempty"`
+}
+
+// UniqueKey the unique key on that enforces uniqueness constraint on documents in the collection in the
+// Azure Cosmos DB service.
+type UniqueKey struct {
+	// Paths - List of paths must be unique for each document in the Azure Cosmos DB service
+	Paths *[]string `json:"paths,omitempty"`
+}
+
+// UniqueKeyPolicy the unique key policy configuration for specifying uniqueness constraints on documents
+// in the collection in the Azure Cosmos DB service.
+type UniqueKeyPolicy struct {
+	// UniqueKeys - List of unique keys on that enforces uniqueness constraint on documents in the collection in the Azure Cosmos DB service.
+	UniqueKeys *[]UniqueKey `json:"uniqueKeys,omitempty"`
 }
 
 // Usage the usage data for a usage request.
