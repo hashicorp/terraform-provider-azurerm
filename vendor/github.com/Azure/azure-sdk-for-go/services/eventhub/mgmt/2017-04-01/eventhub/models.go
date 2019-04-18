@@ -48,6 +48,21 @@ func PossibleAccessRightsValues() []AccessRights {
 	return []AccessRights{Listen, Manage, Send}
 }
 
+// DefaultAction enumerates the values for default action.
+type DefaultAction string
+
+const (
+	// Allow ...
+	Allow DefaultAction = "Allow"
+	// Deny ...
+	Deny DefaultAction = "Deny"
+)
+
+// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
+func PossibleDefaultActionValues() []DefaultAction {
+	return []DefaultAction{Allow, Deny}
+}
+
 // EncodingCaptureDescription enumerates the values for encoding capture description.
 type EncodingCaptureDescription string
 
@@ -105,6 +120,19 @@ const (
 // PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
 func PossibleKeyTypeValues() []KeyType {
 	return []KeyType{PrimaryKey, SecondaryKey}
+}
+
+// NetworkRuleIPAction enumerates the values for network rule ip action.
+type NetworkRuleIPAction string
+
+const (
+	// NetworkRuleIPActionAllow ...
+	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
+)
+
+// PossibleNetworkRuleIPActionValues returns an array of possible values for the NetworkRuleIPAction const type.
+func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
+	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
 }
 
 // ProvisioningStateDR enumerates the values for provisioning state dr.
@@ -1919,6 +1947,114 @@ func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autore
 	return
 }
 
+// NetworkRuleSet description of NetworkRuleSet resource.
+type NetworkRuleSet struct {
+	autorest.Response `json:"-"`
+	// NetworkRuleSetProperties - NetworkRuleSet properties
+	*NetworkRuleSetProperties `json:"properties,omitempty"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkRuleSet.
+func (nrs NetworkRuleSet) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if nrs.NetworkRuleSetProperties != nil {
+		objectMap["properties"] = nrs.NetworkRuleSetProperties
+	}
+	if nrs.ID != nil {
+		objectMap["id"] = nrs.ID
+	}
+	if nrs.Name != nil {
+		objectMap["name"] = nrs.Name
+	}
+	if nrs.Type != nil {
+		objectMap["type"] = nrs.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for NetworkRuleSet struct.
+func (nrs *NetworkRuleSet) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var networkRuleSetProperties NetworkRuleSetProperties
+				err = json.Unmarshal(*v, &networkRuleSetProperties)
+				if err != nil {
+					return err
+				}
+				nrs.NetworkRuleSetProperties = &networkRuleSetProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				nrs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				nrs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				nrs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// NetworkRuleSetProperties networkRuleSet properties
+type NetworkRuleSetProperties struct {
+	// DefaultAction - Default Action for Network Rule Set. Possible values include: 'Allow', 'Deny'
+	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
+	// VirtualNetworkRules - List VirtualNetwork Rules
+	VirtualNetworkRules *[]NWRuleSetVirtualNetworkRules `json:"virtualNetworkRules,omitempty"`
+	// IPRules - List of IpRules
+	IPRules *[]NWRuleSetIPRules `json:"ipRules,omitempty"`
+}
+
+// NWRuleSetIPRules description of NetWorkRuleSet - IpRules resource.
+type NWRuleSetIPRules struct {
+	// IPMask - IP Mask
+	IPMask *string `json:"ipMask,omitempty"`
+	// Action - The IP Filter Action. Possible values include: 'NetworkRuleIPActionAllow'
+	Action NetworkRuleIPAction `json:"action,omitempty"`
+}
+
+// NWRuleSetVirtualNetworkRules description of VirtualNetworkRules - NetworkRules resource.
+type NWRuleSetVirtualNetworkRules struct {
+	// Subnet - Subnet properties
+	Subnet *Subnet `json:"subnet,omitempty"`
+	// IgnoreMissingVnetServiceEndpoint - Value that indicates whether to ignore missing VNet Service Endpoint
+	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
+}
+
 // Operation a Event Hub REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -2129,6 +2265,12 @@ type Sku struct {
 	Tier SkuTier `json:"tier,omitempty"`
 	// Capacity - The Event Hubs throughput units, value should be 0 to 20 throughput units.
 	Capacity *int32 `json:"capacity,omitempty"`
+}
+
+// Subnet properties supplied for Subnet
+type Subnet struct {
+	// ID - Resource ID of Virtual Network Subnet
+	ID *string `json:"id,omitempty"`
 }
 
 // TrackedResource definition of Resource

@@ -643,8 +643,6 @@ type ActionGroup struct {
 	LogicAppReceivers *[]LogicAppReceiver `json:"logicAppReceivers,omitempty"`
 	// AzureFunctionReceivers - The list of azure function receivers that are part of this action group.
 	AzureFunctionReceivers *[]AzureFunctionReceiver `json:"azureFunctionReceivers,omitempty"`
-	// ArmRoleReceivers - The list of ARM role receivers that are part of this action group. Roles are Azure RBAC roles and only built-in roles are supported.
-	ArmRoleReceivers *[]ArmRoleReceiver `json:"armRoleReceivers,omitempty"`
 }
 
 // ActionGroupList a list of action groups.
@@ -1366,14 +1364,6 @@ func (arrp *AlertRuleResourcePatch) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
-}
-
-// ArmRoleReceiver an arm role receiver.
-type ArmRoleReceiver struct {
-	// Name - The name of the arm role receiver. Names must be unique across all receivers within an action group.
-	Name *string `json:"name,omitempty"`
-	// RoleID - The arm role id.
-	RoleID *string `json:"roleId,omitempty"`
 }
 
 // AutomationRunbookReceiver the Azure Automation Runbook notification receiver.

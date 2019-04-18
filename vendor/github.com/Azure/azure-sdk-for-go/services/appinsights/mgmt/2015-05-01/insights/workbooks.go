@@ -43,7 +43,7 @@ func NewWorkbooksClientWithBaseURI(baseURI string, subscriptionID string) Workbo
 
 // CreateOrUpdate create a new workbook.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // workbookProperties - properties that need to be specified to create a new workbook.
 func (client WorkbooksClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, workbookProperties Workbook) (result Workbook, err error) {
@@ -58,6 +58,12 @@ func (client WorkbooksClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workbookProperties,
 			Constraints: []validation.Constraint{{Target: "workbookProperties.WorkbookProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "workbookProperties.WorkbookProperties.Name", Name: validation.Null, Rule: true, Chain: nil},
@@ -135,7 +141,7 @@ func (client WorkbooksClient) CreateOrUpdateResponder(resp *http.Response) (resu
 
 // Delete delete a workbook.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 func (client WorkbooksClient) Delete(ctx context.Context, resourceGroupName string, resourceName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -148,6 +154,16 @@ func (client WorkbooksClient) Delete(ctx context.Context, resourceGroupName stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkbooksClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkbooksClient", "Delete", nil, "Failure preparing request")
@@ -211,7 +227,7 @@ func (client WorkbooksClient) DeleteResponder(resp *http.Response) (result autor
 
 // Get get a single workbook by its resourceName.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 func (client WorkbooksClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result Workbook, err error) {
 	if tracing.IsEnabled() {
@@ -224,6 +240,16 @@ func (client WorkbooksClient) Get(ctx context.Context, resourceGroupName string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkbooksClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkbooksClient", "Get", nil, "Failure preparing request")
@@ -288,7 +314,7 @@ func (client WorkbooksClient) GetResponder(resp *http.Response) (result Workbook
 
 // ListByResourceGroup get all Workbooks defined within a specified resource group and category.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // category - category of workbook to return.
 // tags - tags presents on each workbook returned.
 // canFetchContent - flag indicating whether or not to return the full content for each applicable workbook. If
@@ -304,6 +330,16 @@ func (client WorkbooksClient) ListByResourceGroup(ctx context.Context, resourceG
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkbooksClient", "ListByResourceGroup", err.Error())
+	}
+
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, category, tags, canFetchContent)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkbooksClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -374,7 +410,7 @@ func (client WorkbooksClient) ListByResourceGroupResponder(resp *http.Response) 
 
 // Update updates a workbook that has already been added.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // workbookProperties - properties that need to be specified to create a new workbook.
 func (client WorkbooksClient) Update(ctx context.Context, resourceGroupName string, resourceName string, workbookProperties Workbook) (result Workbook, err error) {
@@ -388,6 +424,16 @@ func (client WorkbooksClient) Update(ctx context.Context, resourceGroupName stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkbooksClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceName, workbookProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkbooksClient", "Update", nil, "Failure preparing request")

@@ -2,7 +2,7 @@ module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.1 // indirect
-	github.com/Azure/azure-sdk-for-go v25.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v27.3.0+incompatible
 	github.com/Azure/go-autorest v11.4.0+incompatible
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 // indirect
@@ -15,7 +15,7 @@ require (
 	github.com/go-ini/ini v1.23.1 // indirect
 	github.com/go-test/deep v1.0.1 // indirect
 	github.com/google/uuid v0.0.0-20170814143639-7e072fc3a7be
-	github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363
+	github.com/hashicorp/go-azure-helpers v0.3.2
 	github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7 // indirect
 	github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab
 	github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/satori/go.uuid v0.0.0-20160927100844-b061729afc07
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
-	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/ulikunitz/xz v0.5.4 // indirect
 	github.com/zclconf/go-cty v0.0.0-20180227163247-7166230c635f // indirect
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2

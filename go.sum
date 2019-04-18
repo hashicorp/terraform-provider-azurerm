@@ -2,9 +2,13 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 contrib.go.opencensus.io/exporter/ocagent v0.4.1 h1:1lyr7duzSVn3G9skLcA4Ym15ufvQLOjNq+Mvg7eK70g=
 contrib.go.opencensus.io/exporter/ocagent v0.4.1/go.mod h1:b6YwD5Q3Yvj4yk0CDK5vGXexygNzI09aXUdDEakQBgA=
 git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
+github.com/Azure/azure-sdk-for-go v14.1.2-0.20190418191641-e8e3641281e2+incompatible h1:9gZ8xiledDLhAd2KjKpjoVxqZGgOHA4peu9kWP6XIDk=
+github.com/Azure/azure-sdk-for-go v14.1.2-0.20190418191641-e8e3641281e2+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v21.3.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v25.1.0+incompatible h1:bA8mqsHUc9RbzHG64A6r7KnpvLFHJdxrpI75FrFln2M=
 github.com/Azure/azure-sdk-for-go v25.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
+github.com/Azure/azure-sdk-for-go v27.3.0+incompatible h1:i+ROfG3CsZUPoVAnhK06T3R6PmBzKB9ds+lHBpN7Mzo=
+github.com/Azure/azure-sdk-for-go v27.3.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-autorest v10.15.4+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v11.4.0+incompatible h1:z3Yr6KYqs0nhSNwqGXEBpWK977hxVqsLv2n9PVYcixY=
 github.com/Azure/go-autorest v11.4.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
@@ -60,6 +64,8 @@ github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/U
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363 h1:9d0jVlMpgfMTdL/QSsRDQsLenOQZIHp5cEBiWSYc8w4=
 github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363/go.mod h1:Y5ejHZY3jQby82dOASJzyQ2xZw37zs+D5x6AaOC6O5E=
+github.com/hashicorp/go-azure-helpers v0.3.2 h1:nd+4DUXMm6O0CIIioFR5zvUNC+prIvwLMrTNN8FNwNo=
+github.com/hashicorp/go-azure-helpers v0.3.2/go.mod h1:lu62V//auUow6k0IykxLK2DCNW8qTmpm8KqhYVWattA=
 github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7 h1:67fHcS+inUoiIqWCKIqeDuq2AlPHNHPiTqp97LdQ+bc=
 github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
 github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab h1:ap3umB+Fouf/i1/N1q0AZLjOxSg1s8RIQ159wc7wNPE=

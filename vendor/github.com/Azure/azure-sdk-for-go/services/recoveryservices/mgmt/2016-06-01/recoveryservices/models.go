@@ -146,6 +146,39 @@ type CertificateRequest struct {
 	Properties *RawCertificateData `json:"properties,omitempty"`
 }
 
+// CheckNameAvailabilityParameters resource Name availability input parameters - Resource type and resource
+// name
+type CheckNameAvailabilityParameters struct {
+	// Type - Describes the Resource type: Microsoft.RecoveryServices/Vaults
+	Type *string `json:"type,omitempty"`
+	// Name - Resource name for which availability needs to be checked
+	Name *string `json:"name,omitempty"`
+}
+
+// CheckNameAvailabilityResult response for check name availability API. Resource provider will set
+// availability as true | false.
+type CheckNameAvailabilityResult struct {
+	NameAvailable *bool   `json:"nameAvailable,omitempty"`
+	Reason        *string `json:"reason,omitempty"`
+	Message       *string `json:"message,omitempty"`
+}
+
+// CheckNameAvailabilityResultResource response for check name availability API. Resource provider will set
+// availability as true | false.
+type CheckNameAvailabilityResultResource struct {
+	autorest.Response `json:"-"`
+	// Properties - CheckNameAvailabilityResultResource properties
+	Properties *CheckNameAvailabilityResult `json:"properties,omitempty"`
+	// ID - Resource Id represents the complete path to the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name associated with the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	Type *string `json:"type,omitempty"`
+	// ETag - Optional ETag.
+	ETag *string `json:"eTag,omitempty"`
+}
+
 // ClientDiscoveryDisplay localized display information of an operation.
 type ClientDiscoveryDisplay struct {
 	// Provider - Name of the provider for display purposes
