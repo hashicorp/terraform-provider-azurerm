@@ -302,7 +302,7 @@ func testAccAzureRMDataFactory_tags(rInt int, location string) string {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    tags {
+    tags = {
       environment = "production"
     }
   }
@@ -319,7 +319,7 @@ func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
     name                = "acctestdf%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    tags {
+    tags = {
       environment = "production"
       updated     = "true"
     }

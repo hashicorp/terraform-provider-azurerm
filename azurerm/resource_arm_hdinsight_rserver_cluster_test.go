@@ -452,7 +452,7 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -610,7 +610,7 @@ resource "azurerm_hdinsight_rserver_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }

@@ -240,7 +240,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -263,7 +263,7 @@ resource "azurerm_iothub" "import" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -288,7 +288,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -319,7 +319,7 @@ resource "azurerm_iothub" "test" {
 		action      = "Accept"
 	}
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -415,7 +415,7 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -446,7 +446,7 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-	tags {
+	tags = {
     "purpose" = "testing"
   }
 }

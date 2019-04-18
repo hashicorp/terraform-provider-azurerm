@@ -428,7 +428,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -576,7 +576,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }

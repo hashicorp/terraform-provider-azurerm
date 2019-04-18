@@ -105,7 +105,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }
@@ -155,7 +155,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  tags = {
     "purpose" = "testing"
   }
 }

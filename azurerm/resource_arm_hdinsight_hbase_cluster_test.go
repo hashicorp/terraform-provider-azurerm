@@ -425,7 +425,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
@@ -571,7 +571,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
   }
 
-  tags {
+  tags = {
     "Hello" = "World"
   }
 }
