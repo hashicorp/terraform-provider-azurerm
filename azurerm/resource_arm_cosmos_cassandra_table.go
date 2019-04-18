@@ -90,24 +90,12 @@ func resourceArmCosmosCassandraTableCreateUpdate(d *schema.ResourceData, meta in
 		},
 	}
 
-	if d.IsNewResource() {
-		future, err := client.CreateCassandraTable(ctx, resourceGroup, account, keyspace, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing create request for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on create future for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
-		}
-	} else {
-		future, err := client.UpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing update request for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on update future for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
-		}
+	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Table %s (Account %s, Keyspace %s): %+v", name, account, keyspace, err)
 	}
 
 	resp, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)

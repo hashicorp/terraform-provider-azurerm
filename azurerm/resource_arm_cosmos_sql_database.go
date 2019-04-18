@@ -76,7 +76,7 @@ func resourceArmCosmosSQLDatabaseCreate(d *schema.ResourceData, meta interface{}
 		},
 	}
 
-	future, err := client.CreateSQLDatabase(ctx, resourceGroup, account, db)
+	future, err := client.CreateUpdateSQLDatabase(ctx, resourceGroup, account, name, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Database %s (Account %s): %+v", name, account, err)
 	}

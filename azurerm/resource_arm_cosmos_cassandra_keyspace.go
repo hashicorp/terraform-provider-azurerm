@@ -76,7 +76,7 @@ func resourceArmCosmosCassandraKeyspaceCreate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.CreateCassandraKeyspace(ctx, resourceGroup, account, db)
+	future, err := client.CreateUpdateCassandraKeyspace(ctx, resourceGroup, account, name, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
 	}

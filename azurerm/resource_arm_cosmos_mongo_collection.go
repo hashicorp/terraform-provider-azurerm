@@ -126,24 +126,13 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	if d.IsNewResource() {
-		future, err := client.CreateMongoCollection(ctx, resourceGroup, account, database, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing create request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
+	future, err := client.CreateUpdateMongoCollection(ctx, resourceGroup, account, database, name, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
+	}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on create future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-	} else {
-		future, err := client.UpdateMongoCollection(ctx, resourceGroup, account, database, name, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
 	resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)

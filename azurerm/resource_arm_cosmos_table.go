@@ -76,7 +76,7 @@ func resourceArmCosmosTableCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	future, err := client.CreateTable(ctx, resourceGroup, account, db)
+	future, err := client.CreateUpdateTable(ctx, resourceGroup, account, name, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos Table %s (Account %s): %+v", name, account, err)
 	}

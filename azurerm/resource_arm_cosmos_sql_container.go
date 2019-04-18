@@ -81,33 +81,22 @@ func resourceArmCosmosSQLContainerCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	db := documentdb.SQLContainerCreateUpdateParameters{
-		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
-			Resource: &documentdb.SQLContainerResource{
+	db := documentdb.ContainerCreateUpdateParameters{
+		ContainerCreateUpdateProperties: &documentdb.ContainerCreateUpdateProperties{
+			Resource: &documentdb.ContainerResource{
 				ID: &name,
 			},
 			Options: map[string]*string{},
 		},
 	}
 
-	if d.IsNewResource() {
-		future, err := client.CreateSQLContainer(ctx, resourceGroup, account, database, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing create request for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
+	future, err := client.CreateUpdateSQLContainer(ctx, resourceGroup, account, database, name, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
+	}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on create future for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-	} else {
-		future, err := client.UpdateSQLContainer(ctx, resourceGroup, account, database, name, db)
-		if err != nil {
-			return fmt.Errorf("Error issuing update request for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on update future for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Container %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
 	resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
@@ -144,7 +133,7 @@ func resourceArmCosmosSQLContainerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error reading Cosmos SQL Container %s (Account %s, Database %s): %+v", id.Container, id.Account, id.Database, err)
 	}
 
-	if props := resp.SQLContainerProperties; props != nil {
+	if props := resp.ContainerProperties; props != nil {
 		d.Set("name", props.ID)
 		d.Set("resource_group_name", id.ResourceGroup)
 		d.Set("account_name", id.Account)
