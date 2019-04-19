@@ -60,4 +60,4 @@ A `gateway` block exports the following:
 
 * `username` - The username used for the Ambari Portal.
 
-* `username` - The password used for the Ambari Portal.
+* `password` - The password used for the Ambari Portal.
