@@ -197,12 +197,12 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   table_name  = "testTable"
   folder      = "testFolder"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
   }
  
-  additional_properties {
+  additional_properties = {
     foo = "test1"
     bar = "test2"
   }
@@ -247,13 +247,13 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   table_name  = "testTable"
   folder      = "testFolder"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
     buzz = "test3"
   }
  
-  additional_properties {
+  additional_properties = {
     foo = "test1"
   }
 	

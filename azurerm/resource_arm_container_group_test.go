@@ -638,13 +638,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -677,8 +677,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }
@@ -770,13 +770,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -809,8 +809,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }
