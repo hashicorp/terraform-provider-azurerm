@@ -105,7 +105,7 @@ A `agent_pool_profile` block supports the following:
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.  If `enable_autoscaling` is set to `true`, this value cannot be updated via Terraform.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
-* `enable_autoscaling` - (Optional) Is autoscaling enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
+* `enable_autoscaling` - (Optional) Is autoscaling enabled?  Defaults to `false`.  Changing this forces a new resource to be created.  Can only be set to `true` if `type` is set to `VirtualMachineScaleSets`.
 * `max_count` - (Optional) The maximum number of nodes in the autoscaling cluster.  Required if `enable_autoscaling` is set to `true`.  Possible values must be in the range of 1 to 100 (inclusive).
 * `min_count` - (Optional) The minimum number of nodes in the autoscaling cluster.  Required if `enable_autoscaling` is set to `true`.  Possible values must be in the range of 1 to 100 (inclusive).
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent.
