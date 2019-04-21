@@ -173,7 +173,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"min_count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
@@ -191,7 +190,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"max_count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
 					},
@@ -582,6 +580,15 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	if agentProfiles[0].Type == containerservice.AvailabilitySet && agentProfiles[0].EnableAutoScaling != nil && *agentProfiles[0].EnableAutoScaling {
 		return fmt.Errorf("`enable_autoscaling` must be `false` if `type` is `AvailabilitySet`.")
+	}
+
+	if agentProfiles[0].EnableAutoScaling != nil && !*agentProfiles[0].EnableAutoScaling {
+		if agentProfiles[0].MaxCount != nil {
+			return fmt.Errorf("`max_count` cannot be set unless `enable_autoscaling` is set to `true`.")
+		}
+		if agentProfiles[0].MinCount != nil {
+			return fmt.Errorf("`min_count` cannot be set unless `enable_autoscaling` is set to `true`.")
+		}
 	}
 
 	if agentProfiles[0].MaxCount != nil && agentProfiles[0].MinCount != nil {

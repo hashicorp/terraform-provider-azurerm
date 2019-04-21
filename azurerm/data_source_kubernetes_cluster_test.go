@@ -71,7 +71,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_autoscaling(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
 					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.enable_autoscaling", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.min_count", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.min_count", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.count", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.0.max_count", "3"),
 				),
@@ -468,7 +468,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_autoscaling(rInt int, clientId string, clientSecret string, location string) string {
-	r := testAccAzureRMKubernetesCluster_vmss(rInt, clientId, clientSecret, true, location)
+	r := testAccAzureRMKubernetesCluster_vmss_autoscale(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 

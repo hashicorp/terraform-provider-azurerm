@@ -55,7 +55,7 @@ func TestAccAzureRMKubernetesCluster_vmss_autoscaling_off(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_vmss(ri, clientId, clientSecret, false, testLocation())
+	config := testAccAzureRMKubernetesCluster_vmss(ri, clientId, clientSecret, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,9 +80,7 @@ func TestAccAzureRMKubernetesCluster_vmss_autoscaling_off(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
 					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.enable_autoscaling", "false"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.min_count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.max_count", "3"),
 				),
 			},
 			{
@@ -99,7 +97,7 @@ func TestAccAzureRMKubernetesCluster_vmss_autoscaling_on(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_vmss(ri, clientId, clientSecret, true, testLocation())
+	config := testAccAzureRMKubernetesCluster_vmss_autoscale(ri, clientId, clientSecret, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -719,7 +717,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_vmss(rInt int, clientId string, clientSecret string, autoscalingEnabled bool, location string) string {
+func testAccAzureRMKubernetesCluster_vmss(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -736,7 +734,36 @@ resource "azurerm_kubernetes_cluster" "test" {
     name               = "default"
 		count              = "1"
 		type               = "VirtualMachineScaleSets"
-	  enable_autoscaling = %t
+	  enable_autoscaling = false
+    vm_size            = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_vmss_autoscale(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  agent_pool_profile {
+    name               = "default"
+		count              = "1"
+		type               = "VirtualMachineScaleSets"
+	  enable_autoscaling = true
 	  min_count          = "1"
 	  max_count          = "3"
     vm_size            = "Standard_DS2_v2"
@@ -747,7 +774,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, autoscalingEnabled, clientId, clientSecret)
+`, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_requiresImport(rInt int, clientId, clientSecret, location string) string {
