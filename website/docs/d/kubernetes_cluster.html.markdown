@@ -165,7 +165,7 @@ A `network_profile` block exports the following:
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico`
+* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 

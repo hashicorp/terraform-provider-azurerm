@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -108,6 +110,39 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"store_location": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"CurrentUser",
+								"LocalMachine",
+							}, false),
+						},
+						"store_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"visibility": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 			"start_task": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -164,6 +199,39 @@ func dataSourceArmBatchPool() *schema.Resource {
 								},
 							},
 						},
+
+						"resource_file": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auto_storage_container_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"blob_prefix": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"file_mode": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"file_path": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"http_url": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"storage_container_url": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -214,6 +282,10 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+			return fmt.Errorf("error setting `certificate`: %v", err)
 		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))

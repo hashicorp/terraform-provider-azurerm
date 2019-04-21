@@ -5,7 +5,7 @@ github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation
-github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch
+github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute
@@ -14,6 +14,7 @@ github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/con
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
+github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account
 github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem
 github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account
@@ -32,6 +33,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01
 github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces
 github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
 github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
 github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights
@@ -39,7 +41,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/m
 github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
-github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security
+github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql
@@ -56,7 +58,8 @@ github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage
-github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager
+github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
+github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
 github.com/Azure/azure-sdk-for-go/storage
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
@@ -75,7 +78,7 @@ github.com/Azure/go-autorest/autorest/azure/cli
 github.com/agext/levenshtein
 # github.com/apparentlymart/go-cidr v0.0.0-20170616213631-2bd8b58cf427
 github.com/apparentlymart/go-cidr/cidr
-# github.com/apparentlymart/go-textseg v0.0.0-20170531203952-b836f5c4d331
+# github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310
 github.com/armon/go-radix

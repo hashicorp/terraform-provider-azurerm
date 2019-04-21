@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -52,6 +52,8 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 					string(trafficmanager.Weighted),
 					string(trafficmanager.Performance),
 					string(trafficmanager.Priority),
+					string(trafficmanager.Subnet),
+					string(trafficmanager.MultiValue),
 				}, false),
 			},
 

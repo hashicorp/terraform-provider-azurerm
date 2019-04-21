@@ -21,9 +21,17 @@ func resourceArmConnectionMonitor() *schema.Resource {
 		Read:   resourceArmConnectionMonitorRead,
 		Update: resourceArmConnectionMonitorCreateUpdate,
 		Delete: resourceArmConnectionMonitorDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		DeprecationMessage: `The 'azurerm_connection_monitor' resource is deprecated in favour of the renamed version 'azurerm_network_connection_monitor'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_connection_monitor' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
