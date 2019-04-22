@@ -223,7 +223,7 @@ func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
 				),
 			},
@@ -308,7 +308,7 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 				Config: configUpdate3,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.hello", "world"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
@@ -319,7 +319,7 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 				Config: configUpdate4,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.hello", "world"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
