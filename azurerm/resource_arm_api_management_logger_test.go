@@ -40,6 +40,39 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_api_management_logger.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementLoggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
+				),
+			},
+			{
+				Config:      testAccAzureRMApiManagementLogger_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_api_management_logger"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
@@ -277,6 +310,24 @@ resource "azurerm_api_management_logger" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMApiManagementLogger_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMApiManagementLogger_basicEventHub(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_logger" "import" {
+  name                = "${azurerm_api_management_logger.test.name}"
+  api_management_name = "${azurerm_api_management_logger.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_logger.test.resource_group_name}"
+
+  eventhub {
+    name = "${azurerm_eventhub.test.name}"
+    connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMApiManagementLogger_basicApplicationInsights(rInt int, location string) string {

@@ -285,7 +285,7 @@ resource "azurerm_relay_namespace" "test" {
   sku_name = "Standard"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

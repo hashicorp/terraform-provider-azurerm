@@ -40,6 +40,10 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "get",
     ]
+
+    storage_permissions = [
+      "get",
+    ]
   }
 
   network_acls {
@@ -69,8 +73,8 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
-* `access_policy` - (Optional) An access policy block as described below. A maximum of 16 may be declared.
-    
+* `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 16 objects describing access policies, as described below.
+
 ~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault. Defaults to `false`.
@@ -84,13 +88,14 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
-
 A `sku` block supports the following:
 
 * `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 ---
 A `access_policy` block supports the following:
+
+Elements of `access_policy` support:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.
 
@@ -100,10 +105,11 @@ A `access_policy` block supports the following:
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
-* `key_permissions` - (Required) List of key permissions, must be one or more from the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
+* `key_permissions` - (Optional) List of key permissions, must be one or more from the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
-* `secret_permissions` - (Required) List of secret permissions, must be one or more from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
+* `secret_permissions` - (Optional) List of secret permissions, must be one or more from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
 
+* `storage_permissions` - (Optional) List of storage permissions, must be one or more from the following: `backup`, `delete`, `deletesas`, `get`, `getsas`, `list`, `listsas`, `purge`, `recover`, `regeneratekey`, `restore`, `set`, `setsas` and `update`.
 
 ---
 

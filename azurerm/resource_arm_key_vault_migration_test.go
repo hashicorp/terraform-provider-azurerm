@@ -35,6 +35,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "Get",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                           "1",
@@ -47,6 +48,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "Get",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 		},
 		"v0_1_certificates": {
@@ -63,6 +65,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "Get",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                            "1",
@@ -86,6 +89,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":          "Get",
 				"access_policy.0.secret_permissions.#":       "1",
 				"access_policy.0.secret_permissions.0":       "Get",
+				"access_policy.0.storage_permissions.#":      "0",
 			},
 		},
 		"v0_1_certificates_multiple": {
@@ -104,6 +108,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "Get",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                            "1",
@@ -127,6 +132,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":          "Get",
 				"access_policy.0.secret_permissions.#":       "1",
 				"access_policy.0.secret_permissions.0":       "Get",
+				"access_policy.0.storage_permissions.#":      "0",
 			},
 		},
 		"v0_1_keys": {
@@ -142,6 +148,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "All",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                           "1",
@@ -168,6 +175,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.15":        "wrapKey",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 		},
 		"v0_1_keys_multiple": {
@@ -185,6 +193,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.1":         "create",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                           "1",
@@ -211,6 +220,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.15":        "wrapKey",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "Get",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 		},
 		"v0_1_secrets": {
@@ -226,6 +236,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "create",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "All",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                           "1",
@@ -244,6 +255,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.secret_permissions.5":      "recover",
 				"access_policy.0.secret_permissions.6":      "restore",
 				"access_policy.0.secret_permissions.7":      "set",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 		},
 		"v0_1_secrets_multiple": {
@@ -261,6 +273,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.secret_permissions.#":      "2",
 				"access_policy.0.secret_permissions.0":      "backup",
 				"access_policy.0.secret_permissions.1":      "all",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                           "1",
@@ -279,6 +292,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.secret_permissions.5":      "recover",
 				"access_policy.0.secret_permissions.6":      "restore",
 				"access_policy.0.secret_permissions.7":      "set",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 		},
 		"v0_1_all": {
@@ -295,6 +309,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.key_permissions.0":         "all",
 				"access_policy.0.secret_permissions.#":      "1",
 				"access_policy.0.secret_permissions.0":      "all",
+				"access_policy.0.storage_permissions.#":     "0",
 			},
 			Expected: map[string]string{
 				"access_policy.#":                            "1",
@@ -340,6 +355,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 				"access_policy.0.secret_permissions.5":       "recover",
 				"access_policy.0.secret_permissions.6":       "restore",
 				"access_policy.0.secret_permissions.7":       "set",
+				"access_policy.0.storage_permissions.#":      "0",
 			},
 		},
 	}

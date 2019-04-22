@@ -65,7 +65,6 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  count                          = 3
   resource_group_name            = "${azurerm_resource_group.test.name}"
   name                           = "ssh"
   loadbalancer_id                = "${azurerm_lb.test.id}"
@@ -80,6 +79,7 @@ resource "azurerm_lb_probe" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "http-probe"
+  protocol            = "Http"
   request_path        = "/health"
   port                = 8080
 }

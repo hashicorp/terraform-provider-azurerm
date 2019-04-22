@@ -216,7 +216,7 @@ resource "azurerm_data_lake_analytics_firewall_rule" "test" {
   start_ip_address    = "%[4]s"
   end_ip_address      = "%[5]s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:10], startIP, endIP)
+`, rInt, location, strconv.Itoa(rInt)[10:17], startIP, endIP)
 }
 
 func testAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(rInt int, location, startIP, endIP string) string {

@@ -97,10 +97,11 @@ func resourceArmKeyVault() *schema.Resource {
 			},
 
 			"access_policy": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1024,
+				Type:       schema.TypeList,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1024,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
@@ -121,6 +122,7 @@ func resourceArmKeyVault() *schema.Resource {
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
 						"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
+						"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
 					},
 				},
 			},

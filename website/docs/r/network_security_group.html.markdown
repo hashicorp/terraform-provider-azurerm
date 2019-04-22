@@ -56,12 +56,12 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `security_rule` - (Optional) One or more `security_rule` blocks as defined below.
+* `security_rule` - (Optional) [List of objects](/docs/configuration/attr-as-blocks.html) representing security rules, as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
-The `security_rule` block supports:
+Elements of `security_rule` support:
 
 * `name` - (Required) The name of the security rule.
 

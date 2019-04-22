@@ -625,6 +625,46 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_oneIpRestriction(ri, testLocation())
+	noBlocksConfig := testAccAzureRMAppService_basic(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMAppService_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				// This configuration includes a single explicit ip_restriction
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration has no site_config blocks at all.
+				Config: noBlocksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -959,6 +999,33 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "11", "JETTY", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -1002,6 +1069,33 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "11", "TOMCAT", "9.0")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
@@ -1199,6 +1293,33 @@ func TestAccAzureRMAppService_minTls(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_corsSettings(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_corsSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.support_credentials", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.#", "3"),
+				)},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
@@ -1967,6 +2088,37 @@ resource "azurerm_app_service" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMAppService_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	sku {
+		tier = "Standard"
+		size = "S1"
+	}
+}
+
+resource "azurerm_app_service" "test" {
+	name                = "acctestAS-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+	site_config {
+		ip_restriction = []
+	}
+}
+`, rInt, location, rInt, rInt)
+}
+
 func testAccAzureRMAppService_defaultDocuments(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -2122,7 +2274,7 @@ resource "azurerm_app_service" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -2153,7 +2305,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -2475,4 +2627,42 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt, tlsVersion)
+}
+
+func testAccAzureRMAppService_corsSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com"
+      ]
+      support_credentials = true
+    }
+  }
+}
+`, rInt, location, rInt, rInt)
 }

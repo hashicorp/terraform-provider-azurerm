@@ -66,6 +66,14 @@ resource "azurerm_container_group" "aci-helloworld" {
       "ACCESS_KEY" = "secure_testing"
     }
 
+    readiness_probe {
+      exec = ["/bin/sh","-c","touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600"]
+    }
+
+    liveness_probe {
+      exec = ["cat", "/tmp/healthy"]
+    }
+
     commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
 
     volume {
@@ -102,6 +110,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block.
+
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
@@ -124,6 +134,16 @@ The following arguments are supported:
 
 ---
 
+An `identity` block supports the following:
+
+* `type` - (Required) The Managed Service Identity Type of this container group. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+
+---
+
 A `container` block supports:
 
 * `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
@@ -143,6 +163,10 @@ A `container` block supports:
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
 * `secure_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
+* `readiness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `readiness_probe` block below. Changing this forces a new resource to be created.
+
+* `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
 * `command` - (Optional) A command line to be run on the container.
 
@@ -211,6 +235,52 @@ A `volume` block supports:
 * `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
+---
+
+The `readiness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+---
+
+The `liveness_probe` block supports:
+
+* `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
+
+* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+
+* `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
+
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+
+---
+
+The `httpget` block supports:
+
+* `path` - (Optional) Path to access on the HTTP server. Changing this forces a new resource to be created.
+
+* `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
+
+* `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

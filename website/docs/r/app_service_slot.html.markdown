@@ -186,19 +186,21 @@ The following arguments are supported:
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
+* `cors` - (Optional) A `cors` block as defined below.
+
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
 * `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service Slot. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
-* `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined below.
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
 
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
 
-* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7` and `1.8`.
+* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11`.
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
@@ -228,17 +230,27 @@ The following arguments are supported:
 
 ---
 
-`ip_restriction` supports the following:
+A `cors` block supports the following:
 
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
-* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+* `support_credentials` - (Optional) Are credentials supported?
 
-`identity` supports the following:
+---
+
+A `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
+
+---
+
+Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
+
+* `ip_address` - (Required) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
 ## Attributes Reference
 

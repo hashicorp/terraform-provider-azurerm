@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor')
+TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 
@@ -33,7 +33,7 @@ debugacc: fmtcheck
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
-	gofmt -s -w `find . -name '*.go' | grep -v vendor`
+	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 # Currently required by tf-deploy compile
 fmtcheck:
