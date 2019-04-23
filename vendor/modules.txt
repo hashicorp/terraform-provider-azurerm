@@ -149,7 +149,7 @@ github.com/golang/protobuf/ptypes/duration
 github.com/google/uuid
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363
+# github.com/hashicorp/go-azure-helpers v0.4.0
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/storage
