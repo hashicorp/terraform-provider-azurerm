@@ -920,7 +920,7 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }
 
 func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
@@ -957,5 +957,5 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }

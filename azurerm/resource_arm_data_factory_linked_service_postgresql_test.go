@@ -186,12 +186,12 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
   }
 
-  additional_properties {
+  additional_properties = {
     foo = "test1"
     bar = "test2"
   }
@@ -220,13 +220,13 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
   annotations         = ["test1", "test2"]
   description         = "test description 2"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
     buzz = "test3"
   }
 
-  additional_properties {
+  additional_properties = {
     foo = "test1"
   }
 }

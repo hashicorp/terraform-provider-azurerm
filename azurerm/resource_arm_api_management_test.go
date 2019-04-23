@@ -295,7 +295,7 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 
-  policy = {
+  policy {
     xml_content = <<XML
 <policies>
   <inbound>
@@ -327,7 +327,7 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 
-  policy = {
+  policy {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
   }
 }

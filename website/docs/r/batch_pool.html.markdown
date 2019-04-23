@@ -91,7 +91,7 @@ EOF
     }
   }
 
-  certificate = {
+  certificate {
     id             = "${azurerm_batch_certificate.testcer.id}"
     visibility = [ "StartTask" ]
   }
