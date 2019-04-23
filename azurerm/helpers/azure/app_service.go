@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -152,9 +153,8 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					Sensitive: false,
 				},
 				"additional_login_params": {
-					Type:     schema.TypeList,
+					Type:     schema.TypeMap,
 					Optional: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,
@@ -666,11 +666,11 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	}
 
 	if v, ok := setting["additional_login_params"]; ok {
-		input := v.([]interface{})
+		input := v.(map[string]interface{})
 
 		additionalLoginParams := make([]string, 0)
-		for _, param := range input {
-			additionalLoginParams = append(additionalLoginParams, param.(string))
+		for k, v := range input {
+			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, v.(string)))
 		}
 
 		siteAuthSettingsProperties.AdditionalLoginParams = &additionalLoginParams
@@ -858,6 +858,20 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 	return siteAuthSettingsProperties
 }
 
+func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
+	result := make(map[string]interface{}, len(*input))
+
+	for _, k := range *input {
+		parts := strings.Split(k, "=")
+		key := parts[0]
+		value := parts[1]
+
+		result[key] = value
+	}
+
+	return result
+}
+
 func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
@@ -871,11 +885,7 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 		result["enabled"] = *input.Enabled
 	}
 
-	additionalLoginParams := make([]string, 0)
-	if s := input.AdditionalLoginParams; s != nil {
-		additionalLoginParams = *s
-	}
-	result["additional_login_params"] = additionalLoginParams
+	result["additional_login_params"] = FlattenAdditionalLoginParams(input.AdditionalLoginParams)
 
 	allowedExternalRedirectUrls := make([]string, 0)
 	if s := input.AllowedExternalRedirectUrls; s != nil {

@@ -1347,8 +1347,7 @@ func TestAccAzureRMAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.0", "someloginparam"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
 					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
@@ -3088,9 +3087,9 @@ resource "azurerm_app_service" "test" {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
 
-    additional_login_params = [
-      "someloginparam"
-    ]
+    additional_login_params = {
+			test_key = "test_value"
+		}
 
     active_directory {
       client_id     = "aadclientid"
