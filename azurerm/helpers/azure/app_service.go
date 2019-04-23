@@ -18,7 +18,6 @@ func SchemaAppServiceAadAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -27,8 +26,9 @@ func SchemaAppServiceAadAuthSettings() *schema.Schema {
 					Required: true,
 				},
 				"client_secret": {
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
 				},
 				"allowed_audiences": {
 					Type:     schema.TypeList,
@@ -44,7 +44,6 @@ func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -53,8 +52,9 @@ func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
 					Required: true,
 				},
 				"app_secret": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
 				},
 				"oauth_scopes": {
 					Type:     schema.TypeList,
@@ -70,7 +70,6 @@ func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -79,8 +78,9 @@ func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
 					Required: true,
 				},
 				"client_secret": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
 				},
 				"oauth_scopes": {
 					Type:     schema.TypeList,
@@ -96,7 +96,6 @@ func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -105,8 +104,9 @@ func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 					Required: true,
 				},
 				"client_secret": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
 				},
 				"oauth_scopes": {
 					Type:     schema.TypeList,
@@ -122,7 +122,6 @@ func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -131,8 +130,9 @@ func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
 					Required: true,
 				},
 				"consumer_secret": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
 				},
 			},
 		},
@@ -143,14 +143,12 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"enabled": {
-					Type:      schema.TypeBool,
-					Required:  true,
-					Sensitive: false,
+					Type:     schema.TypeBool,
+					Required: true,
 				},
 				"additional_login_params": {
 					Type:     schema.TypeMap,
@@ -170,8 +168,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 						string(web.Google),
 						string(web.MicrosoftAccount),
 						string(web.Twitter),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 				"issuer": {
 					Type:         schema.TypeString,
@@ -198,8 +195,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.AllowAnonymous),
 						string(web.RedirectToLoginPage),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 				"active_directory": SchemaAppServiceAadAuthSettings(),
 				"facebook":         SchemaAppServiceFacebookAuthSettings(),
@@ -746,10 +742,6 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		facebookSettings := v.([]interface{})
 
 		for _, setting := range facebookSettings {
-			if setting == nil {
-				continue
-			}
-
 			facebookSetting := setting.(map[string]interface{})
 
 			if v, ok := facebookSetting["app_id"]; ok {
@@ -777,10 +769,6 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		googleSettings := v.([]interface{})
 
 		for _, setting := range googleSettings {
-			if setting == nil {
-				continue
-			}
-
 			googleSetting := setting.(map[string]interface{})
 
 			if v, ok := googleSetting["client_id"]; ok {
@@ -808,10 +796,6 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		microsoftSettings := v.([]interface{})
 
 		for _, setting := range microsoftSettings {
-			if setting == nil {
-				continue
-			}
-
 			microsoftSetting := setting.(map[string]interface{})
 
 			if v, ok := microsoftSetting["client_id"]; ok {
@@ -839,10 +823,6 @@ func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsPropert
 		twitterSettings := v.([]interface{})
 
 		for _, setting := range twitterSettings {
-			if setting == nil {
-				continue
-			}
-
 			twitterSetting := setting.(map[string]interface{})
 
 			if v, ok := twitterSetting["consumer_key"]; ok {
@@ -877,7 +857,6 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	result := make(map[string]interface{})
 
 	if input == nil {
-		log.Printf("[DEBUG] AuthSettings is nil")
 		return results
 	}
 
@@ -918,85 +897,100 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	}
 
 	activeDirectorySettings := make([]interface{}, 0)
-	activeDirectorySetting := make(map[string]interface{})
 
 	if input.ClientID != nil {
+		activeDirectorySetting := make(map[string]interface{})
+
 		activeDirectorySetting["client_id"] = *input.ClientID
+
+		if input.ClientSecret != nil {
+			activeDirectorySetting["client_secret"] = *input.ClientSecret
+		}
+
+		if input.AllowedAudiences != nil {
+			activeDirectorySetting["allowed_audiences"] = *input.AllowedAudiences
+		}
+
+		activeDirectorySettings = append(activeDirectorySettings, activeDirectorySetting)
 	}
 
-	if input.ClientSecret != nil {
-		activeDirectorySetting["client_secret"] = *input.ClientSecret
-	}
-
-	if s := input.AllowedAudiences; s != nil {
-		activeDirectorySetting["allowed_audiences"] = *s
-	}
-
-	result["active_directory"] = append(activeDirectorySettings, activeDirectorySetting)
+	result["active_directory"] = activeDirectorySettings
 
 	facebookSettings := make([]interface{}, 0)
-	facebookSetting := make(map[string]interface{})
 
 	if input.FacebookAppID != nil {
+		facebookSetting := make(map[string]interface{})
+
 		facebookSetting["app_id"] = *input.FacebookAppID
+
+		if input.FacebookAppSecret != nil {
+			facebookSetting["app_secret"] = *input.FacebookAppSecret
+		}
+
+		if input.FacebookOAuthScopes != nil {
+			facebookSetting["oauth_scopes"] = *input.FacebookOAuthScopes
+		}
+
+		facebookSettings = append(facebookSettings, facebookSetting)
 	}
 
-	if input.FacebookAppSecret != nil {
-		facebookSetting["app_secret"] = *input.FacebookAppSecret
-	}
-
-	if s := input.FacebookOAuthScopes; s != nil {
-		facebookSetting["oauth_scopes"] = *s
-	}
-
-	result["facebook"] = append(facebookSettings, facebookSetting)
+	result["facebook"] = facebookSettings
 
 	googleSettings := make([]interface{}, 0)
-	googleSetting := make(map[string]interface{})
 
 	if input.GoogleClientID != nil {
+		googleSetting := make(map[string]interface{})
+
 		googleSetting["client_id"] = *input.GoogleClientID
+
+		if input.GoogleClientSecret != nil {
+			googleSetting["client_secret"] = *input.GoogleClientSecret
+		}
+
+		if input.GoogleOAuthScopes != nil {
+			googleSetting["oauth_scopes"] = *input.GoogleOAuthScopes
+		}
+
+		googleSettings = append(googleSettings, googleSetting)
 	}
 
-	if input.GoogleClientSecret != nil {
-		googleSetting["client_secret"] = *input.GoogleClientSecret
-	}
-
-	if s := input.GoogleOAuthScopes; s != nil {
-		googleSetting["oauth_scopes"] = *s
-	}
-
-	result["google"] = append(googleSettings, googleSetting)
+	result["google"] = googleSettings
 
 	microsoftSettings := make([]interface{}, 0)
-	microsoftSetting := make(map[string]interface{})
 
 	if input.MicrosoftAccountClientID != nil {
+		microsoftSetting := make(map[string]interface{})
+
 		microsoftSetting["client_id"] = *input.MicrosoftAccountClientID
+
+		if input.MicrosoftAccountClientSecret != nil {
+			microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
+		}
+
+		if input.MicrosoftAccountOAuthScopes != nil {
+			microsoftSetting["oauth_scopes"] = *input.MicrosoftAccountOAuthScopes
+		}
+
+		microsoftSettings = append(microsoftSettings, microsoftSetting)
 	}
 
-	if input.MicrosoftAccountClientSecret != nil {
-		microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
-	}
-
-	if s := input.MicrosoftAccountOAuthScopes; s != nil {
-		microsoftSetting["oauth_scopes"] = *s
-	}
-
-	result["microsoft"] = append(microsoftSettings, microsoftSetting)
+	result["microsoft"] = microsoftSettings
 
 	twitterSettings := make([]interface{}, 0)
-	twitterSetting := make(map[string]interface{})
 
 	if input.TwitterConsumerKey != nil {
+		twitterSetting := make(map[string]interface{})
+
 		twitterSetting["consumer_key"] = *input.TwitterConsumerKey
+
+		if input.TwitterConsumerSecret != nil {
+			twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
+		}
+
+		twitterSettings = append(twitterSettings, twitterSetting)
 	}
 
-	if input.TwitterConsumerSecret != nil {
-		twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
-	}
-
-	result["twitter"] = append(twitterSettings, twitterSetting)
+	result["twitter"] = twitterSettings
 
 	return append(results, result)
 }
