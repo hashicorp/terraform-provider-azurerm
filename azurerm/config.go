@@ -455,24 +455,25 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
+	sender := azure.BuildSender()
+
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(oauthConfig, env.TokenAudience)
+	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.GetAuthorizationToken(oauthConfig, graphEndpoint)
+	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
-	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := c.GetAuthorizationToken(oauthConfig, resource)
+		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
