@@ -85,6 +85,7 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
+
 resource "azurerm_batch_certificate" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
@@ -94,7 +95,6 @@ resource "azurerm_batch_certificate" "test" {
 	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	thumbprint_algorithm = "SHA1"
 }
-	
 
 resource "azurerm_batch_pool" "test" {
   name                   = "testaccpool%s"
@@ -117,7 +117,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
-  certificate = {
+  certificate {
     id             = "${azurerm_batch_certificate.test.id}"
     store_location = "CurrentUser"
     visibility     = [ "StartTask", "RemoteUser" ]

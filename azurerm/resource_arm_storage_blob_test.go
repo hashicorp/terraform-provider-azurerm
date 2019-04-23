@@ -495,7 +495,7 @@ resource "azurerm_storage_blob" "test" {
   type = "page"
   size = 5120
   
-  metadata {
+  metadata = {
     test = "value1"
     test2 = "value2"
   }
