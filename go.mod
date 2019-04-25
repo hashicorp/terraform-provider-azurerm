@@ -18,7 +18,7 @@ require (
 	github.com/golang/mock v1.2.0 // indirect
 	github.com/google/uuid v0.0.0-20170814143639-7e072fc3a7be
 	github.com/grpc-ecosystem/grpc-gateway v1.6.3 // indirect
-	github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363
+	github.com/hashicorp/go-azure-helpers v0.4.0
 	github.com/hashicorp/go-getter v0.0.0-20180327010114-90bb99a48d86
 	github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
