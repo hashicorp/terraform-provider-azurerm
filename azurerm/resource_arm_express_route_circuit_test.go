@@ -16,7 +16,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){
-		/*"basic": {
+		"basic": {
 			"metered":                      testAccAzureRMExpressRouteCircuit_basicMetered,
 			"unlimited":                    testAccAzureRMExpressRouteCircuit_basicUnlimited,
 			"update":                       testAccAzureRMExpressRouteCircuit_update,
@@ -26,19 +26,19 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
 			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
-		},*/
+		},
 		"PrivatePeering": {
 			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
 			"requiresImport":      testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
-		/*"MicrosoftPeering": {
+		"MicrosoftPeering": {
 			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
 		},
 		"authorization": {
 			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
 			"multiple":       testAccAzureRMExpressRouteCircuitAuthorization_multiple,
 			"requiresImport": testAccAzureRMExpressRouteCircuitAuthorization_requiresImport,
-		},*/
+		},
 	}
 
 	for group, m := range testCases {
