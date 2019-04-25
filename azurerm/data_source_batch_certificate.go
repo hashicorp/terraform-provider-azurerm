@@ -18,12 +18,15 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateAzureRMBatchCertificateName,
 			},
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
+
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
 			"public_data": {
 				Type:     schema.TypeString,
 				Computed: true,

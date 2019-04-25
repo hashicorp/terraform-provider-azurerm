@@ -35,6 +35,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"certificate": {
 				Type:         schema.TypeString,
 				Required:     true,
