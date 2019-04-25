@@ -223,7 +223,7 @@ func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
 				),
 			},

@@ -1,14 +1,15 @@
-## 1.26.0 (Unreleased)
+## 1.27.0 (Unreleased)
+## 1.26.0 (April 25, 2019)
 
 IMPROVEMENTS:
 
-* `azurerm_app_service` - support for Java 11 [GH-3270]
-* `azurerm_app_service_slot` - support for Java 11 [GH-3270]
-* `azurerm_container_group` - support for the `identity` block [GH-3243]
+* `azurerm_app_service` - support for Java 11 ([#3270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3270))
+* `azurerm_app_service_slot` - support for Java 11 ([#3270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3270))
+* `azurerm_container_group` - support for the `identity` block ([#3243](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3243))
 
 BUG FIXES:
 
-* provider will work through proxies again [GH-3301]
+* provider will work through proxies again ([#3301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3301))
 
 ## 1.25.0 (April 17, 2019)
 

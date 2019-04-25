@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
+func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -42,7 +42,7 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificatePfxWithoutPassword(t *testing.T) {
+func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -62,7 +62,7 @@ func TestAccAzureRMBatchCertificatePfxWithoutPassword(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificateCer(t *testing.T) {
+func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -92,7 +92,7 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificateCerWithPassword(t *testing.T) {
+func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()

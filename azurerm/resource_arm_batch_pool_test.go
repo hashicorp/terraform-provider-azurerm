@@ -902,16 +902,19 @@ resource "azurerm_batch_pool" "test" {
     offer     = "UbuntuServer"
     sku       = "16.04.0-LTS"
     version   = "latest"
-	}
-	certificate = [ {
-		id             = "${azurerm_batch_certificate.testcer.id}"
-		store_location = "CurrentUser"
-		visibility     = [ "StartTask" ]
-	}, {
-		id             = "${azurerm_batch_certificate.testpfx.id}"
-		store_location = "CurrentUser"
-		visibility     = [ "StartTask", "RemoteUser" ]
-	}]
+  }
+
+  certificate {
+    id             = "${azurerm_batch_certificate.testcer.id}"
+    store_location = "CurrentUser"
+    visibility     = [ "StartTask" ]
+  }
+
+  certificate {
+    id             = "${azurerm_batch_certificate.testpfx.id}"
+    store_location = "CurrentUser"
+    visibility     = [ "StartTask", "RemoteUser" ]
+  }
 }
 
 `, rInt, location, rString, rString)
