@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
 
-* `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created. This value is immutable, so if you change it, terraform will have to destroy and recreate the server.
+* `administrator_login` - (Required) The administrator login name for the new server. **Changing this forces a new resource to be created.**
 
-* `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx). If the value is blank, and the server already exists, it will not attempt to change the password.
+* `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx). If the sql server already exists, and this value is blank in the terraform config, it will not make an attempt to change the password.  
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
