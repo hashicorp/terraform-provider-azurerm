@@ -1,10 +1,14 @@
-## 1.25.1 (Unreleased)
+## 1.26.0 (Unreleased)
 
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for Java 11 [GH-3270]
 * `azurerm_app_service_slot` - support for Java 11 [GH-3270]
 * `azurerm_container_group` - support for the `identity` block [GH-3243]
+
+BUG FIXES:
+
+* provider will work through proxies again [GH-3301]
 
 ## 1.25.0 (April 17, 2019)
 
