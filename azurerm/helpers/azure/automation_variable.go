@@ -10,7 +10,7 @@ import (
 func ParseAzureRmAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
 		if resource != "azurerm_automation_null_variable" {
-			return nil, fmt.Errorf("Expect resource to be %q, but actual value is %v", resource, input)
+			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_null_variable\"", resource, actualResource)
 		}
 		return nil, nil
 	}
@@ -35,7 +35,7 @@ func ParseAzureRmAutomationVariableValue(resource string, input *string) (interf
 	}
 
 	if actualResource != resource {
-		return nil, fmt.Errorf("Expect value %q to be %q, but actually it is %q", *input, resource, actualResource)
+		return nil, fmt.Errorf("Expected value %q to be %q, actual type is %q", *input, resource, actualResource)
 	}
 	return value, nil
 }
