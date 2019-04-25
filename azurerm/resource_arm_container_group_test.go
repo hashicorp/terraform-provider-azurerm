@@ -961,7 +961,7 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    gpu = {
+    gpu {
       count = 1
       sku = "K80"
     }
