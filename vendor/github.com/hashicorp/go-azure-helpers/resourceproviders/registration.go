@@ -39,7 +39,7 @@ func RegisterForSubscription(ctx context.Context, client resources.ProvidersClie
 		go func(p string) {
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering Resource Provider %q with namespace", p)
-			if innerErr := registerWithSubscription(ctx, p, client); err != nil {
+			if innerErr := registerWithSubscription(ctx, p, client); innerErr != nil {
 				err = innerErr
 			}
 		}(providerName)
@@ -51,8 +51,7 @@ func RegisterForSubscription(ctx context.Context, client resources.ProvidersClie
 }
 
 func registerWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(ctx, providerName)
-	if err != nil {
+	if _, err := client.Register(ctx, providerName); err != nil {
 		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
 	}
 
