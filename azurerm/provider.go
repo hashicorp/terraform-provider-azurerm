@@ -179,6 +179,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_automation_module":                      resourceArmAutomationModule(),
 			"azurerm_automation_runbook":                     resourceArmAutomationRunbook(),
 			"azurerm_automation_schedule":                    resourceArmAutomationSchedule(),
+			"azurerm_automation_string_variable":             resourceArmAutomationStringVariable(),
 			"azurerm_autoscale_setting":                      resourceArmAutoScaleSetting(),
 			"azurerm_availability_set":                       resourceArmAvailabilitySet(),
 			"azurerm_azuread_application":                    resourceArmActiveDirectoryApplication(),

@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func parseAzureRmAutomationVariableValue(resource string, input *string) (interface{}, error) {
+func ParseAzureRmAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
 		if resource != "azurerm_automation_null_variable" {
 			return nil, fmt.Errorf("Expect resource to be %q, but actual value is %v", resource, input)
