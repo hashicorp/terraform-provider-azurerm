@@ -2,13 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -323,39 +323,29 @@ func flattenArmContainerNetworkInterfaceConfigurations(input *[]network.Containe
 	// if-continue is used to simplify the deeply nested if-else statement.
 	for _, cniConfig := range *input {
 		retCNIConfig := make(map[string]interface{})
-		cniProps := cniConfig.ContainerNetworkInterfaceConfigurationPropertiesFormat
-		if cniProps == nil {
-			continue
-		}
 
 		if cniConfig.Name != nil {
 			retCNIConfig["name"] = *cniConfig.Name
 		}
 
-		if cniProps.IPConfigurations == nil {
-			continue
+		if cniProps := cniConfig.ContainerNetworkInterfaceConfigurationPropertiesFormat; cniProps != nil && cniProps.IPConfigurations != nil {
+			retIPConfigs := make([]interface{}, 0)
+			for _, ipConfig := range *cniProps.IPConfigurations {
+				retIPConfig := make(map[string]interface{})
+
+				if ipConfig.Name != nil {
+					retIPConfig["name"] = *ipConfig.Name
+				}
+
+				if ipProps := ipConfig.IPConfigurationProfilePropertiesFormat; ipProps != nil && ipProps.Subnet != nil && ipProps.Subnet.ID != nil {
+					retIPConfig["subnet_id"] = *ipProps.Subnet.ID
+				}
+
+				retIPConfigs = append(retIPConfigs, retIPConfig)
+			}
+
+			retCNIConfig["ip_configuration"] = retIPConfigs
 		}
-
-		retIPConfigs := make([]interface{}, 0)
-		for _, ipConfig := range *cniProps.IPConfigurations {
-			retIPConfig := make(map[string]interface{})
-			ipProps := ipConfig.IPConfigurationProfilePropertiesFormat
-			if ipProps == nil {
-				continue
-			}
-
-			if ipConfig.Name != nil {
-				retIPConfig["name"] = *ipConfig.Name
-			}
-
-			if ipProps.Subnet != nil && ipProps.Subnet.ID != nil {
-				retIPConfig["subnet_id"] = *ipProps.Subnet.ID
-			}
-
-			retIPConfigs = append(retIPConfigs, retIPConfig)
-		}
-
-		retCNIConfig["ip_configuration"] = retIPConfigs
 
 		retCNIConfigs = append(retCNIConfigs, retCNIConfig)
 	}
