@@ -7,10 +7,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/uuid v0.0.0-20170814143639-7e072fc3a7be
-	github.com/hashicorp/go-getter v1.1.0
 	github.com/hashicorp/go-azure-helpers v0.4.0
-	github.com/grpc-ecosystem/grpc-gateway v1.6.3 // indirect
-	github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736 // indirect
+	github.com/hashicorp/go-getter v1.1.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/terraform v0.12.0-alpha4.0.20190417210818-177a7afb781f
