@@ -668,7 +668,7 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("testdata/application_gateway_test.pfx"))}"
+      pfx      = "${filebase64("testdata/application_gateway_test.pfx")}"
       password = "terraform"
     }
   }

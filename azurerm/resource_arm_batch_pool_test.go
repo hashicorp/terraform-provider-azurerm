@@ -871,7 +871,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "testcer" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.cer")}"
 	format               = "Cer"
 	thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
 	thumbprint_algorithm = "SHA1"
@@ -879,7 +879,7 @@ resource "azurerm_batch_certificate" "testcer" {
 resource "azurerm_batch_certificate" "testpfx" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
 	format               = "Pfx"
 	password             = "terraform"
 	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
