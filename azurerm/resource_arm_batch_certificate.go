@@ -28,19 +28,23 @@ func resourceArmBatchCertificate() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"certificate": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringLenBetween(1, 10000),
 			},
+
 			"format": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -49,23 +53,27 @@ func resourceArmBatchCertificate() *schema.Resource {
 					string(batch.Pfx),
 				}, false),
 			},
+
 			"password": {
 				Type:      schema.TypeString,
 				Optional:  true, // Required if `format` is "Pfx"
 				Sensitive: true,
 			},
+
 			"thumbprint": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"thumbprint_algorithm": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"SHA1"}, false),
 			},
+
 			"public_data": {
 				Type:     schema.TypeString,
 				Computed: true,
