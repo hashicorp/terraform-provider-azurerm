@@ -22,7 +22,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "metrics.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "6"),
 				),
 			},
 		},
