@@ -54,9 +54,9 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Resource:    "azurerm_automation_datetime_variable",
 			Value:       "\"\\/Date(1556142054074)\\/\"",
 			HasError:    false,
-			ExpectValue: time.Date(2019, time.April, 24, 14, 40, 54, 74000000, time.Local),
+			ExpectValue: time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC),
 			Expect: func(v interface{}) bool {
-				return v.(time.Time) == time.Date(2019, time.April, 24, 14, 40, 54, 74000000, time.Local)
+				return v.(time.Time) == time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC)
 			},
 		},
 	}
