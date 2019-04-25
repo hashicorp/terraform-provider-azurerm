@@ -132,6 +132,8 @@ func resourceArmAutomationStringVariableRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("automation_account_name", accountName)
 	if properties := resp.VariableProperties; properties != nil {
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
