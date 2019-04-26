@@ -1,8 +1,8 @@
-## 1.27.0 (Unreleased)
+## 1.27.0 (April 26, 2019)
 
 NOTES:
 
-* This release includes a Terraform SDK upgrade with compatibility for Terraform v0.12. The provider remains backwards compatible with Terraform v0.11 and there should not be any significant behavioural changes. [GH-2968]
+* This release includes a Terraform SDK upgrade with compatibility for Terraform v0.12. The provider remains backwards compatible with Terraform v0.11 and there should not be any significant behavioural changes. ([#2968](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2968))
 
 ## 1.26.0 (April 25, 2019)
 
