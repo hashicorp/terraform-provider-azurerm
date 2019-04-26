@@ -68,10 +68,14 @@ EOF
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
     version   = "latest"
+  }
+
+  container_configuration {
+    type = "DockerCompatible"
   }
 
   start_task {

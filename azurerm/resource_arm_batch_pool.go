@@ -113,6 +113,20 @@ func resourceArmBatchPool() *schema.Resource {
 					},
 				},
 			},
+			"container_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
+			},
 			"storage_image_reference": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -385,10 +399,17 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
+	containerConfigurationSet := d.Get("container_configuration").([]interface{})
+	containerConfiguration, err := azure.ExpandBatchPoolContainerConfiguration(containerConfigurationSet)
+	if err != nil {
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+
 	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
 		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-			NodeAgentSkuID: &nodeAgentSkuID,
-			ImageReference: imageReference,
+			NodeAgentSkuID:         &nodeAgentSkuID,
+			ImageReference:         imageReference,
+			ContainerConfiguration: containerConfiguration,
 		},
 	}
 
@@ -565,6 +586,15 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if props.DeploymentConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration != nil {
+
+			containerConfiguration := props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration
+
+			d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(containerConfiguration))
 		}
 
 		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {

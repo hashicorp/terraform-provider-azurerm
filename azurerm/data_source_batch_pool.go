@@ -110,6 +110,20 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"container_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
+			},
 			"certificate": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -271,6 +285,17 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			}
 			if err := d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
+			}
+		}
+
+		if props.DeploymentConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration != nil {
+
+			containerConfiguration := props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration
+
+			if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(containerConfiguration)); err != nil {
+				return fmt.Errorf("error setting `container_configuration`: %v", err)
 			}
 		}
 
