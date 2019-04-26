@@ -1,8 +1,8 @@
-## 1.27.1 (Unreleased)
+## 1.27.1 (April 26, 2019)
 
 BUG FIXES:
 
-* provider will now only register available resource providers [GH-3313]
+* provider will now only register available resource providers ([#3313](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3313))
 
 ## 1.27.0 (April 26, 2019)
 
