@@ -2,7 +2,7 @@
 
 BUG FIXES:
 
-* provider will now only register availible resource providers [GH-3313]
+* provider will now only register available resource providers [GH-3313]
 
 ## 1.27.0 (April 26, 2019)
 
