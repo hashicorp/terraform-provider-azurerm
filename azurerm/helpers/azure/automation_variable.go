@@ -31,7 +31,7 @@ func ParseAzureRmAutomationVariableValue(resource string, input *string) (interf
 		actualResource = "azurerm_automation_bool_variable"
 	} else if value, err = strconv.ParseInt(*input, 10, 32); err == nil {
 		value = int32(value.(int64))
-		actualResource = "azurerm_automation_integer_variable"
+		actualResource = "azurerm_automation_int_variable"
 	}
 
 	if actualResource != resource {

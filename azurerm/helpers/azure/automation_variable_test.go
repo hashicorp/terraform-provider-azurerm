@@ -35,7 +35,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		},
 		{
 			Name:        "integer variable",
-			Resource:    "azurerm_automation_integer_variable",
+			Resource:    "azurerm_automation_int_variable",
 			Value:       "135",
 			HasError:    false,
 			ExpectValue: 135,

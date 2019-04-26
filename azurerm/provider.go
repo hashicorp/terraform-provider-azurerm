@@ -180,6 +180,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_automation_runbook":                     resourceArmAutomationRunbook(),
 			"azurerm_automation_schedule":                    resourceArmAutomationSchedule(),
 			"azurerm_automation_bool_variable":               resourceArmAutomationBoolVariable(),
+			"azurerm_automation_int_variable":                resourceArmAutomationIntVariable(),
 			"azurerm_automation_null_variable":               resourceArmAutomationNullVariable(),
 			"azurerm_automation_string_variable":             resourceArmAutomationStringVariable(),
 			"azurerm_autoscale_setting":                      resourceArmAutoScaleSetting(),
