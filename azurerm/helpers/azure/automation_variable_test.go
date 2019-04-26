@@ -43,7 +43,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		},
 		{
 			Name:        "boolean variable",
-			Resource:    "azurerm_automation_boolean_variable",
+			Resource:    "azurerm_automation_bool_variable",
 			Value:       "true",
 			HasError:    false,
 			ExpectValue: true,
