@@ -12,17 +12,19 @@ import (
 
 // DetermineResourceProvidersRequiringRegistration determines which Resource Providers require registration to be able to be used
 func DetermineResourceProvidersRequiringRegistration(availableResourceProviders []resources.Provider, requiredResourceProviders map[string]struct{}) map[string]struct{} {
-	providers := requiredResourceProviders
+	providers := make(map[string]struct{})
 
-	// filter out any providers already registered
+	// filter out any providers already registered and not in the required list.
 	for _, p := range availableResourceProviders {
-		if _, ok := providers[*p.Namespace]; !ok {
+		// Skip it if it's not in the required list.
+		if _, ok := requiredResourceProviders[*p.Namespace]; !ok {
 			continue
 		}
 
-		if strings.ToLower(*p.RegistrationState) == "registered" {
-			log.Printf("[DEBUG] Skipping provider registration for namespace %s\n", *p.Namespace)
-			delete(providers, *p.Namespace)
+		// If it's in the required list but not registered.
+		if strings.ToLower(*p.RegistrationState) != "registered" {
+			log.Printf("[DEBUG] Adding provider registration for namespace %s\n", *p.Namespace)
+			providers[*p.Namespace] = requiredResourceProviders[*p.Namespace]
 		}
 	}
 
