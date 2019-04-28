@@ -347,14 +347,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
+  name                = "acctestServiceBusTopic-%d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -381,14 +381,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
+  name                = "acctestServiceBusTopic-%d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   status              = "disabled"
@@ -404,14 +404,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                      = "acctestservicebustopic-%d"
+  name                      = "acctestServiceBusTopic-%d"
   namespace_name            = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   enable_batched_operations = true
@@ -428,7 +428,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Premium"
@@ -436,7 +436,7 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
+  name                = "acctestServiceBusTopic-%d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   enable_partitioning = false
@@ -452,14 +452,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                  = "acctestservicebustopic-%d"
+  name                  = "acctestServiceBusTopic-%d"
   namespace_name        = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   enable_partitioning   = true
@@ -476,7 +476,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "premium"
@@ -484,7 +484,7 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                  = "acctestservicebustopic-%d"
+  name                  = "acctestServiceBusTopic-%d"
   namespace_name        = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   enable_partitioning   = false
@@ -501,14 +501,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                         = "acctestservicebustopic-%d"
+  name                         = "acctestServiceBusTopic-%d"
   namespace_name               = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   requires_duplicate_detection = true
@@ -524,14 +524,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestServiceBusNamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                                    = "acctestservicebustopic-%d"
+  name                                    = "acctestServiceBusTopic-%d"
   namespace_name                          = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name                     = "${azurerm_resource_group.test.name}"
   auto_delete_on_idle                     = "PT10M"

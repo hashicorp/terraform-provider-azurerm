@@ -120,9 +120,9 @@ func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
 func testAzureRMPolicySetDefinition_builtIn(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
+  name         = "acctestPolSet-%d"
   policy_type  = "Custom"
-  display_name = "acctestpolset-%d"
+  display_name = "acctestPolSet-%d"
 
   parameters = <<PARAMETERS
     {
@@ -203,9 +203,9 @@ PARAMETERS
 }
 
 resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
+  name         = "acctestPolSet-%d"
   policy_type  = "Custom"
-  display_name = "acctestpolset-%d"
+  display_name = "acctestPolSet-%d"
 
   parameters = <<PARAMETERS
     {
@@ -243,9 +243,9 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_policy_set_definition" "test" {
-  name                = "acctestpolset-%d"
+  name                = "acctestPolSet-%d"
   policy_type         = "Custom"
-  display_name        = "acctestpolset-%d"
+  display_name        = "acctestPolSet-%d"
   management_group_id = "${azurerm_management_group.test.group_id}"
 
   parameters = <<PARAMETERS

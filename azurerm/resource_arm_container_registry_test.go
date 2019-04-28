@@ -260,7 +260,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	skuPremium := "Premium"
 	skuBasic := "Basic"
 	ri := tf.AccRandTimeInt()
-	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
+	containerRegistryName := fmt.Sprintf("testaccCR%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
 	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`)
 	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `centralus", "eastus`)
@@ -437,7 +437,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testaccCR%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
@@ -467,7 +467,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testaccCR%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
@@ -488,7 +488,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testaccCR%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
@@ -509,7 +509,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                     = "testacccr%d"
+  name                     = "testaccCR%d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   sku                      = "%s"
@@ -526,7 +526,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testaccCR%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"

@@ -380,7 +380,7 @@ func testAccAzureRMAutoScaleSetting_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -468,7 +468,7 @@ func testAccAzureRMAutoScaleSetting_multipleProfiles(rInt int, location string) 
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -555,7 +555,7 @@ func testAccAzureRMAutoScaleSetting_multipleRules(rInt int, location string) str
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -620,7 +620,7 @@ func testAccAzureRMAutoScaleSetting_capacity(rInt int, location string, min int,
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -665,7 +665,7 @@ func testAccAzureRMAutoScaleSetting_email(rInt int, location string) string {
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -717,7 +717,7 @@ func testAccAzureRMAutoScaleSetting_emailUpdated(rInt int, location string) stri
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -769,7 +769,7 @@ func testAccAzureRMAutoScaleSetting_recurrence(rInt int, location string) string
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -813,7 +813,7 @@ func testAccAzureRMAutoScaleSetting_recurrenceUpdated(rInt int, location string)
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -857,7 +857,7 @@ func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, location string) string 
 %s
 
 resource "azurerm_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"

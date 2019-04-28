@@ -302,7 +302,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -335,7 +335,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -398,7 +398,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -431,7 +431,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -464,7 +464,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -497,7 +497,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

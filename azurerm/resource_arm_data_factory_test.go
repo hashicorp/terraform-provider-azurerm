@@ -286,7 +286,7 @@ func testAccAzureRMDataFactory_basic(rInt int, location string) string {
   }
 
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
   }
@@ -301,7 +301,7 @@ func testAccAzureRMDataFactory_tags(rInt int, location string) string {
   }
 
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -320,7 +320,7 @@ func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
   }
 
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -340,7 +340,7 @@ func testAccAzureRMDataFactory_identity(rInt int, location string) string {
   }
 
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     
@@ -359,7 +359,7 @@ func testAccAzureRMDataFactory_github(rInt int, location string) string {
   }
 
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 		
@@ -381,7 +381,7 @@ func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
     location = "%s"
   }
   resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
+    name                = "acctestDF%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 		

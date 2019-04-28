@@ -18,7 +18,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	backendAddressPoolId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/acctest-lb-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +57,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	backendAddressPoolId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/acctest-lb-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 	location := testLocation()
 
@@ -196,7 +196,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -244,7 +244,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

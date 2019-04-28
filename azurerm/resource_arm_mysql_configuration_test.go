@@ -142,7 +142,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 	return func(s *terraform.State) error {
 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
-		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
+		serverName := fmt.Sprintf("acctestMYSQL-%d", rInt)
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -226,7 +226,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = "acctestMYSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

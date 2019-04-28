@@ -135,7 +135,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
+  name                = "acctestDFv2%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -156,7 +156,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
+  name                = "acctestDFv2%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -188,7 +188,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
+  name                = "acctestDFv2%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }

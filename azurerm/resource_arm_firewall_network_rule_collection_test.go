@@ -24,7 +24,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -83,7 +83,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -94,7 +94,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_updatedName(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -120,7 +120,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
 					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
 					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
@@ -130,12 +130,12 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
 					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
 					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondRule),
-					resource.TestCheckResourceAttr(secondRule, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondRule, "name", "acctestNRC_add"),
 					resource.TestCheckResourceAttr(secondRule, "priority", "200"),
 					resource.TestCheckResourceAttr(secondRule, "action", "Deny"),
 					resource.TestCheckResourceAttr(secondRule, "rule.#", "1"),
@@ -145,11 +145,11 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
 					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
 					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
+					testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestNRC_add"),
 				),
 			},
 		},
@@ -171,12 +171,12 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(firstResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(firstResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestNRC_add"),
 					resource.TestCheckResourceAttr(secondResourceName, "priority", "200"),
 					resource.TestCheckResourceAttr(secondResourceName, "action", "Deny"),
 					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
@@ -186,12 +186,12 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(firstResourceName, "priority", "300"),
 					resource.TestCheckResourceAttr(firstResourceName, "action", "Deny"),
 					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestNRC_add"),
 					resource.TestCheckResourceAttr(secondResourceName, "priority", "400"),
 					resource.TestCheckResourceAttr(secondResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
@@ -215,7 +215,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -241,7 +241,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -251,7 +251,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleRules(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
@@ -261,7 +261,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -285,7 +285,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T
 				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -295,7 +295,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T
 				Config: testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestNRC"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -416,7 +416,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_basic(rInt int, location string
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -486,7 +486,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_updatedName(rInt int, location 
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -521,7 +521,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_multiple(rInt int, location str
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -549,7 +549,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 }
 
 resource "azurerm_firewall_network_rule_collection" "test_add" {
-  name                = "acctestnrc_add"
+  name                = "acctestNRC_add"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 200
@@ -584,7 +584,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(rInt int, locati
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 300
@@ -612,7 +612,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 }
 
 resource "azurerm_firewall_network_rule_collection" "test_add" {
-  name                = "acctestnrc_add"
+  name                = "acctestNRC_add"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 400
@@ -647,7 +647,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_multipleRules(rInt int, locatio
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -702,7 +702,7 @@ func testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(rInt int, lo
 %s
 
 resource "azurerm_firewall_network_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestNRC"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100

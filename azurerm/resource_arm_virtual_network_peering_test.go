@@ -236,14 +236,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "acctestvirtnet-1-%d"
+  name                = "acctestVNET-1-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.1.0/24"]
   location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet-2-%d"
+  name                = "acctestVNET-2-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.2.0/24"]
   location            = "${azurerm_resource_group.test.location}"
@@ -290,14 +290,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "acctestvirtnet-1-%d"
+  name                = "acctestVNET-1-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.1.0/24"]
   location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet-2-%d"
+  name                = "acctestVNET-2-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.2.0/24"]
   location            = "${azurerm_resource_group.test.location}"

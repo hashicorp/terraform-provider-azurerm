@@ -255,7 +255,7 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_basic(rInt int, rString stri
 %s
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -330,7 +330,7 @@ variable "ssh_key" {
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -382,7 +382,7 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_updated(rInt int, rString st
 %s
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -438,21 +438,21 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(rInt int, rSt
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestVNET%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -510,21 +510,21 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_complete(rInt int, rString s
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestVNET%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"

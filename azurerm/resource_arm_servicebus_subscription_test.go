@@ -161,7 +161,7 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(ri, location)
 
-	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", ri)
+	expectedValue := fmt.Sprintf("acctestServiceBusTopic-forward_to-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -258,14 +258,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name                = "acctestservicebusnamespace-%d"
+    name                = "acctestServiceBusNamespace-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-    name                = "acctestservicebustopic-%d"
+    name                = "acctestServiceBusTopic-%d"
     namespace_name      = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -317,7 +317,7 @@ func testAccAzureRMServiceBusSubscription_updateForwardTo(rInt int, location str
 	forwardToTf := testAccAzureRMServiceBusSubscription_tfTemplate + `
 
 resource "azurerm_servicebus_topic" "forward_to" {
-    name = "acctestservicebustopic-forward_to-%d"
+    name = "acctestServiceBusTopic-forward_to-%d"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }

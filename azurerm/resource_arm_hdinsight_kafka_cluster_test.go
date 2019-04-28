@@ -255,7 +255,7 @@ func testAccAzureRMHDInsightKafkaCluster_basic(rInt int, rString string, locatio
 %s
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -331,7 +331,7 @@ variable "ssh_key" {
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -384,7 +384,7 @@ func testAccAzureRMHDInsightKafkaCluster_updated(rInt int, rString string, locat
 %s
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -441,20 +441,20 @@ func testAccAzureRMHDInsightKafkaCluster_virtualNetwork(rInt int, rString string
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestVNET%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
@@ -513,20 +513,20 @@ func testAccAzureRMHDInsightKafkaCluster_complete(rInt int, rString string, loca
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestVNET%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctestHDI-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"

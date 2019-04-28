@@ -18,7 +18,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/acctest-lb-%d/outboundRules/%s",
 		subscriptionID, ri, ri, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +59,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/acctest-lb-%d/outboundRules/%s",
 		subscriptionID, ri, ri, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -237,7 +237,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
@@ -311,7 +311,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
@@ -348,7 +348,7 @@ resource "azurerm_public_ip" "test2" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
@@ -420,7 +420,7 @@ resource "azurerm_public_ip" "test2" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-lb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"

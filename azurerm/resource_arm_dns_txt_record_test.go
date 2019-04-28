@@ -195,7 +195,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestZONE%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -246,7 +246,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestZONE%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -279,7 +279,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestZONE%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -313,7 +313,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestZONE%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 

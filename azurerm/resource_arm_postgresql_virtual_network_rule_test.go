@@ -274,7 +274,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.7.29.0/29"
@@ -472,7 +472,7 @@ resource "azurerm_virtual_network" "vnet2" {
 }
 
 resource "azurerm_subnet" "vnet1_subnet1" {
-  name                 = "acctestsubnet1%d"
+  name                 = "acctestSubNet1%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
   address_prefix       = "10.7.29.0/29"
@@ -480,7 +480,7 @@ resource "azurerm_subnet" "vnet1_subnet1" {
 }
 
 resource "azurerm_subnet" "vnet1_subnet2" {
-  name                 = "acctestsubnet2%d"
+  name                 = "acctestSubNet2%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
   address_prefix       = "10.7.29.128/29"
@@ -488,7 +488,7 @@ resource "azurerm_subnet" "vnet1_subnet2" {
 }
 
 resource "azurerm_subnet" "vnet2_subnet1" {
-  name                 = "acctestsubnet3%d"
+  name                 = "acctestSubNet3%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.vnet2.name}"
   address_prefix       = "10.1.29.0/29"
@@ -559,7 +559,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestSubNet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.7.29.0/29"

@@ -380,7 +380,7 @@ func testAccAzureRMMonitorAutoScaleSetting_basic(rInt int, location string) stri
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -468,7 +468,7 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(rInt int, location s
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -555,7 +555,7 @@ func testAccAzureRMMonitorAutoScaleSetting_capacity(rInt int, location string, m
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -600,7 +600,7 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleRules(rInt int, location stri
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -665,7 +665,7 @@ func testAccAzureRMMonitorAutoScaleSetting_email(rInt int, location string) stri
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -717,7 +717,7 @@ func testAccAzureRMMonitorAutoScaleSetting_emailUpdated(rInt int, location strin
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -769,7 +769,7 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrence(rInt int, location string)
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -813,7 +813,7 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrenceUpdated(rInt int, location 
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
@@ -857,7 +857,7 @@ func testAccAzureRMMonitorAutoScaleSetting_fixedDate(rInt int, location string) 
 %s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
-  name                = "acctestautoscale-%d"
+  name                = "acctestAUTOscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"

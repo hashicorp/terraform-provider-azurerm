@@ -305,7 +305,7 @@ resource "azurerm_eventhub" "updated" {
 }
 
 resource "azurerm_eventhub_consumer_group" "updated" {
-  name                = "acctesteventhubcg2-%d"
+  name                = "acctestEventHubcg2-%d"
   namespace_name      = "${azurerm_eventhub_namespace.updated.name}"
   eventhub_name       = "${azurerm_eventhub.updated.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -372,7 +372,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-  name                = "acctesteventhubcg-%d"
+  name                = "acctestEventHubcg-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

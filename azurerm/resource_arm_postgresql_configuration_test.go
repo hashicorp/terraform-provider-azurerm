@@ -148,7 +148,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 	return func(s *terraform.State) error {
 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
-		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
+		serverName := fmt.Sprintf("acctestPGSQL-%d", rInt)
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -232,7 +232,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestPGSQL-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

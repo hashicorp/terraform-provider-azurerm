@@ -186,14 +186,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctestEventHubnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctestEventHub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
@@ -201,7 +201,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-  name                = "acctesteventhubcg-%d"
+  name                = "acctestEventHubcg-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -231,14 +231,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctestEventHubnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctestEventHub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
@@ -246,7 +246,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-  name                = "acctesteventhubcg-%d"
+  name                = "acctestEventHubcg-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
