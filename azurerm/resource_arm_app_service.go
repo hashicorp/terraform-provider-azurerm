@@ -69,11 +69,11 @@ func resourceArmAppService() *schema.Resource {
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),
 
-			"backup_schedule_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+			// "backup_schedule_enabled": {
+			// 	Type:     schema.TypeBool,
+			// 	Optional: true,
+			// 	Default:  false,
+			// },
 
 			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
 
@@ -313,7 +313,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	backupScheduleEnabled := d.Get("backup_schedule_enabled").(bool)
+	backupScheduleEnabled := false
+
 	storageAccountURL := d.Get("storage_account_url").(string)
 	backupName := d.Get("backup_name").(string)
 
