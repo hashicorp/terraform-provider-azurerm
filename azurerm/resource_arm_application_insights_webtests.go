@@ -161,8 +161,6 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	tagVal := "Resource"
 	tags[tagKey] = tagVal
 
-	log.Println("setting name: %s", name)
-
 	testConfiguration := insights.WebTestPropertiesConfiguration{
 		WebTest: &testConf,
 	}
@@ -231,11 +229,11 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	if props := resp.WebTestProperties; props != nil {
-		d.Set("synthetic_id", props.SyntheticMonitorID)
+		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
 		d.Set("provisioning_state", props.ProvisioningState)
 	}
 
-	log.Printf("[DEBUG] AzureRM Application Insights WebTests synetheticmonitorid '%s'", d.Get("synthetic_id"))
+	log.Printf("[DEBUG] AzureRM Application Insights WebTests synetheticmonitorid '%s'", d.Get("synthetic_monitor_id"))
 
 	flattenAndSetTags(d, resp.Tags)
 
