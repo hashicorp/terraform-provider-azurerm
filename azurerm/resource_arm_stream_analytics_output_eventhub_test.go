@@ -24,6 +24,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_avro(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
 				),
 			},
 			{
@@ -53,6 +54,9 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_csv(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Csv"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.field_delimiter", ","),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
 			{
@@ -82,6 +86,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "LineSeparated"),
 				),
 			},
 			{
@@ -111,6 +116,9 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "Array"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Json"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
 			{
@@ -146,6 +154,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_updated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
 				),
 			},
 			{
