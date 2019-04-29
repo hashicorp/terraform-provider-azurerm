@@ -48,6 +48,24 @@ func resourceArmAppService() *schema.Resource {
 
 			"logs": azure.SchemaAppServiceLogsConfig(),
 
+			"backup_schedule_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
+
+			"storage_account_url": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
+			"backup_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -297,6 +315,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["sites"]
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	backupScheduleEnabled := d.Get("backup_schedule_enabled").(bool)
+	storageAccountURL := d.Get("storage_account_url").(string)
+	backupName := d.Get("backup_name").(string)
+
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
@@ -365,6 +387,25 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logsResource); err != nil {
 			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", name, err)
 		}
+	}
+
+	backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
+	if storageAccountURL != "" {
+		backupScheduleEnabled = true
+		request := web.BackupRequest{
+			BackupRequestProperties: &web.BackupRequestProperties{
+				BackupName:        utils.String(backupName),
+				StorageAccountURL: utils.String(storageAccountURL),
+				Enabled:           utils.Bool(backupScheduleEnabled),
+				BackupSchedule:    &backupSchedule,
+			},
+		}
+		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, request)
+		if err != nil {
+			return err
+		}
+	} else {
+		resourceArmDeleteScheduleBackup(d, meta)
 	}
 
 	if d.HasChange("client_affinity_enabled") {
@@ -721,4 +762,21 @@ func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	name := id.Path["sites"]
+
+	client.DeleteBackupConfiguration(ctx, resGroup, name)
+
+	return nil
 }
