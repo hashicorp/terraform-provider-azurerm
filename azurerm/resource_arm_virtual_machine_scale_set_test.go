@@ -4657,7 +4657,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 func testAccAzureRMVirtualMachineScaleSet_rollingAutoUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
@@ -4799,7 +4799,7 @@ func testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(rInt int, location s
 
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 

@@ -2540,16 +2540,9 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 					}
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
-						if applicationGatewayHasSubResource(props.DefaultBackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
-							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_address_pool_name` and `redirect_configuration_name` (default back-end pool not applicable when redirection specified)")
-						}
 
 						if applicationGatewayHasSubResource(ruleProps.BackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
-						}
-
-						if applicationGatewayHasSubResource(props.DefaultBackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
-							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_http_settings_name` and `redirect_configuration_name` (default back-end settings not applicable when redirection specified)")
 						}
 
 						if applicationGatewayHasSubResource(ruleProps.BackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {

@@ -140,7 +140,7 @@ func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
 func testAccAzureRMDataFactoryDatasetMySQL_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -169,7 +169,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
 func testAccAzureRMDataFactoryDatasetMySQL_update1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -219,7 +219,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
 func testAccAzureRMDataFactoryDatasetMySQL_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
