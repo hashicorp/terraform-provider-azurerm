@@ -20,6 +20,7 @@ func ParseAzureRmAutomationVariableValue(resource string, input *string) (interf
 	actualResource := "Unknown"
 	datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
 	matches := datePattern.FindStringSubmatch(*input)
+
 	if len(matches) == 2 && matches[0] == *input {
 		if ticks, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
 			value = time.Unix(ticks/1000, ticks%1000*1000000).In(time.UTC)
