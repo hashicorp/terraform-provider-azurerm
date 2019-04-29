@@ -87,6 +87,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `storage_account_url` (Optional) Sets SAS URL to the container where save the backup.
+
+* `backup_name` (Optional) Sets name of the backup.
+
 ---
 
 A `connection_string` block supports the following:
@@ -176,6 +180,20 @@ Elements of `ip_restriction` support:
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+---
+
+A `backup_schedule` block supports the following:
+
+* `frequency_interval` - (Required) Sets how often the backup should be executed.
+
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed, possible values: `Day` or `Hour`. Defaults to `Day`.
+
+* `keep_at_least_one_backup` - (Optional) Sets `true` if the retention policy should always keep at least one backup in the storage account, regardless how old it is; `false` otherwise. Defaults to `true`.
+
+* `retention_period_in_days` - (Optional)  Sets after how many days backups should be deleted. Defaults to `30`.
+
+* `start_time` - (Optional) Sets when the schedule should start working.
 
 ## Attributes Reference
 
