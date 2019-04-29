@@ -71,7 +71,7 @@ func resourceArmAppService() *schema.Resource {
 
 			"backup_schedule_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
 				Default:  false,
 			},
 
