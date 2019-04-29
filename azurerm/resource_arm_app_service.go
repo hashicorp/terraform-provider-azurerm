@@ -724,10 +724,7 @@ func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	_, err = client.DeleteBackupConfiguration(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
+	client.DeleteBackupConfiguration(ctx, resGroup, name)
 
 	return nil
 }
