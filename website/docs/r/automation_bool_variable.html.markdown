@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Automation Variable.
 
-* `encrypted` - (Optional) The encrypted flag of the Automation Variable. Defaults to `false`.
+* `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
 * `value` - (Optional) The value of the Automation Variable.
 
