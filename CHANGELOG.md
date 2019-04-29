@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 
+BUG FIXES:
+
+* `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
+
 ## 1.27.1 (April 26, 2019)
 
 BUG FIXES:
