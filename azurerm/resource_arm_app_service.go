@@ -316,8 +316,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["sites"]
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	backupScheduleEnabled := false
-
 	storageAccountURL := d.Get("storage_account_url").(string)
 	backupName := d.Get("backup_name").(string)
 
@@ -393,12 +391,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
 	if storageAccountURL != "" {
-		backupScheduleEnabled = true
 		request := web.BackupRequest{
 			BackupRequestProperties: &web.BackupRequestProperties{
 				BackupName:        utils.String(backupName),
 				StorageAccountURL: utils.String(storageAccountURL),
-				Enabled:           utils.Bool(backupScheduleEnabled),
+				Enabled:           utils.Bool(true),
 				BackupSchedule:    &backupSchedule,
 			},
 		}
