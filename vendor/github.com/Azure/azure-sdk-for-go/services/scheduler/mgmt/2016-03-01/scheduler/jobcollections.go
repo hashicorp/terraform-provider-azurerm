@@ -95,6 +95,8 @@ func (client JobCollectionsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
+	jobCollection.ID = nil
+	jobCollection.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -733,6 +735,8 @@ func (client JobCollectionsClient) PatchPreparer(ctx context.Context, resourceGr
 		"api-version": APIVersion,
 	}
 
+	jobCollection.ID = nil
+	jobCollection.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

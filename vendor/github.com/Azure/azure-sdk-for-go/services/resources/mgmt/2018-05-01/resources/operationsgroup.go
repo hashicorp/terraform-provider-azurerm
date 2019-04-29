@@ -25,25 +25,25 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the provides operations for working with resources and resource groups.
-type OperationsClient struct {
+// OperationsGroupClient is the provides operations for working with resources and resource groups.
+type OperationsGroupClient struct {
 	BaseClient
 }
 
-// NewOperationsClient creates an instance of the OperationsClient client.
-func NewOperationsClient(subscriptionID string) OperationsClient {
-	return NewOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewOperationsGroupClient creates an instance of the OperationsGroupClient client.
+func NewOperationsGroupClient(subscriptionID string) OperationsGroupClient {
+	return NewOperationsGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOperationsClientWithBaseURI creates an instance of the OperationsClient client.
-func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) OperationsClient {
-	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewOperationsGroupClientWithBaseURI creates an instance of the OperationsGroupClient client.
+func NewOperationsGroupClientWithBaseURI(baseURI string, subscriptionID string) OperationsGroupClient {
+	return OperationsGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // List lists all of the available Microsoft.Resources REST API operations.
-func (client OperationsClient) List(ctx context.Context) (result OperationListResultPage, err error) {
+func (client OperationsGroupClient) List(ctx context.Context) (result OperationListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsGroupClient.List")
 		defer func() {
 			sc := -1
 			if result.olr.Response.Response != nil {
@@ -55,27 +55,27 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.OperationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.olr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.OperationsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.olr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.OperationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client OperationsGroupClient) ListPreparer(ctx context.Context) (*http.Request, error) {
 	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
@@ -91,14 +91,14 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client OperationsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client OperationsGroupClient) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client OperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
+func (client OperationsGroupClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -110,10 +110,10 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Operat
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
+func (client OperationsGroupClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
 	req, err := lastResults.operationListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "resources.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -121,19 +121,19 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "resources.OperationsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "resources.OperationsGroupClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client OperationsClient) ListComplete(ctx context.Context) (result OperationListResultIterator, err error) {
+func (client OperationsGroupClient) ListComplete(ctx context.Context) (result OperationListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsGroupClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {

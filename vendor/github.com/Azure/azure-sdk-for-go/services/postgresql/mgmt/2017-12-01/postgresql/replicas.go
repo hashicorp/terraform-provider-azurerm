@@ -1,4 +1,4 @@
-package mariadb
+package postgresql
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,29 +25,31 @@ import (
 	"net/http"
 )
 
-// LogFilesClient is the mariaDB Client
-type LogFilesClient struct {
+// ReplicasClient is the the Microsoft Azure management API provides create, read, update, and delete functionality for
+// Azure PostgreSQL resources including servers, databases, firewall rules, VNET rules, security alert policies, log
+// files and configurations with new business model.
+type ReplicasClient struct {
 	BaseClient
 }
 
-// NewLogFilesClient creates an instance of the LogFilesClient client.
-func NewLogFilesClient(subscriptionID string) LogFilesClient {
-	return NewLogFilesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewReplicasClient creates an instance of the ReplicasClient client.
+func NewReplicasClient(subscriptionID string) ReplicasClient {
+	return NewReplicasClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLogFilesClientWithBaseURI creates an instance of the LogFilesClient client.
-func NewLogFilesClientWithBaseURI(baseURI string, subscriptionID string) LogFilesClient {
-	return LogFilesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewReplicasClientWithBaseURI creates an instance of the ReplicasClient client.
+func NewReplicasClientWithBaseURI(baseURI string, subscriptionID string) ReplicasClient {
+	return ReplicasClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListByServer list all the log files in a given server.
+// ListByServer list all the replicas for a given server.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-func (client LogFilesClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result LogFileListResult, err error) {
+func (client ReplicasClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result ServerListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/LogFilesClient.ListByServer")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicasClient.ListByServer")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -58,34 +60,34 @@ func (client LogFilesClient) ListByServer(ctx context.Context, resourceGroupName
 	}
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.LogFilesClient", "ListByServer", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "postgresql.ReplicasClient", "ListByServer", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByServerSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "mariadb.LogFilesClient", "ListByServer", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ReplicasClient", "ListByServer", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.LogFilesClient", "ListByServer", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "postgresql.ReplicasClient", "ListByServer", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListByServerPreparer prepares the ListByServer request.
-func (client LogFilesClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+func (client ReplicasClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serverName":        autorest.Encode("path", serverName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -93,21 +95,21 @@ func (client LogFilesClient) ListByServerPreparer(ctx context.Context, resourceG
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/logFiles", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforPostgreSQL/servers/{serverName}/Replicas", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
-func (client LogFilesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
+func (client ReplicasClient) ListByServerSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always
 // closes the http.Response Body.
-func (client LogFilesClient) ListByServerResponder(resp *http.Response) (result LogFileListResult, err error) {
+func (client ReplicasClient) ListByServerResponder(resp *http.Response) (result ServerListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

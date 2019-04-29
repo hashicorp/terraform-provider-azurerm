@@ -84,6 +84,7 @@ func (client VpnGatewaysClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"api-version": APIVersion,
 	}
 
+	vpnGatewayParameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

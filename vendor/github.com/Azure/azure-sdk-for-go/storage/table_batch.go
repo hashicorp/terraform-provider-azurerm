@@ -26,7 +26,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/marstr/guid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // Operation type. Insert, Delete, Replace etc.
@@ -132,25 +132,14 @@ func (t *TableBatch) MergeEntity(entity *Entity) {
 // As per document https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/performing-entity-group-transactions
 func (t *TableBatch) ExecuteBatch() error {
 
-	// Using `github.com/marstr/guid` is in response to issue #947 (https://github.com/Azure/azure-sdk-for-go/issues/947).
-	id, err := guid.NewGUIDs(guid.CreationStrategyVersion1)
-	if err != nil {
-		return err
-	}
-
-	changesetBoundary := fmt.Sprintf("changeset_%s", id.String())
+	changesetBoundary := fmt.Sprintf("changeset_%s", uuid.NewV1().String())
 	uri := t.Table.tsc.client.getEndpoint(tableServiceName, "$batch", nil)
 	changesetBody, err := t.generateChangesetBody(changesetBoundary)
 	if err != nil {
 		return err
 	}
 
-	id, err = guid.NewGUIDs(guid.CreationStrategyVersion1)
-	if err != nil {
-		return err
-	}
-
-	boundary := fmt.Sprintf("batch_%s", id.String())
+	boundary := fmt.Sprintf("batch_%s", uuid.NewV1().String())
 	body, err := generateBody(changesetBody, changesetBoundary, boundary)
 	if err != nil {
 		return err

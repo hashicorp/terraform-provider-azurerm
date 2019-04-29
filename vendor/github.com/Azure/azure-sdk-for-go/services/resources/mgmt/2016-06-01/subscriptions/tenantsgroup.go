@@ -25,27 +25,27 @@ import (
 	"net/http"
 )
 
-// TenantsClient is the all resource groups and resources exist within subscriptions. These operation enable you get
-// information about your subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory (Azure
-// AD) for your organization.
-type TenantsClient struct {
+// TenantsGroupClient is the all resource groups and resources exist within subscriptions. These operation enable you
+// get information about your subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory
+// (Azure AD) for your organization.
+type TenantsGroupClient struct {
 	BaseClient
 }
 
-// NewTenantsClient creates an instance of the TenantsClient client.
-func NewTenantsClient() TenantsClient {
-	return NewTenantsClientWithBaseURI(DefaultBaseURI)
+// NewTenantsGroupClient creates an instance of the TenantsGroupClient client.
+func NewTenantsGroupClient() TenantsGroupClient {
+	return NewTenantsGroupClientWithBaseURI(DefaultBaseURI)
 }
 
-// NewTenantsClientWithBaseURI creates an instance of the TenantsClient client.
-func NewTenantsClientWithBaseURI(baseURI string) TenantsClient {
-	return TenantsClient{NewWithBaseURI(baseURI)}
+// NewTenantsGroupClientWithBaseURI creates an instance of the TenantsGroupClient client.
+func NewTenantsGroupClientWithBaseURI(baseURI string) TenantsGroupClient {
+	return TenantsGroupClient{NewWithBaseURI(baseURI)}
 }
 
 // List gets the tenants for your account.
-func (client TenantsClient) List(ctx context.Context) (result TenantListResultPage, err error) {
+func (client TenantsGroupClient) List(ctx context.Context) (result TenantListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsGroupClient.List")
 		defer func() {
 			sc := -1
 			if result.tlr.Response.Response != nil {
@@ -57,27 +57,27 @@ func (client TenantsClient) List(ctx context.Context) (result TenantListResultPa
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.tlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.tlr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client TenantsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client TenantsGroupClient) ListPreparer(ctx context.Context) (*http.Request, error) {
 	const APIVersion = "2016-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
@@ -93,14 +93,14 @@ func (client TenantsClient) ListPreparer(ctx context.Context) (*http.Request, er
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client TenantsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client TenantsGroupClient) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client TenantsClient) ListResponder(resp *http.Response) (result TenantListResult, err error) {
+func (client TenantsGroupClient) ListResponder(resp *http.Response) (result TenantListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -112,10 +112,10 @@ func (client TenantsClient) ListResponder(resp *http.Response) (result TenantLis
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client TenantsClient) listNextResults(ctx context.Context, lastResults TenantListResult) (result TenantListResult, err error) {
+func (client TenantsGroupClient) listNextResults(ctx context.Context, lastResults TenantListResult) (result TenantListResult, err error) {
 	req, err := lastResults.tenantListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -123,19 +123,19 @@ func (client TenantsClient) listNextResults(ctx context.Context, lastResults Ten
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsGroupClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TenantsClient) ListComplete(ctx context.Context) (result TenantListResultIterator, err error) {
+func (client TenantsGroupClient) ListComplete(ctx context.Context) (result TenantListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsGroupClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
