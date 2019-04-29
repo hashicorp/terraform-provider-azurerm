@@ -93,6 +93,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `storage_account_url` (Optional) Sets SAS URL to the container where save the backup.
+
+* `backup_name` (Optional) Sets name of the backup.
+
 ---
 
 A `storage_account` block supports the following:
@@ -298,6 +302,20 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `backup_schedule` block supports the following:
+
+* `frequency_interval` - (Required) Sets how often the backup should be executed.
+
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed, possible values: `Day` or `Hour`. Defaults to `Day`.
+
+* `keep_at_least_one_backup` - (Optional) Sets `true` if the retention policy should always keep at least one backup in the storage account, regardless how old it is; `false` otherwise. Defaults to `true`.
+
+* `retention_period_in_days` - (Optional)  Sets after how many days backups should be deleted. Defaults to `30`.
+
+* `start_time` - (Optional) Sets when the schedule should start working.
 
 ## Attributes Reference
 
