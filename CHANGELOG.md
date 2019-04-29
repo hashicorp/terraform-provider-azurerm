@@ -1,4 +1,9 @@
 ## 1.28.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
+
 ## 1.27.1 (April 26, 2019)
 
 BUG FIXES:
