@@ -1314,7 +1314,7 @@ locals {
   url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
   redirect_configuration_name    = "${azurerm_virtual_network.test.name}-PathRedirect"
   redirect_configuration_name2   = "${azurerm_virtual_network.test.name}-PathRedirect2"
-  target_url            		     = "http://www.example.com"
+  target_url                     = "http://www.example.com"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1383,7 +1383,8 @@ resource "azurerm_application_gateway" "test" {
 
   url_path_map {
     name                               = "${local.url_path_map_name}"
-    default_redirect_configuration_name = "${local.redirect_configuration_name}"
+    default_backend_address_pool_name  = "${local.backend_address_pool_name}"
+    default_backend_http_settings_name = "${local.http_setting_name}"
 
     path_rule {
       name                        = "${local.path_rule_name}"

@@ -370,11 +370,12 @@ A `url_path_map` block supports the following:
 
 * `name` - (Required) The Name of the URL Path Map.
 
-* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
+* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
+* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if there are path_rules with Backend Address Pool or HTTP Settings set.
+* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
+
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
 
@@ -453,6 +454,7 @@ The following attributes are exported:
 * `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 * `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
+
 ---
 
 A `authentication_certificate` block exports the following:
