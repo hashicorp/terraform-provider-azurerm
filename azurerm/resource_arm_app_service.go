@@ -316,7 +316,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["sites"]
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	backupScheduleEnabled := d.Get("backup_schedule_enabled").(bool)
+	backupScheduleEnabled := false
+
 	storageAccountURL := d.Get("storage_account_url").(string)
 	backupName := d.Get("backup_name").(string)
 
