@@ -529,7 +529,7 @@ SAMPLE
 func testAccAzureRMApiManagementApiOperation_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
