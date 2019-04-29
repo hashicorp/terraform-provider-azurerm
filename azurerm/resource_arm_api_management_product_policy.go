@@ -74,15 +74,15 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 
 	if xmlContent != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XML,
-			Value:  utils.String(xmlContent),
+			ContentFormat: apimanagement.XML,
+			PolicyContent: utils.String(xmlContent),
 		}
 	}
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XMLLink,
-			Value:  utils.String(xmlLink),
+			ContentFormat: apimanagement.XMLLink,
+			PolicyContent: utils.String(xmlLink),
 		}
 	}
 
@@ -136,7 +136,7 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 	if properties := resp.PolicyContractProperties; properties != nil {
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.Value)
+		d.Set("xml_content", properties.PolicyContent)
 	}
 
 	return nil
