@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -147,7 +148,6 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	description := d.Get("description").(string)
 	frequency := int32(d.Get("frequency").(int))
@@ -157,9 +157,9 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	geoLocations := extractGeoLocations(d)
 	testConf := d.Get("test_configuration").(string)
 
+	tags := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
-	tagVal := "Resource"
-	tags[tagKey] = tagVal
+	tags[tagKey] = "Resource"
 
 	testConfiguration := insights.WebTestPropertiesConfiguration{
 		WebTest: &testConf,
@@ -222,15 +222,40 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 
 	log.Printf("[DEBUG] AzureRM Application Insights WebTests name '%s'", name)
 
-	d.Set("name", name)
+	appInsightsId := ""
+	tags := resp.Tags
+	for i := range tags {
+		if strings.HasPrefix(i, "hidden-link") {
+			appInsightsId = strings.Split(i, ":")[1]
+		}
+	}
+	d.Set("application_insights_id", appInsightsId)
+
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	if kind := resp.Kind; kind != "" {
+		d.Set("kind", resp.Kind)
+	}
+
 	if props := resp.WebTestProperties; props != nil {
 		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
+		d.Set("description", props.Description)
+		d.Set("enabled", props.Enabled)
+		d.Set("frequency", props.Frequency)
+		d.Set("timeout", props.Timeout)
+		d.Set("retry_enabled", props.RetryEnabled)
+		d.Set("configuration", props.Configuration)
 		d.Set("provisioning_state", props.ProvisioningState)
+		d.Set("test_configuration", props.Configuration.WebTest)
+
+		if err := d.Set("geo_locations", flattenGeoLocations(props.Locations)); err != nil {
+			return fmt.Errorf("Error setting `geo_locations`: %+v", err)
+		}
 	}
 
 	log.Printf("[DEBUG] AzureRM Application Insights WebTests synetheticmonitorid '%s'", d.Get("synthetic_monitor_id"))
@@ -277,4 +302,20 @@ func extractGeoLocations(d *schema.ResourceData) []insights.WebTestGeolocation {
 	}
 
 	return locations
+}
+
+func flattenGeoLocations(input *[]insights.WebTestGeolocation) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, prop := range *input {
+		if prop.Location != nil {
+			results = append(results, azureRMNormalizeLocation(*prop.Location))
+		}
+
+	}
+
+	return results
 }
