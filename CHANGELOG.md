@@ -5,6 +5,10 @@ FEATURES:
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 * **New Resource:** `azurerm_api_management_product_policy` [GH-3325]
 
+IMPROVEMENTS:
+
+* `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
+
 BUG FIXES:
 
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
