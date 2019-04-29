@@ -73,7 +73,7 @@ func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, me
 		AppID: utils.String(applicationId),
 		// there's no way of retrieving this, and there's no way of changing it
 		// given there's no way to change it - we'll just default this to true
-		AccountEnabled: utils.Bool(true),
+		AccountEnabled: utils.String("true"),
 	}
 
 	app, err := client.Create(ctx, properties)
