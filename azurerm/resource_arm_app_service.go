@@ -48,12 +48,6 @@ func resourceArmAppService() *schema.Resource {
 
 			"logs": azure.SchemaAppServiceLogsConfig(),
 
-			"backup_schedule_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
 
 			"storage_account_url": {
@@ -404,7 +398,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return err
 		}
 	} else {
-		resourceArmDeleteScheduleBackup(d, meta)
+		err = resourceArmDeleteScheduleBackup(d, meta)
+		if err != nil {
+			return err
+		}
 	}
 
 	if d.HasChange("client_affinity_enabled") {
@@ -775,7 +772,10 @@ func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	client.DeleteBackupConfiguration(ctx, resGroup, name)
+	_, err = client.DeleteBackupConfiguration(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
