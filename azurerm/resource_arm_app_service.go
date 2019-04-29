@@ -69,12 +69,6 @@ func resourceArmAppService() *schema.Resource {
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),
 
-			// "backup_schedule_enabled": {
-			// 	Type:     schema.TypeBool,
-			// 	Optional: true,
-			// 	Default:  false,
-			// },
-
 			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
 
 			"storage_account_url": {
@@ -313,8 +307,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	// backupScheduleEnabled := false
-
 	storageAccountURL := d.Get("storage_account_url").(string)
 	backupName := d.Get("backup_name").(string)
 
@@ -364,7 +356,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
 	if storageAccountURL != "" {
-		// backupScheduleEnabled := true
 		request := web.BackupRequest{
 			BackupRequestProperties: &web.BackupRequestProperties{
 				BackupName:        utils.String(backupName),
@@ -378,7 +369,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return err
 		}
 	} else {
-		resourceArmDeleteScheduleBackup(d, meta)
+		err = resourceArmDeleteScheduleBackup(d, meta)
+		if err != nil {
+			return err
+		}
 	}
 
 	if d.HasChange("client_affinity_enabled") {
@@ -730,7 +724,10 @@ func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	client.DeleteBackupConfiguration(ctx, resGroup, name)
+	_, err = client.DeleteBackupConfiguration(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
