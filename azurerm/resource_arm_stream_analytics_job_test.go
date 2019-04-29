@@ -24,6 +24,8 @@ func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsJob_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Test"),
 				),
 			},
 			{
@@ -162,7 +164,11 @@ resource "azurerm_stream_analytics_job" "test" {
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
-  streaming_units                          = 3
+	streaming_units                          = 3
+		
+  tags = {
+    environment = "Test"
+  }
 
   transformation_query = <<QUERY
     SELECT *
