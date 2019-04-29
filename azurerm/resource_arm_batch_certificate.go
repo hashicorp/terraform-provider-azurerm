@@ -36,7 +36,9 @@ func resourceArmBatchCertificate() *schema.Resource {
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// TODO: make this case sensitive once this API bug has been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5574
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"certificate": {
 				Type:         schema.TypeString,
