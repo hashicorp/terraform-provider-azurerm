@@ -57,10 +57,14 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 			},
 
 			"frequency": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      300,
-				ValidateFunc: validation.IntAtLeast(0),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  300,
+				ValidateFunc: validation.IntInSlice([]int{
+					300,
+					600,
+					900,
+				}),
 			},
 
 			"timeout": {
