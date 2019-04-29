@@ -36,6 +36,35 @@ func TestAccAzureRMApplicationInsightsWebTests_basicWeb(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_application_insights_webtest.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationInsightsWebTests_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_application_insights_webtest"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
