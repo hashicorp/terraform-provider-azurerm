@@ -7,12 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	dataSourceName := "data.azurerm_user_assigned_identity.test"
+	resourceName := "azurerm_user_assigned_identity.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
@@ -31,10 +33,36 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(dataSourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
 					resource.TestMatchResourceAttr(dataSourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
+					testEqualResourceAttr(dataSourceName, resourceName, "principal_id"),
+					testEqualResourceAttr(dataSourceName, resourceName, "client_id"),
 				),
 			},
 		},
 	})
+}
+
+func testEqualResourceAttr(dataSourceName string, resourceName string, attrName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		ds, ok := s.RootModule().Resources[dataSourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", dataSourceName)
+		}
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		dsAttr := ds.Primary.Attributes[attrName]
+		rsAttr := rs.Primary.Attributes[attrName]
+
+		if dsAttr != rsAttr {
+			return fmt.Errorf("Attributes not equal: %s, %s", dsAttr, rsAttr)
+		}
+
+		return nil
+	}
 }
 
 func testAccDataSourceAzureRMUserAssignedIdentity_basic(rInt int, location string, rString string) string {
