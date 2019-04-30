@@ -247,7 +247,6 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 }
 
 func TestAccAzureRMApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
-	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
