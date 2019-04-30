@@ -2189,10 +2189,6 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
-func applicationGatewayHasSubResource(subResource *network.SubResource) bool {
-	return subResource != nil && subResource.ID != nil && *subResource.ID != ""
-}
-
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
 
 	vs := d.Get("redirect_configuration").([]interface{})
