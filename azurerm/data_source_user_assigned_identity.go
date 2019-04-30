@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmUserAssignedIdentity() *schema.Resource {
@@ -33,7 +33,6 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 			},
 
 			"tags": tagsForDataSourceSchema(),
-
 		},
 	}
 }
