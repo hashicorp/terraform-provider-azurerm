@@ -212,6 +212,9 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	storageAccountURL := d.Get("storage_account_url").(string)
+	backupName := d.Get("backup_name").(string)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -280,6 +283,22 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
+	}
+
+	backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
+	if storageAccountURL != "" {
+		request := web.BackupRequest{
+			BackupRequestProperties: &web.BackupRequestProperties{
+				BackupName:        utils.String(backupName),
+				StorageAccountURL: utils.String(storageAccountURL),
+				Enabled:           utils.Bool(true),
+				BackupSchedule:    &backupSchedule,
+			},
+		}
+		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, request)
+		if err != nil {
+			return err
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -354,24 +373,26 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
-	if storageAccountURL != "" {
-		request := web.BackupRequest{
-			BackupRequestProperties: &web.BackupRequestProperties{
-				BackupName:        utils.String(backupName),
-				StorageAccountURL: utils.String(storageAccountURL),
-				Enabled:           utils.Bool(true),
-				BackupSchedule:    &backupSchedule,
-			},
-		}
-		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, request)
-		if err != nil {
-			return err
-		}
-	} else {
-		err = resourceArmDeleteScheduleBackup(d, meta)
-		if err != nil {
-			return err
+	if d.HasChange("backup_schedule") {
+		backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
+		if storageAccountURL != "" {
+			request := web.BackupRequest{
+				BackupRequestProperties: &web.BackupRequestProperties{
+					BackupName:        utils.String(backupName),
+					StorageAccountURL: utils.String(storageAccountURL),
+					Enabled:           utils.Bool(true),
+					BackupSchedule:    &backupSchedule,
+				},
+			}
+			_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, request)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = resourceArmDeleteScheduleBackup(d, meta)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -725,6 +746,9 @@ func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["sites"]
 
 	client.DeleteBackupConfiguration(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
