@@ -18,11 +18,9 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 24),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"location": locationForDataSourceSchema(),
-
-			"tags": tagsForDataSourceSchema(),
 
 			"principal_id": {
 				Type:     schema.TypeString,
@@ -33,6 +31,9 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsForDataSourceSchema(),
+
 		},
 	}
 }
