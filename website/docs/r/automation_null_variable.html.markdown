@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_null_variable"
 sidebar_current: "docs-azurerm-resource-automation-null-variable"
 description: |-
-  Manages an automation variable on Azure.
+  Manages a null variable in Azure Automation
 ---
 
 # azurerm_automation_null_variable
 
-Manages an automation variable on Azure.
+Manages a null variable in Azure Automation
 
 
 ## Example Usage
@@ -24,9 +24,7 @@ resource "azurerm_automation_account" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku = {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_null_variable" "example" {
@@ -47,6 +45,8 @@ The following arguments are supported:
 * `automation_account_name` - (Required) The name of the automation account in which the Variable is created. Changing this forces a new resource to be created.
 
 * `description` - (Optional) The description of the Automation Variable.
+
+* `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
 ## Attributes Reference
 

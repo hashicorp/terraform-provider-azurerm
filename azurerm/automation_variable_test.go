@@ -1,4 +1,4 @@
-package azure
+package azurerm
 
 import (
 	"testing"
@@ -67,7 +67,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			if tc.IsNil {
 				value = nil
 			}
-			actual, err := ParseAzureRmAutomationVariableValue(tc.Resource, value)
+			actual, err := parseAzureRmAutomationVariableValue(tc.Resource, value)
 			if tc.HasError && err == nil {
 				t.Fatalf("Expect parseAzureRmAutomationVariableValue to return error for resource %q and value %s", tc.Resource, tc.Value)
 			}

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_bool_variable"
 sidebar_current: "docs-azurerm-resource-automation-bool-variable"
 description: |-
-  Manages an automation variable on Azure.
+  Manages a boolean variable in Azure Automation.
 ---
 
 # azurerm_automation_bool_variable
 
-Manages an automation variable on Azure.
+Manages a boolean variable in Azure Automation
 
 
 ## Example Usage
@@ -24,9 +24,7 @@ resource "azurerm_automation_account" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku = {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_bool_variable" "example" {
@@ -51,7 +49,7 @@ The following arguments are supported:
 
 * `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - (Optional) The value of the Automation Variable.
+* `value` - (Optional) The value of the Automation Variable as a `boolean`.
 
 ## Attributes Reference
 
