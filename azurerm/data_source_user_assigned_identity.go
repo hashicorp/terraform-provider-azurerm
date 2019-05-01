@@ -55,7 +55,9 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	d.Set("location", resp.Location)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
 
 	if props := resp.IdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
