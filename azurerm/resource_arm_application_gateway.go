@@ -2470,25 +2470,33 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 			},
 		}
 
-		// treating these three as optional as seems necessary when redirection is also an alternative. Not explicit in the documentation, though
-		// see https://docs.microsoft.com/en-us/rest/api/application-gateway/applicationgateways/createorupdate#applicationgatewayurlpathmap
-		// see also az docs https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/url-path-map?view=azure-cli-latest#az-network-application-gateway-url-path-map-create
+		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
+		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
+		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
 
-		if defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string); defaultBackendAddressPoolName != "" {
+		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {
+			return nil, fmt.Errorf("Conflict between `default_backend_address_pool_name` and `default_redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+		}
+
+		if defaultBackendHTTPSettingsName != "" && defaultRedirectConfigurationName != "" {
+			return nil, fmt.Errorf("Conflict between `default_backend_http_settings_name` and `default_redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+		}
+
+		if defaultBackendAddressPoolName != "" {
 			defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
 			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool = &network.SubResource{
 				ID: utils.String(defaultBackendAddressPoolID),
 			}
 		}
 
-		if defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string); defaultBackendHTTPSettingsName != "" {
+		if defaultBackendHTTPSettingsName != "" {
 			defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
 			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings = &network.SubResource{
 				ID: utils.String(defaultBackendHTTPSettingsID),
 			}
 		}
 
-		if defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string); defaultRedirectConfigurationName != "" {
+		if defaultRedirectConfigurationName != "" {
 			defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
 			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultRedirectConfiguration = &network.SubResource{
 				ID: utils.String(defaultRedirectConfigurationID),
