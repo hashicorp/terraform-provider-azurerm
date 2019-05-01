@@ -2209,7 +2209,6 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType:       network.ApplicationGatewayRedirectType(redirectType),
 				IncludeQueryString: utils.Bool(includeQueryString),
-				IncludePath:        utils.Bool(includePath),
 			},
 		}
 
@@ -2230,6 +2229,7 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
 				ID: utils.String(targetListenerID),
 			}
+			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
 		}
 
 		if targetUrl != "" {

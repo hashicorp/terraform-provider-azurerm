@@ -1520,7 +1520,7 @@ resource "azurerm_application_gateway" "test" {
   redirect_configuration {
     name                 = "${local.redirect_configuration_name}"
     redirect_type        = "Found"
-    target_url 			     = "${local.target_url}"
+    target_url           = "${local.target_url}"
     include_query_string = true
   }
 
