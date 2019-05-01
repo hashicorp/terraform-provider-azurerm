@@ -547,7 +547,23 @@ func resourceArmApplicationGateway() *schema.Resource {
 					},
 				},
 			},
-
+			"autoscale_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"min_capacity": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"max_capacity": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -583,7 +599,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 10),
 						},
 					},
@@ -997,6 +1013,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	requestRoutingRules := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	redirectConfigurations := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	sku := expandApplicationGatewaySku(d)
+	autoscaleConfiguration := expandAutoscaleConfiguration(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
@@ -1025,6 +1042,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			SslPolicy:                     sslPolicy,
 			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
+			AutoscaleConfiguration:        autoscaleConfiguration,
 		},
 	}
 
@@ -1175,6 +1193,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", setErr)
+		}
+
+		if setErr := d.Set("autoscale_configuration", flattenAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
+			return fmt.Errorf("Error setting `autoscale_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); setErr != nil {
@@ -2282,6 +2304,35 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	return results, nil
 }
 
+func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
+	vs := d.Get("autoscale_configuration").([]interface{})
+	v := vs[0].(map[string]interface{})
+
+	minCapacity := int32(v["min_capacity"].(int))
+	maxCapacity := int32(v["max_capacity"].(int))
+
+	configuration := network.ApplicationGatewayAutoscaleConfiguration{
+		MinCapacity: utils.Int32(minCapacity),
+	}
+
+	if maxCapacity != 0 {
+		configuration.MaxCapacity = utils.Int32(maxCapacity)
+	}
+
+	return &configuration
+}
+
+func flattenAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
+	result := make(map[string]interface{})
+
+	result["min_capacity"] = int32(*input.MinCapacity)
+	if input.MaxCapacity != nil {
+		result["max_capacity"] = int32(*input.MaxCapacity)
+	}
+
+	return []interface{}{result}
+}
+
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
 	vs := d.Get("sku").([]interface{})
 	v := vs[0].(map[string]interface{})
@@ -2290,11 +2341,16 @@ func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGat
 	tier := v["tier"].(string)
 	capacity := int32(v["capacity"].(int))
 
-	return &network.ApplicationGatewaySku{
-		Name:     network.ApplicationGatewaySkuName(name),
-		Tier:     network.ApplicationGatewayTier(tier),
-		Capacity: utils.Int32(capacity),
+	sku := network.ApplicationGatewaySku{
+		Name: network.ApplicationGatewaySkuName(name),
+		Tier: network.ApplicationGatewayTier(tier),
 	}
+
+	if capacity != 0 {
+		sku.Capacity = utils.Int32(capacity)
+	}
+
+	return &sku
 }
 
 func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interface{} {
