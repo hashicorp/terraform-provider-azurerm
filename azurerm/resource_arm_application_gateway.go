@@ -2325,9 +2325,9 @@ func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGa
 func flattenAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
 	result := make(map[string]interface{})
 
-	result["min_capacity"] = int32(*input.MinCapacity)
+	result["min_capacity"] = *input.MinCapacity
 	if input.MaxCapacity != nil {
-		result["max_capacity"] = int32(*input.MaxCapacity)
+		result["max_capacity"] = *input.MaxCapacity
 	}
 
 	return []interface{}{result}
