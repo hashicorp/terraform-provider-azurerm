@@ -16,8 +16,6 @@ func resourceArmAutomationBoolVariable() *schema.Resource {
 		},
 
 		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-
 			"value": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -27,10 +25,7 @@ func resourceArmAutomationBoolVariable() *schema.Resource {
 }
 
 func resourceArmAutomationBoolVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := resourceArmAutomationVariableCreateUpdate(d, meta, "Bool"); err != nil {
-		return err
-	}
-	return resourceArmAutomationBoolVariableRead(d, meta)
+	return resourceArmAutomationVariableCreateUpdate(d, meta, "Bool")
 }
 
 func resourceArmAutomationBoolVariableRead(d *schema.ResourceData, meta interface{}) error {

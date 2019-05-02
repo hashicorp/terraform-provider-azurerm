@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func resourceArmAutomationStringVariable() *schema.Resource {
@@ -16,21 +17,17 @@ func resourceArmAutomationStringVariable() *schema.Resource {
 		},
 
 		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-
 			"value": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		}),
 	}
 }
 
 func resourceArmAutomationStringVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := resourceArmAutomationVariableCreateUpdate(d, meta, "String"); err != nil {
-		return err
-	}
-	return resourceArmAutomationStringVariableRead(d, meta)
+	return resourceArmAutomationVariableCreateUpdate(d, meta, "String")
 }
 
 func resourceArmAutomationStringVariableRead(d *schema.ResourceData, meta interface{}) error {

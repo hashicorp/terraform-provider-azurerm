@@ -53,6 +53,8 @@ func parseAzureRmAutomationVariableValue(resource string, input *string) (interf
 func AutomationVariableCommonSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
 
 	varSchema := map[string]*schema.Schema{
+		"resource_group_name": resourceGroupNameSchema(),
+
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -120,25 +122,16 @@ func resourceArmAutomationVariableCreateUpdate(d *schema.ResourceData, meta inte
 		value = strconv.Quote(d.Get("value").(string))
 	}
 
-	parameters := automation.VariableCreateOrUpdateParameters{}
+	parameters := automation.VariableCreateOrUpdateParameters{
+		Name: utils.String(name),
+		VariableCreateOrUpdateProperties: &automation.VariableCreateOrUpdateProperties{
+			Description: utils.String(description),
+			IsEncrypted: utils.Bool(encrypted),
+		},
+	}
 
-	if varTypeLower == "null" {
-		parameters = automation.VariableCreateOrUpdateParameters{
-			Name: utils.String(name),
-			VariableCreateOrUpdateProperties: &automation.VariableCreateOrUpdateProperties{
-				Description: utils.String(description),
-				IsEncrypted: utils.Bool(encrypted),
-			},
-		}
-	} else {
-		parameters = automation.VariableCreateOrUpdateParameters{
-			Name: utils.String(name),
-			VariableCreateOrUpdateProperties: &automation.VariableCreateOrUpdateProperties{
-				Description: utils.String(description),
-				IsEncrypted: utils.Bool(encrypted),
-				Value:       utils.String(value),
-			},
-		}
+	if varTypeLower != "null" {
+		parameters.VariableCreateOrUpdateProperties.Value = utils.String(value)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
@@ -154,7 +147,7 @@ func resourceArmAutomationVariableCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	d.SetId(*resp.ID)
 
-	return nil
+	return resourceArmAutomationVariableRead(d, meta, varType)
 }
 
 func resourceArmAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {

@@ -1,8 +1,14 @@
 package azurerm
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestParseAzureRmAutomationVariableValue(t *testing.T) {
@@ -80,4 +86,56 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testCheckAzureRMAutomationVariableExists(resourceName string, varType string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Automation %s Variable not found: %s", varType, resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		accountName := rs.Primary.Attributes["automation_account_name"]
+
+		client := testAccProvider.Meta().(*ArmClient).automationVariableClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, name, accountName, resourceGroup)
+			}
+			return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMAutomationVariableDestroy(s *terraform.State, varType string) error {
+	client := testAccProvider.Meta().(*ArmClient).automationVariableClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	resourceName := fmt.Sprintf("azurerm_automation_%s_variable", strings.ToLower(varType))
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != resourceName {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		accountName := rs.Primary.Attributes["automation_account_name"]
+
+		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
+			}
+		}
+
+		return nil
+	}
+
+	return nil
 }

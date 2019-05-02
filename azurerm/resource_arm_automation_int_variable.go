@@ -16,8 +16,6 @@ func resourceArmAutomationIntVariable() *schema.Resource {
 		},
 
 		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-
 			"value": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -27,10 +25,7 @@ func resourceArmAutomationIntVariable() *schema.Resource {
 }
 
 func resourceArmAutomationIntVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := resourceArmAutomationVariableCreateUpdate(d, meta, "Int"); err != nil {
-		return err
-	}
-	return resourceArmAutomationIntVariableRead(d, meta)
+	return resourceArmAutomationVariableCreateUpdate(d, meta, "Int")
 }
 
 func resourceArmAutomationIntVariableRead(d *schema.ResourceData, meta interface{}) error {

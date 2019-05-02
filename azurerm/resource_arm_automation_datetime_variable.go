@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func resourceArmAutomationDatetimeVariable() *schema.Resource {
@@ -16,21 +17,17 @@ func resourceArmAutomationDatetimeVariable() *schema.Resource {
 		},
 
 		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-
 			"value": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
 			},
 		}),
 	}
 }
 
 func resourceArmAutomationDatetimeVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := resourceArmAutomationVariableCreateUpdate(d, meta, "Datetime"); err != nil {
-		return err
-	}
-	return resourceArmAutomationDatetimeVariableRead(d, meta)
+	return resourceArmAutomationVariableCreateUpdate(d, meta, "Datetime")
 }
 
 func resourceArmAutomationDatetimeVariableRead(d *schema.ResourceData, meta interface{}) error {

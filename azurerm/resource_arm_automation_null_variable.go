@@ -15,17 +15,12 @@ func resourceArmAutomationNullVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-		}),
+		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{}),
 	}
 }
 
 func resourceArmAutomationNullVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := resourceArmAutomationVariableCreateUpdate(d, meta, "Null"); err != nil {
-		return err
-	}
-	return resourceArmAutomationNullVariableRead(d, meta)
+	return resourceArmAutomationVariableCreateUpdate(d, meta, "Null")
 }
 
 func resourceArmAutomationNullVariableRead(d *schema.ResourceData, meta interface{}) error {

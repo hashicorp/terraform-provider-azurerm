@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationBoolVariable_basic(t *testing.T) {
@@ -100,53 +99,11 @@ func TestAccAzureRMAutomationBoolVariable_basicCompleteUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationBoolVariableExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Automation Bool Variable not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["automation_account_name"]
-
-		client := testAccProvider.Meta().(*ArmClient).automationVariableClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Automation Bool Variable %q (Automation Account Name %q / Resource Group %q) does not exist", name, accountName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
-		}
-
-		return nil
-	}
+	return testCheckAzureRMAutomationVariableExists(resourceName, "Bool")
 }
 
 func testCheckAzureRMAutomationBoolVariableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).automationVariableClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_automation_bool_variable" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["automation_account_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
-			}
-		}
-
-		return nil
-	}
-
-	return nil
+	return testCheckAzureRMAutomationVariableDestroy(s, "Bool")
 }
 
 func testAccAzureRMAutomationBoolVariable_basic(rInt int, location string) string {
