@@ -122,8 +122,6 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 	d.Set("schema_id", schemaID)
 
 	if properties := resp.SchemaContractProperties; properties != nil {
-		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-		// as such there is no way to set `xml_link` and we'll let Terraform handle it
 		d.Set("content_type", properties.ContentType)
 		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
 			d.Set("value", documentProperties.Value)
