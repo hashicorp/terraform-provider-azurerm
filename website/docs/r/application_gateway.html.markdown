@@ -397,6 +397,16 @@ A `waf_configuration` block supports the following:
 
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
 
+* `disabled_rule_group` - (Optional) a disabled rule block
+
+---
+
+A `disabled_rule_group` block supports the following:
+
+* `rule_group_name` - (Required) The rule group name to disable, e.g. `REQUEST-913-SCANNER-DETECTION`.
+
+* `rules` - (Optional) A list of rules to disabled, e.g.  `[ 913100 ]`. Disables all rules in the group if `rules` is not specified.
+
 ---
 
 A `custom_error_configuration` block supports the following:
