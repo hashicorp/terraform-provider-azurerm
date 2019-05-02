@@ -236,7 +236,8 @@ resource "azurerm_api_management_api_policy" "test" {
   api_name              = "${azurerm_api_management_api.test.name}"
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_content = <<XML
+	
+	xml_content = <<XML
 <policies>
   <inbound>
     <find-and-replace from="xyz" to="abc" />
