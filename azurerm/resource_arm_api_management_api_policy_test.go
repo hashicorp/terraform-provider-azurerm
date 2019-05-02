@@ -184,7 +184,7 @@ resource "azurerm_api_management_api_policy" "test" {
   api_name              = "${azurerm_api_management_api.test.name}"
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  xml_link              = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -236,8 +236,7 @@ resource "azurerm_api_management_api_policy" "test" {
   api_name              = "${azurerm_api_management_api.test.name}"
   api_management_name   = "${azurerm_api_management.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
-	
-	xml_content = <<XML
+  xml_content           = <<XML
 <policies>
   <inbound>
     <find-and-replace from="xyz" to="abc" />

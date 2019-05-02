@@ -133,6 +133,7 @@ type ArmClient struct {
 	apiManagementApiClient                  apimanagement.APIClient
 	apiManagementApiPoliciesClient          apimanagement.APIPolicyClient
 	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+	apiManagementApiSchemasClient           apimanagement.APISchemaClient
 	apiManagementApiVersionSetClient        apimanagement.APIVersionSetClient
 	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
 	apiManagementCertificatesClient         apimanagement.CertificateClient
@@ -545,6 +546,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiOperationsClient.Client, auth)
 	c.apiManagementApiOperationsClient = apiOperationsClient
+
+	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiSchemasClient.Client, auth)
+	c.apiManagementApiSchemasClient = apiSchemasClient
 
 	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiVersionSetClient.Client, auth)
