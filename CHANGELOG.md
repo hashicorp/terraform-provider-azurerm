@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 * **New Resource:** `azurerm_api_management_product_policy` [GH-3325]
+* **New Resource:** `azurerm_api_management_schema` [GH-3357]
 
 IMPROVEMENTS:
 
