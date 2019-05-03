@@ -563,47 +563,47 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-name     = "testAccRg-%d"
-location = "%s"
+  name     = "testAccRg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-name     = "testAccVnet-%d"
-location = "${azurerm_resource_group.test.location}"
-resource_group_name = "${azurerm_resource_group.test.name}"
-address_space = [
-"10.0.0.0/16"
-]
+  name                = "testAccVnet-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  address_space = [
+    "10.0.0.0/16",
+  ]
 }
 
 resource "azurerm_subnet" "test" {
-name     = "testAccSubnet-%d"
-resource_group_name = "${azurerm_resource_group.test.name}"
-virtual_network_name = "${azurerm_virtual_network.test.name}"
-address_prefix = "10.0.1.0/24"
+  name                 = "testAccSubnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_container_registry" "test" {
-name     = "testAccCr-%d"
-resource_group_name = "${azurerm_resource_group.test.name}"
-location = "${azurerm_resource_group.test.location}"
-sku                 = "%s"
-admin_enabled = false
+  name                = "testAccCr-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%s"
+  admin_enabled       = false
 
-network_access_profile {
-default_action = "Deny"
+  network_access_profile {
+    default_action = "Deny"
 
-subnet_rule {
-action = "Allow"
-subnet_id = "${azurerm_subnet.test.id}"
-}
+    subnet_rule {
+      action    = "Allow"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
 
-ip_rule {
-action = "Allow"
-ip_range = "8.8.8.8/32"
-}
-}
-}
+    ip_rule {
+      action   = "Allow"
+      ip_range = "8.8.8.8/32"
+    }
+  }
 }
 `, rInt, location, rInt, rInt, rInt, sku)
 }
