@@ -2721,7 +2721,7 @@ func flattenApplicationGatewayDisabledRuleGroups(input *[]network.ApplicationGat
 	for _, v := range *input {
 		output := map[string]interface{}{}
 
-		output["rule_group_name"] = string(*v.RuleGroupName)
+		output["rule_group_name"] = *v.RuleGroupName
 
 		if v.Rules != nil {
 			rulesOutput := make([]interface{}, 0)
@@ -2735,7 +2735,7 @@ func flattenApplicationGatewayDisabledRuleGroups(input *[]network.ApplicationGat
 		result = append(result, output)
 	}
 
-	return []interface{}{result}
+	return result
 }
 
 func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {
