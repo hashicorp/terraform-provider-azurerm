@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `default_action` - (Required) The behaviour for requests matching no rules. Either `Allow` or `Deny`
 
-* `ip_rule` - (Optional) Can be repeated a number of time to allow access to the Registry from the specific ip range in CIDR form. Each `ip_rule` block support the fields documented below.
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `subnet_rule` - (Optional) Can be specified a number of times to allow access to the Registry from a subnet. Each `subnet_rule` block support the fields documented below.
+* `subnet_rule` - (Optional) One or more `subnet_rule` blocks as defined below.
 
 ~> **NOTE:** `network_access_profile ` only supports `Premium` SDK at this time.
 
