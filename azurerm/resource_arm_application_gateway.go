@@ -2724,13 +2724,12 @@ func flattenApplicationGatewayDisabledRuleGroups(input *[]network.ApplicationGat
 		output["rule_group_name"] = string(*v.RuleGroupName)
 
 		if v.Rules != nil {
+			rulesOutput := make([]interface{}, 0)
 			for _, r := range *v.Rules {
-				rulesOutput := map[string]interface{}{}
-
-				rulesOutput["rules"] = r
-
-				result = append(result, rulesOutput)
+				rulesOutput = append(rulesOutput, r)
 			}
+
+			output["rules"] = rulesOutput
 		}
 
 		result = append(result, output)
