@@ -94,15 +94,15 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, operationID, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+		return fmt.Errorf("Error creating or updating API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+		return fmt.Errorf("Error retrieving API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+		return fmt.Errorf("Cannot read ID for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
 	d.SetId(*resp.ID)
 
@@ -125,12 +125,12 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationID)
+			log.Printf("[DEBUG] API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationID)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+		return fmt.Errorf("Error making Read request for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -162,7 +162,7 @@ func resourceArmApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, me
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, operationID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+			return fmt.Errorf("Error deleting API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 		}
 	}
 
