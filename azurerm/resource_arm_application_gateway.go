@@ -646,6 +646,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"disabled_ssl_protocols": {
 				Type:       schema.TypeList,
 				Optional:   true,
+				Computed:   true,
 				Deprecated: "has been replaced by `ssl_policy`.`disabled_protocols`",
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
@@ -666,6 +667,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"disabled_protocols": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
