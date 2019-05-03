@@ -104,6 +104,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -140,6 +142,7 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 	outputErrorPolicy := d.Get("output_error_policy").(string)
 	streamingUnits := d.Get("streaming_units").(int)
 	transformationQuery := d.Get("transformation_query").(string)
+	tags := d.Get("tags").(map[string]interface{})
 
 	// needs to be defined inline for a Create but via a separate API for Update
 	transformation := streamanalytics.Transformation{
@@ -164,6 +167,7 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
 		},
+		Tags: expandTags(tags),
 	}
 
 	if d.IsNewResource() {
@@ -264,6 +268,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 		d.Set("transformation_query", props.Query)
 	}
 
+	flattenAndSetTags(d, resp.Tags)
 	return nil
 }
 

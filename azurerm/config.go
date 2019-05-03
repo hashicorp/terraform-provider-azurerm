@@ -132,6 +132,7 @@ type ArmClient struct {
 	// API Management
 	apiManagementApiClient                  apimanagement.APIClient
 	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+	apiManagementApiSchemasClient           apimanagement.APISchemaClient
 	apiManagementApiVersionSetClient        apimanagement.APIVersionSetClient
 	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
 	apiManagementCertificatesClient         apimanagement.CertificateClient
@@ -143,6 +144,7 @@ type ArmClient struct {
 	apiManagementProductsClient             apimanagement.ProductClient
 	apiManagementProductApisClient          apimanagement.ProductAPIClient
 	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
+	apiManagementProductPoliciesClient      apimanagement.ProductPolicyClient
 	apiManagementPropertyClient             apimanagement.PropertyClient
 	apiManagementServiceClient              apimanagement.ServiceClient
 	apiManagementSignInClient               apimanagement.SignInSettingsClient
@@ -540,6 +542,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&apiOperationsClient.Client, auth)
 	c.apiManagementApiOperationsClient = apiOperationsClient
 
+	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiSchemasClient.Client, auth)
+	c.apiManagementApiSchemasClient = apiSchemasClient
+
 	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiVersionSetClient.Client, auth)
 	c.apiManagementApiVersionSetClient = apiVersionSetClient
@@ -595,6 +601,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&productGroupsClient.Client, auth)
 	c.apiManagementProductGroupsClient = productGroupsClient
+
+	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productPoliciesClient.Client, auth)
+	c.apiManagementProductPoliciesClient = productPoliciesClient
 
 	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&propertiesClient.Client, auth)
