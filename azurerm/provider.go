@@ -176,6 +176,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_api_management":                         resourceArmApiManagementService(),
 			"azurerm_api_management_api":                     resourceArmApiManagementApi(),
 			"azurerm_api_management_api_operation":           resourceArmApiManagementApiOperation(),
+			"azurerm_api_management_api_operation_policy":    resourceArmApiManagementApiOperationPolicy(),
 			"azurerm_api_management_api_policy":              resourceArmApiManagementApiPolicy(),
 			"azurerm_api_management_api_schema":              resourceArmApiManagementApiSchema(),
 			"azurerm_api_management_api_version_set":         resourceArmApiManagementApiVersionSet(),
