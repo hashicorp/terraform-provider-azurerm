@@ -14,7 +14,7 @@ Use this data source to access information about an existing Batch pool
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_pool "test" {
+data "azurerm_batch_pool" "test" {
   name                = "testbatchpool"
   account_name        = "testbatchaccount"
   resource_group_name = "test"
