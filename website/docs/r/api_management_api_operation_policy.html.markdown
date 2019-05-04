@@ -18,7 +18,7 @@ resource "azurerm_api_management_api_operation" "example" {
   ...
 }
 
-resource "azurerm_api_management_api_policy" "example" {
+resource "azurerm_api_management_api_operation_policy" "example" {
   api_name              = "${azurerm_api_management_api_operation.example.api_name}"
   api_management_name   = "${azurerm_api_management_api_operation.example.api_management_name}"
   resource_group_name   = "${azurerm_api_management_api_operation.example.resource_group_name}"
