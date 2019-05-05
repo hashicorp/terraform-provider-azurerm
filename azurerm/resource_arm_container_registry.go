@@ -122,7 +122,8 @@ func resourceArmContainerRegistry() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"default_action": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  containerregistry.DefaultActionAllow,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerregistry.DefaultActionAllow),
 								string(containerregistry.DefaultActionDeny),
@@ -587,6 +588,9 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 
 	if len(profiles) == 0 {
 		return nil
+		//return &containerregistry.NetworkRuleSet{
+		//	DefaultAction: containerregistry.DefaultActionAllow,
+		//}
 	}
 
 	profile := profiles[0].(map[string]interface{})

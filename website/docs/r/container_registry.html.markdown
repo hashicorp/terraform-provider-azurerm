@@ -58,7 +58,7 @@ The following arguments are supported:
 
 `network_access_profile` supports the following:
 
-* `default_action` - (Required) The behaviour for requests matching no rules. Either `Allow` or `Deny`
+* `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
