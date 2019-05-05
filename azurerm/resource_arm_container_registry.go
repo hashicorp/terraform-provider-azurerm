@@ -116,6 +116,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"network_access_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -586,6 +587,9 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 
 	if len(profiles) == 0 {
 		return nil
+		//return &containerregistry.NetworkRuleSet{
+		//	DefaultAction: containerregistry.DefaultActionAllow,
+		//}
 	}
 
 	profile := profiles[0].(map[string]interface{})
