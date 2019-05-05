@@ -12,78 +12,31 @@ Manage as an Azure Container Group instance.
 
 ## Example Usage
 
+This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/container-instance).
+
 ```hcl
-resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_storage_account" "aci-sa" {
-  name                = "acistorageacct"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  account_tier        = "Standard"
-
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "aci-share" {
-  name = "aci-test-share"
-
-  resource_group_name  = "${azurerm_resource_group.aci-rg.name}"
-  storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-
-  quota = 50
-}
-
-resource "azurerm_container_group" "aci-helloworld" {
-  name                = "aci-hw"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
+resource "azurerm_container_group" "example" {
+  name                = "example-continst"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
 
   container {
-    name   = "hw"
-    image  = "seanmckenna/aci-hellofiles"
+    name   = "hello-world"
+    image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.5"
-    ports  = {
-      port     = 80
-      protocol = "TCP"
-    }
+
     ports {
       port     = 443
       protocol = "TCP"
-    }
-
-    environment_variables = {
-      "NODE_ENV" = "testing"
-    }
-
-    secure_environment_variables = {
-      "ACCESS_KEY" = "secure_testing"
-    }
-
-    readiness_probe {
-      exec = ["/bin/sh","-c","touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600"]
-    }
-
-    liveness_probe {
-      exec = ["cat", "/tmp/healthy"]
-    }
-
-    commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
-
-    volume {
-      name       = "logs"
-      mount_path = "/aci/logs"
-      read_only  = false
-      share_name = "${azurerm_storage_share.aci-share.name}"
-
-      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 
@@ -110,7 +63,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
