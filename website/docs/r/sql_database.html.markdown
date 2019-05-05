@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
+* `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:

@@ -298,6 +298,36 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMSqlDatabase_readScale(ri, location, true)
+	postConfig := testAccAzureRMSqlDatabase_readScale(ri, location, false)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "read_scale", "true"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "read_scale", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -788,4 +818,33 @@ resource "azurerm_sql_database" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, state)
+}
+
+func testAccAzureRMSqlDatabase_readScale(rInt int, location string, readScale bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "readscaletestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "readscaletestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                = "readscaletestdb%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  edition             = "Premium"
+  collation           = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes      = "1073741824"
+  read_scale		  = %t
+}
+`, rInt, location, rInt, rInt, readScale)
 }
