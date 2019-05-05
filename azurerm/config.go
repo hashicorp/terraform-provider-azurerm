@@ -102,6 +102,7 @@ type ArmClient struct {
 	automationCredentialClient            automation.CredentialClient
 	automationDscConfigurationClient      automation.DscConfigurationClient
 	automationDscNodeConfigurationClient  automation.DscNodeConfigurationClient
+	automationJobScheduleClient           automation.JobScheduleClient
 	automationModuleClient                automation.ModuleClient
 	automationRunbookClient               automation.RunbookClient
 	automationRunbookDraftClient          automation.RunbookDraftClient
@@ -644,6 +645,10 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dscNodeConfigurationClient.Client, auth)
 	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	jobScheduleClient := automation.NewJobScheduleClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&jobScheduleClient.Client, auth)
+	c.automationJobScheduleClient = jobScheduleClient
 
 	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&moduleClient.Client, auth)

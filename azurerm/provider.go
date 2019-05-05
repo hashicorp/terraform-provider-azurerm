@@ -203,6 +203,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_automation_credential":                  resourceArmAutomationCredential(),
 			"azurerm_automation_dsc_configuration":           resourceArmAutomationDscConfiguration(),
 			"azurerm_automation_dsc_nodeconfiguration":       resourceArmAutomationDscNodeConfiguration(),
+			"azurerm_automation_job_schedule":                resourceArmAutomationJobSchedule(),
 			"azurerm_automation_module":                      resourceArmAutomationModule(),
 			"azurerm_automation_runbook":                     resourceArmAutomationRunbook(),
 			"azurerm_automation_schedule":                    resourceArmAutomationSchedule(),
