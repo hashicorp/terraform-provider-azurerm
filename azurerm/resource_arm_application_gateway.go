@@ -642,7 +642,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			// TODO: @tombuildsstuff deprecate this in favour of a full `ssl_protocol` block in the future
+			// TODO: remove in 2.0
 			"disabled_ssl_protocols": {
 				Type:       schema.TypeList,
 				Optional:   true,
@@ -662,6 +662,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"ssl_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disabled_protocols": {
@@ -669,13 +670,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:             schema.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
+								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.TLSv10),
 									string(network.TLSv11),
 									string(network.TLSv12),
-								}, true),
+								}, false),
 							},
 						},
 
@@ -687,7 +687,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.Custom),
 									string(network.Predefined),
-								}, true),
+								}, false),
 							},
 						},
 
@@ -700,21 +700,19 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:             schema.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.StringInSlice(possibleArmApplicationGatewaySslCipherSuiteValues(), true),
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice(possibleArmApplicationGatewaySslCipherSuiteValues(), false),
 							},
 						},
 
 						"min_protocol_version": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.TLSv10),
 								string(network.TLSv11),
 								string(network.TLSv12),
-							}, true),
+							}, false),
 						},
 					},
 				},
@@ -1738,40 +1736,39 @@ func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatew
 
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
 	policy := network.ApplicationGatewaySslPolicy{}
-	vs := d.Get("ssl_policy").([]interface{})
-	if len(vs) == 0 {
-		return &policy
-	}
-	v := vs[0].(map[string]interface{})
-
 	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
-	for _, policy := range v["disabled_protocols"].([]interface{}) {
-		disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
-	}
-	if len(disabledSSLPolicies) == 0 {
-		for _, policy := range d.Get("disabled_ssl_protocols").([]interface{}) {
-			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
-		}
-	}
 
-	if len(disabledSSLPolicies) > 0 {
+	vs := d.Get("ssl_policy").([]interface{})
+	vsdsp := d.Get("disabled_ssl_protocols").([]interface{})
+
+	if len(vsdsp) == 0 && len(vs) == 0 {
 		policy = network.ApplicationGatewaySslPolicy{
 			DisabledSslProtocols: &disabledSSLPolicies,
 		}
-	} else {
+	}
+
+	for _, policy := range vsdsp {
+		disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
+	}
+
+	if len(vs) > 0 {
+		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
+
+		for _, policy := range v["disabled_protocols"].([]interface{}) {
+			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
+		}
 
 		if policyType == network.Predefined {
 			policyName := network.ApplicationGatewaySslPolicyName(v["policy_name"].(string))
-
 			policy = network.ApplicationGatewaySslPolicy{
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
 		} else if policyType == network.Custom {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
-
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
+
 			for _, cipherSuite := range v["cipher_suites"].([]interface{}) {
 				cipherSuites = append(cipherSuites, network.ApplicationGatewaySslCipherSuite(cipherSuite.(string)))
 			}
@@ -1781,6 +1778,12 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 				MinProtocolVersion: minProtocolVersion,
 				CipherSuites:       &cipherSuites,
 			}
+		}
+	}
+
+	if len(disabledSSLPolicies) > 0 {
+		policy = network.ApplicationGatewaySslPolicy{
+			DisabledSslProtocols: &disabledSSLPolicies,
 		}
 	}
 
@@ -1799,21 +1802,21 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	output["policy_type"] = input.PolicyType
 	output["min_protocol_version"] = input.MinProtocolVersion
 
+	cipherSuites := make([]interface{}, 0)
 	if input.CipherSuites != nil {
-		cipherSuites := make([]interface{}, 0)
 		for _, v := range *input.CipherSuites {
 			cipherSuites = append(cipherSuites, string(v))
 		}
-		output["cipher_suites"] = cipherSuites
 	}
+	output["cipher_suites"] = cipherSuites
 
+	disabledSslProtocols := make([]interface{}, 0)
 	if input.DisabledSslProtocols != nil {
-		disabledSslProtocols := make([]interface{}, 0)
 		for _, v := range *input.DisabledSslProtocols {
 			disabledSslProtocols = append(disabledSslProtocols, string(v))
 		}
-		output["disabled_protocols"] = disabledSslProtocols
 	}
+	output["disabled_protocols"] = disabledSslProtocols
 
 	results = append(results, output)
 	return results
