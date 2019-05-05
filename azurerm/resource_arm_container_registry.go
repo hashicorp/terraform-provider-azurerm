@@ -587,9 +587,6 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 
 	if len(profiles) == 0 {
 		return nil
-		//return &containerregistry.NetworkRuleSet{
-		//	DefaultAction: containerregistry.DefaultActionAllow,
-		//}
 	}
 
 	profile := profiles[0].(map[string]interface{})
