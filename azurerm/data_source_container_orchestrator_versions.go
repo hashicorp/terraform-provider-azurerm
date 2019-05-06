@@ -31,12 +31,10 @@ func dataSourceArmContainerOrchestratorVersions() *schema.Resource {
 			"versions": {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
 				Computed: true,
 			},
 			"latest_version": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 		},
