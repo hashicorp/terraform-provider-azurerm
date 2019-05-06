@@ -3,14 +3,19 @@
 FEATURES:
 
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
+* **New Resource:** `azurerm_api_management_api_operation_policy` [GH-3374]
+* **New Resource:** `azurerm_api_management_api_policy` [GH-3367]
 * **New Resource:** `azurerm_api_management_product_policy` [GH-3325]
+* **New Resource:** `azurerm_api_management_schema` [GH-3357]
 
 IMPROVEMENTS:
 
 * `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
+* `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values [GH-3385]
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
 * `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output [GH-3318]
 

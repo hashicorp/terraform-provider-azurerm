@@ -16,7 +16,7 @@ Manages an Azure Batch pool.
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch"
-  location = "%s"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "test" {
