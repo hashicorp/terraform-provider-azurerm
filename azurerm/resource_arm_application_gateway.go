@@ -1195,7 +1195,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
-	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d.Get("rewrite_rule_set").([]interface{}))
+	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d)
 	zones := expandZones(d.Get("zones").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
@@ -1385,10 +1385,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `redirect configuration`: %+v", setErr)
 		}
 
-		rewriteRuleSets, err := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
-		if err != nil {
-			return fmt.Errorf("Error flattening `rewrite rule sets`: %+v", err)
-		}
+		rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
 		if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
 			return fmt.Errorf("Error setting `rewrite_rule_set`: %+v", setErr)
 		}
@@ -2406,7 +2403,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
-func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRewriteRuleSet {
+func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.ApplicationGatewayRewriteRuleSet {
 	vs := d.Get("rewrite_rule_set").([]interface{})
 	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
 
@@ -2441,7 +2438,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData, gatewayID s
 
 			for _, rawConfig := range v["request_header_configuration"].([]interface{}) {
 				r := rawConfig.(map[string]interface{})
-				config := network.ApplicationGatewayRewriteRuleCondition{
+				config := network.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  utils.String(r["header_name"].(string)),
 					HeaderValue: utils.String(r["header_value"].(string)),
 				}
@@ -2450,7 +2447,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData, gatewayID s
 
 			for _, rawConfig := range v["response_header_configuration"].([]interface{}) {
 				r := rawConfig.(map[string]interface{})
-				config := network.ApplicationGatewayRewriteRuleCondition{
+				config := network.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  utils.String(r["header_name"].(string)),
 					HeaderValue: utils.String(r["header_value"].(string)),
 				}
@@ -2458,16 +2455,95 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData, gatewayID s
 			}
 
 			rule.ActionSet = &network.ApplicationGatewayRewriteRuleActionSet{
-				RequestHeaderConfiurations:  &requestConfigurations,
-				ResponseHeaderConfiurations: &responseConfigurations,
+				RequestHeaderConfigurations:  &requestConfigurations,
+				ResponseHeaderConfigurations: &responseConfigurations,
 			}
 			rules = append(rules, rule)
 		}
 
-		ruleSets = append(ruleSets, rules)
+		ruleSet := network.ApplicationGatewayRewriteRuleSet{
+			Name: utils.String(name),
+			ApplicationGatewayRewriteRuleSetPropertiesFormat: &network.ApplicationGatewayRewriteRuleSetPropertiesFormat{
+				RewriteRules: &rules,
+			},
+		}
+
+		ruleSets = append(ruleSets, ruleSet)
 	}
 
 	return &ruleSets
+}
+
+func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewayRewriteRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		if props := config.ApplicationGatewayRewriteRuleSetPropertiesFormat; props != nil {
+
+			output := map[string]interface{}{}
+
+			if config.ID != nil {
+				output["id"] = *config.ID
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if rulesConfig := props.RewriteRules; rulesConfig != nil {
+				rules := make([]interface{}, 0)
+				for _, rule := range *rulesConfig {
+					if rule.Name != nil {
+
+						conditions := make([]interface{}, 0)
+						for _, config := range *rule.Conditions {
+							condition := map[string]interface{}{
+								"variable":    *config.Variable,
+								"pattern":     *config.Pattern,
+								"ignore_case": *config.IgnoreCase,
+								"negate":      *config.Negate,
+							}
+							conditions = append(conditions, condition)
+						}
+
+						requestConfigs := make([]interface{}, 0)
+						for _, config := range *rule.ActionSet.RequestHeaderConfigurations {
+							requestConfig := map[string]interface{}{
+								"header_name":  *config.HeaderName,
+								"header_value": *config.HeaderValue,
+							}
+							requestConfigs = append(requestConfigs, requestConfig)
+						}
+
+						responseConfigs := make([]interface{}, 0)
+						for _, config := range *rule.ActionSet.ResponseHeaderConfigurations {
+							responseConfig := map[string]interface{}{
+								"header_name":  *config.HeaderName,
+								"header_value": *config.HeaderValue,
+							}
+							responseConfigs = append(responseConfigs, responseConfig)
+						}
+
+						ruleOutput := map[string]interface{}{
+							"name":                          *rule.Name,
+							"rule_sequence":                 *rule.RuleSequence,
+							"condition":                     conditions,
+							"request_header_configuration":  requestConfigs,
+							"response_header_configuration": responseConfigs,
+						}
+						rules = append(rules, ruleOutput)
+					}
+				}
+				output["rewrite_rule"] = rules
+			}
+			results = append(results, output)
+		}
+	}
+
+	return results
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
