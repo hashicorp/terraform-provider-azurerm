@@ -14,7 +14,7 @@ Use this data source to access information about available versions of orchestra
 
 ```hcl
 data "azurerm_container_orchestrator_versions" "current" {
-  location       = "westeurope"
+  location = "westeurope"
 }
 
 output "versions" {
