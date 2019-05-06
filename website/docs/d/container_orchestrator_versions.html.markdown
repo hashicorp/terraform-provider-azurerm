@@ -29,7 +29,7 @@ output "latest_version" {
 ## Argument Reference
 
 * `location` - (Required) Specifies the location in which to query for versions.
-* `orchestrator_type` - (Optional) The type of orchestrator for which to fetch versions. Right now the only supported value is "Kubernetes". If omitted, defaults to "Kubernetes".
+* `orchestrator_type` - (Optional) The type of orchestrator for which to fetch versions. Right now the only supported value is `Kubernetes`. If omitted, defaults to `Kubernetes`.
 * `version_prefix` - (Optional) A string prefix used to filter the versions retrieved by the query. When this argument is specified, only the versions which match this prefix are returned.
 
 ## Attributes Reference
