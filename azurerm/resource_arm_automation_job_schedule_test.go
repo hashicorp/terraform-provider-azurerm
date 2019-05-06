@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationJobScheduleCreate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationJobScheduleRequiresImport(t *testing.T) {
+func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -53,7 +53,7 @@ func TestAccAzureRMAutomationJobScheduleRequiresImport(t *testing.T) {
 				Check:  checkAccAzureRMAutomationJobScheduleCreate(resourceName),
 			},
 			{
-				Config:      testAccAzureRMAutomationJobScheduleRequiresImport(ri, location),
+				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_automation_job_schedule"),
 			},
 		},
@@ -201,7 +201,7 @@ func checkAccAzureRMAutomationJobScheduleCreate(resourceName string) resource.Te
 	)
 }
 
-func testAccAzureRMAutomationJobScheduleRequiresImport(rInt int, location string) string {
+func testAccAzureRMAutomationJobSchedule_requiresImport(rInt int, location string) string {
 	template := testAccAzureRMAutomationJobScheduleCreate(rInt, location)
 	return fmt.Sprintf(`
 %s
