@@ -191,8 +191,15 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v.(bool))
 	}
 
-	if v, exists := d.GetOkExists("reserved"); exists {
-		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(v.(bool))
+	reserved, reservedExists := d.GetOkExists("reserved")
+	if kind == "Linux" {
+		if reserved.(bool) == false || !reservedExists {
+			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
+		}
+	}
+
+	if reservedExists {
+		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
