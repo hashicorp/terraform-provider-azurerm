@@ -193,7 +193,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	reserved, reservedExists := d.GetOkExists("reserved")
 	if kind == "Linux" {
-		if reserved.(bool) == false || !reservedExists {
+		if !reserved.(bool) || !reservedExists {
 			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
 		}
 	}
