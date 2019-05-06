@@ -65,7 +65,7 @@ data "azurerm_container_orchestrator_versions" "test" {
 func testAccDataSourceAzureRMContainerOrchestratorVersions_filtered(location string) string {
 	return fmt.Sprintf(`
 data "azurerm_container_orchestrator_versions" "test" {
-  location = "%s"
+  location       = "%s"
   version_prefix = "1."
 }
 `, location)
