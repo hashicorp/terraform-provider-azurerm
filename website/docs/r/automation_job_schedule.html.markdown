@@ -86,10 +86,6 @@ The following arguments are supported:
 
 * `run_on` -  (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
 
-* `start_time` -  (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
-
-
-
 ## Attributes Reference
 
 The following attributes are exported:
