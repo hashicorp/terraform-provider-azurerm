@@ -387,6 +387,56 @@ func TestAccAzureRMApplicationGateway_customErrorConfigurations(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_rewriteRuleSets_backend(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_backend(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "rewrite_rule_set.0.name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationGateway_rewriteRuleSets_redirect(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_redirect(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "rewrite_rule_set.0.name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
@@ -2243,8 +2293,8 @@ resource "azurerm_application_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
@@ -2260,7 +2310,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
 
   backend_address_pool {
@@ -3079,4 +3129,228 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMApplicationGateway_rewriteRuleSets_backend(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  rewrite_rule_set_name          = "${azurerm_virtual_network.test.name}-rwset"
+  rewrite_rule_name              = "${azurerm_virtual_network.test.name}-rwrule"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+    rewrite_rule_set_name      = "${local.rewrite_rule_set_name}"
+  }
+
+  rewrite_rule_set {
+    name = "${local.rewrite_rule_set_name}"
+
+    rewrite_rule {
+      name = "${local.rewrite_rule_name}"
+      rule_sequence = 1
+
+      condition {
+        variable = "var_http_status"
+	pattern = "502"
+      }
+
+      request_header_configuration {
+	header_name = "X-custom"
+	header_value = "customvalue"
+      }
+    }
+  }
+}
+`, template, rInt, rInt)
+}
+
+func testAccAzureRMApplicationGateway_rewriteRuleSets_redirect(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name           = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+  rewrite_rule_set_name          = "${azurerm_virtual_network.test.name}-rwset"
+  rewrite_rule_name              = "${azurerm_virtual_network.test.name}-rwrule"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name2}"
+    port = 8888
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = "${local.target_listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name2}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                        = "${local.request_routing_rule_name}"
+    rule_type                   = "Basic"
+    http_listener_name          = "${local.listener_name}"
+    redirect_configuration_name = "${local.redirect_configuration_name}"
+    rewrite_rule_set_name       = "${local.rewrite_rule_set_name}"
+  }
+
+  rewrite_rule_set {
+    name = "${local.rewrite_rule_set_name}"
+
+    rewrite_rule {
+      name = "${local.rewrite_rule_name}"
+      rule_sequence = 1
+
+      condition {
+        variable = "var_http_status"
+	pattern = "502"
+      }
+
+      request_header_configuration {
+	header_name = "X-custom"
+	header_value = "customvalue"
+      }
+    }
+  }
+
+  redirect_configuration {
+    name                 = "${local.redirect_configuration_name}"
+    redirect_type        = "Temporary"
+    target_listener_name = "${local.target_listener_name}"
+    include_path         = true
+    include_query_string = false
+  }
+}
+`, template, rInt, rInt)
 }

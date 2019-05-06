@@ -458,6 +458,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 
+						"rewrite_rule_set_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"backend_address_pool_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -484,6 +490,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"redirect_configuration_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"rewrite_rule_set_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -906,6 +917,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 
+						"default_rewrite_rule_set_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"path_rule": {
 							Type:     schema.TypeList,
 							Required: true,
@@ -940,6 +957,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 
+									"rewrite_rule_set_name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
 									"backend_address_pool_id": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -951,6 +974,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"redirect_configuration_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"rewrite_rule_set_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -974,6 +1002,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"default_redirect_configuration_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"default_rewrite_rule_set_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -2309,6 +2342,13 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 			}
 		}
 
+		if rewriteRuleSetName := v["rewrite_rule_set_name"].(string); rewriteRuleSetName != "" {
+			rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RewriteRuleSet = &network.SubResource{
+				ID: utils.String(rewriteRuleSetID),
+			}
+		}
+
 		results = append(results, rule)
 	}
 
@@ -2396,6 +2436,18 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 				}
 			}
 
+			if rewrite := props.RewriteRuleSet; rewrite != nil {
+				if rewrite.ID != nil {
+					rewriteId, err := parseAzureResourceID(*rewrite.ID)
+					if err != nil {
+						return nil, err
+					}
+					rewriteName := rewriteId.Path["rewriteRuleSets"]
+					output["rewrite_rule_set_name"] = rewriteName
+					output["rewrite_rule_set_id"] = *rewrite.ID
+				}
+			}
+
 			results = append(results, output)
 		}
 	}
@@ -2424,7 +2476,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				RuleSequence: utils.Int32(int32(r["rule_sequence"].(int))),
 			}
 
-			for _, rawCondition := range v["condition"].([]interface{}) {
+			for _, rawCondition := range r["condition"].([]interface{}) {
 				c := rawCondition.(map[string]interface{})
 				condition := network.ApplicationGatewayRewriteRuleCondition{
 					Variable:   utils.String(c["variable"].(string)),
@@ -2436,20 +2488,20 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 			}
 			rule.Conditions = &conditions
 
-			for _, rawConfig := range v["request_header_configuration"].([]interface{}) {
-				r := rawConfig.(map[string]interface{})
+			for _, rawConfig := range r["request_header_configuration"].([]interface{}) {
+				c := rawConfig.(map[string]interface{})
 				config := network.ApplicationGatewayHeaderConfiguration{
-					HeaderName:  utils.String(r["header_name"].(string)),
-					HeaderValue: utils.String(r["header_value"].(string)),
+					HeaderName:  utils.String(c["header_name"].(string)),
+					HeaderValue: utils.String(c["header_value"].(string)),
 				}
 				requestConfigurations = append(requestConfigurations, config)
 			}
 
-			for _, rawConfig := range v["response_header_configuration"].([]interface{}) {
-				r := rawConfig.(map[string]interface{})
+			for _, rawConfig := range r["response_header_configuration"].([]interface{}) {
+				c := rawConfig.(map[string]interface{})
 				config := network.ApplicationGatewayHeaderConfiguration{
-					HeaderName:  utils.String(r["header_name"].(string)),
-					HeaderValue: utils.String(r["header_value"].(string)),
+					HeaderName:  utils.String(c["header_name"].(string)),
+					HeaderValue: utils.String(c["header_value"].(string)),
 				}
 				responseConfigurations = append(responseConfigurations, config)
 			}
@@ -2858,6 +2910,13 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 				}
 			}
 
+			if rewriteRuleSetName := ruleConfigMap["rewrite_rule_set_name"].(string); rewriteRuleSetName != "" {
+				rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
+				rule.ApplicationGatewayPathRulePropertiesFormat.RewriteRuleSet = &network.SubResource{
+					ID: utils.String(rewriteRuleSetID),
+				}
+			}
+
 			pathRules = append(pathRules, rule)
 		}
 
@@ -2898,6 +2957,13 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 			defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
 			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultRedirectConfiguration = &network.SubResource{
 				ID: utils.String(defaultRedirectConfigurationID),
+			}
+		}
+
+		if defaultRewriteRuleSetName := v["default_rewrite_rule_set_name"].(string); defaultRewriteRuleSetName != "" {
+			defaultRewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, defaultRewriteRuleSetName)
+			output.ApplicationGatewayURLPathMapPropertiesFormat.DefaultRewriteRuleSet = &network.SubResource{
+				ID: utils.String(defaultRewriteRuleSetID),
 			}
 		}
 
@@ -2955,6 +3021,16 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 				output["default_redirect_configuration_id"] = *redirect.ID
 			}
 
+			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.ID != nil {
+				settingsId, err := parseAzureResourceID(*rewrite.ID)
+				if err != nil {
+					return nil, err
+				}
+				defaultRewriteRuleSetName := settingsId.Path["rewriteRuleSets"]
+				output["default_rewrite_rule_set_name"] = defaultRewriteRuleSetName
+				output["default_rewrite_rule_set_id"] = *rewrite.ID
+			}
+
 			pathRules := make([]interface{}, 0)
 			if rules := props.PathRules; rules != nil {
 				for _, rule := range *rules {
@@ -2997,6 +3073,16 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							redirectConfigurationName2 := redirectId.Path["redirectConfigurations"]
 							ruleOutput["redirect_configuration_name"] = redirectConfigurationName2
 							ruleOutput["redirect_configuration_id"] = *redirect.ID
+						}
+
+						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.ID != nil {
+							rewriteId, err := parseAzureResourceID(*rewrite.ID)
+							if err != nil {
+								return nil, err
+							}
+							rewriteRuleSet := rewriteId.Path["rewriteRuleSets"]
+							ruleOutput["rewrite_rule_set_name"] = rewriteRuleSet
+							ruleOutput["rewrite_rule_set_id"] = *rewrite.ID
 						}
 
 						pathOutputs := make([]interface{}, 0)

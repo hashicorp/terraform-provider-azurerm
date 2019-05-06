@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
 
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. They are also only supported for v2 SKUs.
+
 ---
 
 A `authentication_certificate` block supports the following:
@@ -453,6 +455,56 @@ A `autoscale_configuration` block supports the following:
 
 * `max_capacity` - (Optional) Maximum capacity for autoscaling.
 
+---
+
+A `rewrite_rule_set` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule set block
+
+* `rewrite_rule` - (Required) One or more `rewrite_rule` blocks as defined above.
+
+---
+
+A `rewrite_rule` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule block
+
+* `rule_sequence` - (Required) Rule sequence of the rewrite rule that determines the order of execution in a set.
+
+* `condition` - (Optional) One or more `condition` blocks as defined above.
+
+* `request_header_configuration` - (Optional) One or more `request_header_configuration` blocks as defined above.
+
+* `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
+
+---
+
+A `condition` block supports the following:
+
+* `variable` - (Required) The [variable](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
+
+* `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
+
+* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`
+
+* `negate` - (Optional) Negate the result of the condition evaluation. Defaults to `false`
+
+---
+
+A `request_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
+
+---
+
+A `response_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -610,6 +662,12 @@ A `custom_error_configuration` block exports the following:
 A `redirect_configuration` block exports the following:
 
 * `id` - The ID of the Redirect Configuration.
+
+---
+
+A `rewrite_rule_set` block exports the following:
+
+* `id` - The ID of the Rewrite Rule Set
 
 ## Import
 
