@@ -138,8 +138,8 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	name :=  id.Path["jobSchedules"]
-	nameUUID :=  uuid.FromStringOrNil(name)
+	name := id.Path["jobSchedules"]
+	nameUUID := uuid.FromStringOrNil(name)
 	resGroup := id.ResourceGroup
 	accountName := id.Path["automationAccounts"]
 
@@ -183,7 +183,7 @@ func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interfa
 	}
 
 	name := id.Path["jobSchedules"]
-	nameUUID :=  uuid.FromStringOrNil(name)
+	nameUUID := uuid.FromStringOrNil(name)
 	resGroup := id.ResourceGroup
 	accountName := id.Path["automationAccounts"]
 
