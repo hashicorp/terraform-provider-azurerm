@@ -31,6 +31,7 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T) {
 	dataSourceName := "data.azurerm_container_orchestrator_versions.test"
 	location := testLocation()
