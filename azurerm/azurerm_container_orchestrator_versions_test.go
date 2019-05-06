@@ -10,7 +10,7 @@ import (
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
 
-func TestAccDataSourceArmContainerOrchestratorVersions_basic(t *testing.T) {
+func TestAccDataSourceAzureRMContainerOrchestratorVersions_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_container_orchestrator_versions.test"
 	location := testLocation()
 	kvrx := regexp.MustCompile(k8sVersionRX)
@@ -20,7 +20,7 @@ func TestAccDataSourceArmContainerOrchestratorVersions_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmContainerOrchestratorVersions_basic(location),
+				Config: testAccDataSourceAzureRMContainerOrchestratorVersions_basic(location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "versions.#"),
 					resource.TestMatchResourceAttr(dataSourceName, "versions.0", kvrx),
@@ -31,7 +31,7 @@ func TestAccDataSourceArmContainerOrchestratorVersions_basic(t *testing.T) {
 		},
 	})
 }
-func TestAccDataSourceArmContainerOrchestratorVersions_filtered(t *testing.T) {
+func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T) {
 	dataSourceName := "data.azurerm_container_orchestrator_versions.test"
 	location := testLocation()
 	kvrx := regexp.MustCompile(k8sVersionRX)
@@ -41,7 +41,7 @@ func TestAccDataSourceArmContainerOrchestratorVersions_filtered(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmContainerOrchestratorVersions_filtered(location),
+				Config: testAccDataSourceAzureRMContainerOrchestratorVersions_filtered(location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "versions.#"),
 					resource.TestMatchResourceAttr(dataSourceName, "versions.0", kvrx),
@@ -52,7 +52,7 @@ func TestAccDataSourceArmContainerOrchestratorVersions_filtered(t *testing.T) {
 		},
 	})
 }
-func testAccDataSourceArmContainerOrchestratorVersions_basic(location string) string {
+func testAccDataSourceAzureRMContainerOrchestratorVersions_basic(location string) string {
 	return fmt.Sprintf(`
 data "azurerm_container_orchestrator_versions" "test" {
   location = "%s"
@@ -60,7 +60,7 @@ data "azurerm_container_orchestrator_versions" "test" {
 `, location)
 }
 
-func testAccDataSourceArmContainerOrchestratorVersions_filtered(location string) string {
+func testAccDataSourceAzureRMContainerOrchestratorVersions_filtered(location string) string {
 	return fmt.Sprintf(`
 data "azurerm_container_orchestrator_versions" "test" {
   location = "%s"
