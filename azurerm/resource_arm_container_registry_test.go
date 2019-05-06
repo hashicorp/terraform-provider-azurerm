@@ -585,7 +585,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr-%d"
+  name                = "testAccCr%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
