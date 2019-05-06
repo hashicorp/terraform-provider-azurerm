@@ -53,6 +53,7 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T
 		},
 	})
 }
+
 func testAccDataSourceAzureRMContainerOrchestratorVersions_basic(location string) string {
 	return fmt.Sprintf(`
 data "azurerm_container_orchestrator_versions" "test" {
