@@ -11,6 +11,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
+* `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 
 BUG FIXES:
 
