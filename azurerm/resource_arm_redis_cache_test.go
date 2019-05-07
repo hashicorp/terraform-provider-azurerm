@@ -640,6 +640,28 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCacheWithoutAuth(t *testing.T) {
+	resourceName := "azurerm_redis_cache.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheWithoutAuth(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "redis_configuration.0.enable_authentication", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMRedisCache_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1094,4 +1116,39 @@ resource "azurerm_redis_cache" "test" {
   zones               = ["1"]
 }
 `, ri, location, ri, ri)
+}
+
+func testAccAzureRMRedisCacheWithoutAuth(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+
+  redis_configuration {
+    enable_authentication = false
+  }
+}
+`, rInt, location, rString, rInt)
 }

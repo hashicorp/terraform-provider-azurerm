@@ -186,6 +186,11 @@ func resourceArmRedisCache() *schema.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
+						"enable_authentication": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 					},
 				},
 			},
@@ -660,6 +665,12 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
+	// Redis Auth
+	if v, ok := d.GetOk("redis_configuration.0.enable_authentication"); ok {
+		value := isAuthNotRequiredAsString(v.(bool))
+		output["authnotrequired"] = utils.String(value)
+	}
+
 	return output
 }
 
@@ -770,7 +781,29 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		outputs["aof_storage_connection_string_1"] = *v
 	}
 
+	//  Redis Auth
+	if v := input["authnotrequired"]; v != nil {
+		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+	}
+
 	return []interface{}{outputs}, nil
+}
+
+func isAuthRequiredAsBool(not_required string) bool {
+	value := strings.ToLower(not_required)
+	output := map[string]bool{
+		"yes": false,
+		"no":  true,
+	}
+	return output[value]
+}
+
+func isAuthNotRequiredAsString(auth_required bool) string {
+	output := map[bool]string{
+		true:  "no",
+		false: "yes",
+	}
+	return output[auth_required]
 }
 
 func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
