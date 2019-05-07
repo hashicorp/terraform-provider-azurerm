@@ -49,13 +49,24 @@ func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 2, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
 					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "2"),
 					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.max_capacity", "10"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 4, 12),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "4"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.max_capacity", "12"),
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
 				),
 			},
@@ -801,7 +812,7 @@ resource "azurerm_application_gateway" "test" {
 `, template, rInt, rInt)
 }
 
-func testAccAzureRMApplicationGateway_autoscaleConfiguration(rInt int, location string) string {
+func testAccAzureRMApplicationGateway_autoscaleConfiguration(rInt int, location string, minCapacity int, maxCapacity int) string {
 	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -835,8 +846,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   autoscale_configuration {
-    min_capacity = 2
-	max_capacity = 10
+    min_capacity = %d
+	max_capacity = %d
   }
 
   gateway_ip_configuration {
@@ -881,7 +892,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-`, template, rInt, rInt)
+`, template, rInt, rInt, minCapacity, maxCapacity)
 }
 
 func testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(rInt int, location string) string {

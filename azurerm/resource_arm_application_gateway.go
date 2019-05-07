@@ -554,13 +554,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"min_capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(2, 10),
 						},
 						"max_capacity": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
 							ValidateFunc: validation.IntBetween(2, 100),
 						},
 					},
@@ -2327,9 +2327,9 @@ func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGa
 func flattenAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
 	result := make(map[string]interface{})
 
-        if v := input.MinCapacity; v != nil {
-          result["min_capacity"]= *v
-        }
+	if v := input.MinCapacity; v != nil {
+		result["min_capacity"] = *v
+	}
 	if input.MaxCapacity != nil {
 		result["max_capacity"] = *input.MaxCapacity
 	}
