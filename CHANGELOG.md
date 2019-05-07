@@ -17,6 +17,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values [GH-3385]
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
+* `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API [GH-3137]
 * `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output [GH-3318]
 
 ## 1.27.1 (April 26, 2019)
