@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -192,7 +193,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	reserved, reservedExists := d.GetOkExists("reserved")
-	if strings.EqualsFold(kind, "Linux") {
+	if strings.EqualFold(kind, "Linux") {
 		if !reserved.(bool) || !reservedExists {
 			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
 		}
