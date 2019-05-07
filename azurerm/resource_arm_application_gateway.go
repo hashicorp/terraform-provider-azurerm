@@ -1755,6 +1755,9 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
+		// reset disabledSSLPolicies here to always use the new disabled_protocols block in favor of disabled_ssl_protocols
+		disabledSSLPolicies = disabledSSLPolicies[:0]
+
 		for _, policy := range v["disabled_protocols"].([]interface{}) {
 			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
 		}
