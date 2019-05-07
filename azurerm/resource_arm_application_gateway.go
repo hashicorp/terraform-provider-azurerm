@@ -2330,7 +2330,7 @@ func expandApplicationGatewayAutoscaleConfiguration(d *schema.ResourceData) *net
 func flattenApplicationGatewayAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
 	result := make(map[string]interface{})
 	if input == nil {
-		return []interface{}{result}
+		return []interface{}{}
 	}
 	if v := input.MinCapacity; v != nil {
 		result["min_capacity"] = *v
