@@ -90,11 +90,13 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Automation Schedule ID.
+* `id` - The Automation Job Schedule's full ID.
+
+* `job_schedule_id` - The UUID identifying the Automation Job Schedule.
 
 ## Import
 
-Automation Schedule can be imported using the `resource id`, e.g.
+Automation Job Schedule can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_automation_job_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/jobSchedules/10000000-1001-1001-1001-000000000001

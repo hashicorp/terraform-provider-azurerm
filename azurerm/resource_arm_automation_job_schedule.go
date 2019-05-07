@@ -54,6 +54,12 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+
+			"job_schedule_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -64,7 +70,7 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
-	nameUUID := uuid.NewV4()
+	jobScheduleUUID := uuid.NewV4()
 	resGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
 
@@ -72,10 +78,10 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 	scheduleName := d.Get("schedule_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accountName, nameUUID)
+		existing, err := client.Get(ctx, resGroup, accountName, jobScheduleUUID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", nameUUID, accountName, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resGroup, err)
 			}
 		}
 
@@ -111,17 +117,17 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 		properties.RunOn = &value
 	}
 
-	if _, err := client.Create(ctx, resGroup, accountName, nameUUID, parameters); err != nil {
+	if _, err := client.Create(ctx, resGroup, accountName, jobScheduleUUID, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, accountName, nameUUID)
+	read, err := client.Get(ctx, resGroup, accountName, jobScheduleUUID)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Job Schedule '%s' (Account %q / Resource Group %s) ID", nameUUID, accountName, resGroup)
+		return fmt.Errorf("Cannot read Automation Job Schedule '%s' (Account %q / Resource Group %s) ID", jobScheduleUUID, accountName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -138,21 +144,22 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	name := id.Path["jobSchedules"]
-	nameUUID := uuid.FromStringOrNil(name)
+	jobScheduleID := id.Path["jobSchedules"]
+	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
 	resGroup := id.ResourceGroup
 	accountName := id.Path["automationAccounts"]
 
-	resp, err := client.Get(ctx, resGroup, accountName, nameUUID)
+	resp, err := client.Get(ctx, resGroup, accountName, jobScheduleUUID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Job Schedule '%s': %+v", nameUUID, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
 	}
 
+	d.Set("job_schedule_id", resp.JobScheduleID)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accountName)
 	d.Set("runbook_name", resp.JobScheduleProperties.Runbook.Name)
@@ -182,15 +189,15 @@ func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	name := id.Path["jobSchedules"]
-	nameUUID := uuid.FromStringOrNil(name)
+	jobScheduleID := id.Path["jobSchedules"]
+	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
 	resGroup := id.ResourceGroup
 	accountName := id.Path["automationAccounts"]
 
-	resp, err := client.Delete(ctx, resGroup, accountName, nameUUID)
+	resp, err := client.Delete(ctx, resGroup, accountName, jobScheduleUUID)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing AzureRM delete request for Automation Job Schedule '%s': %+v", nameUUID, err)
+			return fmt.Errorf("Error issuing AzureRM delete request for Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
 		}
 	}
 

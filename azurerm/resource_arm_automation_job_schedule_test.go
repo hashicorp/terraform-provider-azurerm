@@ -73,16 +73,16 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		name := id.Path["jobSchedules"]
-		nameUUID := uuid.FromStringOrNil(name)
+		jobScheduleID := id.Path["jobSchedules"]
+		jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
 		accName := rs.Primary.Attributes["account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", jobScheduleUUID)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, accName, nameUUID)
+		resp, err := conn.Get(ctx, resourceGroup, accName, jobScheduleUUID)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -113,19 +113,19 @@ func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.T
 		if err != nil {
 			return err
 		}
-		name := id.Path["jobSchedules"]
-		nameUUID := uuid.FromStringOrNil(name)
+		jobScheduleID := id.Path["jobSchedules"]
+		jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
 		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", jobScheduleUUID)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, accName, nameUUID)
+		resp, err := conn.Get(ctx, resourceGroup, accName, jobScheduleUUID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", name, accName, resourceGroup)
+				return fmt.Errorf("Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", jobScheduleUUID, accName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on automationJobScheduleClient: %+v", err)
@@ -194,6 +194,7 @@ resource "azurerm_automation_job_schedule" "test" {
 func checkAccAzureRMAutomationJobScheduleCreate(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationJobScheduleExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "job_schedule_id"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
