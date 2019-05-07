@@ -19,7 +19,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -131,7 +131,10 @@ type ArmClient struct {
 
 	// API Management
 	apiManagementApiClient                  apimanagement.APIClient
+	apiManagementApiPoliciesClient          apimanagement.APIPolicyClient
 	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+	apiManagementApiOperationPoliciesClient apimanagement.APIOperationPolicyClient
+	apiManagementApiSchemasClient           apimanagement.APISchemaClient
 	apiManagementApiVersionSetClient        apimanagement.APIVersionSetClient
 	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
 	apiManagementCertificatesClient         apimanagement.CertificateClient
@@ -143,6 +146,7 @@ type ArmClient struct {
 	apiManagementProductsClient             apimanagement.ProductClient
 	apiManagementProductApisClient          apimanagement.ProductAPIClient
 	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
+	apiManagementProductPoliciesClient      apimanagement.ProductPolicyClient
 	apiManagementPropertyClient             apimanagement.PropertyClient
 	apiManagementServiceClient              apimanagement.ServiceClient
 	apiManagementSignInClient               apimanagement.SignInSettingsClient
@@ -536,9 +540,21 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	c.configureClient(&apisClient.Client, auth)
 	c.apiManagementApiClient = apisClient
 
+	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiPoliciesClient.Client, auth)
+	c.apiManagementApiPoliciesClient = apiPoliciesClient
+
 	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiOperationsClient.Client, auth)
 	c.apiManagementApiOperationsClient = apiOperationsClient
+
+	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationPoliciesClient.Client, auth)
+	c.apiManagementApiOperationPoliciesClient = apiOperationPoliciesClient
+
+	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiSchemasClient.Client, auth)
+	c.apiManagementApiSchemasClient = apiSchemasClient
 
 	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiVersionSetClient.Client, auth)
@@ -595,6 +611,10 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&productGroupsClient.Client, auth)
 	c.apiManagementProductGroupsClient = productGroupsClient
+
+	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productPoliciesClient.Client, auth)
+	c.apiManagementProductPoliciesClient = productPoliciesClient
 
 	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&propertiesClient.Client, auth)

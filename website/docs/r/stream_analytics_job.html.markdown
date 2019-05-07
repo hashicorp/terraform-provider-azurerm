@@ -30,6 +30,10 @@ resource "azurerm_stream_analytics_job" "example" {
   output_error_policy                      = "Drop"
   streaming_units                          = 3
 
+  tags = {
+    environment = "Example"
+  }
+
   transformation_query = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
@@ -65,6 +69,8 @@ The following arguments are supported:
 * `streaming_units` - (Required) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
 
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
+  
+* `tags` - A mapping of tags assigned to the resource.
 
 ## Attributes Reference
 
