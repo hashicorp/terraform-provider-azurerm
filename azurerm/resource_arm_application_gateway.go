@@ -1015,7 +1015,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	requestRoutingRules := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	redirectConfigurations := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	sku := expandApplicationGatewaySku(d)
-	autoscaleConfiguration := expandAutoscaleConfiguration(d)
+	autoscaleConfiguration := expandApplicationGatewayAutoscaleConfiguration(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
@@ -1197,7 +1197,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `sku`: %+v", setErr)
 		}
 
-		if setErr := d.Set("autoscale_configuration", flattenAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
+		if setErr := d.Set("autoscale_configuration", flattenApplicationGatewayAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `autoscale_configuration`: %+v", setErr)
 		}
 
@@ -2306,7 +2306,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	return results, nil
 }
 
-func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
+func expandApplicationGatewayAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
 	vs := d.Get("autoscale_configuration").([]interface{})
 	if len(vs) == 0 {
 		return nil
@@ -2327,7 +2327,7 @@ func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGa
 	return &configuration
 }
 
-func flattenAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
+func flattenApplicationGatewayAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
 	result := make(map[string]interface{})
 	if input == nil {
 		return []interface{}{result}
