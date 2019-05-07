@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
 * `azurerm_virtual_network_peering` - retrying provisioning the peering of the virtual network [GH-3392]
 * `azurerm_virtual_machine_scale_set` - support for the `provision_after_extensions` property to chain multiple extensions togeather [GH-2937]
+* `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
 
 BUG FIXES:
 
