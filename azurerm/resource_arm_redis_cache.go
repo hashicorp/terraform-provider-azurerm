@@ -58,7 +58,7 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validateRedisFamily,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"sku_name": {
@@ -69,7 +69,7 @@ func resourceArmRedisCache() *schema.Resource {
 					string(redis.Standard),
 					string(redis.Premium),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"minimum_tls_version": {
@@ -109,7 +109,8 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"redis_configuration": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -322,16 +323,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create request for read Redis Cache %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error issuing create request for Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for Redis Cache %s (resource group %s)", name, resGroup)
+		return fmt.Errorf("Error waiting for the create of Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Redis Cache %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error reading Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Redis Cache %s (resource group %s) ID", name, resGroup)
@@ -400,8 +401,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("redis_configuration") {
-		redisConfiguration := expandRedisConfiguration(d)
-		parameters.RedisConfiguration = redisConfiguration
+		parameters.RedisConfiguration = expandRedisConfiguration(d)
 	}
 
 	if _, err := client.Update(ctx, resGroup, name, parameters); err != nil {

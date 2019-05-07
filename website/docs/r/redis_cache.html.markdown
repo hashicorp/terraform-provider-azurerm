@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 
-* `redis_configuration` - (Required) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+* `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
