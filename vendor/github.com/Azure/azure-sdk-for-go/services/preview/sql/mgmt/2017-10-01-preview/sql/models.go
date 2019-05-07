@@ -160,10 +160,14 @@ const (
 	Inaccessible DatabaseStatus = "Inaccessible"
 	// Offline ...
 	Offline DatabaseStatus = "Offline"
+	// OfflineChangingDwPerformanceTiers ...
+	OfflineChangingDwPerformanceTiers DatabaseStatus = "OfflineChangingDwPerformanceTiers"
 	// OfflineSecondary ...
 	OfflineSecondary DatabaseStatus = "OfflineSecondary"
 	// Online ...
 	Online DatabaseStatus = "Online"
+	// OnlineChangingDwPerformanceTiers ...
+	OnlineChangingDwPerformanceTiers DatabaseStatus = "OnlineChangingDwPerformanceTiers"
 	// Paused ...
 	Paused DatabaseStatus = "Paused"
 	// Pausing ...
@@ -188,7 +192,7 @@ const (
 
 // PossibleDatabaseStatusValues returns an array of possible values for the DatabaseStatus const type.
 func PossibleDatabaseStatusValues() []DatabaseStatus {
-	return []DatabaseStatus{AutoClosed, Copying, Creating, EmergencyMode, Inaccessible, Offline, OfflineSecondary, Online, Paused, Pausing, Recovering, RecoveryPending, Restoring, Resuming, Scaling, Shutdown, Standby, Suspect}
+	return []DatabaseStatus{AutoClosed, Copying, Creating, EmergencyMode, Inaccessible, Offline, OfflineChangingDwPerformanceTiers, OfflineSecondary, Online, OnlineChangingDwPerformanceTiers, Paused, Pausing, Recovering, RecoveryPending, Restoring, Resuming, Scaling, Shutdown, Standby, Suspect}
 }
 
 // ElasticPoolLicenseType enumerates the values for elastic pool license type.
@@ -715,7 +719,17 @@ type BackupShortTermRetentionPolicyProperties struct {
 // Database a database resource.
 type Database struct {
 	autorest.Response `json:"-"`
-	// Sku - The name and tier of the SKU.
+	// Sku - The database SKU.
+	//
+	// The list of SKUs may vary by region and support offer. To determine the SKUs (including the SKU name, tier/edition, family, and capacity) that are available to your subscription in an Azure region, use the `Capabilities_ListByLocation` REST API or one of the following commands:
+	//
+	// ```azurecli
+	// az sql db list-editions -l <location> -o table
+	// ````
+	//
+	// ```powershell
+	// Get-AzSqlServerServiceObjective -Location <location>
+	// ````
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - READ-ONLY; Kind of database. This is metadata used for the Azure portal experience.
 	Kind *string `json:"kind,omitempty"`
@@ -1275,7 +1289,7 @@ type DatabaseProperties struct {
 	ElasticPoolID *string `json:"elasticPoolId,omitempty"`
 	// SourceDatabaseID - The resource identifier of the source database associated with create operation of this database.
 	SourceDatabaseID *string `json:"sourceDatabaseId,omitempty"`
-	// Status - READ-ONLY; The status of the database. Possible values include: 'Online', 'Restoring', 'RecoveryPending', 'Recovering', 'Suspect', 'Offline', 'Standby', 'Shutdown', 'EmergencyMode', 'AutoClosed', 'Copying', 'Creating', 'Inaccessible', 'OfflineSecondary', 'Pausing', 'Paused', 'Resuming', 'Scaling'
+	// Status - READ-ONLY; The status of the database. Possible values include: 'Online', 'Restoring', 'RecoveryPending', 'Recovering', 'Suspect', 'Offline', 'Standby', 'Shutdown', 'EmergencyMode', 'AutoClosed', 'Copying', 'Creating', 'Inaccessible', 'OfflineSecondary', 'Pausing', 'Paused', 'Resuming', 'Scaling', 'OfflineChangingDwPerformanceTiers', 'OnlineChangingDwPerformanceTiers'
 	Status DatabaseStatus `json:"status,omitempty"`
 	// DatabaseID - READ-ONLY; The ID of the database.
 	DatabaseID *uuid.UUID `json:"databaseId,omitempty"`
@@ -1988,7 +2002,14 @@ type EditionCapability struct {
 // ElasticPool an elastic pool.
 type ElasticPool struct {
 	autorest.Response `json:"-"`
-	Sku               *Sku `json:"sku,omitempty"`
+	// Sku - The elastic pool SKU.
+	//
+	// The list of SKUs may vary by region and support offer. To determine the SKUs (including the SKU name, tier/edition, family, and capacity) that are available to your subscription in an Azure region, use the `Capabilities_ListByLocation` REST API or the following command:
+	//
+	// ```azurecli
+	// az sql elastic-pool list-editions -l <location> -o table
+	// ````
+	Sku *Sku `json:"sku,omitempty"`
 	// Kind - READ-ONLY; Kind of elastic pool. This is metadata used for the Azure portal experience.
 	Kind *string `json:"kind,omitempty"`
 	// ElasticPoolProperties - Resource properties.

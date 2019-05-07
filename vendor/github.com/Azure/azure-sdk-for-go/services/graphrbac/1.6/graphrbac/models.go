@@ -3054,7 +3054,7 @@ func (ra *ResourceAccess) UnmarshalJSON(body []byte) error {
 type ServicePrincipal struct {
 	autorest.Response `json:"-"`
 	// AccountEnabled - whether or not the service principal account is enabled
-	AccountEnabled *string `json:"accountEnabled,omitempty"`
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
 	// AlternativeNames - alternative names
 	AlternativeNames *[]string `json:"alternativeNames,omitempty"`
 	// AppDisplayName - READ-ONLY; The display name exposed by the associated application.
@@ -3213,7 +3213,7 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "accountEnabled":
 			if v != nil {
-				var accountEnabled string
+				var accountEnabled bool
 				err = json.Unmarshal(*v, &accountEnabled)
 				if err != nil {
 					return err
@@ -3449,7 +3449,7 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 // PATCH
 type ServicePrincipalBase struct {
 	// AccountEnabled - whether or not the service principal account is enabled
-	AccountEnabled *string `json:"accountEnabled,omitempty"`
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
 	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
 	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
 	// KeyCredentials - The collection of key credentials associated with the service principal.
@@ -3467,7 +3467,7 @@ type ServicePrincipalCreateParameters struct {
 	// AppID - The application ID.
 	AppID *string `json:"appId,omitempty"`
 	// AccountEnabled - whether or not the service principal account is enabled
-	AccountEnabled *string `json:"accountEnabled,omitempty"`
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
 	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
 	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
 	// KeyCredentials - The collection of key credentials associated with the service principal.
@@ -3626,7 +3626,7 @@ type ServicePrincipalObjectResult struct {
 // ServicePrincipalUpdateParameters request parameters for update an existing service principal.
 type ServicePrincipalUpdateParameters struct {
 	// AccountEnabled - whether or not the service principal account is enabled
-	AccountEnabled *string `json:"accountEnabled,omitempty"`
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
 	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
 	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
 	// KeyCredentials - The collection of key credentials associated with the service principal.
