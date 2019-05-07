@@ -327,7 +327,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on cretion for Redis Cache %s (resource group %s): %v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for the create of Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
