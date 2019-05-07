@@ -556,10 +556,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"min_capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
+							ValidateFunc: validation.IntBetween(2, 10),
 						},
 						"max_capacity": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ValidateFunc: validation.IntBetween(2, 100),
 						},
 					},
 				},
