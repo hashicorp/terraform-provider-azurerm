@@ -16,13 +16,7 @@ func resourceArmAutomationStringVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"value": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-		}),
+		Schema: AutomationVariableCommonSchemaFrom(schema.TypeString, validate.NoEmptyStrings),
 	}
 }
 

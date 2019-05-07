@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -50,7 +49,7 @@ func parseAzureRmAutomationVariableValue(resource string, input *string) (interf
 	return value, nil
 }
 
-func AutomationVariableCommonSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
+func AutomationVariableCommonSchemaFrom(attType schema.ValueType, validateFunc schema.SchemaValidateFunc) map[string]*schema.Schema {
 
 	varSchema := map[string]*schema.Schema{
 		"resource_group_name": resourceGroupNameSchema(),
@@ -79,8 +78,14 @@ func AutomationVariableCommonSchemaFrom(s map[string]*schema.Schema) map[string]
 			Optional: true,
 			Default:  false,
 		},
+
+		"value": {
+			Type:         attType,
+			Optional:     true,
+			ValidateFunc: validateFunc,
+		},
 	}
-	return azure.MergeSchema(s, varSchema)
+	return varSchema
 }
 
 func resourceArmAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {

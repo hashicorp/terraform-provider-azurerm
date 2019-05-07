@@ -15,12 +15,7 @@ func resourceArmAutomationBoolVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"value": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-		}),
+		Schema: AutomationVariableCommonSchemaFrom(schema.TypeBool, nil),
 	}
 }
 

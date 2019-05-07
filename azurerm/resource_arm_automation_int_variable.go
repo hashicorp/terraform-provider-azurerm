@@ -15,12 +15,7 @@ func resourceArmAutomationIntVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"value": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-		}),
+		Schema: AutomationVariableCommonSchemaFrom(schema.TypeInt, nil),
 	}
 }
 

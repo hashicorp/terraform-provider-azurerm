@@ -16,13 +16,7 @@ func resourceArmAutomationDatetimeVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(map[string]*schema.Schema{
-			"value": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
-			},
-		}),
+		Schema: AutomationVariableCommonSchemaFrom(schema.TypeString, validate.RFC3339Time),
 	}
 }
 
