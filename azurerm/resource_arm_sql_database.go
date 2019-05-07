@@ -148,10 +148,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: suppress.CaseDifference,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
 			},
 
 			"max_size_bytes": {
