@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 * `azurerm_virtual_network_peering` - retrying provisioning the peering of the virtual network [GH-3392]
+* `azurerm_virtual_machine_scale_set` - support for the `provision_after_extensions` property to chain multiple extensions togeather [GH-2937]
 
 BUG FIXES:
 
