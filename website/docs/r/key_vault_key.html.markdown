@@ -25,11 +25,12 @@ resource "random_id" "server" {
   keepers = {
     ami_id = 1
   }
+
   byte_length = 8
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "${format("%s%s", "kv", random_id.server.hex)}"
+  name                = "keyvaultkeyexample"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -52,14 +53,14 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_key" "generated" {
   name      = "generated-certificate"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
   key_type  = "RSA"
   key_size  = 2048
 
@@ -80,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Key. Changing this forces a new resource to be created.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created.
 
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `Oct` (Octet), `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 

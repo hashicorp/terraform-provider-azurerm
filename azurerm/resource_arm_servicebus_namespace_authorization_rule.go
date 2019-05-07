@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -53,6 +55,19 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,

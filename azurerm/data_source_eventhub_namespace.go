@@ -37,6 +37,11 @@ func dataSourceEventHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
+			"kafka_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"maximum_throughput_units": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -110,6 +115,7 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 

@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_authorization.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
@@ -27,6 +27,42 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_express_route_circuit_authorization.test"
+	ri := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
+				),
+			},
+			{
+				Config:      testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(ri, location),
+				ExpectError: testRequiresImportError("azurerm_express_route_circuit_authorization"),
+			},
 		},
 	})
 }
@@ -34,9 +70,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	firstResourceName := "azurerm_express_route_circuit_authorization.test1"
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
@@ -54,11 +90,11 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMExpressRouteCircuitAuthorizationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		authorizationName := rs.Primary.Attributes["name"]
@@ -74,7 +110,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(name string) resourc
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Express Route Circuit Authorization %q (Circuit %q / Resource Group: %q) does not exist", name, expressRouteCircuitName, resourceGroup)
+				return fmt.Errorf("Bad: Express Route Circuit Authorization %q (Circuit %q / Resource Group: %q) does not exist", authorizationName, expressRouteCircuitName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on expressRouteAuthsClient: %+v", err)
@@ -133,7 +169,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -145,6 +181,19 @@ resource "azurerm_express_route_circuit_authorization" "test" {
   resource_group_name        = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_circuit_authorization" "import" {
+  name                       = "${azurerm_express_route_circuit_authorization.test.name}"
+  express_route_circuit_name = "${azurerm_express_route_circuit_authorization.test.express_route_circuit_name}"
+  resource_group_name        = "${azurerm_express_route_circuit_authorization.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(rInt int, location string) string {
@@ -169,7 +218,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

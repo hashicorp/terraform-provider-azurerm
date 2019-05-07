@@ -26,6 +26,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
+				"app_command_line": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
 				"default_documents": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -50,9 +55,10 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"ip_restriction": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Computed: true,
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
@@ -74,6 +80,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.7",
 						"1.8",
+						"11",
 					}, false),
 				},
 
@@ -117,6 +124,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"5.6",
 						"7.0",
 						"7.1",
+						"7.2",
 					}, false),
 				},
 
@@ -153,15 +161,29 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 					Default:  string(web.ScmTypeNone),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ScmTypeNone),
+						string(web.ScmTypeBitbucketGit),
+						string(web.ScmTypeBitbucketHg),
+						string(web.ScmTypeCodePlexGit),
+						string(web.ScmTypeCodePlexHg),
+						string(web.ScmTypeDropbox),
+						string(web.ScmTypeExternalGit),
+						string(web.ScmTypeExternalHg),
+						string(web.ScmTypeGitHub),
 						string(web.ScmTypeLocalGit),
+						string(web.ScmTypeNone),
+						string(web.ScmTypeOneDrive),
+						string(web.ScmTypeTfs),
+						string(web.ScmTypeVSO),
+						// Not in the specs, but is set by Azure Pipelines
+						// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
+						// upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/5345
+						"VSTSRM",
 					}, false),
 				},
 
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Computed: true,
 				},
 
 				"websockets_enabled": {
@@ -201,9 +223,233 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+
+				"cors": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"allowed_origins": {
+								Type:     schema.TypeSet,
+								Required: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+							},
+							"support_credentials": {
+								Type:     schema.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
+}
+
+func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"always_on": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"app_command_line": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"default_documents": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+
+				"dotnet_framework_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"subnet_mask": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"java_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"java_container": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"java_container_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"local_mysql_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"managed_pipeline_mode": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"php_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"python_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"remote_debugging_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"remote_debugging_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker_process": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"websockets_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"min_tls_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"virtual_network_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"cors": {
+					Type:     schema.TypeList,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"allowed_origins": {
+								Type:     schema.TypeSet,
+								Computed: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+							},
+							"support_credentials": {
+								Type:     schema.TypeBool,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
+	settings := input.([]interface{})
+	corsSettings := web.CorsSettings{}
+
+	if len(settings) == 0 {
+		return corsSettings
+	}
+
+	setting := settings[0].(map[string]interface{})
+
+	if v, ok := setting["allowed_origins"]; ok {
+		input := v.(*schema.Set).List()
+
+		allowedOrigins := make([]string, 0)
+		for _, param := range input {
+			allowedOrigins = append(allowedOrigins, param.(string))
+		}
+
+		corsSettings.AllowedOrigins = &allowedOrigins
+	}
+
+	if v, ok := setting["support_credentials"]; ok {
+		corsSettings.SupportCredentials = utils.Bool(v.(bool))
+	}
+
+	return corsSettings
+}
+
+func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	allowedOrigins := make([]interface{}, 0)
+	if s := input.AllowedOrigins; s != nil {
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
+	}
+	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
+
+	if input.SupportCredentials != nil {
+		result["support_credentials"] = *input.SupportCredentials
+	}
+
+	return append(results, result)
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
@@ -218,6 +464,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["always_on"]; ok {
 		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["app_command_line"]; ok {
+		siteConfig.AppCommandLine = utils.String(v.(string))
 	}
 
 	if v, ok := config["default_documents"]; ok {
@@ -330,12 +580,18 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.VnetName = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := ExpandAppServiceCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
 	return siteConfig
 }
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -346,11 +602,13 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["always_on"] = *input.AlwaysOn
 	}
 
+	if input.AppCommandLine != nil {
+		result["app_command_line"] = *input.AppCommandLine
+	}
+
 	documents := make([]string, 0)
-	if input.DefaultDocuments != nil {
-		for _, document := range *input.DefaultDocuments {
-			documents = append(documents, document)
-		}
+	if s := input.DefaultDocuments; s != nil {
+		documents = *s
 	}
 	result["default_documents"] = documents
 
@@ -381,22 +639,22 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	restrictions := make([]interface{}, 0)
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
-			result := make(map[string]interface{}, 0)
+			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
 				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
 				if strings.Contains(*ip, "/") {
 					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					result["ip_address"] = ipAddr.String()
+					block["ip_address"] = ipAddr.String()
 					mask := net.IP(ipNet.Mask)
-					result["subnet_mask"] = mask.String()
+					block["subnet_mask"] = mask.String()
 				} else {
-					result["ip_address"] = *ip
+					block["ip_address"] = *ip
 				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
-				result["subnet_mask"] = *subnet
+				block["subnet_mask"] = *subnet
 			}
-			restrictions = append(restrictions, result)
+			restrictions = append(restrictions, block)
 		}
 	}
 	result["ip_restriction"] = restrictions
@@ -438,6 +696,8 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
+
+	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
 
 	return append(results, result)
 }

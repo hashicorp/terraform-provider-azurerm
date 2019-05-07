@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -52,6 +52,10 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Client returned an nil ID for Management Group %q", groupId)
 	}
 
 	d.SetId(*resp.ID)

@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"time"
 
 	"context"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -19,7 +21,8 @@ import (
 
 func resourceArmPolicyAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicyAssignmentCreate,
+		Create: resourceArmPolicyAssignmentCreateOrUpdate,
+		Update: resourceArmPolicyAssignmentCreateOrUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -48,13 +51,41 @@ func resourceArmPolicyAssignment() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"display_name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+			},
+
+			"location": locationSchemaOptional(),
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(policy.None),
+								string(policy.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"parameters": {
@@ -64,11 +95,17 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				ValidateFunc:     validation.ValidateJsonString,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
+
+			"not_scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
 
-func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).policyAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -77,6 +114,19 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Policy Assignment %q: %s", name, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_policy_assignment", *existing.ID)
+		}
+	}
 
 	assignment := policy.Assignment{
 		AssignmentProperties: &policy.AssignmentProperties{
@@ -90,6 +140,15 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Description = utils.String(v)
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		policyIdentity := expandAzureRmPolicyIdentity(d)
+		assignment.Identity = policyIdentity
+	}
+
+	if v := d.Get("location").(string); v != "" {
+		assignment.Location = utils.String(azureRMNormalizeLocation(v))
+	}
+
 	if v := d.Get("parameters").(string); v != "" {
 		expandedParams, err := structure.ExpandJsonFromString(v)
 		if err != nil {
@@ -99,8 +158,12 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Parameters = &expandedParams
 	}
 
-	_, err := client.Create(ctx, scope, name, assignment)
-	if err != nil {
+	if _, ok := d.GetOk("not_scopes"); ok {
+		notScopes := expandAzureRmPolicyNotScopes(d)
+		assignment.AssignmentProperties.NotScopes = notScopes
+	}
+
+	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
 		return err
 	}
 
@@ -114,6 +177,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
@@ -147,6 +211,14 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", resp.Name)
 
+	if err := d.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	if props := resp.AssignmentProperties; props != nil {
 		d.Set("scope", props.Scope)
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
@@ -162,6 +234,8 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 
 			d.Set("parameters", json)
 		}
+
+		d.Set("not_scopes", props.NotScopes)
 	}
 
 	return nil
@@ -194,4 +268,47 @@ func policyAssignmentRefreshFunc(ctx context.Context, client policy.AssignmentsC
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func expandAzureRmPolicyIdentity(d *schema.ResourceData) *policy.Identity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+
+	identityType := policy.ResourceIdentityType(identity["type"].(string))
+
+	policyIdentity := policy.Identity{
+		Type: identityType,
+	}
+
+	return &policyIdentity
+}
+
+func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
+}
+
+func expandAzureRmPolicyNotScopes(d *schema.ResourceData) *[]string {
+	notScopes := d.Get("not_scopes").([]interface{})
+	notScopesRes := make([]string, 0)
+
+	for _, notScope := range notScopes {
+		notScopesRes = append(notScopesRes, notScope.(string))
+	}
+
+	return &notScopesRes
 }

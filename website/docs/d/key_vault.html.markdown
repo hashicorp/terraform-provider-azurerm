@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
-sidebar_current: "docs-azurerm-data-source-key-vault-x"
+sidebar_current: "docs-azurerm-datasource-key-vault-x"
 description: |-
   Gets information about a Key Vault.
 ---
 
 # Data Source: azurerm_key_vault
 
-Gets information about a Key Vault.
+Use this data source to access information about an existing Key Vault.
 
 ## Example Usage
 
@@ -72,3 +72,5 @@ A `sku` block exports the following:
 * `key_permissions` - A list of key permissions applicable to this Access Policy.
 
 * `secret_permissions` - A list of secret permissions applicable to this Access Policy.
+
+* `storage_permissions` - A list of storage permissions applicable to this Access Policy.

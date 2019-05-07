@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -29,16 +29,52 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_availability_set.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAvailabilitySet_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAvailabilitySet_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_availability_set"),
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -59,12 +95,12 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMAvailabilitySet_withTags(ri, location)
 	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -86,16 +122,21 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -108,16 +149,21 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -129,16 +175,21 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "managed", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]
@@ -152,7 +203,7 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 		resp, err := client.Get(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", availSetName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
@@ -162,12 +213,12 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]
@@ -230,6 +281,19 @@ resource "azurerm_availability_set" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMAvailabilitySet_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAvailabilitySet_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_availability_set" "import" {
+  name                = "${azurerm_availability_set.test.name}"
+  location            = "${azurerm_availability_set.test.location}"
+  resource_group_name = "${azurerm_availability_set.test.resource_group_name}"
+}
+`, template)
+}
+
 func testAccAzureRMAvailabilitySet_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -242,7 +306,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -262,7 +326,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

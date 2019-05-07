@@ -24,22 +24,22 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "B_Gen4_2"
+    name     = "B_Gen5_2"
     capacity = 2
-    tier = "Basic"
-    family = "Gen4"
+    tier     = "Basic"
+    family   = "Gen4"
   }
 
   storage_profile {
-    storage_mb = 5120
+    storage_mb            = 5120
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
-  administrator_login = "psqladminun"
+  administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.5"
-  ssl_enforcement = "Enabled"
+  version                      = "9.5"
+  ssl_enforcement              = "Enabled"
 }
 ```
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the PostgreSQL Server.
 
-* `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, and `10.0`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, `10`, `10.0`, and `10.2`. Changing this forces a new resource to be created.
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 

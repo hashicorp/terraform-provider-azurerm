@@ -1,0 +1,364 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 2.0 Upgrade Guide"
+sidebar_current: "docs-azurerm-guide-2.0-upgrade"
+description: |-
+    Azure Resource Manager: 2.0 Upgrade Guide
+
+---
+
+# v2.0 of the AzureRM Provider
+
+Terraform initially shipped support for the AzureRM Provider back in December 2015.
+
+Since then we've added support for 191 Resources, 58 Data Sources and have launched a couple of related Providers in the form of [the Azure Active Directory Provider](https://www.terraform.io/docs/providers/azuread/index.html) and [the Azure Stack Provider](https://www.terraform.io/docs/providers/azurestack/index.html).
+
+Version 2.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
+
+-> **NOTE:** This guide is a Work In Progress and additional information may be added to this guide until version 2.0 of the AzureRM Provider is released.
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute in the `provider` block, either to a specific version of the AzureRM Provider, like so:
+
+```hcl
+provider "azurerm" {
+  version = "=1.24.0"
+}
+```
+
+.. or to any 1.x release:
+
+```hcl
+provider "azurerm" {
+  version = "~> 1.x"
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/docs/configuration/providers.html#provider-versions).
+
+Once version 2.0 of the AzureRM Provider is released - you can then upgrade to it by updating the version specified in the Provider block, like so:
+
+```hcl
+provider "azurerm" {
+  version = "=2.0.0"
+}
+```
+
+## What's coming in Version 2.0 of the AzureRM Provider?
+
+At a high level, we're intending for version 2.0 to include the following changes:
+
+* [Changes when importing existing resources](#changes-when-importing-existing-resources) - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
+* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#timeouts).
+* [New resources for Virtual Machines and Virtual Machine Scale Sets](#new-resources-for-virtual-machines-and-virtual-machine-scale-sets).
+* [Removing Fields, Data Sources and Resources which have been deprecated](#removal-of-deprecated-fields-data-sources-and-resources).
+
+Each of these topics is covered in more detail below, however please note that this guide is a Work In Progress until version 2.0 of the AzureRM Provider is released and thus things may be added/changed as necessary.
+
+## Changes when Importing Existing Resources
+
+Terraform allows for existing resources which have been created outside of Terraform to be Imported into Terraform's State. Once a resource is imported into the state, it's possible for Terraform to track changes and manage this resource. The Azure Provider allows Importing existing resources into the state (using `terraform import`) for (almost) every resource.
+
+Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's API's are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
+
+Where the unique identifier for (most) Azure resources is the `name` (rather than for example an `aws_instance` where AWS will generate a different unique identifier) - it's possible that users may have unintentionally imported existing resources into Terraform (and made changes to the resource) when running `terraform apply` when using the same unique identifier as an existing resource.
+
+Whilst this may allow resources to work in some cases, it leads to hard-to-diagnose bugs in others (which could have been caught during `terraform plan`).
+
+In order to match the behaviour of other Terraform Providers version 2.0 of the AzureRM Provider will require that existing resources are imported into the state prior to use. This means that Terraform will be checking for the presence of an existing resource prior to creating it - and will return an error similar to below:
+
+```
+A resource with the ID /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1 already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for `azurerm_resource_group` for more information.
+```
+
+Information on how to import a given Resource can be found in the documentation for that Resource - for example here's how to [here's how to import a Resource Group in Terraform](/docs/providers/azurerm/r/resource_group.html#import).
+
+You can opt into this behaviour in version 1.22 of the AzureRM Provider by setting the Environment Variable `ARM_PROVIDER_STRICT` to `true`.
+
+## Custom Timeouts for Resources
+
+Resources can optionally support a `timeouts` block - which allows users to specify a Custom Timeout for resource creation/deletion as part of the Terraform Configuration.
+
+Prior to version 2.0 the Azure Provider has a default value set for resource timeouts for an hour - which cannot be overridden. This works for the most-part but there are certain scenarios where it'd be helpful to override this.
+
+This is useful for resources which can take a long time to delete - for example deleting the `azurerm_resource_group` resource will delete any resources within it, which can take time. Within Terraform your Terraform Configuration this could be represented like so:
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "example-resource-group"
+  location = "West Europe"
+
+  timeouts {
+    create = "10m"
+    delete = "30m"
+  }
+}
+```
+
+We intend to support the `timeouts` block in version 2.0 of the Azure Provider - which will allow timeouts to be specified on resources (as shown above). [This feature request is being tracked here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/171) and will form part of the 2.0 release of the AzureRM Provider.
+
+## New Resources for Virtual Machines and Virtual Machine Scale Sets
+
+We originally shipped support for the `azurerm_virtual_machine` and `azurerm_virtual_machine_scale_set` resources back in March 2016.
+
+Over time new features have been added to these resources by Azure, such as Managed Disks and Managed Service Identity which these resources support. Since these resources first launched Azure's also changed the behaviour of some fields, so that it's now possible to update them where this wasn't previously possible - for example the Custom Data for a Virtual Machine.
+
+We've spent some time thinking about how we can accommodate these changes and about how we can improve the user experience of both resources.
+In particular we've wanted to be able to give better validation during `terraform plan`, rather than bailing out with an Azure API error during `terraform apply`, however this isn't possible with the current resource structure since they're very generic. The validation requirements also vary substantially based on the fields provided, for example the `name` field for a Virtual Machine can be up to 63 characters for a Linux Virtual Machine but only allows 15 characters for a Windows Virtual Machine.
+
+As such after spending some time reading through bug reports and thinking/prototyping some potential solutions to this - we believe the best path forward here is to split these resources out, so that we would have:
+
+* a Linux Virtual Machine Resource (working name: `azurerm_linux_virtual_machine`)
+* a Windows Virtual Machine Resource (working name: `azurerm_windows_virtual_machine`)
+* updating the Data Disk Attachment Resource to support Unmanaged Disks
+* a Linux Virtual Machine Scale Set Resource (working name: `azurerm_linux_virtual_machine_scale_set`)
+* a Windows Virtual Machine Scale Set Resource (working name: `azurerm_windows_virtual_machine_scale_set`)
+* a separate resource for Virtual Machine Scale Set Extensions (working name `azurerm_virtual_machine_scale_set_extension`)
+
+Please Note: all of the resources mentioned above currently do not exist but will form part of the 2.0 release.
+
+Whilst we're aware that this isn't ideal since users will eventually have to update their code/import an existing resource - we believe this approach gives us a good footing for the future. In particular this allows us to re-consider  the schema design so that we can both support these new use-cases, fix some bugs and improve the user experience with these resources.
+
+The existing `azurerm_virtual_machine` and `azurerm_virtual_machine_scale_set` resources would continue to be available throughout the `2.x` releases - but over time we'd end up deprecating these in favour of the new resources.
+
+## Removal of Deprecated Fields, Data Sources and Resources
+
+The Azure Provider was first launched in December 2015 - over the years the Provider has accumulated fields which have been deprecated (either by Azure because they're no longer used or because we've created an external resource to use instead).
+
+Since version 2.0 is a major version - we intend to take this opportunity to remove deprecated Fields, Resources and Data Sources.
+
+Below we'll cover each of the Data Sources and Resources which will be affected by the 2.0 upgrade.
+
+-> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 2.0 of the AzureRM Provider is released.
+
+
+### Data Source: `azurerm_azuread_application`
+
+The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Data Source will be removed in v2.0 of the AzureRM Provider.
+
+A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
+
+### Data Source: `azurerm_azuread_service_principal`
+
+The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Data Source will be removed in v2.0 of the AzureRM Provider.
+
+A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
+
+### Data Source: `azurerm_kubernetes_cluster`
+
+The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
+
+### Data Source: `azurerm_network_interface`
+
+The deprecated field `internal_fqdn` will be removed.
+
+### Data Source: `azurerm_scheduler_job_collection`
+
+Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
+
+### Resource: `azurerm_app_service_plan`
+
+The fields in the `properties` block (`app_service_environment_id`, `reserved` and `per_site_scaling`) have been moved to the top level - as such the `properties` block will be removed.
+
+### Resource: `azurerm_application_gateway`
+
+The deprecated `fqdn_list` field in the `backend_address_pool` block will be removed in favour of the `fqdns` field, which is available from v1.22 of the AzureRM Provider.
+
+The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
+
+### Resource: `azurerm_automation_schedule`
+
+The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
+
+### Resource: `azurerm_azuread_application`
+
+The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Resource will be removed in v2.0 of the AzureRM Provider.
+
+A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
+
+### Resource: `azurerm_azuread_service_principal`
+
+The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Resource will be removed.
+
+A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
+
+### Resource: `azurerm_azuread_service_principal_password`
+
+The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Resource will be removed.
+
+A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
+
+### Resource: `azurerm_connection_monitor
+
+The `azurerm_connection_monitor` resource will be deprecated in favour of a new resources `azurerm_network_connection_monitor`.
+
+### Resource: `azurerm_container_group`
+
+The deprecated `port` and `protocol` fields in the `container`  block will be removed. These fields have been moved into the `ports` block within the `ports` field.
+
+The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the container` block.
+
+### Resource: `azurerm_container_registry`
+
+The deprecated `storage_account` block will be removed. This has been replaced by the `storage_account_id` field and is only applicable to `Classic` Container Registries.
+
+### Resource: `azurerm_container_service`
+
+Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes Service (AKS) ([more information can be found here](https://azure.microsoft.com/en-us/updates/azure-container-service-will-retire-on-january-31-2020/)), in preparation the resource will be removed.
+
+### Resource: `azurerm_cosmosdb_account`
+
+The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
+
+### Resource: `azurerm_ddos_protection_plan
+
+The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
+
+### Resource: `azurerm_dns_mx_record`
+
+The `preference` field in the `record` block will change from a String to an Integer to better reflect the API.
+
+### Resource: `azurerm_dns_ns_record`
+
+The deprecated `record` field will be removed. This has been replaced by the `records` field which accepts multiple values.
+
+### Resource: `azurerm_eventhub`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+## Resource: `azurerm_eventhub_authorization_rule`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+## Resource: `azurerm_eventhub_consumer_group`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+## Resource: `azurerm_eventhub_namespace`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_firewall`
+
+The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The deprecated `dns_prefix` field in the `agent_pool_profile` block will be removed. This field has been removed by Azure and is no longer used.
+
+The deprecated `fqdn` field in the `agent_pool_profile` block will be removed. This has been replaced by the top-level field `fqdn`.
+
+The `service_principal` will be changing from a Set to a List,  which will allow Terraform to better detect when the values have changed locally and as such can detect when this needs to be recreated.
+
+### Resource: `azurerm_lb_backend_address_pool`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_nat_probe`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_nat_rule`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_probe`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_rule`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_log_analytics_linked_service`
+
+The `resource_id` field has been moved from the `linked_service_properties` block to the top-level.
+
+The `linked_service_properties` block will be removed, since it's no longer required.
+
+### Resource: `azurerm_log_analytics_workspace_linked_service`
+
+This resource has been renamed to `azurerm_log_analytics_linked_service` which is available from v1.22 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
+### Resource: `azurerm_mssql_elasticpool`
+
+The deprecated `elastic_pool_properties` block will be removed. The fields inside this block have been moved to the top-level.
+
+### Resource: `azurerm_network_interface`
+
+The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
+
+The `application_security_group_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
+
+The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
+
+The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
+
+### Resource: `azurerm_packet_capture
+
+The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
+
+### Resource: `azurerm_public_ip`
+
+The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
+
+### Resource: `azurerm_scheduler_job`
+
+Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Resource will be removed in v2.0 of the AzureRM Provider.
+
+### Resource: `azurerm_scheduler_job_collection`
+
+Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Resource will be removed in v2.0 of the AzureRM Provider.
+
+### Resource: `azurerm_servicebus_queue`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+The deprecated `enable_batched_operations` field will be removed, since this is no longer used.
+
+The deprecated `support_ordering` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_servicebus_subscription`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+The deprecated `dead_lettering_on_filter_evaluation_exceptions` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_servicebus_topic`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+The deprecated `enable_filtering_messages_before_publishing` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_account`
+
+The deprecated `account_type` field will be removed. This has been split into the fields `account_tier` and `account_replication_type`.
+
+### Resource: `azurerm_subnet`
+
+The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_subnet_network_security_group_association` resource.
+
+The deprecated field `route_table_id` will be removed. This has been replaced by the `azurerm_subnet_route_table_association` resource.
+
+### Resource: `azurerm_virtual_machine`
+
+The `azurerm_virtual_machine` resource will be deprecated in favour of two new resources: `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine`.
+
+Splitting the Virtual Machine resource in two allows us to both provide finer-grain validation for this resource and update the schema.
+
+The existing `azurerm_virtual_machine` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_virtual_machine_scale_set`
+
+The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of two new resources: `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set`.
+
+Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
+
+The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+---
+
+We've spent the past few months laying the groundwork for these changes - and whilst we appreciate that your Terraform Configurations may require code changes to upgrade to 2.0 - we take Semantic Versioning seriously and so try our best to limit these changes to major versions.
+
+You can follow along with the work in the 2.0 release [in this GitHub Milestone](https://github.com/terraform-providers/terraform-provider-azurerm/milestone/31) - and [in this GitHub Issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).

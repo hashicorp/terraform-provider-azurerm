@@ -3,14 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +30,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -78,7 +77,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			"frontend_ip_configuration_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -98,6 +97,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
@@ -108,7 +108,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
 
@@ -119,16 +119,20 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
 
-	existingNatRule, existingNatRuleIndex, exists := findLoadBalancerNatRuleByName(loadBalancer, d.Get("name").(string))
+	existingNatRule, existingNatRuleIndex, exists := findLoadBalancerNatRuleByName(loadBalancer, name)
 	if exists {
-		if d.Get("name").(string) == *existingNatRule.Name {
+		if name == *existingNatRule.Name {
+			if requireResourcesToBeImported && d.IsNewResource() {
+				return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.ID)
+			}
+
 			// this nat rule is being updated/reapplied remove old copy from the slice
 			natRules = append(natRules[:existingNatRuleIndex], natRules[existingNatRuleIndex+1:]...)
 		}
 	}
 
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group: %+v", err)
 	}
@@ -138,8 +142,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error Creating / Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
@@ -154,7 +157,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	var natRuleId string
 	for _, InboundNatRule := range *(*read.LoadBalancerPropertiesFormat).InboundNatRules {
-		if *InboundNatRule.Name == d.Get("name").(string) {
+		if *InboundNatRule.Name == name {
 			natRuleId = *InboundNatRule.ID
 		}
 	}
@@ -163,18 +166,6 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		d.SetId(natRuleId)
 	} else {
 		return fmt.Errorf("Cannot find created Load Balancer NAT Rule ID %q", natRuleId)
-	}
-
-	// TODO: is this still needed?
-	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become available", loadBalancerName)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer (%s) to become available: %s", loadBalancerName, err)
 	}
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
@@ -267,8 +258,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the completion of Load Balancer updates for %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
 	}
 
@@ -296,7 +286,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, _, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
@@ -307,7 +297,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	natRule := network.InboundNatRule{
-		Name: utils.String(d.Get("name").(string)),
+		Name:                           utils.String(d.Get("name").(string)),
 		InboundNatRulePropertiesFormat: &properties,
 	}
 

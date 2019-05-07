@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_search_service
 
-Allows you to manage an Azure Search Service
+Allows you to manage an Azure Search Service.
 
 ## Example Usage
 
@@ -24,7 +24,7 @@ resource "azurerm_search_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -53,6 +53,10 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Search Service ID.
+
+* `primary_key` - The Search Service Administration primary key.
+
+* `secondary_key` - The Search Service Administration secondary key.
 
 ## Import
 

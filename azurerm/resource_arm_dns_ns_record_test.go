@@ -6,18 +6,18 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -34,10 +34,10 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsNsRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -48,6 +48,40 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 					testCheckAzureRMDnsNsRecordExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_ns_record.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsNsRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsNsRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsNsRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_ns_record"),
+			},
 		},
 	})
 }
@@ -55,12 +89,12 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedUpdateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -85,12 +119,12 @@ func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsNsRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -116,12 +150,12 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedBasicNewRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -147,12 +181,12 @@ func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedWithTags(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedWithTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -177,12 +211,12 @@ func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsNsRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -201,16 +235,21 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMDnsNsRecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nsName := rs.Primary.Attributes["name"]
@@ -286,6 +325,22 @@ resource "azurerm_dns_ns_record" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMDnsNsRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsNsRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_ns_record" "import" {
+  name                = "${azurerm_dns_ns_record.test.name}"
+  resource_group_name = "${azurerm_dns_ns_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_ns_record.test.zone_name}"
+  ttl                 = 300
+
+  records = ["ns1.contoso.com", "ns2.contoso.com"]
+}
+`, template)
+}
+
 //TODO: remove this once we remove the `record` attribute
 func testAccAzureRMDnsNsRecord_deprecatedBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
@@ -306,11 +361,11 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-	  nsdname = "ns1.contoso.com"
+    nsdname = "ns1.contoso.com"
   }
 
   record {
-	  nsdname = "ns2.contoso.com"
+    nsdname = "ns2.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -417,7 +472,7 @@ resource "azurerm_dns_ns_record" "test" {
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -445,14 +500,14 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-		nsdname = "ns1.contoso.com"
-	}
+    nsdname = "ns1.contoso.com"
+  }
 
   record {
     nsdname = "ns2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -480,7 +535,7 @@ resource "azurerm_dns_ns_record" "test" {
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -514,7 +569,7 @@ resource "azurerm_dns_ns_record" "test" {
     nsdname = "ns2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

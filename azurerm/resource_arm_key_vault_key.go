@@ -7,6 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,7 +20,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 		Update: resourceArmKeyVaultKeyUpdate,
 		Delete: resourceArmKeyVaultKeyDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceArmKeyVaultChildResourceImporter,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -25,13 +28,27 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultChildName,
+				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
+			"key_vault_id": {
+				Type:          schema.TypeString,
+				Optional:      true, //todo required in 2.0
+				Computed:      true, //todo removed in 2.0
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"vault_uri"},
+			},
+
+			//todo remove in 2.0
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
+				ValidateFunc:  validate.URLIsHTTPS,
+				ConflictsWith: []string{"key_vault_id"},
 			},
 
 			"key_type": {
@@ -95,12 +112,46 @@ func resourceArmKeyVaultKey() *schema.Resource {
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
-	keyVaultBaseUrl := d.Get("vault_uri").(string)
+	keyVaultBaseUri := d.Get("vault_uri").(string)
+	keyVaultId := d.Get("key_vault_id").(string)
+
+	if keyVaultBaseUri == "" {
+		if keyVaultId == "" {
+			return fmt.Errorf("one of `key_vault_id` or `vault_uri` must be set")
+		}
+
+		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Key %q vault url form id %q: %+v", name, keyVaultId, err)
+		}
+
+		keyVaultBaseUri = pKeyVaultBaseUrl
+	} else {
+		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUri)
+		if err != nil {
+			return fmt.Errorf("Error unable to find key vault ID from URL %q for certificate %q: %+v", keyVaultBaseUri, name, err)
+		}
+		d.Set("key_vault_id", id)
+	}
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+			}
+		}
+
+		if existing.Key != nil && existing.Key.Kid != nil && *existing.Key.Kid != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_key", *existing.Key.Kid)
+		}
+	}
 
 	keyType := d.Get("key_type").(string)
 	keyOptions := expandKeyVaultKeyOptions(d)
@@ -118,13 +169,12 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags:    expandTags(tags),
 	}
 
-	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
-	if err != nil {
+	if _, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
 		return fmt.Errorf("Error Creating Key: %+v", err)
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetKey(ctx, keyVaultBaseUrl, name, "")
+	read, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
 	if err != nil {
 		return err
 	}
@@ -135,13 +185,31 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key update.")
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, id.KeyVaultBaseUrl)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+	}
+	if keyVaultId == nil {
+		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, vaultClient, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	keyOptions := expandKeyVaultKeyOptions(d)
@@ -155,8 +223,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
-	if err != nil {
+	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
 		return err
 	}
 
@@ -164,12 +231,33 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
+	keyVaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+	}
+	if keyVaultId == nil {
+		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
 	}
 
 	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
@@ -206,16 +294,34 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
+	keyVaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+	}
+	if keyVaultId == nil {
+		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+	}
 
+	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+	if !ok {
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
+	}
+
+	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
 	return err
 }
 

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_eventhub_namespace.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -29,10 +29,10 @@ func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_eventhub_namespace.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -42,6 +42,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "sku", "Standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "capacity", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_inflate_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "kafka_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "maximum_throughput_units", "20"),
 				),
 			},
@@ -72,7 +73,6 @@ data "azurerm_eventhub_namespace" "test" {
 
 func testAccDataSourceEventHubNamespace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -85,6 +85,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
+  kafka_enabled            = true
   maximum_throughput_units = 20
 }
 

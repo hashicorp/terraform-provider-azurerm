@@ -10,6 +10,8 @@ description: |-
 
 Manages a Scheduler Job.
 
+~> **NOTE:** Support for Scheduler Job has been deprecated by Microsoft in favour of Logic Apps ([more information can be found at this link](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such we plan to remove support for this resource as a part of version 2.0 of the AzureRM Provider.
+
 ## Example Usage (single web get now)
 
 ```hcl
@@ -39,9 +41,9 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "this is some text"
+    url    = "https://this.url.fails"
+    method = "put"
+    body   = "this is some text"
 
     headers = {
       Content-Type = "text"
@@ -56,15 +58,16 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   retry {
     # retry every 5 min a maximum of 10 times
     interval = "00:05:00"
-    count    =  10
+    count    = 10
   }
 
   recurrence {
     frequency = "day"
     count     = 1000
+
     # run 4 times an hour every 12 hours
-    hours     = [0,12]
-    minutes   = [0,15,30,45]
+    hours   = [0, 12]
+    minutes = [0, 15, 30, 45]
   }
 
   start_time = "2018-07-07T07:07:07-07:00"
@@ -80,17 +83,18 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   action_web {
-    url     = "https://this.url.fails"
+    url = "https://this.url.fails"
+
     authentication_certificate {
-      pfx      = "${base64encode(file("your_cert.pfx"))}"
+      pfx      = "${filebase64("your_cert.pfx")}"
       password = "cert_password"
     }
   }
 
   error_action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "The job failed"
+    url    = "https://this.url.fails"
+    method = "put"
+    body   = "The job failed"
 
     headers = {
       "Content-Type" = "text"
@@ -105,6 +109,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   recurrence {
     frequency = "monthly"
     count     = 1000
+
     monthly_occurrences = [
       {
         # first Sunday
@@ -120,7 +125,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
         # last Sunday
         day        = "Sunday"
         occurrence = -1
-      }
+      },
     ]
   }
 
@@ -150,7 +155,7 @@ resource "azurerm_scheduler_job" "storage-once-now" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-  action_storage_queue = {
+  action_storage_queue {
     storage_account_name = "${azurerm_storage_account.example.name}"
     storage_queue_name   = "${azurerm_storage_queue.example.name}"
     sas_token            = "${azurerm_storage_account.example.primary_access_key}"

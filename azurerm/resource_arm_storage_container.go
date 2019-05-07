@@ -12,13 +12,15 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmStorageContainerCreate,
+		Create:        resourceArmStorageContainerCreateUpdate,
 		Read:          resourceArmStorageContainerRead,
 		Delete:        resourceArmStorageContainerDelete,
+		Update:        resourceArmStorageContainerCreateUpdate,
 		MigrateState:  resourceStorageContainerMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
@@ -41,7 +43,6 @@ func resourceArmStorageContainer() *schema.Resource {
 			"container_access_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "private",
 				ValidateFunc: validateArmStorageContainerAccessType,
 			},
@@ -55,7 +56,7 @@ func resourceArmStorageContainer() *schema.Resource {
 }
 
 //Following the naming convention as laid out in the docs
-func validateArmStorageContainerName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -70,10 +71,10 @@ func validateArmStorageContainerName(v interface{}, k string) (ws []string, erro
 		errors = append(errors, fmt.Errorf(
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
-	return
+	return warnings, errors
 }
 
-func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageContainerAccessType(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
 		"private":   {},
@@ -84,10 +85,10 @@ func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string
 	if _, ok := validTypes[value]; !ok {
 		errors = append(errors, fmt.Errorf("Storage container access type %q is invalid, must be %q, %q or %q", value, "private", "blob", "page"))
 	}
-	return
+	return warnings, errors
 }
 
-func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
@@ -110,9 +111,20 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		accessType = storage.ContainerAccessType(d.Get("container_access_type").(string))
 	}
 
-	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	reference := blobClient.GetContainerReference(name)
+	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
+	if requireResourcesToBeImported && d.IsNewResource() {
+		exists, e := reference.Exists()
+		if e != nil {
+			return fmt.Errorf("Error checking if Storage Container %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, e)
+		}
 
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_container", id)
+		}
+	}
+
+	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	err = resource.Retry(120*time.Second, checkContainerIsCreated(reference))
 	if err != nil {
 		return fmt.Errorf("Error creating container %q in storage account %q: %s", name, storageAccountName, err)
@@ -127,7 +139,6 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error setting permissions for container %s in storage account %s: %+v", name, storageAccountName, err)
 	}
 
-	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
 	d.SetId(id)
 	return resourceArmStorageContainerRead(d, meta)
 }
@@ -163,20 +174,30 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	containers, err := blobClient.ListContainers(storage.ListContainersParameters{
+	var container *storage.Container
+	listParams := storage.ListContainersParameters{
 		Prefix:  id.containerName,
 		Timeout: 90,
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve storage containers in account %q: %s", id.containerName, err)
 	}
 
-	var container *storage.Container
-	for _, cont := range containers.Containers {
-		if cont.Name == id.containerName {
-			container = &cont
+	for {
+		resp, err := blobClient.ListContainers(listParams)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.containerName, err)
+		}
+
+		for _, c := range resp.Containers {
+			if c.Name == id.containerName {
+				container = &c
+				break
+			}
+		}
+
+		if resp.NextMarker == "" {
 			break
 		}
+
+		listParams.Marker = resp.NextMarker
 	}
 
 	if container == nil {
@@ -204,7 +225,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	output["lease_duration"] = container.Properties.LeaseDuration
 
 	if err := d.Set("properties", output); err != nil {
-		return fmt.Errorf("Error flattening `properties`: %+v", err)
+		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
 	return nil
@@ -252,8 +273,8 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 func checkContainerIsCreated(reference *storage.Container) func() *resource.RetryError {
 	return func() *resource.RetryError {
 		createOptions := &storage.CreateContainerOptions{}
-		_, err := reference.CreateIfNotExists(createOptions)
-		if err != nil {
+
+		if _, err := reference.CreateIfNotExists(createOptions); err != nil {
 			return resource.RetryableError(err)
 		}
 

@@ -37,7 +37,7 @@ resource "azurerm_dns_txt_record" "test" {
     value = "more site information here"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the txt record. Each `record` block supports fields documented below.
 
@@ -73,5 +73,5 @@ The following attributes are exported:
 TXT records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_txt_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/TXT/myrecord1
+terraform import azurerm_dns_txt_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/TXT/myrecord1
 ```

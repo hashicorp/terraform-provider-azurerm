@@ -112,12 +112,12 @@ func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
-		if d.Set("apns_credential", apns); err != nil {
+		if setErr := d.Set("apns_credential", apns); setErr != nil {
 			return fmt.Errorf("Error setting `apns_credential`: %+v", err)
 		}
 
 		gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
-		if d.Set("gcm_credential", gcm); err != nil {
+		if setErr := d.Set("gcm_credential", gcm); setErr != nil {
 			return fmt.Errorf("Error setting `gcm_credential`: %+v", err)
 		}
 	}
@@ -130,7 +130,7 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.Ap
 		return make([]interface{}, 0)
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if bundleId := input.AppName; bundleId != nil {
 		output["bundle_id"] = *bundleId
@@ -165,7 +165,7 @@ func flattenNotificationHubsDataSourceGCMCredentials(input *notificationhubs.Gcm
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if props := input.GcmCredentialProperties; props != nil {
 		if apiKey := props.GoogleAPIKey; apiKey != nil {
 			output["api_key"] = *apiKey

@@ -4,27 +4,59 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMMySQLDatabase_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_mysql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLDatabase_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLDatabaseExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLDatabase_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_mysql_database"),
 			},
 		},
 	})
@@ -32,10 +64,10 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -46,6 +78,11 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -53,10 +90,10 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -68,16 +105,21 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMMySQLDatabaseExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -141,16 +183,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -169,6 +211,20 @@ resource "azurerm_mysql_database" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMMySQLDatabase_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_database" "import" {
+  name                = "${azurerm_mysql_database.test.name}"
+  resource_group_name = "${azurerm_mysql_database.test.resource_group_name}"
+  server_name         = "${azurerm_mysql_database.test.server_name}"
+  charset             = "${azurerm_mysql_database.test.charset}"
+  collation           = "${azurerm_mysql_database.test.collation}"
+}
+`, testAccAzureRMMySQLDatabase_basic(rInt, location))
+}
+
 func testAccAzureRMMySQLDatabase_charsetUppercase(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -182,16 +238,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -223,16 +279,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"

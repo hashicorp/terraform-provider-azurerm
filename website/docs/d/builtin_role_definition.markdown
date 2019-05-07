@@ -3,12 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_builtin_role_definition"
 sidebar_current: "docs-azurerm-datasource-builtin-role-definition"
 description: |-
-  Get information about a built-in Role Definition.
+  Get information about an existing built-in Role Definition.
 ---
 
 # Data Source: azurerm_builtin_role_definition
 
-Use this data source to access the properties of a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
+Use this data source to access information about a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
+
+~> **NOTE:** The this datasource has been deprecated in favour of `azurerm_role_definition` that now can look up role definitions by name. As such this data source will be removed in version 2.0 of the AzureRM Provider.
 
 ## Example Usage
 
@@ -38,4 +40,6 @@ output "contributor_role_definition_id" {
 A `permissions` block contains:
 
 * `actions` - a list of actions supported by this role
+* `data_actions` - a list of data actions supported by this role
 * `not_actions` - a list of actions which are denied by this role
+* `not_data_actions` - a list of data actions which are denied by this role

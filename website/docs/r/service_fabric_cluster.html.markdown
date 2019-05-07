@@ -19,13 +19,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                = "example-servicefabric"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
-  vm_image            = "Windows"
-  management_endpoint = "https://example:80"
+  name                 = "example-servicefabric"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  reliability_level    = "Bronze"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "6.3.176.9494"
+  vm_image             = "Windows"
+  management_endpoint  = "https://example:80"
 
   node_type {
     name                 = "first"
@@ -60,11 +61,17 @@ The following arguments are supported:
 
 ---
 
+* `cluster_code_version` - (Optional) Required if Upgrade Mode set to `Manual`, Specifies the Version of the Cluster Code of the cluster.
+
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
+
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) A `client_certificate_thumbprint` block as defined below.
+* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
+
+* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
@@ -76,7 +83,27 @@ The following arguments are supported:
 
 ---
 
+A `azure_active_directory` block supports the following:
+
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID. Changing this forces a new resource to be created.
+
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID. Changing this forces a new resource to be created.
+
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
+
+---
+
 A `certificate` block supports the following:
+
+* `thumbprint` - (Required) The Thumbprint of the Certificate.
+
+* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
@@ -120,6 +147,10 @@ A `node_type` block supports the following:
 
 * `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
 
+* `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
+
+* `capacities` - (Optional) The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has.
+
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
 * `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
@@ -133,6 +164,8 @@ A `node_type` block supports the following:
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
+
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
 
 ---
 

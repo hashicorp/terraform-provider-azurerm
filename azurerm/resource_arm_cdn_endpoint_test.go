@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -26,16 +26,50 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 					testCheckAzureRMCdnEndpointExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_cdn_endpoint.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMCdnEndpoint_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_cdn_endpoint"),
+			},
 		},
 	})
 }
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -54,12 +88,12 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com", location)
 	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com", location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -84,12 +118,12 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMCdnEndpoint_withTags(ri, location)
 	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -103,7 +137,11 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
@@ -111,6 +149,10 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			}, {
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -118,10 +160,10 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_optimized(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -139,10 +181,10 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_geoFilters(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -159,10 +201,10 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 }
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_fullFields(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -191,12 +233,12 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "true", "false")
 	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "false", "true")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -221,12 +263,12 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCdnEndpointExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -252,12 +294,12 @@ func testCheckAzureRMCdnEndpointExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -275,8 +317,7 @@ func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, conn.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, conn.Client); err != nil {
 			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
 
@@ -340,6 +381,27 @@ resource "azurerm_cdn_endpoint" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMCdnEndpoint_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMCdnEndpoint_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_endpoint" "import" {
+  name                = "${azurerm_cdn_endpoint.test.name}"
+  profile_name        = "${azurerm_cdn_endpoint.test.profile_name}"
+  location            = "${azurerm_cdn_endpoint.test.location}"
+  resource_group_name = "${azurerm_cdn_endpoint.test.resource_group_name}"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, template)
+}
+
 func testAccAzureRMCdnEndpoint_hostHeader(rInt int, domain string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -368,7 +430,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -403,7 +465,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -438,7 +500,7 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -478,14 +540,14 @@ resource "azurerm_cdn_endpoint" "test" {
 
   geo_filter {
     relative_path = "/some-example-endpoint"
-    action = "Allow"
-    country_codes = [ "GB" ]
+    action        = "Allow"
+    country_codes = ["GB"]
   }
 
   geo_filter {
     relative_path = "/some-other-endpoint"
-    action = "Block"
-    country_codes = [ "US" ]
+    action        = "Block"
+    country_codes = ["US"]
   }
 }
 `, rInt, location, rInt, rInt)
@@ -539,34 +601,34 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                					= "acctestcdnend%d"
-  profile_name        					= "${azurerm_cdn_profile.test.name}"
-  location            					= "${azurerm_resource_group.test.location}"
-  resource_group_name 					= "${azurerm_resource_group.test.name}"
-  is_http_allowed     					= true
-	is_https_allowed    					= true
-	content_types_to_compress 		= ["text/html"]	
-	is_compression_enabled 				= true	
-	querystring_caching_behaviour = "UseQueryString"	
-	origin_host_header  					= "www.example.com"
-  optimization_type   					= "GeneralWebDelivery"
-  origin_path         					= "/origin-path"
-  probe_path         						= "/origin-path/probe"
+  name                          = "acctestcdnend%d"
+  profile_name                  = "${azurerm_cdn_profile.test.name}"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  is_http_allowed               = true
+  is_https_allowed              = true
+  content_types_to_compress     = ["text/html"]
+  is_compression_enabled        = true
+  querystring_caching_behaviour = "UseQueryString"
+  origin_host_header            = "www.example.com"
+  optimization_type             = "GeneralWebDelivery"
+  origin_path                   = "/origin-path"
+  probe_path                    = "/origin-path/probe"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
     host_name  = "www.example.com"
     https_port = 443
     http_port  = 80
-	}
+  }
 
-	geo_filter {
+  geo_filter {
     relative_path = "/some-example-endpoint"
-    action = "Allow"
+    action        = "Allow"
     country_codes = ["GB"]
   }
 
-	tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -591,9 +653,9 @@ resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
   profile_name        = "${azurerm_cdn_profile.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	is_http_allowed			= %s
-	is_https_allowed		= %s
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  is_http_allowed     = %s
+  is_https_allowed    = %s
 
   origin {
     name       = "acceptanceTestCdnOrigin1"

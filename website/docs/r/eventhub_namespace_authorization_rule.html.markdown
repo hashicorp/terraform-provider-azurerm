@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-eventhub-namespace-authorization-rule"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-authorization-rule"
 description: |-
   Manages an Authorization Rule for an Event Hub Namespace.
 ---
@@ -25,7 +25,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
   capacity            = 2
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -34,10 +34,10 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "navi"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
-  listen              = true
-  send                = false
-  manage              = false
+
+  listen = true
+  send   = false
+  manage = false
 }
 ```
 

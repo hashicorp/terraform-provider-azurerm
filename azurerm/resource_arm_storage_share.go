@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -71,19 +72,39 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	reference := fileClient.GetShareReference(name)
+
+	id := fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
+	if requireResourcesToBeImported {
+		exists, e := reference.Exists()
+		if e != nil {
+			return fmt.Errorf("Error checking if Share %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, e)
+		}
+
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_share", id)
+		}
+	}
+
 	err = reference.Create(options)
+	if err != nil {
+		return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+	}
 
 	log.Printf("[INFO] Setting share %q metadata in storage account %q", name, storageAccountName)
 	reference.Metadata = metaData
-	reference.SetMetadata(options)
+	if err := reference.SetMetadata(options); err != nil {
+		return fmt.Errorf("Error setting metadata on Storage Share %q: %+v", name, err)
+	}
 
 	log.Printf("[INFO] Setting share %q properties in storage account %q", name, storageAccountName)
 	reference.Properties = storage.ShareProperties{
 		Quota: d.Get("quota").(int),
 	}
-	reference.SetProperties(options)
+	if err := reference.SetProperties(options); err != nil {
+		return fmt.Errorf("Error setting properties on Storage Share %q: %+v", name, err)
+	}
 
-	d.SetId(fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName))
+	d.SetId(id)
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -130,7 +151,9 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("storage_account_name", storageAccountName)
 	d.Set("url", url)
 
-	reference.FetchAttributes(nil)
+	if err := reference.FetchAttributes(nil); err != nil {
+		return fmt.Errorf("Error fetching properties on Storage Share %q: %+v", name, err)
+	}
 	d.Set("quota", reference.Properties.Quota)
 
 	return nil
@@ -164,7 +187,9 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	reference.Properties = storage.ShareProperties{
 		Quota: d.Get("quota").(int),
 	}
-	reference.SetProperties(options)
+	if err := reference.SetProperties(options); err != nil {
+		return fmt.Errorf("Error setting properties on Storage Share %q: %+v", name, err)
+	}
 
 	return resourceArmStorageShareRead(d, meta)
 }
@@ -202,7 +227,7 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 //Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
-func validateArmStorageShareName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -221,5 +246,5 @@ func validateArmStorageShareName(v interface{}, k string) (ws []string, errors [
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}
-	return
+	return warnings, errors
 }

@@ -6,17 +6,18 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location)
 	config := testAccDataSourceAzureRMStorageAccount_basicWithDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -40,19 +41,19 @@ func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestsa-%d"
+  name     = "acctestsa-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsads%s"
+  name                = "acctestsads%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

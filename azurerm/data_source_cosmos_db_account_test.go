@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -31,10 +31,10 @@ func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testin
 }
 
 func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -53,11 +53,33 @@ func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T
 	})
 }
 
-func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
-	ri := acctest.RandInt()
+func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(dataSourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(dataSourceName, "is_virtual_network_filter_enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_rule.0.id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_rule.1.id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	dataSourceName := "data.azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -66,8 +88,9 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 				Config: testAccDataSourceAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(dataSourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
-					resource.TestCheckResourceAttr(dataSourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,10.20.0.0/16"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"),
 					resource.TestCheckResourceAttr(dataSourceName, "enable_automatic_failover", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "enable_multiple_write_locations", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "geo_location.0.location", testLocation()),
 					resource.TestCheckResourceAttr(dataSourceName, "geo_location.1.location", testAltLocation()),
 					resource.TestCheckResourceAttr(dataSourceName, "geo_location.0.failover_priority", "0"),
@@ -109,4 +132,15 @@ data "azurerm_cosmosdb_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, testAccAzureRMCosmosDBAccount_complete(rInt, location, altLocation))
+}
+
+func testAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_cosmosdb_account" "test" {
+  name                = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, testAccAzureRMCosmosDBAccount_virtualNetworkFilter(rInt, location))
 }

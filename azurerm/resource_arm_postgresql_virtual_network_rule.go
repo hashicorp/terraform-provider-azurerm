@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -41,13 +41,18 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"ignore_missing_vnet_service_endpoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -61,53 +66,34 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subnetId := d.Get("subnet_id").(string)
+	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
-	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
-	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*ArmClient).subnetClient
-	subnetParsedId, err := parseAzureResourceID(subnetId)
-
-	subnetResourceGroup := subnetParsedId.ResourceGroup
-	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
-	subnetName := subnetParsedId.Path["subnets"]
-	subnet, err := subnetsClient.Get(ctx, subnetResourceGroup, virtualNetwork, subnetName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet with ID %q was not found: %+v", subnetId, err)
-		}
-
-		return fmt.Errorf("Error obtaining Subnet %q (Virtual Network %q / Resource Group %q: %+v", subnetName, virtualNetwork, subnetResourceGroup, err)
-	}
-
-	containsEndpoint := false
-	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if endpoints := props.ServiceEndpoints; endpoints != nil {
-			for _, e := range *endpoints {
-				if e.Service == nil {
-					continue
-				}
-
-				if strings.EqualFold(*e.Service, "Microsoft.Sql") {
-					containsEndpoint = true
-					break
-				}
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 			}
 		}
-	}
 
-	if !containsEndpoint {
-		return fmt.Errorf("Error creating PostgreSQL Virtual Network Rule: Subnet %q (Virtual Network %q / Resource Group %q) must contain a Service Endpoint for `Microsoft.Sql`", subnetName, virtualNetwork, subnetResourceGroup)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_virtual_network_rule", *existing.ID)
+		}
 	}
 
 	parameters := postgresql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &postgresql.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetID:           utils.String(subnetId),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(false),
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(ignoreMissingVnetServiceEndpoint),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
 	if err != nil {
+		return fmt.Errorf("Error submitting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error creating PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -122,7 +108,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 		ContinuousTargetOccurence: 5,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -166,6 +152,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
 		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
 	}
 
 	return nil
@@ -193,8 +180,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error deleting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -220,7 +206,7 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {
 			log.Printf("[DEBUG] Retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, fmt.Sprintf("%s", props.State), nil
+			return resp, string(props.State), nil
 		}
 
 		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.

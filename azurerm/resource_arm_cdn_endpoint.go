@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -190,9 +191,23 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	profileName := d.Get("profile_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, profileName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_cdn_endpoint", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	compressionEnabled := d.Get("is_compression_enabled").(bool)
@@ -246,8 +261,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -312,8 +326,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, endpointsClient.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -366,17 +379,17 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
-			return fmt.Errorf("Error flattening `content_types_to_compress`: %+v", err)
+			return fmt.Errorf("Error setting `content_types_to_compress`: %+v", err)
 		}
 
 		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
 		if err := d.Set("geo_filter", geoFilters); err != nil {
-			return fmt.Errorf("Error flattening `geo_filter`: %+v", err)
+			return fmt.Errorf("Error setting `geo_filter`: %+v", err)
 		}
 
 		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
 		if err := d.Set("origin", origins); err != nil {
-			return fmt.Errorf("Error flattening `origin`: %+v", err)
+			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
 	}
 
@@ -408,8 +421,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -423,27 +435,25 @@ func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, e
 	filters := make([]cdn.GeoFilter, 0)
 
 	inputFilters := d.Get("geo_filter").([]interface{})
-	if inputFilters != nil {
-		for _, v := range inputFilters {
-			input := v.(map[string]interface{})
-			action := input["action"].(string)
-			relativePath := input["relative_path"].(string)
+	for _, v := range inputFilters {
+		input := v.(map[string]interface{})
+		action := input["action"].(string)
+		relativePath := input["relative_path"].(string)
 
-			inputCountryCodes := input["country_codes"].([]interface{})
-			countryCodes := make([]string, 0)
+		inputCountryCodes := input["country_codes"].([]interface{})
+		countryCodes := make([]string, 0)
 
-			for _, v := range inputCountryCodes {
-				countryCode := v.(string)
-				countryCodes = append(countryCodes, countryCode)
-			}
-
-			filter := cdn.GeoFilter{
-				Action:       cdn.GeoFilterActions(action),
-				RelativePath: utils.String(relativePath),
-				CountryCodes: &countryCodes,
-			}
-			filters = append(filters, filter)
+		for _, v := range inputCountryCodes {
+			countryCode := v.(string)
+			countryCodes = append(countryCodes, countryCode)
 		}
+
+		filter := cdn.GeoFilter{
+			Action:       cdn.GeoFilterActions(action),
+			RelativePath: utils.String(relativePath),
+			CountryCodes: &countryCodes,
+		}
+		filters = append(filters, filter)
 	}
 
 	return &filters, nil
@@ -454,7 +464,7 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			output["action"] = string(filter.Action)
 			if path := filter.RelativePath; path != nil {

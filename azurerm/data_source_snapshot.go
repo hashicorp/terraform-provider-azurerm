@@ -24,7 +24,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"time_created": {
@@ -115,7 +115,7 @@ func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*resp.ID)
 
-	if props := resp.DiskProperties; props != nil {
+	if props := resp.SnapshotProperties; props != nil {
 		d.Set("os_type", string(props.OsType))
 		d.Set("time_created", props.TimeCreated.String())
 

@@ -6,14 +6,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCNameRecordCreateOrUpdate,
+		Create: resourceArmDnsCNameRecordCreateUpdate,
 		Read:   resourceArmDnsCNameRecordRead,
-		Update: resourceArmDnsCNameRecordCreateOrUpdate,
+		Update: resourceArmDnsCNameRecordCreateUpdate,
 		Delete: resourceArmDnsCNameRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -56,13 +57,27 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dns_cname_record", *existing.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -80,9 +95,13 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch); err != nil {
+		return fmt.Errorf("Error creating/updating DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -145,9 +164,9 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["CNAME"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
+	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, err)
 	}
 
 	return nil

@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"regexp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -28,16 +28,50 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServiceSlot_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_slot"),
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_32Bit(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -49,16 +83,21 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_alwaysOn(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -70,16 +109,47 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_appCommandLine(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.app_command_line", "/sbin/myservice -b 0.0.0.0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_appSettings(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -91,16 +161,21 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -118,11 +193,11 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -147,22 +222,61 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_connectionStrings(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
+			},
+			{
+				Config: testAccAzureRMAppServiceSlot_connectionStringsUpdated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_corsSettings(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				)},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -170,10 +284,10 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -193,10 +307,10 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -214,11 +328,11 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 	updatedConfig := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -243,10 +357,10 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -264,11 +378,11 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -293,10 +407,10 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_http2Enabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -314,10 +428,10 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -334,12 +448,52 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
+	noBlocksConfig := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMAppServiceSlot_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				// This configuration includes a single explicit ip_restriction
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration has no site_config blocks at all.
+				Config: noBlocksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_manyIpRestrictions(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -364,10 +518,10 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_localMySql(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -385,10 +539,10 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -406,11 +560,11 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -438,10 +592,10 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -460,10 +614,10 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -488,10 +642,10 @@ func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -509,10 +663,10 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -530,11 +684,11 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -559,10 +713,10 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -582,10 +736,10 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -602,12 +756,35 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "JETTY", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -627,10 +804,10 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -648,12 +825,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
+func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -662,7 +839,30 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.2"),
 				),
 			},
 		},
@@ -671,10 +871,10 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsPython(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -692,10 +892,10 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_webSockets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -713,12 +913,10 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -728,8 +926,8 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -738,11 +936,11 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -760,6 +958,11 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -825,7 +1028,7 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 func testAccAzureRMAppServiceSlot_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -857,10 +1060,25 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
+func testAccAzureRMAppServiceSlot_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServiceSlot_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot" "import" {
+  name                = "${azurerm_app_service_slot.test.name}"
+  location            = "${azurerm_app_service_slot.test.location}"
+  resource_group_name = "${azurerm_app_service_slot.test.resource_group_name}"
+  app_service_plan_id = "${azurerm_app_service_slot.test.app_service_plan_id}"
+  app_service_name    = "${azurerm_app_service_slot.test.app_service_name}"
+}
+`, template)
+}
+
 func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -899,7 +1117,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_alwaysOn(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -935,10 +1153,10 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMAppServiceSlot_appSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_appCommandLine(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -967,7 +1185,46 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  app_settings {
+  site_config {
+    app_command_line = "/sbin/myservice -b 0.0.0.0"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_appSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  app_settings = {
     "foo" = "bar"
   }
 }
@@ -977,7 +1234,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string, clientAffinityEnabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1013,7 +1270,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_connectionStrings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1043,9 +1300,108 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   connection_string {
-    name  = "Example"
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_connectionStringsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_corsSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com"
+      ]
+      support_credentials = true
+    }
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1054,7 +1410,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_defaultDocuments(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1097,7 +1453,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_enabled(rInt int, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1125,7 +1481,7 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
-  enabled = %t
+  enabled             = %t
 }
 `, rInt, location, rInt, rInt, rInt, enabled)
 }
@@ -1133,7 +1489,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_httpsOnly(rInt int, location string, httpsOnly bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1169,7 +1525,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_http2Enabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1208,7 +1564,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_oneIpRestriction(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1246,10 +1602,49 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
+func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction = []
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
 func testAccAzureRMAppServiceSlot_manyIpRestrictions(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1294,7 +1689,7 @@ resource "azurerm_app_service_slot" "test" {
     }
 
     ip_restriction {
-      ip_address = "192.168.1.2"
+      ip_address  = "192.168.1.2"
       subnet_mask = "255.255.255.0"
     }
   }
@@ -1305,7 +1700,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_localMySql(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1344,7 +1739,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_managedPipelineMode(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1383,7 +1778,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1412,8 +1807,8 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1422,7 +1817,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_tagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1451,7 +1846,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 
-  tags {
+  tags = {
     "Hello"     = "World"
     "Terraform" = "AcceptanceTests"
   }
@@ -1462,7 +1857,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_remoteDebugging(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1496,8 +1891,8 @@ resource "azurerm_app_service_slot" "test" {
     remote_debugging_version = "VS2015"
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1506,7 +1901,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_virtualNetwork(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1557,7 +1952,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_virtualNetworkUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1620,7 +2015,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsDotNet(rInt int, location, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1659,7 +2054,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsJava(rInt int, location, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1700,7 +2095,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsPHP(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1730,7 +2125,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   site_config {
-    php_version = "7.1"
+    php_version = "7.2"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1739,7 +2134,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsPython(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1778,7 +2173,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_webSockets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1817,7 +2212,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1840,12 +2235,13 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_slot" "test" {
-  name                    = "acctestASSlot-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  app_service_name        = "${azurerm_app_service.test.name}"
-  identity = {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  identity {
     type = "SystemAssigned"
   }
 }
@@ -1855,7 +2251,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1886,7 +2282,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     min_tls_version = "%s"
-	}
+  }
 }
 `, rInt, location, rInt, rInt, rInt, tlsVersion)
 }

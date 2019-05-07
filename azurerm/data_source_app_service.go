@@ -28,7 +28,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": azure.SchemaAppServiceSiteConfig(),
+			"site_config": azure.SchemaAppServiceDataSourceSiteConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -41,6 +41,11 @@ func dataSourceArmAppService() *schema.Resource {
 			},
 
 			"https_only": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"client_cert_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -60,8 +65,9 @@ func dataSourceArmAppService() *schema.Resource {
 							Computed: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Computed:  true,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -97,6 +103,11 @@ func dataSourceArmAppService() *schema.Resource {
 			},
 
 			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -181,8 +192,10 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 	}
 
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {

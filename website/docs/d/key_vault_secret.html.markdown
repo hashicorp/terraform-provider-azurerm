@@ -1,15 +1,15 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_secret"
-sidebar_current: "docs-azurerm-data-source-key-vault-secret"
+sidebar_current: "docs-azurerm-datasource-key-vault-secret"
 description: |-
-  Returns information about the specified Key Vault Secret.
+  Gets information about an existing Key Vault Secret.
 
 ---
 
 # Data Source: azurerm_key_vault_secret
 
-Returns information about the specified Key Vault Secret.
+Use this data source to access information about an existing Key Vault Secret.
 
 ~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -19,7 +19,7 @@ Returns information about the specified Key Vault Secret.
 ```hcl
 data "azurerm_key_vault_secret" "test" {
   name      = "secret-sauce"
-  vault_uri = "https://rickslab.vault.azure.net/"
+  key_vault_id = "${data.azurerm_key_vault.existing.id}"
 }
 
 output "secret_value" {
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` Data Source / Resource.
+* `key_vault_id` - (Required) Specifies the ID of the Key Vault Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
 
 
 ## Attributes Reference

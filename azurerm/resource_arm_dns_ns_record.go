@@ -6,14 +6,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDnsNsRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsNsRecordCreateOrUpdate,
+		Create: resourceArmDnsNsRecordCreateUpdate,
 		Read:   resourceArmDnsNsRecordRead,
-		Update: resourceArmDnsNsRecordCreateOrUpdate,
+		Update: resourceArmDnsNsRecordCreateUpdate,
 		Delete: resourceArmDnsNsRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -68,34 +69,48 @@ func resourceArmDnsNsRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsNsRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+func resourceArmDnsNsRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dns_ns_record", *existing.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
-	records, err := expandAzureRmDnsNsRecords(d)
-	if err != nil {
-		return err
-	}
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:  expandTags(tags),
 			TTL:       &ttl,
-			NsRecords: &records,
+			NsRecords: expandAzureRmDnsNsRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch)
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch); err != nil {
+		return fmt.Errorf("Error creating/updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -161,9 +176,9 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	name := id.Path["NS"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.NS, "")
+	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.NS, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", name, err)
 	}
 
 	return nil
@@ -196,7 +211,7 @@ func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []string {
 	return results
 }
 
-func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
+func expandAzureRmDnsNsRecords(d *schema.ResourceData) *[]dns.NsRecord {
 	var records []dns.NsRecord
 
 	//TODO: remove this once we remove the `record` attribute
@@ -227,5 +242,5 @@ func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
 			}
 		}
 	}
-	return records, nil
+	return &records
 }

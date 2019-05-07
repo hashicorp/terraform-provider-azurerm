@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -40,16 +41,26 @@ func NewGalleryImageVersionsClientWithBaseURI(baseURI string, subscriptionID str
 	return GalleryImageVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a gallery image version.
+// CreateOrUpdate create or update a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version. Needs to follow semantic version name
-// pattern: The allowed characters are digit and period. Digits must be within the range of a 32-bit integer.
-// Format: <MajorVersion>.<MinorVersion>.<Patch>
-// galleryImageVersion - parameters supplied to the create or update gallery image version operation.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version is to be created.
+// galleryImageVersionName - the name of the gallery Image Version to be created. Needs to follow semantic
+// version name pattern: The allowed characters are digit and period. Digits must be within the range of a
+// 32-bit integer. Format: <MajorVersion>.<MinorVersion>.<Patch>
+// galleryImageVersion - parameters supplied to the create or update gallery Image Version operation.
 func (client GalleryImageVersionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string, galleryImageVersion GalleryImageVersion) (result GalleryImageVersionsCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: galleryImageVersion,
 			Constraints: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties", Name: validation.Null, Rule: false,
@@ -106,10 +117,6 @@ func (client GalleryImageVersionsClient) CreateOrUpdateSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -127,13 +134,23 @@ func (client GalleryImageVersionsClient) CreateOrUpdateResponder(resp *http.Resp
 	return
 }
 
-// Delete delete a gallery image version.
+// Delete delete a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version resides.
+// galleryImageVersionName - the name of the gallery Image Version to be deleted.
 func (client GalleryImageVersionsClient) Delete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string) (result GalleryImageVersionsDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, galleryName, galleryImageName, galleryImageVersionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryImageVersionsClient", "Delete", nil, "Failure preparing request")
@@ -181,10 +198,6 @@ func (client GalleryImageVersionsClient) DeleteSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -201,14 +214,24 @@ func (client GalleryImageVersionsClient) DeleteResponder(resp *http.Response) (r
 	return
 }
 
-// Get retrieves information about a gallery image version.
+// Get retrieves information about a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version resides.
+// galleryImageVersionName - the name of the gallery Image Version to be retrieved.
 // expand - the expand expression to apply on the operation.
 func (client GalleryImageVersionsClient) Get(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string, expand ReplicationStatusTypes) (result GalleryImageVersion, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, galleryName, galleryImageName, galleryImageVersionName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryImageVersionsClient", "Get", nil, "Failure preparing request")
@@ -276,12 +299,23 @@ func (client GalleryImageVersionsClient) GetResponder(resp *http.Response) (resu
 	return
 }
 
-// ListByGalleryImage list gallery image versions under a gallery image.
+// ListByGalleryImage list gallery Image Versions in a gallery Image Definition.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the Shared Image Gallery Image Definition from which the Image Versions are
+// to be listed.
 func (client GalleryImageVersionsClient) ListByGalleryImage(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImageVersionListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.ListByGalleryImage")
+		defer func() {
+			sc := -1
+			if result.givl.Response.Response != nil {
+				sc = result.givl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByGalleryImageNextResults
 	req, err := client.ListByGalleryImagePreparer(ctx, resourceGroupName, galleryName, galleryImageName)
 	if err != nil {
@@ -347,8 +381,8 @@ func (client GalleryImageVersionsClient) ListByGalleryImageResponder(resp *http.
 }
 
 // listByGalleryImageNextResults retrieves the next set of results, if any.
-func (client GalleryImageVersionsClient) listByGalleryImageNextResults(lastResults GalleryImageVersionList) (result GalleryImageVersionList, err error) {
-	req, err := lastResults.galleryImageVersionListPreparer()
+func (client GalleryImageVersionsClient) listByGalleryImageNextResults(ctx context.Context, lastResults GalleryImageVersionList) (result GalleryImageVersionList, err error) {
+	req, err := lastResults.galleryImageVersionListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "compute.GalleryImageVersionsClient", "listByGalleryImageNextResults", nil, "Failure preparing next results request")
 	}
@@ -369,6 +403,16 @@ func (client GalleryImageVersionsClient) listByGalleryImageNextResults(lastResul
 
 // ListByGalleryImageComplete enumerates all values, automatically crossing page boundaries as required.
 func (client GalleryImageVersionsClient) ListByGalleryImageComplete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImageVersionListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.ListByGalleryImage")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByGalleryImage(ctx, resourceGroupName, galleryName, galleryImageName)
 	return
 }

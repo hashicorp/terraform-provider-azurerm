@@ -39,7 +39,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the MX record. Each `record` block supports fields documented below.
 
@@ -77,5 +77,5 @@ The following attributes are exported:
 MX records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_mx_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/MX/myrecord1
+terraform import azurerm_dns_mx_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/MX/myrecord1
 ```

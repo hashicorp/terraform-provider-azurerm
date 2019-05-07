@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
-sidebar_current: "docs-azurerm-resource-network-subnet"
+sidebar_current: "docs-azurerm-resource-network-subnet-x"
 description: |-
   Manages a subnet. Subnets represent network segments within the IP space defined by the virtual network.
 
@@ -35,6 +35,13 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
+  delegation {
+    name = "acctestdelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 ```
 
@@ -50,11 +57,32 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the subnet.
+* `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
-* `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
+-> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_network_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+* `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
+
+-> **NOTE:** At this time Subnet `<->` Route Table associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_route_table_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql` and `Microsoft.Storage`.
+
+* `delegation` - (Optional) One or more `delegation` blocks as defined below.
+
+---
+
+A `delegation` block supports the following:
+* `name` (Required) A name for this delegation.
+* `service_delegation` (Required) A `service_delegation` block as defined below.
+
+---
+
+A `service_delegation` block supports the following:
+
+-> **NOTE:** Delegating to services may not be available in all regions. Check that the service you are delegating to is available in your region using the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations)
+
+* `name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.Batch/batchAccounts`, `Microsoft.ContainerInstance/containerGroups`, `Microsoft.HardwareSecurityModules/dedicatedHSMs`, `Microsoft.Logic/integrationServiceEnvironments`, `Microsoft.Netapp/volumes`, `Microsoft.ServiceFabricMesh/networks`, `Microsoft.Sql/managedInstances`, `Microsoft.Sql/servers` or `Microsoft.Web/serverFarms`.
+* `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
 
 ## Attributes Reference
 

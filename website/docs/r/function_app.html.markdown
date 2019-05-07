@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
-sidebar_current: "docs-azurerm-resource-function-app"
+sidebar_current: "docs-azurerm-resource-app-service-function-app"
 description: |-
   Manages a Function App.
 
@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+* `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
+
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
@@ -134,6 +136,8 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
 ---
 
 `identity` supports the following:
@@ -151,9 +155,13 @@ The following attributes are exported:
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
+
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+* `kind` - The Function App kind - such as `functionapp,linux,container`
 
 ---
 

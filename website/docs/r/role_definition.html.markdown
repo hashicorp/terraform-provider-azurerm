@@ -17,9 +17,9 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals. See 
 data "azurerm_subscription" "primary" {}
 
 resource "azurerm_role_definition" "test" {
-  name               = "my-custom-role"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  description        = "This is a custom role created via Terraform"
+  name        = "my-custom-role"
+  scope       = "${data.azurerm_subscription.primary.id}"
+  description = "This is a custom role created via Terraform"
 
   permissions {
     actions     = ["*"]
@@ -50,9 +50,13 @@ The following arguments are supported:
 
 A `permissions` block as the following properties:
 
-* `action` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details. 
+* `actions` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
 
-* `not_action` - (Optional) One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
+* `data_actions` - (Optional) One or more Allowed Data Actions, such as `*`, `Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
+
+* `not_actions` - (Optional) One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
+
+* `not_data_actions` - (Optional) One or more Disallowed Data Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
 
 ## Attributes Reference
 

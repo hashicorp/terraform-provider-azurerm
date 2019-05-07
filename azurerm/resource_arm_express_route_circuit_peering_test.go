@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -29,13 +29,49 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"shared_key"}, //is not returned by the API
+			},
+		},
+	})
+}
+
+func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_express_route_circuit_peering.test"
+	ri := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(ri, location),
+				ExpectError: testRequiresImportError("azurerm_express_route_circuit_peering"),
+			},
 		},
 	})
 }
 
 func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -51,15 +87,20 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "microsoft_peering_config.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMExpressRouteCircuitPeeringExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		peeringType := rs.Primary.Attributes["peering_type"]
@@ -132,7 +173,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -142,13 +183,31 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
-  shared_key                    = "ABCdefGHIJklm@nOPqrsTU!!"
+  shared_key                    = "SSSSsssssshhhhhItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
   vlan_id                       = 100
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMExpressRouteCircuitPeering_privatePeering(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_circuit_peering" "import" {
+  peering_type                  = "${azurerm_express_route_circuit_peering.test.peering_type}"
+  express_route_circuit_name    = "${azurerm_express_route_circuit_peering.test.express_route_circuit_name}"
+  resource_group_name           = "${azurerm_express_route_circuit_peering.test.resource_group_name}"
+  shared_key                    = "${azurerm_express_route_circuit_peering.test.shared_key}"
+  peer_asn                      = "${azurerm_express_route_circuit_peering.test.peer_asn}"
+  primary_peer_address_prefix   = "${azurerm_express_route_circuit_peering.test.primary_peer_address_prefix}"
+  secondary_peer_address_prefix = "${azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix}"
+  vlan_id                       = "${azurerm_express_route_circuit_peering.test.vlan_id}"
+}
+`, template)
 }
 
 func testAccAzureRMExpressRouteCircuitPeering_msPeering(rInt int, location string) string {
@@ -171,7 +230,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

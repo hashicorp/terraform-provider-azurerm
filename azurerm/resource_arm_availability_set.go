@@ -8,14 +8,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAvailabilitySetCreate,
+		Create: resourceArmAvailabilitySetCreateUpdate,
 		Read:   resourceArmAvailabilitySetRead,
-		Update: resourceArmAvailabilitySetCreate,
+		Update: resourceArmAvailabilitySetCreateUpdate,
 		Delete: resourceArmAvailabilitySetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,15 +61,29 @@ func resourceArmAvailabilitySet() *schema.Resource {
 	}
 }
 
-func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).availSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Availability Set %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_availability_set", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
@@ -84,7 +99,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if managed == true {
+	if managed {
 		n := "Aligned"
 		availSet.Sku = &compute.Sku{
 			Name: &n,
@@ -121,17 +136,18 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on Azure Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	availSet := *resp.AvailabilitySetProperties
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
-	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
-
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
+	}
+
+	if props := resp.AvailabilitySetProperties; props != nil {
+		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

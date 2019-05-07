@@ -17,6 +17,12 @@ func HashString(v interface{}) int {
 	return hashcode.String(v.(string))
 }
 
+// HashInt hashes integers. If you want a Set of integers, this is the
+// SchemaSetFunc you want.
+func HashInt(v interface{}) int {
+	return hashcode.String(strconv.Itoa(v.(int)))
+}
+
 // HashResource hashes complex structures that are described using
 // a *Resource. This is the default set implementation used when a set's
 // element type is a full resource.
@@ -192,6 +198,16 @@ func (s *Set) add(item interface{}, computed bool) string {
 	code := s.hash(item)
 	if computed {
 		code = "~" + code
+
+		if isProto5() {
+			tmpCode := code
+			count := 0
+			for _, exists := s.m[tmpCode]; exists; _, exists = s.m[tmpCode] {
+				count++
+				tmpCode = fmt.Sprintf("%s%d", code, count)
+			}
+			code = tmpCode
+		}
 	}
 
 	if _, ok := s.m[code]; !ok {

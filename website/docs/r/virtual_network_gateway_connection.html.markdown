@@ -46,10 +46,10 @@ resource "azurerm_local_network_gateway" "onpremise" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -91,8 +91,8 @@ in different locations/regions.
 
 ```hcl
 resource "azurerm_resource_group" "us" {
-    name     = "us"
-    location = "East US"
+  name     = "us"
+  location = "East US"
 }
 
 resource "azurerm_virtual_network" "us" {
@@ -110,10 +110,10 @@ resource "azurerm_subnet" "us_gateway" {
 }
 
 resource "azurerm_public_ip" "us" {
-  name                         = "us"
-  location                     = "${azurerm_resource_group.us.location}"
-  resource_group_name          = "${azurerm_resource_group.us.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "us"
+  location            = "${azurerm_resource_group.us.location}"
+  resource_group_name = "${azurerm_resource_group.us.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "us" {
@@ -152,10 +152,10 @@ resource "azurerm_subnet" "europe_gateway" {
 }
 
 resource "azurerm_public_ip" "europe" {
-  name                         = "europe"
-  location                     = "${azurerm_resource_group.europe.location}"
-  resource_group_name          = "${azurerm_resource_group.europe.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "europe"
+  location            = "${azurerm_resource_group.europe.location}"
+  resource_group_name = "${azurerm_resource_group.europe.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "europe" {
@@ -246,6 +246,8 @@ The following arguments are supported:
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
+
+* `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
 
 * `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic

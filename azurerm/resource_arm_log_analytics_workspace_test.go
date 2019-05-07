@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
@@ -51,39 +52,78 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
+func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace.test"
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
+func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 
-	resource.Test(t, resource.TestCase{
+	resourceName := "azurerm_log_analytics_workspace.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_complete(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -115,12 +155,12 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -144,7 +184,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheck
 		return nil
 	}
 }
-func testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -152,7 +192,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -160,7 +200,21 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "import" {
+  name                = "${azurerm_log_analytics_workspace.test.name}"
+  location            = "${azurerm_log_analytics_workspace.test.location}"
+  resource_group_name = "${azurerm_log_analytics_workspace.test.resource_group_name}"
+  sku                 = "PerGB2018"
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -168,11 +222,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
+
+ tags = {
+    Environment = "Test"
+  }
 }
 `, rInt, location, rInt)
 }

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 	resourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -33,9 +33,9 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -56,9 +56,9 @@ func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 
 func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -71,6 +71,32 @@ func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "address_prefix"),
 					resource.TestCheckResourceAttr(dataSourceName, "network_security_group_id", ""),
 					resource.TestCheckResourceAttrSet(dataSourceName, "route_table_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMSubnet_serviceEndpoints(t *testing.T) {
+	dataSourceName := "data.azurerm_subnet.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMSubnet_serviceEndpoints(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "address_prefix"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_security_group_id", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "route_table_id", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "service_endpoints.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "service_endpoints.0", "Microsoft.Sql"),
+					resource.TestCheckResourceAttr(dataSourceName, "service_endpoints.1", "Microsoft.Storage"),
 				),
 			},
 		},
@@ -195,4 +221,34 @@ data "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccDataSourceAzureRMSubnet_serviceEndpoints(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
+}
+
+data "azurerm_subnet" "test" {
+  name                 = "${azurerm_subnet.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+}
+`, rInt, location, rInt, rInt)
 }
