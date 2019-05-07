@@ -2308,7 +2308,10 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 func expandAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
 	vs := d.Get("autoscale_configuration").([]interface{})
-	v := vs[0].(map[string]interface{})
+      if len(vs) == 0 {
+        return nil
+      }
+      v := vs[0].(map[string]interface{})
 
 	minCapacity := int32(v["min_capacity"].(int))
 	maxCapacity := int32(v["max_capacity"].(int))
