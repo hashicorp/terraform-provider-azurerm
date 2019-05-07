@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_user_assigned_identity` [GH-3343]
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 * **New Resource:** `azurerm_api_management_api_operation_policy` [GH-3374]
 * **New Resource:** `azurerm_api_management_api_policy` [GH-3367]
