@@ -12,64 +12,20 @@ Links an Automation Runbook and Schedule.
 
 ## Example Usage
 
+This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/automation-account)
+
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "tfex-automation-account"
-  location = "West Europe"
-}
-
-resource "azurerm_automation_account" "example" {
-  name                = "tfex-automation-account"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-
-  sku {
-    name = "Basic"
-  }
-}
-
-resource "azurerm_automation_runbook" "example" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an example runbook"
-  runbook_type        = "PowerShellWorkflow"
-
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
-}
-
-resource "azurerm_automation_schedule" "example" {
-  name                    = "tfex-automation-schedule"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  frequency               = "Week"
-  interval                = 1
-  timezone                = "Central Europe Standard Time"
-  start_time              = "2014-04-15T18:00:15+02:00"
-  description             = "This is an example schedule"
-
-  advanced_schedule {
-    week_days = ["Friday"]
-  }
-}
-
 resource "azurerm_automation_job_schedule" "example" {
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  schedule_name           = "${azurerm_automation_schedule.example.name}"
-  runbook_name            = "${azurerm_automation_runbook.example.name}"
+  resource_group_name     = "tf-rgr-automation"
+  automation_account_name = "tf-automation-account"
+  schedule_name           = "hour"
+  runbook_name            = "Get-VirtualMachine"
 
   parameters = {
-    Connection         = "AzureRunAsConnection"
-    VMCount            = 10
+    ResourceGroup      = "tf-rgr-vm"
+    VMName             = "tf-vm-01"
   }
 }
-
 ```
 
 ## Argument Reference
