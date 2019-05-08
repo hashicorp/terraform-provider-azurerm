@@ -64,8 +64,8 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	azureRMLockByName(subnetName, subnetResourceName)
+	defer azureRMUnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -192,9 +192,6 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 
 	azureRMLockByName(routeTableName, routeTableResourceName)
 	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
-
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	azureRMLockByName(subnetName, subnetResourceName)
 	defer azureRMUnlockByName(subnetName, subnetResourceName)

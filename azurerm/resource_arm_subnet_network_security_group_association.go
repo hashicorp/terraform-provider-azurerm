@@ -64,8 +64,8 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	azureRMLockByName(subnetName, subnetResourceName)
+	defer azureRMUnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -192,9 +192,6 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 
 	azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	azureRMLockByName(subnetName, subnetResourceName)
 	defer azureRMUnlockByName(subnetName, subnetResourceName)
