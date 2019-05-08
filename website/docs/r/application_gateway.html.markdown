@@ -397,17 +397,17 @@ A `waf_configuration` block supports the following:
 
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
 
-* `exclusion` - (Optional) one or many `exclusion` blocks as defined below.
+* `exclusion` - (Optional) one or more `exclusion` blocks as defined below.
 
 ---
 
 A `exclusion` block supports the following:
 
-* `match_variable` - (Required) Match variable of the exclusion rule to exclude header, cookie or GET arguments. Possible values are `RequestHeaderNames`, `RequestArgsNames` and `RequestCookieNames`
+* `match_variable` - (Required) Match variable of the exclusion rule to exclude header, cookie or GET arguments. Possible values are `RequestHeaderNames`, `RequestArgNames` and `RequestCookieNames`
 
-* `selector_match_operator` - (Optional) Operator which will be used to search in the variable content. Possible values are `Equals`, `StartsWith`, `EndsWith`, `Contains`. If not set falls back to `equals any` which will exclude all traffic on this `match_variable`
+* `selector_match_operator` - (Optional) Operator which will be used to search in the variable content. Possible values are `Equals`, `StartsWith`, `EndsWith`, `Contains`. If empty will exclude all traffic on this `match_variable`
 
-* `selector` - (Optional) String value which will be used for the filter operation. If not set falls back to wildcard `*` which will exclude all traffic on this `match_variable`
+* `selector` - (Optional) String value which will be used for the filter operation. If empty will exclude all traffic on this `match_variable`
 
 ---
 
