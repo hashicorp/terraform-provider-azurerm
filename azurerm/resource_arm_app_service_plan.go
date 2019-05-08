@@ -47,6 +47,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
 					// thus we need to support it to be able to import resources without recreating them.
 					"App",
+					"elastic",
 					"FunctionApp",
 					"Linux",
 					"Windows",

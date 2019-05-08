@@ -559,3 +559,24 @@ resource "azurerm_app_service_plan" "test" {
 }
 `, rInt, location, rInt)
 }
+
+func testAccAzureRMAppServicePlan_premiumConsumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+`, rInt, location, rInt)
+}
