@@ -949,14 +949,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 											"REQUEST-941-APPLICATION-ATTACK-XSS",
 											"REQUEST-942-APPLICATION-ATTACK-SQLI",
 											"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION",
-										}, true),
+										}, false),
 									},
 
 									"rules": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeInt,
+											Type:         schema.TypeInt,
+											ValidateFunc: validation.IntAtLeast(1),
 										},
 									},
 								},
@@ -2655,29 +2656,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	requestBodyCheck := v["request_body_check"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
 
-	disabledRuleGroups := make([]network.ApplicationGatewayFirewallDisabledRuleGroup, 0)
-	for _, disabledRuleGroup := range v["disabled_rule_group"].([]interface{}) {
-		disabledRuleGroupMap := disabledRuleGroup.(map[string]interface{})
-
-		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
-
-		rules := make([]int32, 0)
-		for _, rule := range disabledRuleGroupMap["rules"].([]interface{}) {
-			rules = append(rules, int32(rule.(int)))
-		}
-
-		if len(rules) == 0 {
-			rules = nil
-		}
-
-		ruleGroup := network.ApplicationGatewayFirewallDisabledRuleGroup{
-			RuleGroupName: utils.String(ruleGroupName),
-			Rules:         &rules,
-		}
-
-		disabledRuleGroups = append(disabledRuleGroups, ruleGroup)
-	}
-
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
 		Enabled:                utils.Bool(enabled),
 		FirewallMode:           network.ApplicationGatewayFirewallMode(mode),
@@ -2686,7 +2664,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
-		DisabledRuleGroups:     &disabledRuleGroups,
+		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]interface{})),
 	}
 }
 
@@ -2712,35 +2690,8 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 		output["rule_set_version"] = *input.RuleSetVersion
 	}
 
-	ruleGroups := make([]interface{}, 0)
-	if disabledRuleGroups := input.DisabledRuleGroups; disabledRuleGroups != nil {
-		for _, ruleGroup := range *disabledRuleGroups {
-			ruleGroupOutput := map[string]interface{}{}
-
-			if ruleGroup.RuleGroupName != nil {
-				ruleGroupOutput["rule_group_name"] = *ruleGroup.RuleGroupName
-			}
-
-			ruleOutputs := make([]interface{}, 0)
-			if rules := ruleGroup.Rules; rules != nil {
-				for _, rule := range *rules {
-					ruleOutputs = append(ruleOutputs, rule)
-				}
-			}
-			ruleGroupOutput["rules"] = ruleOutputs
-
-			ruleGroups = append(ruleGroups, ruleGroupOutput)
-		}
-
-		output["disabled_rule_group"] = ruleGroups
-	}
-
-	if input.RequestBodyCheck != nil {
-		output["request_body_check"] = *input.RequestBodyCheck
-	}
-
-	if input.MaxRequestBodySizeInKb != nil {
-		output["max_request_body_size_kb"] = *input.MaxRequestBodySizeInKb
+	if input.DisabledRuleGroups != nil {
+		output["disabled_rule_group"] = flattenApplicationGateWayDisabledRuleGroups(input.DisabledRuleGroups)
 	}
 
 	if input.FileUploadLimitInMb != nil {
@@ -2758,6 +2709,58 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	results = append(results, output)
 
 	return results
+}
+
+func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]network.ApplicationGatewayFirewallDisabledRuleGroup {
+	if len(d) == 0 {
+		return nil
+	}
+
+	disabledRuleGroups := make([]network.ApplicationGatewayFirewallDisabledRuleGroup, 0)
+	for _, disabledRuleGroup := range d {
+		disabledRuleGroupMap := disabledRuleGroup.(map[string]interface{})
+
+		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
+
+		ruleGroup := network.ApplicationGatewayFirewallDisabledRuleGroup{
+			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		rules := make([]int32, 0)
+		for _, rule := range disabledRuleGroupMap["rules"].([]interface{}) {
+			rules = append(rules, int32(rule.(int)))
+		}
+
+		if len(rules) > 0 {
+			ruleGroup.Rules = &rules
+		}
+
+		disabledRuleGroups = append(disabledRuleGroups, ruleGroup)
+	}
+	return &disabledRuleGroups
+}
+
+func flattenApplicationGateWayDisabledRuleGroups(input *[]network.ApplicationGatewayFirewallDisabledRuleGroup) []interface{} {
+	ruleGroups := make([]interface{}, 0)
+	for _, ruleGroup := range *input {
+		ruleGroupOutput := map[string]interface{}{}
+
+		if ruleGroup.RuleGroupName != nil {
+			ruleGroupOutput["rule_group_name"] = *ruleGroup.RuleGroupName
+		}
+
+		ruleOutputs := make([]interface{}, 0)
+		if rules := ruleGroup.Rules; rules != nil {
+			for _, rule := range *rules {
+				ruleOutputs = append(ruleOutputs, rule)
+			}
+		}
+		ruleGroupOutput["rules"] = ruleOutputs
+
+		ruleGroups = append(ruleGroups, ruleGroupOutput)
+
+	}
+	return ruleGroups
 }
 
 func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {
