@@ -15,10 +15,7 @@ func dataSourceArmContainerOrchestratorVersions() *schema.Resource {
 		Read: dataArmSourceContainerOrchestratorVersionsRead,
 
 		Schema: map[string]*schema.Schema{
-			"location": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"location": locationSchema(),
 			"orchestrator_type": {
 				Type:     schema.TypeString,
 				Optional: true,
