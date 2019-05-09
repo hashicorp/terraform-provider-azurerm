@@ -53,14 +53,6 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup

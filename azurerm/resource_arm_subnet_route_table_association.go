@@ -53,14 +53,6 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	routeTableName, err := parseRouteTableName(routeTableId)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(routeTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableName, routeTableResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
