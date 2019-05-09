@@ -112,14 +112,11 @@ func dataSourceArmBatchPool() *schema.Resource {
 			},
 			"container_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+                Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
