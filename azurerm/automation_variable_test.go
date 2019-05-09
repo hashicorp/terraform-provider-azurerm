@@ -23,15 +23,6 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		Expect      ExpectFunc
 	}{
 		{
-			Name:        "null variable",
-			Resource:    "azurerm_automation_null_variable",
-			IsNil:       true,
-			Value:       "<nil>",
-			HasError:    false,
-			ExpectValue: nil,
-			Expect:      func(v interface{}) bool { return v == nil },
-		},
-		{
 			Name:        "string variable",
 			Resource:    "azurerm_automation_string_variable",
 			Value:       "\"Test String\"",
@@ -73,15 +64,15 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			if tc.IsNil {
 				value = nil
 			}
-			actual, err := parseAzureRmAutomationVariableValue(tc.Resource, value)
+			actual, err := parseAzureAutomationVariableValue(tc.Resource, value)
 			if tc.HasError && err == nil {
-				t.Fatalf("Expect parseAzureRmAutomationVariableValue to return error for resource %q and value %s", tc.Resource, tc.Value)
+				t.Fatalf("Expect parseAzureAutomationVariableValue to return error for resource %q and value %s", tc.Resource, tc.Value)
 			}
 			if !tc.HasError {
 				if err != nil {
-					t.Fatalf("Expect parseAzureRmAutomationVariableValue to return no error for resource %q and value %s, err: %+v", tc.Resource, tc.Value, err)
+					t.Fatalf("Expect parseAzureAutomationVariableValue to return no error for resource %q and value %s, err: %+v", tc.Resource, tc.Value, err)
 				} else if !tc.Expect(actual) {
-					t.Fatalf("Expect parseAzureRmAutomationVariableValue to return %v instead of %v for resource %q and value %s", tc.ExpectValue, actual, tc.Resource, tc.Value)
+					t.Fatalf("Expect parseAzureAutomationVariableValue to return %v instead of %v for resource %q and value %s", tc.ExpectValue, actual, tc.Resource, tc.Value)
 				}
 			}
 		})

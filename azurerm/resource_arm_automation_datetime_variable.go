@@ -16,18 +16,18 @@ func resourceArmAutomationDatetimeVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(schema.TypeString, validate.RFC3339Time),
+		Schema: resourceAutomationVariableCommonSchema(schema.TypeString, validate.RFC3339Time),
 	}
 }
 
 func resourceArmAutomationDatetimeVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableCreateUpdate(d, meta, "Datetime")
+	return resourceAutomationVariableCreateUpdate(d, meta, "Datetime")
 }
 
 func resourceArmAutomationDatetimeVariableRead(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableRead(d, meta, "Datetime")
+	return resourceAutomationVariableRead(d, meta, "Datetime")
 }
 
 func resourceArmAutomationDatetimeVariableDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableDelete(d, meta, "Datetime")
+	return resourceAutomationVariableDelete(d, meta, "Datetime")
 }

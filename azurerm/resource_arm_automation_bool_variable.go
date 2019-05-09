@@ -15,18 +15,18 @@ func resourceArmAutomationBoolVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(schema.TypeBool, nil),
+		Schema: resourceAutomationVariableCommonSchema(schema.TypeBool, nil),
 	}
 }
 
 func resourceArmAutomationBoolVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableCreateUpdate(d, meta, "Bool")
+	return resourceAutomationVariableCreateUpdate(d, meta, "Bool")
 }
 
 func resourceArmAutomationBoolVariableRead(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableRead(d, meta, "Bool")
+	return resourceAutomationVariableRead(d, meta, "Bool")
 }
 
 func resourceArmAutomationBoolVariableDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableDelete(d, meta, "Bool")
+	return resourceAutomationVariableDelete(d, meta, "Bool")
 }

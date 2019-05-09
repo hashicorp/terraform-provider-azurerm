@@ -15,18 +15,18 @@ func resourceArmAutomationIntVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(schema.TypeInt, nil),
+		Schema: resourceAutomationVariableCommonSchema(schema.TypeInt, nil),
 	}
 }
 
 func resourceArmAutomationIntVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableCreateUpdate(d, meta, "Int")
+	return resourceAutomationVariableCreateUpdate(d, meta, "Int")
 }
 
 func resourceArmAutomationIntVariableRead(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableRead(d, meta, "Int")
+	return resourceAutomationVariableRead(d, meta, "Int")
 }
 
 func resourceArmAutomationIntVariableDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableDelete(d, meta, "Int")
+	return resourceAutomationVariableDelete(d, meta, "Int")
 }

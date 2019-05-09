@@ -16,18 +16,18 @@ func resourceArmAutomationStringVariable() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: AutomationVariableCommonSchemaFrom(schema.TypeString, validate.NoEmptyStrings),
+		Schema: resourceAutomationVariableCommonSchema(schema.TypeString, validate.NoEmptyStrings),
 	}
 }
 
 func resourceArmAutomationStringVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableCreateUpdate(d, meta, "String")
+	return resourceAutomationVariableCreateUpdate(d, meta, "String")
 }
 
 func resourceArmAutomationStringVariableRead(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableRead(d, meta, "String")
+	return resourceAutomationVariableRead(d, meta, "String")
 }
 
 func resourceArmAutomationStringVariableDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmAutomationVariableDelete(d, meta, "String")
+	return resourceAutomationVariableDelete(d, meta, "String")
 }
