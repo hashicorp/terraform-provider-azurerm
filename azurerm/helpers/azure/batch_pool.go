@@ -233,7 +233,7 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 // ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
 func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.ContainerConfiguration, error) {
 	if len(list) == 0 {
-		return nil, fmt.Errorf("Error: container configuration should be defined")
+		return nil, nil
 	}
 
 	containerConfiguration := list[0].(map[string]interface{})
