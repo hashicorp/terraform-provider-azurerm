@@ -25,6 +25,8 @@ BUG FIXES:
 * `redis_configuration` - correctly display http errors encoutered during creation [GH-3397]
 * `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API [GH-3137]
 * `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output [GH-3318]
+* `azurerm_app_service_plan` - supports `elastic` for the sku tier [GH-3402]
+* `azurerm_application_gateway` - supports `disabled_rule_group` for waf configurations [GH-3394]
 
 ## 1.27.1 (April 26, 2019)
 
