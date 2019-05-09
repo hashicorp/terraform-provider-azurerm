@@ -197,7 +197,7 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
-		return result
+		return nil
 	}
 
 	if armContainerConfiguration.Type != nil {

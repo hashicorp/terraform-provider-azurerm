@@ -588,13 +588,10 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration != nil {
-
-			containerConfiguration := props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration
-
-			d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(containerConfiguration))
+		if dcfg := props.DeploymentConfiguration; dcfg != nil {
+			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+			}
 		}
 
 		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {

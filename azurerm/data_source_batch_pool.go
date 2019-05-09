@@ -112,11 +112,12 @@ func dataSourceArmBatchPool() *schema.Resource {
 			},
 			"container_configuration": {
 				Type:     schema.TypeList,
-                Computed: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:         schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -285,25 +286,20 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration != nil {
+		if dcfg := props.DeploymentConfiguration; dcfg != nil {
+			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration)); err != nil {
+					return fmt.Errorf("error setting `container_configuration`: %v", err)
+				}
 
-			containerConfiguration := props.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration
+				if err := d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
+					return fmt.Errorf("error setting `storage_image_reference`: %v", err)
+				}
 
-			if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(containerConfiguration)); err != nil {
-				return fmt.Errorf("error setting `container_configuration`: %v", err)
+				if err := d.Set("node_agent_sku_id", vmcfg.NodeAgentSkuID); err != nil {
+					return fmt.Errorf("error setting `node_agent_sku_id`: %v", err)
+				}
 			}
-		}
-
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
-			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
-
-			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
-			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
 		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
