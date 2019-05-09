@@ -27,23 +27,23 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"automation_account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"runbook_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateAutomationRunbookName(),
 			},
 
 			"schedule_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateAutomationScheduleName(),
 			},
 

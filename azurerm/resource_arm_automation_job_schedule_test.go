@@ -2,8 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"testing"
 	"math/rand"
+	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
