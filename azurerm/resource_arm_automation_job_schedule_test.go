@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"testing"
+	"math/rand"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -11,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAutomationJobScheduleCreate(t *testing.T) {
+func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	resourceName := "azurerm_automation_job_schedule.test"
-	ri := tf.AccRandTimeInt()
+	ri := rand.Int()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,8 +22,60 @@ func TestAccAzureRMAutomationJobScheduleCreate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobScheduleCreate(ri, testLocation()),
-				Check:  checkAccAzureRMAutomationJobScheduleCreate(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
+	resourceName := "azurerm_automation_job_schedule.test"
+	ri := rand.Int()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
+	resourceName := "azurerm_automation_job_schedule.test"
+	ri := rand.Int()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+			},
+			{
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
+			},
+			{
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -49,8 +102,8 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobScheduleCreate(ri, location),
-				Check:  checkAccAzureRMAutomationJobScheduleCreate(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, location),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
 				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(ri, location),
@@ -153,7 +206,7 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
+  name                = "Output-HelloWorld"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -161,11 +214,18 @@ resource "azurerm_automation_runbook" "test" {
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
-  runbook_type = "PowerShellWorkflow"
+  runbook_type = "PowerShell"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
+
+  content = <<EOF
+  param(
+    [string]$Output = "World"
+  )
+  "Hello, " + $Output + "!"
+EOF
 }
 
 resource "azurerm_automation_schedule" "test" {
@@ -177,7 +237,7 @@ resource "azurerm_automation_schedule" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMAutomationJobScheduleCreate(rInt int, location string) string {
+func testAccAzureRMAutomationJobSchedule_basic(rInt int, location string) string {
 	template := testAccAzureRMAutomationJobSchedulePrerequisites(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -191,7 +251,7 @@ resource "azurerm_automation_job_schedule" "test" {
 `, template)
 }
 
-func checkAccAzureRMAutomationJobScheduleCreate(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMAutomationJobSchedule_basic(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationJobScheduleExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "job_schedule_id"),
@@ -202,8 +262,39 @@ func checkAccAzureRMAutomationJobScheduleCreate(resourceName string) resource.Te
 	)
 }
 
+func testAccAzureRMAutomationJobSchedule_complete(rInt int, location string) string {
+	template := testAccAzureRMAutomationJobSchedulePrerequisites(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_job_schedule" "test" {
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  schedule_name           = "${azurerm_automation_schedule.test.name}"
+  runbook_name            = "${azurerm_automation_runbook.test.name}"
+
+  parameters = {
+    output                = "Earth"
+  }
+}
+`, template)
+}
+
+func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMAutomationJobScheduleExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "job_schedule_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.output", "Earth"),
+	)
+}
+
 func testAccAzureRMAutomationJobSchedule_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationJobScheduleCreate(rInt, location)
+	template := testAccAzureRMAutomationJobSchedule_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
