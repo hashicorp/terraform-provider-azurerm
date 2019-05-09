@@ -151,8 +151,8 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 					// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
 					// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
 					// at a later date these may return the expected 'true' / 'false' and should be changed back
-					resource.TestCheckOutput("tfFalseOutput", "0"),
-					resource.TestCheckOutput("tfTrueOutput", "1"),
+					resource.TestCheckOutput("tfFalseOutput", "false"),
+					resource.TestCheckOutput("tfTrueOutput", "true"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.stringOutput", "Standard_GRS"),
 				),
 			},
@@ -466,7 +466,7 @@ resource "azurerm_key_vault" "test-kv" {
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  "sku" {
+  sku {
     name = "standard"
   }
 
@@ -495,7 +495,7 @@ resource "azurerm_key_vault_secret" "test-secret" {
 }
 
 locals {
-  "templated-file" = <<TPL
+  templated-file = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
@@ -680,7 +680,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -804,7 +804,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
   }
@@ -873,7 +873,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters {
+  parameters = {
     storageAccountType = "Standard_GRS"
   }
 

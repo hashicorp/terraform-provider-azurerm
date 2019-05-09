@@ -64,7 +64,8 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			"capacity": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate.IntInSlice([]int{1, 2, 4}),
+				Default:      0,
+				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4}),
 			},
 
 			"default_primary_connection_string": {
@@ -92,20 +93,6 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
-		},
-
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-
-			//If the SKU is not premium the API will always return 0 for capacity
-			//so lets only allow it to be set if the SKU is premium
-			if _, ok := d.GetOk("capacity"); ok {
-				sku := d.Get("sku").(string)
-				if !strings.EqualFold(sku, string(servicebus.Premium)) {
-					return fmt.Errorf("`capacity` can only be set for a Premium SKU")
-				}
-			}
-
-			return nil
 		},
 	}
 }
@@ -144,7 +131,13 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		Tags: expandTags(tags),
 	}
 
-	if capacity, ok := d.GetOk("capacity"); ok {
+	if capacity := d.Get("capacity"); capacity != nil {
+		if !strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) > 0 {
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
+		}
+		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2 or 4", sku)
+		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
 

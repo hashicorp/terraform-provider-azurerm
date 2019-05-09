@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-resource "azurerm_devspace_controller" test {
+resource "azurerm_devspace_controller" "test" {
   name                = "acctestdsc1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -50,7 +50,7 @@ resource "azurerm_devspace_controller" test {
   target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 
-  tags {
+  tags = {
     Environment = "Testing"
   }
 }

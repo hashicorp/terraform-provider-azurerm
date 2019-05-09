@@ -173,7 +173,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -183,7 +183,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
-  shared_key                    = "ABCdefGHIJklm@nOPqrsTU!!"
+  shared_key                    = "SSSSsssssshhhhhItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
@@ -230,7 +230,7 @@ resource "azurerm_express_route_circuit" "test" {
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

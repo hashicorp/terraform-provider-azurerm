@@ -10,43 +10,46 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -62,8 +65,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -113,10 +117,12 @@ type ArmClient struct {
 	kubernetesClustersClient            containerservice.ManagedClustersClient
 	containerGroupsClient               containerinstance.ContainerGroupsClient
 
-	eventGridTopicsClient       eventgrid.TopicsClient
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
+	eventGridDomainsClient            eventgrid.DomainsClient
+	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
+	eventGridTopicsClient             eventgrid.TopicsClient
+	eventHubClient                    eventhub.EventHubsClient
+	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient          eventhub.NamespacesClient
 
 	solutionsClient operationsmanagement.SolutionsClient
 
@@ -125,7 +131,29 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
-	apiManagementServiceClient apimanagement.ServiceClient
+	apiManagementApiClient                  apimanagement.APIClient
+	apiManagementApiPoliciesClient          apimanagement.APIPolicyClient
+	apiManagementApiOperationsClient        apimanagement.APIOperationClient
+	apiManagementApiOperationPoliciesClient apimanagement.APIOperationPolicyClient
+	apiManagementApiSchemasClient           apimanagement.APISchemaClient
+	apiManagementApiVersionSetClient        apimanagement.APIVersionSetClient
+	apiManagementAuthorizationServersClient apimanagement.AuthorizationServerClient
+	apiManagementCertificatesClient         apimanagement.CertificateClient
+	apiManagementGroupClient                apimanagement.GroupClient
+	apiManagementGroupUsersClient           apimanagement.GroupUserClient
+	apiManagementLoggerClient               apimanagement.LoggerClient
+	apiManagementOpenIdConnectClient        apimanagement.OpenIDConnectProviderClient
+	apiManagementPolicyClient               apimanagement.PolicyClient
+	apiManagementProductsClient             apimanagement.ProductClient
+	apiManagementProductApisClient          apimanagement.ProductAPIClient
+	apiManagementProductGroupsClient        apimanagement.ProductGroupClient
+	apiManagementProductPoliciesClient      apimanagement.ProductPolicyClient
+	apiManagementPropertyClient             apimanagement.PropertyClient
+	apiManagementServiceClient              apimanagement.ServiceClient
+	apiManagementSignInClient               apimanagement.SignInSettingsClient
+	apiManagementSignUpClient               apimanagement.SignUpSettingsClient
+	apiManagementSubscriptionsClient        apimanagement.SubscriptionClient
+	apiManagementUsersClient                apimanagement.UserClient
 
 	// Application Insights
 	appInsightsClient       appinsights.ComponentsClient
@@ -141,8 +169,9 @@ type ArmClient struct {
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	// Batch
-	batchAccountClient batch.AccountClient
-	batchPoolClient    batch.PoolClient
+	batchAccountClient     batch.AccountClient
+	batchCertificateClient batch.CertificateClient
+	batchPoolClient        batch.PoolClient
 
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
@@ -202,6 +231,12 @@ type ArmClient struct {
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
+	// Data Factory
+	dataFactoryPipelineClient      datafactory.PipelinesClient
+	dataFactoryClient              datafactory.FactoriesClient
+	dataFactoryDatasetClient       datafactory.DatasetsClient
+	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
+
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
 	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
@@ -213,6 +248,11 @@ type ArmClient struct {
 
 	// Databricks
 	databricksWorkspacesClient databricks.WorkspacesClient
+
+	// HDInsight
+	hdinsightApplicationsClient   hdinsight.ApplicationsClient
+	hdinsightClustersClient       hdinsight.ClustersClient
+	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -228,6 +268,9 @@ type ArmClient struct {
 	// Management Groups
 	managementGroupsClient             managementgroups.Client
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
+
+	// Media
+	mediaServicesClient media.MediaservicesClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -245,6 +288,7 @@ type ArmClient struct {
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
 	azureFirewallsClient            network.AzureFirewallsClient
+	connectionMonitorsClient        network.ConnectionMonitorsClient
 	ddosProtectionPlanClient        network.DdosProtectionPlansClient
 	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
@@ -254,6 +298,7 @@ type ArmClient struct {
 	localNetConnClient              network.LocalNetworkGatewaysClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
+	publicIPPrefixClient            network.PublicIPPrefixesClient
 	routesClient                    network.RoutesClient
 	routeTablesClient               network.RouteTablesClient
 	secGroupClient                  network.SecurityGroupsClient
@@ -287,8 +332,7 @@ type ArmClient struct {
 
 	// Scheduler
 	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
-
-	schedulerJobsClient scheduler.JobsClient //nolint: megacheck
+	schedulerJobsClient           scheduler.JobsClient           //nolint: megacheck
 
 	// Search
 	searchServicesClient  search.ServicesClient
@@ -315,6 +359,13 @@ type ArmClient struct {
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsageClient
+
+	// Stream Analytics
+	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
+	streamAnalyticsJobsClient            streamanalytics.StreamingJobsClient
+	streamAnalyticsInputsClient          streamanalytics.InputsClient
+	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
+	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
 
 	// Traffic Manager
 	trafficManagerGeographialHierarchiesClient trafficmanager.GeographicHierarchiesClient
@@ -409,24 +460,25 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
+	sender := azure.BuildSender()
+
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(oauthConfig, env.TokenAudience)
+	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.GetAuthorizationToken(oauthConfig, graphEndpoint)
+	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
-	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := c.GetAuthorizationToken(oauthConfig, resource)
+		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
@@ -448,6 +500,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
@@ -455,8 +508,10 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
+	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
+	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
@@ -474,6 +529,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
 	client.registerSignalRClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
+	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
@@ -481,9 +537,97 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ams.Client, auth)
-	c.apiManagementServiceClient = ams
+	apisClient := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apisClient.Client, auth)
+	c.apiManagementApiClient = apisClient
+
+	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiPoliciesClient.Client, auth)
+	c.apiManagementApiPoliciesClient = apiPoliciesClient
+
+	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationsClient.Client, auth)
+	c.apiManagementApiOperationsClient = apiOperationsClient
+
+	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiOperationPoliciesClient.Client, auth)
+	c.apiManagementApiOperationPoliciesClient = apiOperationPoliciesClient
+
+	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiSchemasClient.Client, auth)
+	c.apiManagementApiSchemasClient = apiSchemasClient
+
+	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiVersionSetClient.Client, auth)
+	c.apiManagementApiVersionSetClient = apiVersionSetClient
+
+	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&authorizationServersClient.Client, auth)
+	c.apiManagementAuthorizationServersClient = authorizationServersClient
+
+	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&certificatesClient.Client, auth)
+	c.apiManagementCertificatesClient = certificatesClient
+
+	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
+	c.apiManagementGroupClient = groupsClient
+
+	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupUsersClient.Client, auth)
+	c.apiManagementGroupUsersClient = groupUsersClient
+
+	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&loggerClient.Client, auth)
+	c.apiManagementLoggerClient = loggerClient
+
+	policyClient := apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policyClient.Client, auth)
+	c.apiManagementPolicyClient = policyClient
+
+	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&serviceClient.Client, auth)
+	c.apiManagementServiceClient = serviceClient
+
+	signInClient := apimanagement.NewSignInSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&signInClient.Client, auth)
+	c.apiManagementSignInClient = signInClient
+
+	signUpClient := apimanagement.NewSignUpSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&signUpClient.Client, auth)
+	c.apiManagementSignUpClient = signUpClient
+
+	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&openIdConnectClient.Client, auth)
+	c.apiManagementOpenIdConnectClient = openIdConnectClient
+
+	productsClient := apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productsClient.Client, auth)
+	c.apiManagementProductsClient = productsClient
+
+	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productApisClient.Client, auth)
+	c.apiManagementProductApisClient = productApisClient
+
+	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productGroupsClient.Client, auth)
+	c.apiManagementProductGroupsClient = productGroupsClient
+
+	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&productPoliciesClient.Client, auth)
+	c.apiManagementProductPoliciesClient = productPoliciesClient
+
+	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&propertiesClient.Client, auth)
+	c.apiManagementPropertyClient = propertiesClient
+
+	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionsClient.Client, auth)
+	c.apiManagementSubscriptionsClient = subscriptionsClient
+
+	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&usersClient.Client, auth)
+	c.apiManagementUsersClient = usersClient
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -561,6 +705,10 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	c.configureClient(&batchAccount.Client, auth)
 	c.batchAccountClient = batchAccount
 
+	batchCertificateClient := batch.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchCertificateClient.Client, auth)
+	c.batchCertificateClient = batchCertificateClient
+
 	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchPool.Client, auth)
 	c.batchPoolClient = batchPool
@@ -590,6 +738,12 @@ func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, aut
 	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
+}
+
+func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	mediaServicesClient := media.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mediaServicesClient.Client, auth)
+	c.mediaServicesClient = mediaServicesClient
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -769,6 +923,24 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
+func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	dataFactoryClient := datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryClient.Client, auth)
+	c.dataFactoryClient = dataFactoryClient
+
+	dataFactoryDatasetClient := datafactory.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryDatasetClient.Client, auth)
+	c.dataFactoryDatasetClient = dataFactoryDatasetClient
+
+	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
+	c.dataFactoryLinkedServiceClient = dataFactoryLinkedServiceClient
+
+	dataFactoryPipelineClient := datafactory.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataFactoryPipelineClient.Client, auth)
+	c.dataFactoryPipelineClient = dataFactoryPipelineClient
+}
+
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&storeAccountClient.Client, auth)
@@ -835,6 +1007,14 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egtc.Client, auth)
 	c.eventGridTopicsClient = egtc
+
+	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egdc.Client, auth)
+	c.eventGridDomainsClient = egdc
+
+	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&egesc.Client, auth)
+	c.eventGridEventSubscriptionsClient = egesc
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -849,6 +1029,20 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ehnc.Client, auth)
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	applicationsClient := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&applicationsClient.Client, auth)
+	c.hdinsightApplicationsClient = applicationsClient
+
+	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&clustersClient.Client, auth)
+	c.hdinsightClustersClient = clustersClient
+
+	configurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&configurationsClient.Client, auth)
+	c.hdinsightConfigurationsClient = configurationsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
@@ -914,6 +1108,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.configureClient(&azureFirewallsClient.Client, auth)
 	c.azureFirewallsClient = azureFirewallsClient
 
+	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&connectionMonitorsClient.Client, auth)
+	c.connectionMonitorsClient = connectionMonitorsClient
+
 	ddosProtectionPlanClient := network.NewDdosProtectionPlansClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ddosProtectionPlanClient.Client, auth)
 	c.ddosProtectionPlanClient = ddosProtectionPlanClient
@@ -965,6 +1163,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	publicIPAddressesClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&publicIPAddressesClient.Client, auth)
 	c.publicIPClient = publicIPAddressesClient
+
+	publicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&publicIPPrefixesClient.Client, auth)
+	c.publicIPPrefixClient = publicIPPrefixesClient
 
 	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&routesClient.Client, auth)
@@ -1158,6 +1360,28 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	usageClient := storage.NewUsageClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
+}
+
+func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	functionsClient := streamanalytics.NewFunctionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&functionsClient.Client, auth)
+	c.streamAnalyticsFunctionsClient = functionsClient
+
+	jobsClient := streamanalytics.NewStreamingJobsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&jobsClient.Client, auth)
+	c.streamAnalyticsJobsClient = jobsClient
+
+	inputsClient := streamanalytics.NewInputsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&inputsClient.Client, auth)
+	c.streamAnalyticsInputsClient = inputsClient
+
+	outputsClient := streamanalytics.NewOutputsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&outputsClient.Client, auth)
+	c.streamAnalyticsOutputsClient = outputsClient
+
+	transformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&transformationsClient.Client, auth)
+	c.streamAnalyticsTransformationsClient = transformationsClient
 }
 
 func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

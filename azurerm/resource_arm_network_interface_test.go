@@ -781,7 +781,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -821,7 +821,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -1186,7 +1186,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "backend-http-1"
   }
 
-  tags {
+  tags = {
     environment = "tf01"
   }
 }
@@ -1222,7 +1222,7 @@ resource "azurerm_network_security_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -1261,7 +1261,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -1291,7 +1291,7 @@ resource "azurerm_network_interface" "test1" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -1307,7 +1307,7 @@ resource "azurerm_network_interface" "test2" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

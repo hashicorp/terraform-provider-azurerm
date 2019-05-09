@@ -24,7 +24,7 @@ resource "azurerm_servicebus_namespace" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity, can only be set when `sku` is `Premium` namespace. Can be `1`, `2` or `4`.
+* `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium` can be `1`, `2` or `4`. When `sku` is `Basic` or `Standard` can be `0` only.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -159,7 +159,8 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
-	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
+	noBlocksConfig := testAccAzureRMRouteTable_noRouteBlocks(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -167,6 +168,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
+				// This configuration includes a single explicit route block
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(resourceName),
@@ -174,9 +176,23 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				// This configuration has no route blocks at all.
+				Config: noBlocksConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(resourceName),
+					// The route from the first step is preserved because no
+					// blocks at all means "ignore existing blocks".
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+			{
+				// This configuration sets route to [] explicitly using the
+				// attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					// The route from the first step is now removed, leaving us
+					// with no routes at all.
 					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
 				),
 			},
@@ -492,6 +508,21 @@ resource "azurerm_route_table" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMRouteTable_noRouteBlocks(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMRouteTable_singleRouteRemoved(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -503,7 +534,8 @@ resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  route               = []
+
+  route = []
 }
 `, rInt, location, rInt)
 }
@@ -553,7 +585,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -579,7 +611,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -592,7 +624,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -603,7 +635,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -627,7 +659,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -640,7 +672,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }
@@ -652,7 +684,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }
@@ -677,7 +709,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "vnetlocal"
   }
 
-  tags {
+  tags = {
     environment = "staging"
     cloud       = "Azure"
   }

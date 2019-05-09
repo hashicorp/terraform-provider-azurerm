@@ -60,7 +60,7 @@ func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 func testAccDataSourceAzureRMBatchAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batch"
   location = "%s"
 }
 
@@ -81,7 +81,7 @@ data "azurerm_batch_account" "test" {
 func testAccDataSourceAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "testaccRG-%d-batch"
   location = "%s"
 }
 
@@ -100,7 +100,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }

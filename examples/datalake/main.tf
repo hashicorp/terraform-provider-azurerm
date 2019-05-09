@@ -1,23 +1,17 @@
 resource "azurerm_resource_group" "example" {
-  name     = "${var.resource_group}"
+  name     = "${var.prefix}-resources"
   location = "${var.location}"
 }
 
-resource "random_integer" "ri" {
-  min = 10000
-  max = 99999
-}
-
 resource "azurerm_data_lake_store" "example" {
-  name                = "tfexdlstore${random_integer.ri.result}"
+  name                = "${var.prefix}-dls"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-
-  tier = "Consumption"
+  tier                = "Consumption"
 }
 
 resource "azurerm_data_lake_store_firewall_rule" "test" {
-  name                = "tfex-datalakestore-fwrule"
+  name                = "${var.prefix}-dls-fwrule"
   account_name        = "${azurerm_data_lake_store.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   start_ip_address    = "0.0.0.0"
@@ -25,16 +19,15 @@ resource "azurerm_data_lake_store_firewall_rule" "test" {
 }
 
 resource "azurerm_data_lake_analytics_account" "example" {
-  name                = "tfexdlanalytics${random_integer.ri.result}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  tier                = "Consumption"
-
+  name                       = "${var.prefix}-dla"
+  resource_group_name        = "${azurerm_resource_group.example.name}"
+  location                   = "${azurerm_resource_group.example.location}"
+  tier                       = "Consumption"
   default_store_account_name = "${azurerm_data_lake_store.example.name}"
 }
 
 resource "azurerm_data_lake_analytics_firewall_rule" "test" {
-  name                = "tfex-datalakestore-fwrule"
+  name                = "${var.prefix}-dlafwrule"
   account_name        = "${azurerm_data_lake_analytics_account.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   start_ip_address    = "0.0.0.0"

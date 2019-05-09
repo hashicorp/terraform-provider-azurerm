@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,6 +104,16 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"inbound_nat_rules": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
+						},
+
+						"outbound_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -371,6 +381,15 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			}
 			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
+
+			outboundRules := make([]interface{}, 0)
+			if rules := props.OutboundRules; rules != nil {
+				for _, rule := range *rules {
+					outboundRules = append(outboundRules, *rule.ID)
+				}
+
+			}
+			ipConfig["outbound_rules"] = schema.NewSet(schema.HashString, outboundRules)
 		}
 
 		result = append(result, ipConfig)

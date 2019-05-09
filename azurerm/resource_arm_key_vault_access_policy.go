@@ -100,6 +100,8 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 			"key_permissions": azure.SchemaKeyVaultKeyPermissions(),
 
 			"secret_permissions": azure.SchemaKeyVaultSecretPermissions(),
+
+			"storage_permissions": azure.SchemaKeyVaultStoragePermissions(),
 		},
 	}
 }
@@ -145,7 +147,11 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 
 	keyVault, err := client.Get(ctx, resourceGroup, vaultName)
 	if err != nil {
-		if utils.ResponseWasNotFound(keyVault.Response) {
+		// If the key vault does not exist but this is not a new resource, the policy
+		// which previously existed was deleted with the key vault, so reflect that in
+		// state. If this is a new resource and key vault does not exist, it's likely
+		// a bad ID was given.
+		if utils.ResponseWasNotFound(keyVault.Response) && !d.IsNewResource() {
 			log.Printf("[DEBUG] Parent Key Vault %q was not found in Resource Group %q - removing from state!", vaultName, resourceGroup)
 			d.SetId("")
 			return nil
@@ -204,6 +210,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
 	secretPermissions := azure.ExpandSecretPermissions(secretPermissionsRaw)
 
+	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissions := azure.ExpandStoragePermissions(storagePermissionsRaw)
+
 	accessPolicy := keyvault.AccessPolicyEntry{
 		ObjectID: utils.String(objectId),
 		TenantID: &tenantId,
@@ -211,6 +220,7 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 			Certificates: certPermissions,
 			Keys:         keyPermissions,
 			Secrets:      secretPermissions,
+			Storage:      storagePermissions,
 		},
 	}
 
@@ -327,6 +337,11 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
 			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
+		}
+
+		storagePermissions := azure.FlattenStoragePermissions(permissions.Storage)
+		if err := d.Set("storage_permissions", storagePermissions); err != nil {
+			return fmt.Errorf("Error setting `storage_permissions`: %+v", err)
 		}
 	}
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -80,18 +80,15 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewaySkuTierBasic),
-					string(network.VirtualNetworkGatewaySkuTierStandard),
-					string(network.VirtualNetworkGatewaySkuTierHighPerformance),
-					string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
-					string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
-					string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
-					string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
-				}, true),
+				// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
+				// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
+				// validators validateArmVirtualNetworkGatewayPolicyBasedVpnSku, validateArmVirtualNetworkGatewayRouteBasedVpnSku
+				// and validateArmVirtualNetworkGatewayExpressRouteSku.
+				ValidateFunc: validation.Any(
+					validateArmVirtualNetworkGatewayPolicyBasedVpnSku(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSku(),
+					validateArmVirtualNetworkGatewayExpressRouteSku(),
+				),
 			},
 
 			"ip_configuration": {
@@ -463,6 +460,10 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 
 func expandArmVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.BgpSettings {
 	bgpSets := d.Get("bgp_settings").([]interface{})
+	if len(bgpSets) == 0 {
+		return nil
+	}
+
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
@@ -766,6 +767,9 @@ func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFun
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 	}, true)
 }
 

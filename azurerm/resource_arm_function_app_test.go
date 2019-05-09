@@ -31,6 +31,8 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 					testCheckAzureRMFunctionAppExists(resourceName),
 					testCheckAzureRMFunctionAppHasNoContentShare(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
+					resource.TestCheckResourceAttrSet(resourceName, "outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(resourceName, "possible_outbound_ip_addresses"),
 				),
 			},
 			{
@@ -221,7 +223,7 @@ func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp,linux,container"),
+					resource.TestCheckResourceAttr(resourceName, "kind", "functionapp"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
 				),
 			},
@@ -797,7 +799,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }
@@ -837,7 +839,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  tags {
+  tags = {
     environment = "production"
     hello       = "Berlin"
   }
@@ -915,7 +917,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 }
@@ -1083,7 +1085,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 
@@ -1133,7 +1135,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
   
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 
@@ -1184,7 +1186,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
   
-  app_settings {
+  app_settings = {
     "hello" = "world"
   }
 

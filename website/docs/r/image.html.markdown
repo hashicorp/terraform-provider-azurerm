@@ -62,6 +62,9 @@ The following arguments are supported:
 * `os_disk` - (Optional) One or more `os_disk` elements as defined below.
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `zone_resilient` - (Optional) Is zone resiliency enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
+
+~> **Note**: `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 
 `os_disk` supports the following:
 

@@ -86,7 +86,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
     url = "https://this.url.fails"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("your_cert.pfx"))}"
+      pfx      = "${filebase64("your_cert.pfx")}"
       password = "cert_password"
     }
   }
@@ -155,7 +155,7 @@ resource "azurerm_scheduler_job" "storage-once-now" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-  action_storage_queue = {
+  action_storage_queue {
     storage_account_name = "${azurerm_storage_account.example.name}"
     storage_queue_name   = "${azurerm_storage_queue.example.name}"
     sas_token            = "${azurerm_storage_account.example.primary_access_key}"

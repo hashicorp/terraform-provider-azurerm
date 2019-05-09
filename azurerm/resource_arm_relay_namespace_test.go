@@ -204,8 +204,8 @@ resource "azurerm_relay_namespace" "test" {
     name = "Standard"
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

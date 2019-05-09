@@ -11,105 +11,28 @@ description: |-
 
 Manages a Redis Cache.
 
-## Example Usage (Basic)
+## Example Usage
+
+This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/redis-cache)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 # NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-basic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 0
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = false
-}
-```
-
-## Example Usage (Standard)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-standard"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_redis_cache" "example" {
+  name                = "example-cache"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-}
-```
+  minimum_tls_version = "1.2"
 
-## Example Usage (Premium with Clustering)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-premium"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 1
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-  shard_count         = 3
-
-  redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
-  }
-}
-```
-
-## Example Usage (Premium with Backup)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "redissa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-pbkup"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 3
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-
-  redis_configuration {
-    rdb_backup_enabled            = true
-    rdb_backup_frequency          = 60
-    rdb_backup_max_snapshot_count = 1
-    rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
-  }
+  redis_configuration {}
 }
 ```
 
@@ -127,19 +50,21 @@ The following arguments are supported:
 
 * `capacity` - (Required) The size of the Redis cache to deploy. Valid values for a SKU `family` of C (Basic/Standard) are `0, 1, 2, 3, 4, 5, 6`, and for P (Premium) `family` are `1, 2, 3, 4`.
 
-* `family` - (Required) The SKU family to use. Valid values are `C` and `P`, where C = Basic/Standard, P = Premium.
+* `family` - (Required) The SKU family/pricing group to use. Valid values are `C` (for Basic/Standard SKU family) and `P` (for `Premium`)
 
-The pricing group for the Redis Family - either "C" or "P" at present.
+* `sku_name` - (Required) The SKU of Redis to use. Possible values are `Basic`, `Standard` and `Premium`.
 
-* `sku_name` - (Required) The SKU of Redis to use - can be either Basic, Standard or Premium.
+---
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6789) - disabled by default.
+
+* `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 
-* `redis_configuration` - (Required) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+* `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
@@ -149,10 +74,11 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
 
- -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+
 ---
 
-* `redis_configuration` supports the following:
+A `redis_configuration` block supports the following:
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
@@ -185,6 +111,7 @@ redis_configuration {
 ```
 
 ## Default Redis Configuration Values
+
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
 | maxmemory_reserved              | 2            | 50           | 200          |
@@ -192,11 +119,14 @@ redis_configuration {
 | maxmemory_delta                 | 2            | 50           | 200          |
 | maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
-_*Important*: The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory-reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory-reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
 
-* `patch_schedule` supports the following:
+---
+
+A `patch_schedule` block supports the following:
 
 * `day_of_week` (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
+
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.

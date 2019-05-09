@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Azure Active Directory: Migrating to a renamed resource
+# Azure Provider: Migrating to a renamed resource
 
 In v1.22 of the AzureRM Provider several resources have been deprecated in favour of a renamed version - this guide covers how to migrate from the old resource to the new one and is applicable for the following resources:
 
@@ -16,6 +16,9 @@ In v1.22 of the AzureRM Provider several resources have been deprecated in favou
 | azurerm_log_analytics_workspace_linked_service | azurerm_log_analytics_linked_service |
 | azurerm_autoscale_setting                      | azurerm_monitor_autoscale_setting    |
 | azurerm_metric_alertrule                       | azurerm_monitor_metric_alertrule     |
+| azurerm_connection_monitor                     | azurerm_network_connection_monitor   |
+| azurerm_ddos_protection_plan                   | azurerm_network_ddos_protection_plan |
+| azurerm_packet_capture                         | azurerm_network_packet_capture       |
 
 As the Schema's for each resource are the same at this time - it's possible to migrate between the resources by updating your Terraform Configuration and updating the Statefile.
 

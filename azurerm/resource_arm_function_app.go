@@ -154,6 +154,11 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -469,6 +474,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 

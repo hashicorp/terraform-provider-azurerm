@@ -148,10 +148,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: suppress.CaseDifference,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
 			},
 
 			"max_size_bytes": {
@@ -559,10 +560,6 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
-	}
-
-	if err != nil {
 		return fmt.Errorf("Error deleting SQL Database: %+v", err)
 	}
 

@@ -353,7 +353,7 @@ resource "azurerm_dns_caa_record" "test" {
     value = ";"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -391,7 +391,7 @@ resource "azurerm_dns_caa_record" "test" {
     value = ";"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

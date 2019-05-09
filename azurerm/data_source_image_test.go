@@ -115,7 +115,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -159,7 +159,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -178,7 +178,7 @@ resource "azurerm_image" "test" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -244,7 +244,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -288,7 +288,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -307,7 +307,7 @@ resource "azurerm_image" "abc" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -326,7 +326,7 @@ resource "azurerm_image" "def" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -334,13 +334,13 @@ resource "azurerm_image" "def" {
 
 data "azurerm_image" "test1" {
   name_regex          = "^def-acctest-\\d+"
-  resource_group_name = "${azurerm_resource_group.test.name}${substr(azurerm_image.abc.name, 0, 0)}${substr(azurerm_image.def.name, 0, 0)}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 data "azurerm_image" "test2" {
   name_regex          = "^[a-z]+-acctest-\\d+"
   sort_descending     = true
-  resource_group_name = "${azurerm_resource_group.test.name}${substr(azurerm_image.abc.name, 0, 0)}${substr(azurerm_image.def.name, 0, 0)}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 output "location" {

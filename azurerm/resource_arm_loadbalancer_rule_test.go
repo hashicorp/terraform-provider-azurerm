@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -237,40 +237,6 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "id", lbRule2ID),
 					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "frontend_port", "3391"),
 					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "backend_port", "3391"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLoadBalancerRule_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
-
-	deleteRuleState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_rule.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
-					deleteRuleState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
 				),
 			},
 		},

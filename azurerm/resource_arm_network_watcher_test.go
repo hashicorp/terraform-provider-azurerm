@@ -23,12 +23,46 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"update":         testAccAzureRMNetworkWatcher_update,
 			"disappears":     testAccAzureRMNetworkWatcher_disappears,
 		},
-		"PacketCapture": {
+		"DataSource": {
+			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+		},
+		"ConnectionMonitorOld": {
+			"addressBasic":              testAccAzureRMConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
+		},
+		"PacketCaptureOld": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccAzureRMPacketCapture_withFilters,
 			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
+		},
+		"ConnectionMonitor": {
+			"addressBasic":              testAccAzureRMNetworkConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMNetworkConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMNetworkConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMNetworkConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMNetworkConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMNetworkConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMNetworkConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMNetworkConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMNetworkConnectionMonitor_requiresImport,
+		},
+		"PacketCapture": {
+			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
+			"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
 		},
 	}
 
@@ -289,7 +323,7 @@ resource "azurerm_network_watcher" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     "Source" = "AccTests"
   }
 }

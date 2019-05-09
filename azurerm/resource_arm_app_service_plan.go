@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -191,8 +192,15 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v.(bool))
 	}
 
-	if v, exists := d.GetOkExists("reserved"); exists {
-		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(v.(bool))
+	reserved, reservedExists := d.GetOkExists("reserved")
+	if strings.EqualFold(kind, "Linux") {
+		if !reserved.(bool) || !reservedExists {
+			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
+		}
+	}
+
+	if reservedExists {
+		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
