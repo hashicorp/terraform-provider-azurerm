@@ -51,9 +51,9 @@ func resourceArmFirewall() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"subnet_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.All(
 								azure.ValidateResourceID,
 								validateAzureFirewallSubnetName,
