@@ -52,14 +52,6 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
@@ -183,15 +175,6 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Network Security Group - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
-
-	// once we have the network security group id to lock on, lock on that
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(*props.NetworkSecurityGroup.ID)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 
 	azureRMLockByName(subnetName, subnetResourceName)
 	defer azureRMUnlockByName(subnetName, subnetResourceName)

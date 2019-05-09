@@ -52,14 +52,6 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	routeTableName, err := parseRouteTableName(routeTableId)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
@@ -183,15 +175,6 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Route Table - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
-
-	// once we have the route table id to lock on, lock on that
-	routeTableName, err := parseRouteTableName(*props.RouteTable.ID)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 
 	azureRMLockByName(subnetName, subnetResourceName)
 	defer azureRMUnlockByName(subnetName, subnetResourceName)
