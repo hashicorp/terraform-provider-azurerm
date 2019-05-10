@@ -640,7 +640,7 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRedisCacheWithoutAuth(t *testing.T) {
+func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
