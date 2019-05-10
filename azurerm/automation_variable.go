@@ -50,8 +50,7 @@ func parseAzureAutomationVariableValue(resource string, input *string) (interfac
 }
 
 func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFunc schema.SchemaValidateFunc) map[string]*schema.Schema {
-
-	varSchema := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"resource_group_name": resourceGroupNameSchema(),
 
 		"name": {
@@ -85,12 +84,10 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 			ValidateFunc: validateFunc,
 		},
 	}
-	return varSchema
 }
 
 func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[string]*schema.Schema {
-
-	varSchema := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"resource_group_name": resourceGroupNameSchema(),
 
 		"name": {
@@ -120,7 +117,6 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 			Computed: true,
 		},
 	}
-	return varSchema
 }
 
 func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {
