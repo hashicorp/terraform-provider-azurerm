@@ -359,6 +359,83 @@ func (client ClustersClient) GetResponder(resp *http.Response) (result Cluster, 
 	return
 }
 
+// GetGatewaySettings gets the gateway settings for the specified cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+func (client ClustersClient) GetGatewaySettings(ctx context.Context, resourceGroupName string, clusterName string) (result GatewaySettings, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.GetGatewaySettings")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetGatewaySettingsPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetGatewaySettings", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetGatewaySettingsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetGatewaySettings", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetGatewaySettingsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetGatewaySettings", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetGatewaySettingsPreparer prepares the GetGatewaySettings request.
+func (client ClustersClient) GetGatewaySettingsPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/getGatewaySettings", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetGatewaySettingsSender sends the GetGatewaySettings request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) GetGatewaySettingsSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetGatewaySettingsResponder handles the response to the GetGatewaySettings request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) GetGatewaySettingsResponder(resp *http.Response) (result GatewaySettings, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List lists all the HDInsight clusters under the subscription.
 func (client ClustersClient) List(ctx context.Context) (result ClusterListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -818,5 +895,84 @@ func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluste
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateGatewaySettings configures the gateway settings on the specified cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the cluster configurations.
+func (client ClustersClient) UpdateGatewaySettings(ctx context.Context, resourceGroupName string, clusterName string, parameters UpdateGatewaySettingsParameters) (result ClustersUpdateGatewaySettingsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.UpdateGatewaySettings")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateGatewaySettingsPreparer(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateGatewaySettingsSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdateGatewaySettingsPreparer prepares the UpdateGatewaySettings request.
+func (client ClustersClient) UpdateGatewaySettingsPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters UpdateGatewaySettingsParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/updateGatewaySettings", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateGatewaySettingsSender sends the UpdateGatewaySettings request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (future ClustersUpdateGatewaySettingsFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpdateGatewaySettingsResponder handles the response to the UpdateGatewaySettings request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) UpdateGatewaySettingsResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }

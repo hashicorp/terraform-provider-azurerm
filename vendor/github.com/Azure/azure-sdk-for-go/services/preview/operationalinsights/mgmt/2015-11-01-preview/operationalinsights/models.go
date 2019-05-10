@@ -111,13 +111,11 @@ const (
 	Standalone SkuNameEnum = "Standalone"
 	// Standard ...
 	Standard SkuNameEnum = "Standard"
-	// Unlimited ...
-	Unlimited SkuNameEnum = "Unlimited"
 )
 
 // PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
 func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{Free, PerGB2018, PerNode, Premium, Standalone, Standard, Unlimited}
+	return []SkuNameEnum{Free, PerGB2018, PerNode, Premium, Standalone, Standard}
 }
 
 // DataSource datasources under OMS Workspace.
@@ -129,11 +127,11 @@ type DataSource struct {
 	ETag *string `json:"eTag,omitempty"`
 	// Kind - Possible values include: 'AzureActivityLog', 'ChangeTrackingPath', 'ChangeTrackingDefaultPath', 'ChangeTrackingDefaultRegistry', 'ChangeTrackingCustomRegistry', 'CustomLog', 'CustomLogCollection', 'GenericDataSource', 'IISLogs', 'LinuxPerformanceObject', 'LinuxPerformanceCollection', 'LinuxSyslog', 'LinuxSyslogCollection', 'WindowsEvent', 'WindowsPerformanceCounter'
 	Kind DataSourceKind `json:"kind,omitempty"`
-	// ID - Resource ID.
+	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name.
+	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
+	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
@@ -150,15 +148,6 @@ func (ds DataSource) MarshalJSON() ([]byte, error) {
 	}
 	if ds.Kind != "" {
 		objectMap["kind"] = ds.Kind
-	}
-	if ds.ID != nil {
-		objectMap["id"] = ds.ID
-	}
-	if ds.Name != nil {
-		objectMap["name"] = ds.Name
-	}
-	if ds.Type != nil {
-		objectMap["type"] = ds.Type
 	}
 	if ds.Tags != nil {
 		objectMap["tags"] = ds.Tags
@@ -333,11 +322,11 @@ type LinkedService struct {
 	autorest.Response `json:"-"`
 	// LinkedServiceProperties - The properties of the linked service.
 	*LinkedServiceProperties `json:"properties,omitempty"`
-	// ID - Resource ID.
+	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name.
+	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
+	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
@@ -348,15 +337,6 @@ func (ls LinkedService) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ls.LinkedServiceProperties != nil {
 		objectMap["properties"] = ls.LinkedServiceProperties
-	}
-	if ls.ID != nil {
-		objectMap["id"] = ls.ID
-	}
-	if ls.Name != nil {
-		objectMap["name"] = ls.Name
-	}
-	if ls.Type != nil {
-		objectMap["type"] = ls.Type
 	}
 	if ls.Tags != nil {
 		objectMap["tags"] = ls.Tags
@@ -533,7 +513,7 @@ type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of solution operations supported by the OperationsManagement resource provider.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -676,11 +656,11 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 
 // ProxyResource common properties of proxy resource.
 type ProxyResource struct {
-	// ID - Resource ID.
+	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name.
+	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
+	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
@@ -689,15 +669,6 @@ type ProxyResource struct {
 // MarshalJSON is the custom marshaler for ProxyResource.
 func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if pr.ID != nil {
-		objectMap["id"] = pr.ID
-	}
-	if pr.Name != nil {
-		objectMap["name"] = pr.Name
-	}
-	if pr.Type != nil {
-		objectMap["type"] = pr.Type
-	}
 	if pr.Tags != nil {
 		objectMap["tags"] = pr.Tags
 	}
@@ -706,11 +677,11 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 
 // Resource the resource definition.
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -721,15 +692,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -750,7 +712,7 @@ type SharedKeys struct {
 
 // Sku the SKU (tier) of a workspace.
 type Sku struct {
-	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'Unlimited', 'PerNode', 'PerGB2018', 'Standalone'
+	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'PerNode', 'PerGB2018', 'Standalone'
 	Name SkuNameEnum `json:"name,omitempty"`
 }
 
@@ -777,11 +739,11 @@ type Workspace struct {
 	*WorkspaceProperties `json:"properties,omitempty"`
 	// ETag - The ETag of the workspace.
 	ETag *string `json:"eTag,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -797,15 +759,6 @@ func (w Workspace) MarshalJSON() ([]byte, error) {
 	}
 	if w.ETag != nil {
 		objectMap["eTag"] = w.ETag
-	}
-	if w.ID != nil {
-		objectMap["id"] = w.ID
-	}
-	if w.Name != nil {
-		objectMap["name"] = w.Name
-	}
-	if w.Type != nil {
-		objectMap["type"] = w.Type
 	}
 	if w.Location != nil {
 		objectMap["location"] = w.Location
@@ -941,7 +894,7 @@ type WorkspacesCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w Workspace, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return

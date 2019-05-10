@@ -116,6 +116,7 @@ func (client BlobContainersClient) ClearLegalHoldPreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
+	legalHold.HasLegalHold = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
@@ -903,6 +904,112 @@ func (client BlobContainersClient) GetImmutabilityPolicyResponder(resp *http.Res
 	return
 }
 
+// Lease the Lease Container operation establishes and manages a lock on a container for delete operations. The lock
+// duration can be 15 to 60 seconds, or can be infinite.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// accountName - the name of the storage account within the specified resource group. Storage account names
+// must be between 3 and 24 characters in length and use numbers and lower-case letters only.
+// containerName - the name of the blob container within the specified storage account. Blob container names
+// must be between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every
+// dash (-) character must be immediately preceded and followed by a letter or number.
+// parameters - lease Container request body.
+func (client BlobContainersClient) Lease(ctx context.Context, resourceGroupName string, accountName string, containerName string, parameters *LeaseContainerRequest) (result LeaseContainerResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BlobContainersClient.Lease")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: containerName,
+			Constraints: []validation.Constraint{{Target: "containerName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "containerName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.BlobContainersClient", "Lease", err.Error())
+	}
+
+	req, err := client.LeasePreparer(ctx, resourceGroupName, accountName, containerName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Lease", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.LeaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Lease", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.LeaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Lease", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// LeasePreparer prepares the Lease request.
+func (client BlobContainersClient) LeasePreparer(ctx context.Context, resourceGroupName string, accountName string, containerName string, parameters *LeaseContainerRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"containerName":     autorest.Encode("path", containerName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/blobServices/default/containers/{containerName}/lease", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if parameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(parameters))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// LeaseSender sends the Lease request. The method will close the
+// http.Response Body if it receives an error.
+func (client BlobContainersClient) LeaseSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// LeaseResponder handles the response to the Lease request. The method always
+// closes the http.Response Body.
+func (client BlobContainersClient) LeaseResponder(resp *http.Response) (result LeaseContainerResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List lists all containers and does not support a prefix like data plane. Also SRP today does not return continuation
 // token.
 // Parameters:
@@ -1175,6 +1282,7 @@ func (client BlobContainersClient) SetLegalHoldPreparer(ctx context.Context, res
 		"api-version": APIVersion,
 	}
 
+	legalHold.HasLegalHold = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

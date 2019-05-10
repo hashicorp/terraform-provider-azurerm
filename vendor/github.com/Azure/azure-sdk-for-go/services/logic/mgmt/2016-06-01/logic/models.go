@@ -975,11 +975,11 @@ type AssemblyDefinition struct {
 	autorest.Response `json:"-"`
 	// Properties - The assembly properties.
 	Properties *AssemblyProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -992,15 +992,6 @@ func (ad AssemblyDefinition) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ad.Properties != nil {
 		objectMap["properties"] = ad.Properties
-	}
-	if ad.ID != nil {
-		objectMap["id"] = ad.ID
-	}
-	if ad.Name != nil {
-		objectMap["name"] = ad.Name
-	}
-	if ad.Type != nil {
-		objectMap["type"] = ad.Type
 	}
 	if ad.Location != nil {
 		objectMap["location"] = ad.Location
@@ -1054,11 +1045,11 @@ type BatchConfiguration struct {
 	autorest.Response `json:"-"`
 	// Properties - The batch configuration properties.
 	Properties *BatchConfigurationProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -1071,15 +1062,6 @@ func (bc BatchConfiguration) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if bc.Properties != nil {
 		objectMap["properties"] = bc.Properties
-	}
-	if bc.ID != nil {
-		objectMap["id"] = bc.ID
-	}
-	if bc.Name != nil {
-		objectMap["name"] = bc.Name
-	}
-	if bc.Type != nil {
-		objectMap["type"] = bc.Type
 	}
 	if bc.Location != nil {
 		objectMap["location"] = bc.Location
@@ -1559,11 +1541,11 @@ type IntegrationAccount struct {
 	Properties interface{} `json:"properties,omitempty"`
 	// Sku - The sku.
 	Sku *IntegrationAccountSku `json:"sku,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -1580,15 +1562,6 @@ func (ia IntegrationAccount) MarshalJSON() ([]byte, error) {
 	if ia.Sku != nil {
 		objectMap["sku"] = ia.Sku
 	}
-	if ia.ID != nil {
-		objectMap["id"] = ia.ID
-	}
-	if ia.Name != nil {
-		objectMap["name"] = ia.Name
-	}
-	if ia.Type != nil {
-		objectMap["type"] = ia.Type
-	}
 	if ia.Location != nil {
 		objectMap["location"] = ia.Location
 	}
@@ -1603,11 +1576,11 @@ type IntegrationAccountAgreement struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountAgreementProperties - The integration account agreement properties.
 	*IntegrationAccountAgreementProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -1620,15 +1593,6 @@ func (iaa IntegrationAccountAgreement) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if iaa.IntegrationAccountAgreementProperties != nil {
 		objectMap["properties"] = iaa.IntegrationAccountAgreementProperties
-	}
-	if iaa.ID != nil {
-		objectMap["id"] = iaa.ID
-	}
-	if iaa.Name != nil {
-		objectMap["name"] = iaa.Name
-	}
-	if iaa.Type != nil {
-		objectMap["type"] = iaa.Type
 	}
 	if iaa.Location != nil {
 		objectMap["location"] = iaa.Location
@@ -1863,9 +1827,9 @@ func NewIntegrationAccountAgreementListResultPage(getNextPage func(context.Conte
 
 // IntegrationAccountAgreementProperties the integration account agreement properties.
 type IntegrationAccountAgreementProperties struct {
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
@@ -1888,11 +1852,11 @@ type IntegrationAccountCertificate struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountCertificateProperties - The integration account certificate properties.
 	*IntegrationAccountCertificateProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -1905,15 +1869,6 @@ func (iac IntegrationAccountCertificate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if iac.IntegrationAccountCertificateProperties != nil {
 		objectMap["properties"] = iac.IntegrationAccountCertificateProperties
-	}
-	if iac.ID != nil {
-		objectMap["id"] = iac.ID
-	}
-	if iac.Name != nil {
-		objectMap["name"] = iac.Name
-	}
-	if iac.Type != nil {
-		objectMap["type"] = iac.Type
 	}
 	if iac.Location != nil {
 		objectMap["location"] = iac.Location
@@ -2142,9 +2097,9 @@ func NewIntegrationAccountCertificateListResultPage(getNextPage func(context.Con
 
 // IntegrationAccountCertificateProperties the integration account certificate properties.
 type IntegrationAccountCertificateProperties struct {
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
@@ -2305,11 +2260,11 @@ type IntegrationAccountMap struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountMapProperties - The integration account map properties.
 	*IntegrationAccountMapProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -2322,15 +2277,6 @@ func (iam IntegrationAccountMap) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if iam.IntegrationAccountMapProperties != nil {
 		objectMap["properties"] = iam.IntegrationAccountMapProperties
-	}
-	if iam.ID != nil {
-		objectMap["id"] = iam.ID
-	}
-	if iam.Name != nil {
-		objectMap["name"] = iam.Name
-	}
-	if iam.Type != nil {
-		objectMap["type"] = iam.Type
 	}
 	if iam.Location != nil {
 		objectMap["location"] = iam.Location
@@ -2569,15 +2515,15 @@ type IntegrationAccountMapProperties struct {
 	MapType MapType `json:"mapType,omitempty"`
 	// ParametersSchema - The parameters schema of integration account map.
 	ParametersSchema *IntegrationAccountMapPropertiesParametersSchema `json:"parametersSchema,omitempty"`
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Content - The content.
 	Content *string `json:"content,omitempty"`
 	// ContentType - The content type.
 	ContentType *string `json:"contentType,omitempty"`
-	// ContentLink - The content link.
+	// ContentLink - READ-ONLY; The content link.
 	ContentLink *ContentLink `json:"contentLink,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
@@ -2594,11 +2540,11 @@ type IntegrationAccountPartner struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountPartnerProperties - The integration account partner properties.
 	*IntegrationAccountPartnerProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -2611,15 +2557,6 @@ func (iap IntegrationAccountPartner) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if iap.IntegrationAccountPartnerProperties != nil {
 		objectMap["properties"] = iap.IntegrationAccountPartnerProperties
-	}
-	if iap.ID != nil {
-		objectMap["id"] = iap.ID
-	}
-	if iap.Name != nil {
-		objectMap["name"] = iap.Name
-	}
-	if iap.Type != nil {
-		objectMap["type"] = iap.Type
 	}
 	if iap.Location != nil {
 		objectMap["location"] = iap.Location
@@ -2856,9 +2793,9 @@ func NewIntegrationAccountPartnerListResultPage(getNextPage func(context.Context
 type IntegrationAccountPartnerProperties struct {
 	// PartnerType - The partner type. Possible values include: 'PartnerTypeNotSpecified', 'PartnerTypeB2B'
 	PartnerType PartnerType `json:"partnerType,omitempty"`
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
@@ -2871,11 +2808,11 @@ type IntegrationAccountSchema struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountSchemaProperties - The integration account schema properties.
 	*IntegrationAccountSchemaProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -2888,15 +2825,6 @@ func (ias IntegrationAccountSchema) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ias.IntegrationAccountSchemaProperties != nil {
 		objectMap["properties"] = ias.IntegrationAccountSchemaProperties
-	}
-	if ias.ID != nil {
-		objectMap["id"] = ias.ID
-	}
-	if ias.Name != nil {
-		objectMap["name"] = ias.Name
-	}
-	if ias.Type != nil {
-		objectMap["type"] = ias.Type
 	}
 	if ias.Location != nil {
 		objectMap["location"] = ias.Location
@@ -3139,9 +3067,9 @@ type IntegrationAccountSchemaProperties struct {
 	DocumentName *string `json:"documentName,omitempty"`
 	// FileName - The file name.
 	FileName *string `json:"fileName,omitempty"`
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
@@ -3149,7 +3077,7 @@ type IntegrationAccountSchemaProperties struct {
 	Content *string `json:"content,omitempty"`
 	// ContentType - The content type.
 	ContentType *string `json:"contentType,omitempty"`
-	// ContentLink - The content link.
+	// ContentLink - READ-ONLY; The content link.
 	ContentLink *ContentLink `json:"contentLink,omitempty"`
 }
 
@@ -3158,11 +3086,11 @@ type IntegrationAccountSession struct {
 	autorest.Response `json:"-"`
 	// IntegrationAccountSessionProperties - The integration account session properties.
 	*IntegrationAccountSessionProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -3175,15 +3103,6 @@ func (ias IntegrationAccountSession) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ias.IntegrationAccountSessionProperties != nil {
 		objectMap["properties"] = ias.IntegrationAccountSessionProperties
-	}
-	if ias.ID != nil {
-		objectMap["id"] = ias.ID
-	}
-	if ias.Name != nil {
-		objectMap["name"] = ias.Name
-	}
-	if ias.Type != nil {
-		objectMap["type"] = ias.Type
 	}
 	if ias.Location != nil {
 		objectMap["location"] = ias.Location
@@ -3418,9 +3337,9 @@ func NewIntegrationAccountSessionListResultPage(getNextPage func(context.Context
 
 // IntegrationAccountSessionProperties the integration account session properties.
 type IntegrationAccountSessionProperties struct {
-	// CreatedTime - The created time.
+	// CreatedTime - READ-ONLY; The created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - The changed time.
+	// ChangedTime - READ-ONLY; The changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Content - The session content.
 	Content interface{} `json:"content,omitempty"`
@@ -3482,19 +3401,19 @@ type KeyVaultKeyReference struct {
 type KeyVaultKeyReferenceKeyVault struct {
 	// ID - The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // KeyVaultReference the key vault reference.
 type KeyVaultReference struct {
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3673,17 +3592,17 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 
 // OperationResult the operation result definition.
 type OperationResult struct {
-	// TrackingID - Gets the tracking id.
+	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
-	// Inputs - Gets the inputs.
+	// Inputs - READ-ONLY; Gets the inputs.
 	Inputs interface{} `json:"inputs,omitempty"`
-	// InputsLink - Gets the link to inputs.
+	// InputsLink - READ-ONLY; Gets the link to inputs.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
-	// Outputs - Gets the outputs.
+	// Outputs - READ-ONLY; Gets the outputs.
 	Outputs interface{} `json:"outputs,omitempty"`
-	// OutputsLink - Gets the link to outputs.
+	// OutputsLink - READ-ONLY; Gets the link to outputs.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// TrackedProperties - Gets the tracked properties.
+	// TrackedProperties - READ-ONLY; Gets the tracked properties.
 	TrackedProperties interface{} `json:"trackedProperties,omitempty"`
 	// RetryHistory - Gets the retry histories.
 	RetryHistory   *[]RetryHistory `json:"retryHistory,omitempty"`
@@ -3773,11 +3692,11 @@ type RequestHistory struct {
 	autorest.Response `json:"-"`
 	// Properties - The request history properties.
 	Properties *RequestHistoryProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -3790,15 +3709,6 @@ func (rh RequestHistory) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rh.Properties != nil {
 		objectMap["properties"] = rh.Properties
-	}
-	if rh.ID != nil {
-		objectMap["id"] = rh.ID
-	}
-	if rh.Name != nil {
-		objectMap["name"] = rh.Name
-	}
-	if rh.Type != nil {
-		objectMap["type"] = rh.Type
 	}
 	if rh.Location != nil {
 		objectMap["location"] = rh.Location
@@ -3969,11 +3879,11 @@ type RequestHistoryProperties struct {
 
 // Resource the base resource type.
 type Resource struct {
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -3984,15 +3894,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -4004,11 +3905,11 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 
 // ResourceReference the resource reference.
 type ResourceReference struct {
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4077,7 +3978,7 @@ type Sku struct {
 
 // SubResource the sub resource type.
 type SubResource struct {
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -4110,11 +4011,11 @@ type Workflow struct {
 	autorest.Response `json:"-"`
 	// WorkflowProperties - The workflow properties.
 	*WorkflowProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -4127,15 +4028,6 @@ func (w Workflow) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if w.WorkflowProperties != nil {
 		objectMap["properties"] = w.WorkflowProperties
-	}
-	if w.ID != nil {
-		objectMap["id"] = w.ID
-	}
-	if w.Name != nil {
-		objectMap["name"] = w.Name
-	}
-	if w.Type != nil {
-		objectMap["type"] = w.Type
 	}
 	if w.Location != nil {
 		objectMap["location"] = w.Location
@@ -4369,7 +4261,7 @@ func NewWorkflowListResultPage(getNextPage func(context.Context, WorkflowListRes
 
 // WorkflowOutputParameter the workflow output parameter.
 type WorkflowOutputParameter struct {
-	// Error - Gets the error.
+	// Error - READ-ONLY; Gets the error.
 	Error interface{} `json:"error,omitempty"`
 	// Type - The type. Possible values include: 'ParameterTypeNotSpecified', 'ParameterTypeString', 'ParameterTypeSecureString', 'ParameterTypeInt', 'ParameterTypeFloat', 'ParameterTypeBool', 'ParameterTypeArray', 'ParameterTypeObject', 'ParameterTypeSecureObject'
 	Type ParameterType `json:"type,omitempty"`
@@ -4395,17 +4287,17 @@ type WorkflowParameter struct {
 
 // WorkflowProperties the workflow properties.
 type WorkflowProperties struct {
-	// ProvisioningState - Gets the provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	// ProvisioningState - READ-ONLY; Gets the provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
-	// CreatedTime - Gets the created time.
+	// CreatedTime - READ-ONLY; Gets the created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - Gets the changed time.
+	// ChangedTime - READ-ONLY; Gets the changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// State - The state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
 	State WorkflowState `json:"state,omitempty"`
-	// Version - Gets the version.
+	// Version - READ-ONLY; Gets the version.
 	Version *string `json:"version,omitempty"`
-	// AccessEndpoint - Gets the access endpoint.
+	// AccessEndpoint - READ-ONLY; Gets the access endpoint.
 	AccessEndpoint *string `json:"accessEndpoint,omitempty"`
 	// Sku - The sku.
 	Sku *Sku `json:"sku,omitempty"`
@@ -4420,23 +4312,8 @@ type WorkflowProperties struct {
 // MarshalJSON is the custom marshaler for WorkflowProperties.
 func (wp WorkflowProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if wp.ProvisioningState != "" {
-		objectMap["provisioningState"] = wp.ProvisioningState
-	}
-	if wp.CreatedTime != nil {
-		objectMap["createdTime"] = wp.CreatedTime
-	}
-	if wp.ChangedTime != nil {
-		objectMap["changedTime"] = wp.ChangedTime
-	}
 	if wp.State != "" {
 		objectMap["state"] = wp.State
-	}
-	if wp.Version != nil {
-		objectMap["version"] = wp.Version
-	}
-	if wp.AccessEndpoint != nil {
-		objectMap["accessEndpoint"] = wp.AccessEndpoint
 	}
 	if wp.Sku != nil {
 		objectMap["sku"] = wp.Sku
@@ -4458,11 +4335,11 @@ type WorkflowRun struct {
 	autorest.Response `json:"-"`
 	// WorkflowRunProperties - The workflow run properties.
 	*WorkflowRunProperties `json:"properties,omitempty"`
-	// Name - Gets the workflow run name.
+	// Name - READ-ONLY; Gets the workflow run name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the workflow run type.
+	// Type - READ-ONLY; Gets the workflow run type.
 	Type *string `json:"type,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -4471,15 +4348,6 @@ func (wr WorkflowRun) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wr.WorkflowRunProperties != nil {
 		objectMap["properties"] = wr.WorkflowRunProperties
-	}
-	if wr.Name != nil {
-		objectMap["name"] = wr.Name
-	}
-	if wr.Type != nil {
-		objectMap["type"] = wr.Type
-	}
-	if wr.ID != nil {
-		objectMap["id"] = wr.ID
 	}
 	return json.Marshal(objectMap)
 }
@@ -4540,11 +4408,11 @@ type WorkflowRunAction struct {
 	autorest.Response `json:"-"`
 	// WorkflowRunActionProperties - The workflow run action properties.
 	*WorkflowRunActionProperties `json:"properties,omitempty"`
-	// Name - Gets the workflow run action name.
+	// Name - READ-ONLY; Gets the workflow run action name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the workflow run action type.
+	// Type - READ-ONLY; Gets the workflow run action type.
 	Type *string `json:"type,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -4553,15 +4421,6 @@ func (wra WorkflowRunAction) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wra.WorkflowRunActionProperties != nil {
 		objectMap["properties"] = wra.WorkflowRunActionProperties
-	}
-	if wra.Name != nil {
-		objectMap["name"] = wra.Name
-	}
-	if wra.Type != nil {
-		objectMap["type"] = wra.Type
-	}
-	if wra.ID != nil {
-		objectMap["id"] = wra.ID
 	}
 	return json.Marshal(objectMap)
 }
@@ -4771,25 +4630,25 @@ func NewWorkflowRunActionListResultPage(getNextPage func(context.Context, Workfl
 
 // WorkflowRunActionProperties the workflow run action properties.
 type WorkflowRunActionProperties struct {
-	// StartTime - Gets the start time.
+	// StartTime - READ-ONLY; Gets the start time.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the end time.
+	// EndTime - READ-ONLY; Gets the end time.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// Status - Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
+	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
-	// Code - Gets the code.
+	// Code - READ-ONLY; Gets the code.
 	Code *string `json:"code,omitempty"`
-	// Error - Gets the error.
+	// Error - READ-ONLY; Gets the error.
 	Error interface{} `json:"error,omitempty"`
-	// TrackingID - Gets the tracking id.
+	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
 	// Correlation - The correlation properties.
 	Correlation *Correlation `json:"correlation,omitempty"`
-	// InputsLink - Gets the link to inputs.
+	// InputsLink - READ-ONLY; Gets the link to inputs.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
-	// OutputsLink - Gets the link to outputs.
+	// OutputsLink - READ-ONLY; Gets the link to outputs.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// TrackedProperties - Gets the tracked properties.
+	// TrackedProperties - READ-ONLY; Gets the tracked properties.
 	TrackedProperties interface{} `json:"trackedProperties,omitempty"`
 	// RetryHistory - Gets the retry histories.
 	RetryHistory *[]RetryHistory `json:"retryHistory,omitempty"`
@@ -4800,11 +4659,11 @@ type WorkflowRunActionRepetitionDefinition struct {
 	autorest.Response `json:"-"`
 	// WorkflowRunActionRepetitionProperties - The workflow run action repetition properties definition.
 	*WorkflowRunActionRepetitionProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -4817,15 +4676,6 @@ func (wrard WorkflowRunActionRepetitionDefinition) MarshalJSON() ([]byte, error)
 	objectMap := make(map[string]interface{})
 	if wrard.WorkflowRunActionRepetitionProperties != nil {
 		objectMap["properties"] = wrard.WorkflowRunActionRepetitionProperties
-	}
-	if wrard.ID != nil {
-		objectMap["id"] = wrard.ID
-	}
-	if wrard.Name != nil {
-		objectMap["name"] = wrard.Name
-	}
-	if wrard.Type != nil {
-		objectMap["type"] = wrard.Type
 	}
 	if wrard.Location != nil {
 		objectMap["location"] = wrard.Location
@@ -4915,17 +4765,17 @@ type WorkflowRunActionRepetitionDefinitionCollection struct {
 type WorkflowRunActionRepetitionProperties struct {
 	// RepetitionIndexes - The repetition indexes.
 	RepetitionIndexes *[]RepetitionIndex `json:"repetitionIndexes,omitempty"`
-	// TrackingID - Gets the tracking id.
+	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
-	// Inputs - Gets the inputs.
+	// Inputs - READ-ONLY; Gets the inputs.
 	Inputs interface{} `json:"inputs,omitempty"`
-	// InputsLink - Gets the link to inputs.
+	// InputsLink - READ-ONLY; Gets the link to inputs.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
-	// Outputs - Gets the outputs.
+	// Outputs - READ-ONLY; Gets the outputs.
 	Outputs interface{} `json:"outputs,omitempty"`
-	// OutputsLink - Gets the link to outputs.
+	// OutputsLink - READ-ONLY; Gets the link to outputs.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// TrackedProperties - Gets the tracked properties.
+	// TrackedProperties - READ-ONLY; Gets the tracked properties.
 	TrackedProperties interface{} `json:"trackedProperties,omitempty"`
 	// RetryHistory - Gets the retry histories.
 	RetryHistory   *[]RetryHistory `json:"retryHistory,omitempty"`
@@ -5097,103 +4947,70 @@ func NewWorkflowRunListResultPage(getNextPage func(context.Context, WorkflowRunL
 
 // WorkflowRunProperties the workflow run properties.
 type WorkflowRunProperties struct {
-	// WaitEndTime - Gets the wait end time.
+	// WaitEndTime - READ-ONLY; Gets the wait end time.
 	WaitEndTime *date.Time `json:"waitEndTime,omitempty"`
-	// StartTime - Gets the start time.
+	// StartTime - READ-ONLY; Gets the start time.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the end time.
+	// EndTime - READ-ONLY; Gets the end time.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// Status - Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
+	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
-	// Code - Gets the code.
+	// Code - READ-ONLY; Gets the code.
 	Code *string `json:"code,omitempty"`
-	// Error - Gets the error.
+	// Error - READ-ONLY; Gets the error.
 	Error interface{} `json:"error,omitempty"`
-	// CorrelationID - Gets the correlation id.
+	// CorrelationID - READ-ONLY; Gets the correlation id.
 	CorrelationID *string `json:"correlationId,omitempty"`
 	// Correlation - The run correlation.
 	Correlation *Correlation `json:"correlation,omitempty"`
-	// Workflow - Gets the reference to workflow version.
+	// Workflow - READ-ONLY; Gets the reference to workflow version.
 	Workflow *ResourceReference `json:"workflow,omitempty"`
-	// Trigger - Gets the fired trigger.
+	// Trigger - READ-ONLY; Gets the fired trigger.
 	Trigger *WorkflowRunTrigger `json:"trigger,omitempty"`
-	// Outputs - Gets the outputs.
+	// Outputs - READ-ONLY; Gets the outputs.
 	Outputs map[string]*WorkflowOutputParameter `json:"outputs"`
-	// Response - Gets the response of the flow run.
+	// Response - READ-ONLY; Gets the response of the flow run.
 	Response *WorkflowRunTrigger `json:"response,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WorkflowRunProperties.
 func (wrp WorkflowRunProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if wrp.WaitEndTime != nil {
-		objectMap["waitEndTime"] = wrp.WaitEndTime
-	}
-	if wrp.StartTime != nil {
-		objectMap["startTime"] = wrp.StartTime
-	}
-	if wrp.EndTime != nil {
-		objectMap["endTime"] = wrp.EndTime
-	}
-	if wrp.Status != "" {
-		objectMap["status"] = wrp.Status
-	}
-	if wrp.Code != nil {
-		objectMap["code"] = wrp.Code
-	}
-	if wrp.Error != nil {
-		objectMap["error"] = wrp.Error
-	}
-	if wrp.CorrelationID != nil {
-		objectMap["correlationId"] = wrp.CorrelationID
-	}
 	if wrp.Correlation != nil {
 		objectMap["correlation"] = wrp.Correlation
-	}
-	if wrp.Workflow != nil {
-		objectMap["workflow"] = wrp.Workflow
-	}
-	if wrp.Trigger != nil {
-		objectMap["trigger"] = wrp.Trigger
-	}
-	if wrp.Outputs != nil {
-		objectMap["outputs"] = wrp.Outputs
-	}
-	if wrp.Response != nil {
-		objectMap["response"] = wrp.Response
 	}
 	return json.Marshal(objectMap)
 }
 
 // WorkflowRunTrigger the workflow run trigger.
 type WorkflowRunTrigger struct {
-	// Name - Gets the name.
+	// Name - READ-ONLY; Gets the name.
 	Name *string `json:"name,omitempty"`
-	// Inputs - Gets the inputs.
+	// Inputs - READ-ONLY; Gets the inputs.
 	Inputs interface{} `json:"inputs,omitempty"`
-	// InputsLink - Gets the link to inputs.
+	// InputsLink - READ-ONLY; Gets the link to inputs.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
-	// Outputs - Gets the outputs.
+	// Outputs - READ-ONLY; Gets the outputs.
 	Outputs interface{} `json:"outputs,omitempty"`
-	// OutputsLink - Gets the link to outputs.
+	// OutputsLink - READ-ONLY; Gets the link to outputs.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// ScheduledTime - Gets the scheduled time.
+	// ScheduledTime - READ-ONLY; Gets the scheduled time.
 	ScheduledTime *date.Time `json:"scheduledTime,omitempty"`
-	// StartTime - Gets the start time.
+	// StartTime - READ-ONLY; Gets the start time.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the end time.
+	// EndTime - READ-ONLY; Gets the end time.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// TrackingID - Gets the tracking id.
+	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
 	// Correlation - The run correlation.
 	Correlation *Correlation `json:"correlation,omitempty"`
-	// Code - Gets the code.
+	// Code - READ-ONLY; Gets the code.
 	Code *string `json:"code,omitempty"`
-	// Status - Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
+	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
-	// Error - Gets the error.
+	// Error - READ-ONLY; Gets the error.
 	Error interface{} `json:"error,omitempty"`
-	// TrackedProperties - Gets the tracked properties.
+	// TrackedProperties - READ-ONLY; Gets the tracked properties.
 	TrackedProperties interface{} `json:"trackedProperties,omitempty"`
 }
 
@@ -5202,11 +5019,11 @@ type WorkflowTrigger struct {
 	autorest.Response `json:"-"`
 	// WorkflowTriggerProperties - The workflow trigger properties.
 	*WorkflowTriggerProperties `json:"properties,omitempty"`
-	// Name - Gets the workflow trigger name.
+	// Name - READ-ONLY; Gets the workflow trigger name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the workflow trigger type.
+	// Type - READ-ONLY; Gets the workflow trigger type.
 	Type *string `json:"type,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -5215,15 +5032,6 @@ func (wt WorkflowTrigger) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wt.WorkflowTriggerProperties != nil {
 		objectMap["properties"] = wt.WorkflowTriggerProperties
-	}
-	if wt.Name != nil {
-		objectMap["name"] = wt.Name
-	}
-	if wt.Type != nil {
-		objectMap["type"] = wt.Type
-	}
-	if wt.ID != nil {
-		objectMap["id"] = wt.ID
 	}
 	return json.Marshal(objectMap)
 }
@@ -5282,13 +5090,13 @@ func (wt *WorkflowTrigger) UnmarshalJSON(body []byte) error {
 // WorkflowTriggerCallbackURL the workflow trigger callback URL.
 type WorkflowTriggerCallbackURL struct {
 	autorest.Response `json:"-"`
-	// Value - Gets the workflow trigger callback URL.
+	// Value - READ-ONLY; Gets the workflow trigger callback URL.
 	Value *string `json:"value,omitempty"`
-	// Method - Gets the workflow trigger callback URL HTTP method.
+	// Method - READ-ONLY; Gets the workflow trigger callback URL HTTP method.
 	Method *string `json:"method,omitempty"`
-	// BasePath - Gets the workflow trigger callback URL base path.
+	// BasePath - READ-ONLY; Gets the workflow trigger callback URL base path.
 	BasePath *string `json:"basePath,omitempty"`
-	// RelativePath - Gets the workflow trigger callback URL relative path.
+	// RelativePath - READ-ONLY; Gets the workflow trigger callback URL relative path.
 	RelativePath *string `json:"relativePath,omitempty"`
 	// RelativePathParameters - Gets the workflow trigger callback URL relative path parameters.
 	RelativePathParameters *[]string `json:"relativePathParameters,omitempty"`
@@ -5307,11 +5115,11 @@ type WorkflowTriggerHistory struct {
 	autorest.Response `json:"-"`
 	// WorkflowTriggerHistoryProperties - Gets the workflow trigger history properties.
 	*WorkflowTriggerHistoryProperties `json:"properties,omitempty"`
-	// Name - Gets the workflow trigger history name.
+	// Name - READ-ONLY; Gets the workflow trigger history name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the workflow trigger history type.
+	// Type - READ-ONLY; Gets the workflow trigger history type.
 	Type *string `json:"type,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -5320,15 +5128,6 @@ func (wth WorkflowTriggerHistory) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wth.WorkflowTriggerHistoryProperties != nil {
 		objectMap["properties"] = wth.WorkflowTriggerHistoryProperties
-	}
-	if wth.Name != nil {
-		objectMap["name"] = wth.Name
-	}
-	if wth.Type != nil {
-		objectMap["type"] = wth.Type
-	}
-	if wth.ID != nil {
-		objectMap["id"] = wth.ID
 	}
 	return json.Marshal(objectMap)
 }
@@ -5539,27 +5338,27 @@ func NewWorkflowTriggerHistoryListResultPage(getNextPage func(context.Context, W
 
 // WorkflowTriggerHistoryProperties the workflow trigger history properties.
 type WorkflowTriggerHistoryProperties struct {
-	// StartTime - Gets the start time.
+	// StartTime - READ-ONLY; Gets the start time.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the end time.
+	// EndTime - READ-ONLY; Gets the end time.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// Status - Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
+	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
-	// Code - Gets the code.
+	// Code - READ-ONLY; Gets the code.
 	Code *string `json:"code,omitempty"`
-	// Error - Gets the error.
+	// Error - READ-ONLY; Gets the error.
 	Error interface{} `json:"error,omitempty"`
-	// TrackingID - Gets the tracking id.
+	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
 	// Correlation - The run correlation.
 	Correlation *Correlation `json:"correlation,omitempty"`
-	// InputsLink - Gets the link to input parameters.
+	// InputsLink - READ-ONLY; Gets the link to input parameters.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
-	// OutputsLink - Gets the link to output parameters.
+	// OutputsLink - READ-ONLY; Gets the link to output parameters.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// Fired - Gets a value indicating whether trigger was fired.
+	// Fired - READ-ONLY; Gets a value indicating whether trigger was fired.
 	Fired *bool `json:"fired,omitempty"`
-	// Run - Gets the reference to workflow run.
+	// Run - READ-ONLY; Gets the reference to workflow run.
 	Run *ResourceReference `json:"run,omitempty"`
 }
 
@@ -5725,23 +5524,23 @@ func NewWorkflowTriggerListResultPage(getNextPage func(context.Context, Workflow
 
 // WorkflowTriggerProperties the workflow trigger properties.
 type WorkflowTriggerProperties struct {
-	// ProvisioningState - Gets the provisioning state. Possible values include: 'WorkflowTriggerProvisioningStateNotSpecified', 'WorkflowTriggerProvisioningStateAccepted', 'WorkflowTriggerProvisioningStateRunning', 'WorkflowTriggerProvisioningStateReady', 'WorkflowTriggerProvisioningStateCreating', 'WorkflowTriggerProvisioningStateCreated', 'WorkflowTriggerProvisioningStateDeleting', 'WorkflowTriggerProvisioningStateDeleted', 'WorkflowTriggerProvisioningStateCanceled', 'WorkflowTriggerProvisioningStateFailed', 'WorkflowTriggerProvisioningStateSucceeded', 'WorkflowTriggerProvisioningStateMoving', 'WorkflowTriggerProvisioningStateUpdating', 'WorkflowTriggerProvisioningStateRegistering', 'WorkflowTriggerProvisioningStateRegistered', 'WorkflowTriggerProvisioningStateUnregistering', 'WorkflowTriggerProvisioningStateUnregistered', 'WorkflowTriggerProvisioningStateCompleted'
+	// ProvisioningState - READ-ONLY; Gets the provisioning state. Possible values include: 'WorkflowTriggerProvisioningStateNotSpecified', 'WorkflowTriggerProvisioningStateAccepted', 'WorkflowTriggerProvisioningStateRunning', 'WorkflowTriggerProvisioningStateReady', 'WorkflowTriggerProvisioningStateCreating', 'WorkflowTriggerProvisioningStateCreated', 'WorkflowTriggerProvisioningStateDeleting', 'WorkflowTriggerProvisioningStateDeleted', 'WorkflowTriggerProvisioningStateCanceled', 'WorkflowTriggerProvisioningStateFailed', 'WorkflowTriggerProvisioningStateSucceeded', 'WorkflowTriggerProvisioningStateMoving', 'WorkflowTriggerProvisioningStateUpdating', 'WorkflowTriggerProvisioningStateRegistering', 'WorkflowTriggerProvisioningStateRegistered', 'WorkflowTriggerProvisioningStateUnregistering', 'WorkflowTriggerProvisioningStateUnregistered', 'WorkflowTriggerProvisioningStateCompleted'
 	ProvisioningState WorkflowTriggerProvisioningState `json:"provisioningState,omitempty"`
-	// CreatedTime - Gets the created time.
+	// CreatedTime - READ-ONLY; Gets the created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - Gets the changed time.
+	// ChangedTime - READ-ONLY; Gets the changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
-	// State - Gets the state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
+	// State - READ-ONLY; Gets the state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
 	State WorkflowState `json:"state,omitempty"`
-	// Status - Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
+	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
-	// LastExecutionTime - Gets the last execution time.
+	// LastExecutionTime - READ-ONLY; Gets the last execution time.
 	LastExecutionTime *date.Time `json:"lastExecutionTime,omitempty"`
-	// NextExecutionTime - Gets the next execution time.
+	// NextExecutionTime - READ-ONLY; Gets the next execution time.
 	NextExecutionTime *date.Time `json:"nextExecutionTime,omitempty"`
-	// Recurrence - Gets the workflow trigger recurrence.
+	// Recurrence - READ-ONLY; Gets the workflow trigger recurrence.
 	Recurrence *WorkflowTriggerRecurrence `json:"recurrence,omitempty"`
-	// Workflow - Gets the reference to workflow.
+	// Workflow - READ-ONLY; Gets the reference to workflow.
 	Workflow *ResourceReference `json:"workflow,omitempty"`
 }
 
@@ -5766,11 +5565,11 @@ type WorkflowVersion struct {
 	autorest.Response `json:"-"`
 	// WorkflowVersionProperties - The workflow version properties.
 	*WorkflowVersionProperties `json:"properties,omitempty"`
-	// ID - The resource id.
+	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the resource name.
+	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Gets the resource type.
+	// Type - READ-ONLY; Gets the resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -5783,15 +5582,6 @@ func (wv WorkflowVersion) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wv.WorkflowVersionProperties != nil {
 		objectMap["properties"] = wv.WorkflowVersionProperties
-	}
-	if wv.ID != nil {
-		objectMap["id"] = wv.ID
-	}
-	if wv.Name != nil {
-		objectMap["name"] = wv.Name
-	}
-	if wv.Type != nil {
-		objectMap["type"] = wv.Type
 	}
 	if wv.Location != nil {
 		objectMap["location"] = wv.Location
@@ -6019,15 +5809,15 @@ func NewWorkflowVersionListResultPage(getNextPage func(context.Context, Workflow
 
 // WorkflowVersionProperties the workflow version properties.
 type WorkflowVersionProperties struct {
-	// CreatedTime - Gets the created time.
+	// CreatedTime - READ-ONLY; Gets the created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - Gets the changed time.
+	// ChangedTime - READ-ONLY; Gets the changed time.
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// State - The state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
 	State WorkflowState `json:"state,omitempty"`
-	// Version - Gets the version.
+	// Version - READ-ONLY; Gets the version.
 	Version *string `json:"version,omitempty"`
-	// AccessEndpoint - Gets the access endpoint.
+	// AccessEndpoint - READ-ONLY; Gets the access endpoint.
 	AccessEndpoint *string `json:"accessEndpoint,omitempty"`
 	// Sku - The sku.
 	Sku *Sku `json:"sku,omitempty"`
@@ -6042,20 +5832,8 @@ type WorkflowVersionProperties struct {
 // MarshalJSON is the custom marshaler for WorkflowVersionProperties.
 func (wvp WorkflowVersionProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if wvp.CreatedTime != nil {
-		objectMap["createdTime"] = wvp.CreatedTime
-	}
-	if wvp.ChangedTime != nil {
-		objectMap["changedTime"] = wvp.ChangedTime
-	}
 	if wvp.State != "" {
 		objectMap["state"] = wvp.State
-	}
-	if wvp.Version != nil {
-		objectMap["version"] = wvp.Version
-	}
-	if wvp.AccessEndpoint != nil {
-		objectMap["accessEndpoint"] = wvp.AccessEndpoint
 	}
 	if wvp.Sku != nil {
 		objectMap["sku"] = wvp.Sku

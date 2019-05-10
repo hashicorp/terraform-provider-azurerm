@@ -197,11 +197,11 @@ type ManagementLockObject struct {
 	autorest.Response `json:"-"`
 	// ManagementLockProperties - The properties of the lock.
 	*ManagementLockProperties `json:"properties,omitempty"`
-	// ID - The resource ID of the lock.
+	// ID - READ-ONLY; The resource ID of the lock.
 	ID *string `json:"id,omitempty"`
-	// Type - The resource type of the lock - Microsoft.Authorization/locks.
+	// Type - READ-ONLY; The resource type of the lock - Microsoft.Authorization/locks.
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the lock.
+	// Name - READ-ONLY; The name of the lock.
 	Name *string `json:"name,omitempty"`
 }
 
@@ -210,15 +210,6 @@ func (mlo ManagementLockObject) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if mlo.ManagementLockProperties != nil {
 		objectMap["properties"] = mlo.ManagementLockProperties
-	}
-	if mlo.ID != nil {
-		objectMap["id"] = mlo.ID
-	}
-	if mlo.Type != nil {
-		objectMap["type"] = mlo.Type
-	}
-	if mlo.Name != nil {
-		objectMap["name"] = mlo.Name
 	}
 	return json.Marshal(objectMap)
 }

@@ -119,7 +119,7 @@ type DeploymentExportResult struct {
 // DeploymentExtended deployment information.
 type DeploymentExtended struct {
 	autorest.Response `json:"-"`
-	// ID - The ID of the deployment.
+	// ID - READ-ONLY; The ID of the deployment.
 	ID *string `json:"id,omitempty"`
 	// Name - The name of the deployment.
 	Name *string `json:"name,omitempty"`
@@ -511,7 +511,7 @@ type DeploymentsCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DeploymentsCreateOrUpdateFuture) Result(client DeploymentsClient) (de DeploymentExtended, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.DeploymentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -540,7 +540,7 @@ type DeploymentsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DeploymentsDeleteFuture) Result(client DeploymentsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.DeploymentsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -585,11 +585,11 @@ type GenericResource struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -618,15 +618,6 @@ func (gr GenericResource) MarshalJSON() ([]byte, error) {
 	if gr.Identity != nil {
 		objectMap["identity"] = gr.Identity
 	}
-	if gr.ID != nil {
-		objectMap["id"] = gr.ID
-	}
-	if gr.Name != nil {
-		objectMap["name"] = gr.Name
-	}
-	if gr.Type != nil {
-		objectMap["type"] = gr.Type
-	}
 	if gr.Location != nil {
 		objectMap["location"] = gr.Location
 	}
@@ -649,7 +640,7 @@ type GenericResourceFilter struct {
 // Group resource group information.
 type Group struct {
 	autorest.Response `json:"-"`
-	// ID - The ID of the resource group.
+	// ID - READ-ONLY; The ID of the resource group.
 	ID *string `json:"id,omitempty"`
 	// Name - The Name of the resource group.
 	Name       *string          `json:"name,omitempty"`
@@ -663,9 +654,6 @@ type Group struct {
 // MarshalJSON is the custom marshaler for Group.
 func (g Group) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if g.ID != nil {
-		objectMap["id"] = g.ID
-	}
 	if g.Name != nil {
 		objectMap["name"] = g.Name
 	}
@@ -846,7 +834,7 @@ func NewGroupListResultPage(getNextPage func(context.Context, GroupListResult) (
 
 // GroupProperties the resource group properties.
 type GroupProperties struct {
-	// ProvisioningState - The provisioning state.
+	// ProvisioningState - READ-ONLY; The provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
@@ -859,7 +847,7 @@ type GroupsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *GroupsDeleteFuture) Result(client GroupsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -880,9 +868,9 @@ type HTTPMessage struct {
 
 // Identity identity for the resource.
 type Identity struct {
-	// PrincipalID - The principal id of resource identity.
+	// PrincipalID - READ-ONLY; The principal id of resource identity.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - The tenant id of resource.
+	// TenantID - READ-ONLY; The tenant id of resource.
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - The identity type. Possible values include: 'SystemAssigned'
 	Type ResourceIdentityType `json:"type,omitempty"`
@@ -1064,7 +1052,7 @@ type MoveResourcesFuture struct {
 // If the operation has not completed it will return an error.
 func (future *MoveResourcesFuture) Result(client Client) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.MoveResourcesFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1307,11 +1295,11 @@ func (prt ProviderResourceType) MarshalJSON() ([]byte, error) {
 
 // Resource ...
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -1322,15 +1310,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -1373,7 +1352,7 @@ type TagCount struct {
 // TagDetails tag details.
 type TagDetails struct {
 	autorest.Response `json:"-"`
-	// ID - The tag ID.
+	// ID - READ-ONLY; The tag ID.
 	ID *string `json:"id,omitempty"`
 	// TagName - The tag name.
 	TagName *string `json:"tagName,omitempty"`
@@ -1532,7 +1511,7 @@ func NewTagsListResultPage(getNextPage func(context.Context, TagsListResult) (Ta
 // TagValue tag information.
 type TagValue struct {
 	autorest.Response `json:"-"`
-	// ID - The tag ID.
+	// ID - READ-ONLY; The tag ID.
 	ID *string `json:"id,omitempty"`
 	// TagValue - The tag value.
 	TagValue *string `json:"tagValue,omitempty"`
@@ -1567,7 +1546,7 @@ type UpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *UpdateFuture) Result(client Client) (gr GenericResource, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", future.Response(), "Polling failure")
 		return

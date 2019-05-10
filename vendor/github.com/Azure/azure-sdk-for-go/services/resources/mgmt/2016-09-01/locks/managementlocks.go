@@ -106,6 +106,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelPreparer(c
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -207,6 +210,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelPreparer(ctx co
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -295,6 +301,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelPreparer(ct
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -384,6 +393,9 @@ func (client ManagementLocksClient) CreateOrUpdateByScopePreparer(ctx context.Co
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -1445,5 +1457,125 @@ func (client ManagementLocksClient) ListAtSubscriptionLevelComplete(ctx context.
 		}()
 	}
 	result.page, err = client.ListAtSubscriptionLevel(ctx, filter)
+	return
+}
+
+// ListByScope gets all the management locks for a scope.
+// Parameters:
+// scope - the scope for the lock. When providing a scope for the assignment, use
+// '/subscriptions/{subscriptionId}' for subscriptions,
+// '/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}' for resource groups, and
+// '/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{parentResourcePathIfPresent}/{resourceType}/{resourceName}'
+// for resources.
+// filter - the filter to apply on the operation.
+func (client ManagementLocksClient) ListByScope(ctx context.Context, scope string, filter string) (result ManagementLockListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagementLocksClient.ListByScope")
+		defer func() {
+			sc := -1
+			if result.mllr.Response.Response != nil {
+				sc = result.mllr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByScopeNextResults
+	req, err := client.ListByScopePreparer(ctx, scope, filter)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByScopeSender(req)
+	if err != nil {
+		result.mllr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure sending request")
+		return
+	}
+
+	result.mllr, err = client.ListByScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListByScopePreparer prepares the ListByScope request.
+func (client ManagementLocksClient) ListByScopePreparer(ctx context.Context, scope string, filter string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"scope": autorest.Encode("path", scope),
+	}
+
+	const APIVersion = "2016-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Authorization/locks", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByScopeSender sends the ListByScope request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagementLocksClient) ListByScopeSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// ListByScopeResponder handles the response to the ListByScope request. The method always
+// closes the http.Response Body.
+func (client ManagementLocksClient) ListByScopeResponder(resp *http.Response) (result ManagementLockListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByScopeNextResults retrieves the next set of results, if any.
+func (client ManagementLocksClient) listByScopeNextResults(ctx context.Context, lastResults ManagementLockListResult) (result ManagementLockListResult, err error) {
+	req, err := lastResults.managementLockListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByScopeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByScopeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ManagementLocksClient) ListByScopeComplete(ctx context.Context, scope string, filter string) (result ManagementLockListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagementLocksClient.ListByScope")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByScope(ctx, scope, filter)
 	return
 }
