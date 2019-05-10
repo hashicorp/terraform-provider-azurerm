@@ -22,7 +22,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v29.0.0 [GH-3335]
 
 * `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
-
+* `azurerm_application_gateway` added validation to ensure `redirect_configuration_name` must not be set if either `backend_address_pool_name` or `backend_http_settings_name` is set [GH-3340]
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 * `azurerm_redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
 * `azurerm_sql_database` - support for the `read_scale` property [GH-3377]
