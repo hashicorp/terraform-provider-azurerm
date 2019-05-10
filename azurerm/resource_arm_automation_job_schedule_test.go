@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -14,7 +13,7 @@ import (
 
 func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	resourceName := "azurerm_automation_job_schedule.test"
-	ri := rand.Int()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,7 +35,7 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 	resourceName := "azurerm_automation_job_schedule.test"
-	ri := rand.Int()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -58,7 +57,7 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 
 func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 	resourceName := "azurerm_automation_job_schedule.test"
-	ri := rand.Int()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
