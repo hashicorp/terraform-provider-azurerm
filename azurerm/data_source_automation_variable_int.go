@@ -4,14 +4,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceArmAutomationIntVariable() *schema.Resource {
+func dataSourceArmAutomationVariableInt() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAutomationIntVariableRead,
+		Read: dataSourceArmAutomationVariableIntRead,
 
 		Schema: datasourceAutomationVariableCommonSchema(schema.TypeInt),
 	}
 }
 
-func dataSourceArmAutomationIntVariableRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
 	return datasourceAutomationVariableRead(d, meta, "Int")
 }

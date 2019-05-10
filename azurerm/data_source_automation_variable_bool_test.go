@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationBoolVariable_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_bool_variable.test"
+	dataSourceName := "data.azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -32,10 +32,10 @@ func testAccDataSourceAutomationBoolVariable_basic(rInt int, location string) st
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_automation_bool_variable" "test" {
-  name                    = "${azurerm_automation_bool_variable.test.name}"
-  resource_group_name     = "${azurerm_automation_bool_variable.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_bool_variable.test.automation_account_name}"
+data "azurerm_automation_variable_bool" "test" {
+  name                    = "${azurerm_automation_variable_bool.test.name}"
+  resource_group_name     = "${azurerm_automation_variable_bool.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_variable_bool.test.automation_account_name}"
 }
 `, config)
 }

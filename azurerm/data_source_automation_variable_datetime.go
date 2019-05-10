@@ -4,14 +4,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceArmAutomationDatetimeVariable() *schema.Resource {
+func dataSourceArmAutomationVariableDateTime() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAutomationDatetimeVariableRead,
+		Read: dataSourceArmAutomationVariableDateTimeRead,
 
 		Schema: datasourceAutomationVariableCommonSchema(schema.TypeString),
 	}
 }
 
-func dataSourceArmAutomationDatetimeVariableRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
 	return datasourceAutomationVariableRead(d, meta, "Datetime")
 }

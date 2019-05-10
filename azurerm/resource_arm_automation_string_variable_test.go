@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAzureRMAutomationStringVariable_basic(t *testing.T) {
-	resourceName := "azurerm_automation_string_variable.test"
+	resourceName := "azurerm_automation_variable_string.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -36,7 +36,7 @@ func TestAccAzureRMAutomationStringVariable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationStringVariable_complete(t *testing.T) {
-	resourceName := "azurerm_automation_string_variable.test"
+	resourceName := "azurerm_automation_variable_string.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -63,7 +63,7 @@ func TestAccAzureRMAutomationStringVariable_complete(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationStringVariable_basicCompleteUpdate(t *testing.T) {
-	resourceName := "azurerm_automation_string_variable.test"
+	resourceName := "azurerm_automation_variable_string.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -123,7 +123,7 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_automation_string_variable" "test" {
+resource "azurerm_automation_variable_string" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
@@ -149,7 +149,7 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_automation_string_variable" "test" {
+resource "azurerm_automation_variable_string" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"

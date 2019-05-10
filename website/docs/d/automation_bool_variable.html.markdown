@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_bool_variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_bool"
 sidebar_current: "docs-azurerm-datasource-automation-bool-variable"
 description: |-
   Gets information about an existing Automation Bool Variable
 ---
 
-# Data Source: azurerm_automation_bool_variable
+# Data Source: azurerm_automation_variable_bool
 
 Use this data source to access information about an existing Automation Bool Variable.
 
@@ -14,14 +14,14 @@ Use this data source to access information about an existing Automation Bool Var
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_bool_variable" "example" {
+data "azurerm_automation_variable_bool" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_bool_variable.example.id}"
+  value = "${data.azurerm_automation_variable_bool.example.id}"
 }
 ```
 

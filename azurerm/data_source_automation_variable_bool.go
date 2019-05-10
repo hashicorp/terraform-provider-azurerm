@@ -4,14 +4,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceArmAutomationBoolVariable() *schema.Resource {
+func dataSourceArmAutomationVariableBool() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAutomationBoolVariableRead,
+		Read: dataSourceArmAutomationVariableBoolRead,
 
 		Schema: datasourceAutomationVariableCommonSchema(schema.TypeBool),
 	}
 }
 
-func dataSourceArmAutomationBoolVariableRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmAutomationVariableBoolRead(d *schema.ResourceData, meta interface{}) error {
 	return datasourceAutomationVariableRead(d, meta, "Bool")
 }

@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_datetime_variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
 sidebar_current: "docs-azurerm-datasource-automation-datetime-variable"
 description: |-
   Gets information about an existing Automation Datetime Variable
 ---
 
-# Data Source: azurerm_automation_datetime_variable
+# Data Source: azurerm_automation_variable_datetime
 
 Use this data source to access information about an existing Automation Datetime Variable.
 
@@ -14,14 +14,14 @@ Use this data source to access information about an existing Automation Datetime
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_datetime_variable" "example" {
+data "azurerm_automation_variable_datetime" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_datetime_variable.example.id}"
+  value = "${data.azurerm_automation_variable_datetime.example.id}"
 }
 ```
 

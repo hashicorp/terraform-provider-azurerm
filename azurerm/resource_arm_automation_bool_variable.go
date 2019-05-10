@@ -4,12 +4,12 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceArmAutomationBoolVariable() *schema.Resource {
+func resourceArmAutomationVariableBool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationBoolVariableCreateUpdate,
-		Read:   resourceArmAutomationBoolVariableRead,
-		Update: resourceArmAutomationBoolVariableCreateUpdate,
-		Delete: resourceArmAutomationBoolVariableDelete,
+		Create: resourceArmAutomationVariableBoolCreateUpdate,
+		Read:   resourceArmAutomationVariableBoolRead,
+		Update: resourceArmAutomationVariableBoolCreateUpdate,
+		Delete: resourceArmAutomationVariableBoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -19,14 +19,14 @@ func resourceArmAutomationBoolVariable() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationBoolVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableBoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "Bool")
 }
 
-func resourceArmAutomationBoolVariableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableBoolRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "Bool")
 }
 
-func resourceArmAutomationBoolVariableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableBoolDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "Bool")
 }

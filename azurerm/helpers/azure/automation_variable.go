@@ -24,15 +24,15 @@ func ParseAzureRmAutomationVariableValue(resource string, input *string) (interf
 	if len(matches) == 2 && matches[0] == *input {
 		if ticks, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
 			value = time.Unix(ticks/1000, ticks%1000*1000000).In(time.UTC)
-			actualResource = "azurerm_automation_datetime_variable"
+			actualResource = "azurerm_automation_variable_datetime"
 		}
 	} else if value, err = strconv.Unquote(*input); err == nil {
-		actualResource = "azurerm_automation_string_variable"
+		actualResource = "azurerm_automation_variable_string"
 	} else if value, err = strconv.ParseBool(*input); err == nil {
-		actualResource = "azurerm_automation_bool_variable"
+		actualResource = "azurerm_automation_variable_bool"
 	} else if value, err = strconv.ParseInt(*input, 10, 32); err == nil {
 		value = int32(value.(int64))
-		actualResource = "azurerm_automation_int_variable"
+		actualResource = "azurerm_automation_variable_int"
 	}
 
 	if actualResource != resource {

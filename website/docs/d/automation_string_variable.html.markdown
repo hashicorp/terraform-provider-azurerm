@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_string_variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_string"
 sidebar_current: "docs-azurerm-datasource-automation-string-variable"
 description: |-
   Gets information about an existing Automation String Variable
 ---
 
-# Data Source: azurerm_automation_string_variable
+# Data Source: azurerm_automation_variable_string
 
 Use this data source to access information about an existing Automation String Variable.
 
@@ -14,14 +14,14 @@ Use this data source to access information about an existing Automation String V
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_string_variable" "example" {
+data "azurerm_automation_variable_string" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_string_variable.example.id}"
+  value = "${data.azurerm_automation_variable_string.example.id}"
 }
 ```
 

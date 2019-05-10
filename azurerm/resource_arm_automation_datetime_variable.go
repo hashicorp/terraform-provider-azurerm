@@ -5,12 +5,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func resourceArmAutomationDatetimeVariable() *schema.Resource {
+func resourceArmAutomationVariableDateTime() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationDatetimeVariableCreateUpdate,
-		Read:   resourceArmAutomationDatetimeVariableRead,
-		Update: resourceArmAutomationDatetimeVariableCreateUpdate,
-		Delete: resourceArmAutomationDatetimeVariableDelete,
+		Create: resourceArmAutomationVariableDateTimeCreateUpdate,
+		Read:   resourceArmAutomationVariableDateTimeRead,
+		Update: resourceArmAutomationVariableDateTimeCreateUpdate,
+		Delete: resourceArmAutomationVariableDateTimeDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -20,14 +20,14 @@ func resourceArmAutomationDatetimeVariable() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationDatetimeVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableDateTimeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "Datetime")
 }
 
-func resourceArmAutomationDatetimeVariableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "Datetime")
 }
 
-func resourceArmAutomationDatetimeVariableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableDateTimeDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "Datetime")
 }

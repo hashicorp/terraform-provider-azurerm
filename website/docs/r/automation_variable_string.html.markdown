@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_string_variable"
-sidebar_current: "docs-azurerm-resource-automation-string-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_string"
+sidebar_current: "docs-azurerm-resource-automation-variable-string"
 description: |-
   Manages a string variable in Azure Automation.
 ---
 
-# azurerm_automation_string_variable
+# azurerm_automation_variable_string
 
 Manages a string variable in Azure Automation
 
@@ -29,7 +29,7 @@ resource "azurerm_automation_account" "example" {
   }
 }
 
-resource "azurerm_automation_string_variable" "example" {
+resource "azurerm_automation_variable_string" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
@@ -65,5 +65,5 @@ The following attributes are exported:
 Automation String Variable can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_automation_string_variable.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
+$ terraform import azurerm_automation_variable_string.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
 ```

@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_int_variable"
-sidebar_current: "docs-azurerm-resource-automation-int-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
+sidebar_current: "docs-azurerm-resource-automation-variable-datetime"
 description: |-
-  Manages a integer variable in Azure Automation.
+  Manages a date/time variable in Azure Automation.
 ---
 
-# azurerm_automation_int_variable
+# azurerm_automation_variable_datetime
 
-Manages a integer variable in Azure Automation
+Manages a date/time variable in Azure Automation
 
 
 ## Example Usage
@@ -29,11 +29,11 @@ resource "azurerm_automation_account" "example" {
   }
 }
 
-resource "azurerm_automation_int_variable" "example" {
+resource "azurerm_automation_variable_datetime" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
-  value                   = 1234
+  value                   = "2019-04-24T21:40:54.074Z"
 }
 ```
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - (Optional) The value of the Automation Variable as a `integer`.
+* `value` - (Optional) The value of the Automation Variable in the [RFC3339 Section 5.6 Internet Date/Time Format](https://tools.ietf.org/html/rfc3339#section-5.6).
 
 ## Attributes Reference
 
@@ -62,8 +62,8 @@ The following attributes are exported:
 
 ## Import
 
-Automation Int Variable can be imported using the `resource id`, e.g.
+Automation Datetime Variable can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_automation_int_variable.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
+$ terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
 ```

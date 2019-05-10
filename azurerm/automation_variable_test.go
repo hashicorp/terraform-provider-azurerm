@@ -24,7 +24,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 	}{
 		{
 			Name:        "string variable",
-			Resource:    "azurerm_automation_string_variable",
+			Resource:    "azurerm_automation_variable_string",
 			Value:       "\"Test String\"",
 			HasError:    false,
 			ExpectValue: "Test String",
@@ -32,7 +32,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		},
 		{
 			Name:        "integer variable",
-			Resource:    "azurerm_automation_int_variable",
+			Resource:    "azurerm_automation_variable_int",
 			Value:       "135",
 			HasError:    false,
 			ExpectValue: 135,
@@ -40,7 +40,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		},
 		{
 			Name:        "boolean variable",
-			Resource:    "azurerm_automation_bool_variable",
+			Resource:    "azurerm_automation_variable_bool",
 			Value:       "true",
 			HasError:    false,
 			ExpectValue: true,
@@ -48,7 +48,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 		},
 		{
 			Name:        "datetime variable",
-			Resource:    "azurerm_automation_datetime_variable",
+			Resource:    "azurerm_automation_variable_datetime",
 			Value:       "\"\\/Date(1556142054074)\\/\"",
 			HasError:    false,
 			ExpectValue: time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC),

@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
-	resourceName := "azurerm_automation_datetime_variable.test"
+	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -36,7 +36,7 @@ func TestAccAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDatetimeVariable_complete(t *testing.T) {
-	resourceName := "azurerm_automation_datetime_variable.test"
+	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -63,7 +63,7 @@ func TestAccAzureRMAutomationDatetimeVariable_complete(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDatetimeVariable_basicCompleteUpdate(t *testing.T) {
-	resourceName := "azurerm_automation_datetime_variable.test"
+	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -123,7 +123,7 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_automation_datetime_variable" "test" {
+resource "azurerm_automation_variable_datetime" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
@@ -149,7 +149,7 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_automation_datetime_variable" "test" {
+resource "azurerm_automation_variable_datetime" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"

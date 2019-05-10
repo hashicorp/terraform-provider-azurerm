@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_datetime_variable.test"
+	dataSourceName := "data.azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -32,10 +32,10 @@ func testAccDataSourceAutomationDatetimeVariable_basic(rInt int, location string
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_automation_datetime_variable" "test" {
-  name                    = "${azurerm_automation_datetime_variable.test.name}"
-  resource_group_name     = "${azurerm_automation_datetime_variable.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_datetime_variable.test.automation_account_name}"
+data "azurerm_automation_variable_datetime" "test" {
+  name                    = "${azurerm_automation_variable_datetime.test.name}"
+  resource_group_name     = "${azurerm_automation_variable_datetime.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_variable_datetime.test.automation_account_name}"
 }
 `, config)
 }

@@ -5,12 +5,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func resourceArmAutomationStringVariable() *schema.Resource {
+func resourceArmAutomationVariableString() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationStringVariableCreateUpdate,
-		Read:   resourceArmAutomationStringVariableRead,
-		Update: resourceArmAutomationStringVariableCreateUpdate,
-		Delete: resourceArmAutomationStringVariableDelete,
+		Create: resourceArmAutomationVariableStringCreateUpdate,
+		Read:   resourceArmAutomationVariableStringRead,
+		Update: resourceArmAutomationVariableStringCreateUpdate,
+		Delete: resourceArmAutomationVariableStringDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -20,14 +20,14 @@ func resourceArmAutomationStringVariable() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationStringVariableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableStringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "String")
 }
 
-func resourceArmAutomationStringVariableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "String")
 }
 
-func resourceArmAutomationStringVariableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutomationVariableStringDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "String")
 }

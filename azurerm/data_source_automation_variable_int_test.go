@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationIntVariable_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_int_variable.test"
+	dataSourceName := "data.azurerm_automation_variable_int.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -32,10 +32,10 @@ func testAccDataSourceAutomationIntVariable_basic(rInt int, location string) str
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_automation_int_variable" "test" {
-  name                    = "${azurerm_automation_int_variable.test.name}"
-  resource_group_name     = "${azurerm_automation_int_variable.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_int_variable.test.automation_account_name}"
+data "azurerm_automation_variable_int" "test" {
+  name                    = "${azurerm_automation_variable_int.test.name}"
+  resource_group_name     = "${azurerm_automation_variable_int.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_variable_int.test.automation_account_name}"
 }
 `, config)
 }
