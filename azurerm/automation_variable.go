@@ -17,8 +17,8 @@ import (
 
 func parseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
-		if resource != "azurerm_automation_null_variable" {
-			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_null_variable\"", resource)
+		if resource != "azurerm_automation_variable_null" {
+			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
 		}
 		return nil, nil
 	}
