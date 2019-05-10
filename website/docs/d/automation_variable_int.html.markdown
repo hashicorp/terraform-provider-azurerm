@@ -1,27 +1,27 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
-sidebar_current: "docs-azurerm-datasource-automation-datetime-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_int"
+sidebar_current: "docs-azurerm-datasource-automation-variable-int"
 description: |-
-  Gets information about an existing Automation Datetime Variable
+  Gets information about an existing Automation Int Variable
 ---
 
-# Data Source: azurerm_automation_variable_datetime
+# Data Source: azurerm_automation_variable_int
 
-Use this data source to access information about an existing Automation Datetime Variable.
+Use this data source to access information about an existing Automation Int Variable.
 
 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_variable_datetime" "example" {
+data "azurerm_automation_variable_int" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_datetime.example.id}"
+  value = "${data.azurerm_automation_variable_int.example.id}"
 }
 ```
 
@@ -47,4 +47,4 @@ The following attributes are exported:
 
 * `encrypted` - Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - The value of the Automation Variable in the [RFC3339 Section 5.6 Internet Date/Time Format](https://tools.ietf.org/html/rfc3339#section-5.6).
+* `value` - The value of the Automation Variable as a `integer`.

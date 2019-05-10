@@ -1,27 +1,27 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_variable_string"
-sidebar_current: "docs-azurerm-datasource-automation-string-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_bool"
+sidebar_current: "docs-azurerm-datasource-automation-variable-bool"
 description: |-
-  Gets information about an existing Automation String Variable
+  Gets information about an existing Automation Bool Variable
 ---
 
-# Data Source: azurerm_automation_variable_string
+# Data Source: azurerm_automation_variable_bool
 
-Use this data source to access information about an existing Automation String Variable.
+Use this data source to access information about an existing Automation Bool Variable.
 
 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_variable_string" "example" {
+data "azurerm_automation_variable_bool" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_string.example.id}"
+  value = "${data.azurerm_automation_variable_bool.example.id}"
 }
 ```
 
@@ -47,4 +47,4 @@ The following attributes are exported:
 
 * `encrypted` - Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - The value of the Automation Variable as a `string`.
+* `value` - The value of the Automation Variable as a `boolean`.

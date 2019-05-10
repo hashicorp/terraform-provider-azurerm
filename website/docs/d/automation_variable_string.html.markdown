@@ -1,27 +1,27 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_variable_int"
-sidebar_current: "docs-azurerm-datasource-automation-int-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_string"
+sidebar_current: "docs-azurerm-datasource-automation-variable-string"
 description: |-
-  Gets information about an existing Automation Int Variable
+  Gets information about an existing Automation String Variable
 ---
 
-# Data Source: azurerm_automation_variable_int
+# Data Source: azurerm_automation_variable_string
 
-Use this data source to access information about an existing Automation Int Variable.
+Use this data source to access information about an existing Automation String Variable.
 
 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_variable_int" "example" {
+data "azurerm_automation_variable_string" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_int.example.id}"
+  value = "${data.azurerm_automation_variable_string.example.id}"
 }
 ```
 
@@ -47,4 +47,4 @@ The following attributes are exported:
 
 * `encrypted` - Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - The value of the Automation Variable as a `integer`.
+* `value` - The value of the Automation Variable as a `string`.

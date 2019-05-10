@@ -1,27 +1,27 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_variable_bool"
-sidebar_current: "docs-azurerm-datasource-automation-bool-variable"
+page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
+sidebar_current: "docs-azurerm-datasource-automation-variable-datetime"
 description: |-
-  Gets information about an existing Automation Bool Variable
+  Gets information about an existing Automation Datetime Variable
 ---
 
-# Data Source: azurerm_automation_variable_bool
+# Data Source: azurerm_automation_variable_datetime
 
-Use this data source to access information about an existing Automation Bool Variable.
+Use this data source to access information about an existing Automation Datetime Variable.
 
 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_variable_bool" "example" {
+data "azurerm_automation_variable_datetime" "example" {
   name                    = "tfex-example-var"
   resource_group_name     = "tfex-example-rg"
   automation_account_name = "tfex-example-account"
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_bool.example.id}"
+  value = "${data.azurerm_automation_variable_datetime.example.id}"
 }
 ```
 
@@ -47,4 +47,4 @@ The following attributes are exported:
 
 * `encrypted` - Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-* `value` - The value of the Automation Variable as a `boolean`.
+* `value` - The value of the Automation Variable in the [RFC3339 Section 5.6 Internet Date/Time Format](https://tools.ietf.org/html/rfc3339#section-5.6).
