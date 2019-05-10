@@ -2,12 +2,20 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_automation_variable_bool` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_datetime` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_int` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_string` [GH-3310]
 * **New Data Source:** `azurerm_user_assigned_identity` [GH-3343]
-* **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
+* **New Resource:** `azurerm_automation_variable_bool` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_datetime` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_int` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_string` [GH-3310]
 * **New Resource:** `azurerm_api_management_api_operation_policy` [GH-3374]
 * **New Resource:** `azurerm_api_management_api_policy` [GH-3367]
 * **New Resource:** `azurerm_api_management_product_policy` [GH-3325]
 * **New Resource:** `azurerm_api_management_schema` [GH-3357]
+* **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 
 IMPROVEMENTS:
 
