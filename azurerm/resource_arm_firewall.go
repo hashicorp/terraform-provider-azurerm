@@ -2,17 +2,14 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
-	"log"
-	"regexp"
-	"strings"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"regexp"
 )
 
 var azureFirewallResourceName = "azurerm_firewall"
@@ -51,13 +48,10 @@ func resourceArmFirewall() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.All(
-								azure.ValidateResourceID,
-								validateAzureFirewallSubnetName,
-							),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateAzureFirewallSubnetName,
 						},
 						"internal_public_ip_address_id": {
 							Type:          schema.TypeString,
@@ -387,9 +381,15 @@ func validateAzureFirewallName(v interface{}, k string) (warnings []string, erro
 }
 
 func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	value := strings.Split(v.(string), "/")
-	if value[len(value)-1] != "AzureFirewallSubnet" {
-		errors = append(errors, fmt.Errorf("%q must have the name 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+	parsed, err := parseAzureResourceID(v.(string))
+	if err != nil {
+		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
+		return warnings, errors
+	}
+	subnetName := parsed.Path["subnets"]
+	if subnetName != "AzureFirewallSubnet" {
+		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+
 	}
 
 	return warnings, errors
