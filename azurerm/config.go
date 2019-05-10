@@ -106,6 +106,7 @@ type ArmClient struct {
 	automationRunbookClient               automation.RunbookClient
 	automationRunbookDraftClient          automation.RunbookDraftClient
 	automationScheduleClient              automation.ScheduleClient
+	automationVariableClient              automation.VariableClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -675,6 +676,10 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookDraftClient.Client, auth)
 	c.automationRunbookDraftClient = runbookDraftClient
+
+	variableClient := automation.NewVariableClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&variableClient.Client, auth)
+	c.automationVariableClient = variableClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
