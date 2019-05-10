@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMAutomationBoolVariable_basic(t *testing.T) {
+func TestAccDataSourceAzureRMAutomationVariableBool_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMAutomationBoolVariable_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationBoolVariable_basic(ri, location),
+				Config: testAccDataSourceAutomationVariableBool_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "value", "false"),
 				),
@@ -27,8 +27,8 @@ func TestAccDataSourceAzureRMAutomationBoolVariable_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAutomationBoolVariable_basic(rInt int, location string) string {
-	config := testAccAzureRMAutomationBoolVariable_basic(rInt, location)
+func testAccDataSourceAutomationVariableBool_basic(rInt int, location string) string {
+	config := testAccAzureRMAutomationVariableBool_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 

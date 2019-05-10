@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
+func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -17,12 +17,12 @@ func TestAccAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutomationDatetimeVariableDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDatetimeVariable_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableDateTime_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDatetimeVariableExists(resourceName),
+					testCheckAzureRMAutomationVariableDateTimeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "value", "2019-04-24T21:40:54.074Z"),
 				),
 			},
@@ -35,7 +35,7 @@ func TestAccAzureRMAutomationDatetimeVariable_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationDatetimeVariable_complete(t *testing.T) {
+func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
 	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -43,12 +43,12 @@ func TestAccAzureRMAutomationDatetimeVariable_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutomationDatetimeVariableDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDatetimeVariable_complete(ri, location),
+				Config: testAccAzureRMAutomationVariableDateTime_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDatetimeVariableExists(resourceName),
+					testCheckAzureRMAutomationVariableDateTimeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", "This variable is created by Terraform acceptance test."),
 					resource.TestCheckResourceAttr(resourceName, "value", "2019-04-20T08:40:04.02Z"),
 				),
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationDatetimeVariable_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationDatetimeVariable_basicCompleteUpdate(t *testing.T) {
+func TestAccAzureRMAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_automation_variable_datetime.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -70,27 +70,27 @@ func TestAccAzureRMAutomationDatetimeVariable_basicCompleteUpdate(t *testing.T) 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutomationDatetimeVariableDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDatetimeVariable_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableDateTime_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDatetimeVariableExists(resourceName),
+					testCheckAzureRMAutomationVariableDateTimeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "value", "2019-04-24T21:40:54.074Z"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationDatetimeVariable_complete(ri, location),
+				Config: testAccAzureRMAutomationVariableDateTime_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDatetimeVariableExists(resourceName),
+					testCheckAzureRMAutomationVariableDateTimeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", "This variable is created by Terraform acceptance test."),
 					resource.TestCheckResourceAttr(resourceName, "value", "2019-04-20T08:40:04.02Z"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationDatetimeVariable_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableDateTime_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDatetimeVariableExists(resourceName),
+					testCheckAzureRMAutomationVariableDateTimeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "value", "2019-04-24T21:40:54.074Z"),
 				),
 			},
@@ -98,15 +98,15 @@ func TestAccAzureRMAutomationDatetimeVariable_basicCompleteUpdate(t *testing.T) 
 	})
 }
 
-func testCheckAzureRMAutomationDatetimeVariableExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationVariableDateTimeExists(resourceName string) resource.TestCheckFunc {
 	return testCheckAzureRMAutomationVariableExists(resourceName, "Datetime")
 }
 
-func testCheckAzureRMAutomationDatetimeVariableDestroy(s *terraform.State) error {
+func testCheckAzureRMAutomationVariableDateTimeDestroy(s *terraform.State) error {
 	return testCheckAzureRMAutomationVariableDestroy(s, "Datetime")
 }
 
-func testAccAzureRMAutomationDatetimeVariable_basic(rInt int, location string) string {
+func testAccAzureRMAutomationVariableDateTime_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -132,7 +132,7 @@ resource "azurerm_automation_variable_datetime" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMAutomationDatetimeVariable_complete(rInt int, location string) string {
+func testAccAzureRMAutomationVariableDateTime_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
