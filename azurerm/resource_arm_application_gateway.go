@@ -981,6 +981,39 @@ func resourceArmApplicationGateway() *schema.Resource {
 								},
 							},
 						},
+						"exclusion": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match_variable": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"RequestHeaderNames",
+											"RequestArgNames",
+											"RequestCookieNames",
+										}, false),
+									},
+
+									"selector_match_operator": {
+										Type: schema.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Equals",
+											"StartsWith",
+											"EndsWith",
+											"Contains",
+										}, false),
+										Optional: true,
+									},
+									"selector": {
+										ValidateFunc: validate.NoEmptyStrings,
+										Type:         schema.TypeString,
+										Optional:     true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2730,6 +2763,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
 		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]interface{})),
+		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]interface{})),
 	}
 }
 
@@ -2771,6 +2805,9 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
 	}
 
+	if input.Exclusions != nil {
+		output["exclusion"] = flattenApplicationGatewayFirewallExclusion(input.Exclusions)
+	}
 	results = append(results, output)
 
 	return results
@@ -2826,6 +2863,53 @@ func flattenApplicationGateWayDisabledRuleGroups(input *[]network.ApplicationGat
 
 	}
 	return ruleGroups
+}
+
+func expandApplicationGatewayFirewallExclusion(d []interface{}) *[]network.ApplicationGatewayFirewallExclusion {
+	if len(d) == 0 {
+		return nil
+	}
+
+	exclusions := make([]network.ApplicationGatewayFirewallExclusion, 0)
+	for _, exclusion := range d {
+		exclusionMap := exclusion.(map[string]interface{})
+
+		matchVariable := exclusionMap["match_variable"].(string)
+		selectorMatchOperator := exclusionMap["selector_match_operator"].(string)
+		selector := exclusionMap["selector"].(string)
+
+		exclusionList := network.ApplicationGatewayFirewallExclusion{
+			MatchVariable:         utils.String(matchVariable),
+			SelectorMatchOperator: utils.String(selectorMatchOperator),
+			Selector:              utils.String(selector),
+		}
+
+		exclusions = append(exclusions, exclusionList)
+	}
+
+	return &exclusions
+}
+
+func flattenApplicationGatewayFirewallExclusion(input *[]network.ApplicationGatewayFirewallExclusion) []interface{} {
+	exclusionLists := make([]interface{}, 0)
+	for _, exclusionList := range *input {
+		exclusionListOutput := map[string]interface{}{}
+
+		if exclusionList.MatchVariable != nil {
+			exclusionListOutput["match_variable"] = *exclusionList.MatchVariable
+		}
+
+		if exclusionList.SelectorMatchOperator != nil {
+			exclusionListOutput["selector_match_operator"] = *exclusionList.SelectorMatchOperator
+		}
+
+		if exclusionList.Selector != nil {
+			exclusionListOutput["selector"] = *exclusionList.Selector
+		}
+		exclusionLists = append(exclusionLists, exclusionListOutput)
+
+	}
+	return exclusionLists
 }
 
 func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {
