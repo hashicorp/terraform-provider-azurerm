@@ -137,7 +137,7 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_%s_variable", varTypeLower), *resp.ID)
+			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), *resp.ID)
 		}
 	}
 
@@ -218,7 +218,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
 		if !d.Get("encrypted").(bool) {
-			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_%s_variable", varTypeLower), properties.Value)
+			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
 			if err != nil {
 				return err
 			}
@@ -262,7 +262,7 @@ func datasourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
 		if !d.Get("encrypted").(bool) {
-			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_%s_variable", varTypeLower), properties.Value)
+			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
 			if err != nil {
 				return err
 			}

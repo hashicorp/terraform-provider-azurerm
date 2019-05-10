@@ -108,7 +108,7 @@ func testCheckAzureRMAutomationVariableDestroy(s *terraform.State, varType strin
 	client := testAccProvider.Meta().(*ArmClient).automationVariableClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	resourceName := fmt.Sprintf("azurerm_automation_%s_variable", strings.ToLower(varType))
+	resourceName := fmt.Sprintf("azurerm_automation_variable_%s", strings.ToLower(varType))
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != resourceName {
