@@ -11,6 +11,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v29.0.0 [GH-3335]
+
 * `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 * `redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
