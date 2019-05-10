@@ -21,12 +21,14 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to v29.0.0 [GH-3335]
 
-* `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
+* `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
+
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
-* `redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
+* `azurerm_redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
+* `azurerm_sql_database` - support for the `read_scale` property [GH-3377]
+* `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
 * `azurerm_virtual_network_peering` - retrying provisioning the peering of the virtual network [GH-3392]
 * `azurerm_virtual_machine_scale_set` - support for the `provision_after_extensions` property to chain multiple extensions togeather [GH-2937]
-* `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
 
 BUG FIXES:
 
