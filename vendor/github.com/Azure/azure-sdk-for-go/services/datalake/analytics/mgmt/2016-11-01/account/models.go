@@ -204,7 +204,7 @@ type AccountsCreateFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsCreateFutureType) Result(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -233,7 +233,7 @@ type AccountsDeleteFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsDeleteFutureType) Result(client AccountsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsDeleteFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -256,7 +256,7 @@ type AccountsUpdateFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsUpdateFutureType) Result(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -480,15 +480,15 @@ func (asawap *AddStorageAccountWithAccountParameters) UnmarshalJSON(body []byte)
 // CapabilityInformation subscription-level properties and limits for Data Lake Analytics.
 type CapabilityInformation struct {
 	autorest.Response `json:"-"`
-	// SubscriptionID - The subscription credentials that uniquely identifies the subscription.
+	// SubscriptionID - READ-ONLY; The subscription credentials that uniquely identifies the subscription.
 	SubscriptionID *uuid.UUID `json:"subscriptionId,omitempty"`
-	// State - The subscription state. Possible values include: 'SubscriptionStateRegistered', 'SubscriptionStateSuspended', 'SubscriptionStateDeleted', 'SubscriptionStateUnregistered', 'SubscriptionStateWarned'
+	// State - READ-ONLY; The subscription state. Possible values include: 'SubscriptionStateRegistered', 'SubscriptionStateSuspended', 'SubscriptionStateDeleted', 'SubscriptionStateUnregistered', 'SubscriptionStateWarned'
 	State SubscriptionState `json:"state,omitempty"`
-	// MaxAccountCount - The maximum supported number of accounts under this subscription.
+	// MaxAccountCount - READ-ONLY; The maximum supported number of accounts under this subscription.
 	MaxAccountCount *int32 `json:"maxAccountCount,omitempty"`
-	// AccountCount - The current number of accounts under this subscription.
+	// AccountCount - READ-ONLY; The current number of accounts under this subscription.
 	AccountCount *int32 `json:"accountCount,omitempty"`
-	// MigrationState - The Boolean value of true or false to indicate the maintenance state.
+	// MigrationState - READ-ONLY; The Boolean value of true or false to indicate the maintenance state.
 	MigrationState *bool `json:"migrationState,omitempty"`
 }
 
@@ -503,31 +503,19 @@ type CheckNameAvailabilityParameters struct {
 // ComputePolicy data Lake Analytics compute policy information.
 type ComputePolicy struct {
 	autorest.Response `json:"-"`
-	// ComputePolicyProperties - The compute policy properties.
+	// ComputePolicyProperties - READ-ONLY; The compute policy properties.
 	*ComputePolicyProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ComputePolicy.
 func (cp ComputePolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if cp.ComputePolicyProperties != nil {
-		objectMap["properties"] = cp.ComputePolicyProperties
-	}
-	if cp.ID != nil {
-		objectMap["id"] = cp.ID
-	}
-	if cp.Name != nil {
-		objectMap["name"] = cp.Name
-	}
-	if cp.Type != nil {
-		objectMap["type"] = cp.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -585,9 +573,9 @@ func (cp *ComputePolicy) UnmarshalJSON(body []byte) error {
 // ComputePolicyListResult the list of compute policies in the account.
 type ComputePolicyListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]ComputePolicy `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -730,13 +718,13 @@ func NewComputePolicyListResultPage(getNextPage func(context.Context, ComputePol
 
 // ComputePolicyProperties the compute policy properties.
 type ComputePolicyProperties struct {
-	// ObjectID - The AAD object identifier for the entity to create a policy for.
+	// ObjectID - READ-ONLY; The AAD object identifier for the entity to create a policy for.
 	ObjectID *uuid.UUID `json:"objectId,omitempty"`
-	// ObjectType - The type of AAD object the object identifier refers to. Possible values include: 'User', 'Group', 'ServicePrincipal'
+	// ObjectType - READ-ONLY; The type of AAD object the object identifier refers to. Possible values include: 'User', 'Group', 'ServicePrincipal'
 	ObjectType AADObjectType `json:"objectType,omitempty"`
-	// MaxDegreeOfParallelismPerJob - The maximum degree of parallelism per job this user can use to submit jobs.
+	// MaxDegreeOfParallelismPerJob - READ-ONLY; The maximum degree of parallelism per job this user can use to submit jobs.
 	MaxDegreeOfParallelismPerJob *int32 `json:"maxDegreeOfParallelismPerJob,omitempty"`
-	// MinPriorityPerJob - The minimum priority per job this user can use to submit jobs.
+	// MinPriorityPerJob - READ-ONLY; The minimum priority per job this user can use to submit jobs.
 	MinPriorityPerJob *int32 `json:"minPriorityPerJob,omitempty"`
 }
 
@@ -1050,41 +1038,23 @@ type CreateOrUpdateFirewallRuleProperties struct {
 // with the named Data Lake Analytics account.
 type DataLakeAnalyticsAccount struct {
 	autorest.Response `json:"-"`
-	// DataLakeAnalyticsAccountProperties - The properties defined by Data Lake Analytics all properties are specific to each resource provider.
+	// DataLakeAnalyticsAccountProperties - READ-ONLY; The properties defined by Data Lake Analytics all properties are specific to each resource provider.
 	*DataLakeAnalyticsAccountProperties `json:"properties,omitempty"`
-	// ID - The resource identifer.
+	// ID - READ-ONLY; The resource identifer.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for DataLakeAnalyticsAccount.
 func (dlaa DataLakeAnalyticsAccount) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dlaa.DataLakeAnalyticsAccountProperties != nil {
-		objectMap["properties"] = dlaa.DataLakeAnalyticsAccountProperties
-	}
-	if dlaa.ID != nil {
-		objectMap["id"] = dlaa.ID
-	}
-	if dlaa.Name != nil {
-		objectMap["name"] = dlaa.Name
-	}
-	if dlaa.Type != nil {
-		objectMap["type"] = dlaa.Type
-	}
-	if dlaa.Location != nil {
-		objectMap["location"] = dlaa.Location
-	}
-	if dlaa.Tags != nil {
-		objectMap["tags"] = dlaa.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1160,41 +1130,23 @@ func (dlaa *DataLakeAnalyticsAccount) UnmarshalJSON(body []byte) error {
 // DataLakeAnalyticsAccountBasic a Data Lake Analytics account object, containing all information
 // associated with the named Data Lake Analytics account.
 type DataLakeAnalyticsAccountBasic struct {
-	// DataLakeAnalyticsAccountPropertiesBasic - The properties defined by Data Lake Analytics all properties are specific to each resource provider.
+	// DataLakeAnalyticsAccountPropertiesBasic - READ-ONLY; The properties defined by Data Lake Analytics all properties are specific to each resource provider.
 	*DataLakeAnalyticsAccountPropertiesBasic `json:"properties,omitempty"`
-	// ID - The resource identifer.
+	// ID - READ-ONLY; The resource identifer.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for DataLakeAnalyticsAccountBasic.
 func (dlaab DataLakeAnalyticsAccountBasic) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dlaab.DataLakeAnalyticsAccountPropertiesBasic != nil {
-		objectMap["properties"] = dlaab.DataLakeAnalyticsAccountPropertiesBasic
-	}
-	if dlaab.ID != nil {
-		objectMap["id"] = dlaab.ID
-	}
-	if dlaab.Name != nil {
-		objectMap["name"] = dlaab.Name
-	}
-	if dlaab.Type != nil {
-		objectMap["type"] = dlaab.Type
-	}
-	if dlaab.Location != nil {
-		objectMap["location"] = dlaab.Location
-	}
-	if dlaab.Tags != nil {
-		objectMap["tags"] = dlaab.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1270,9 +1222,9 @@ func (dlaab *DataLakeAnalyticsAccountBasic) UnmarshalJSON(body []byte) error {
 // DataLakeAnalyticsAccountListResult data Lake Analytics account list information.
 type DataLakeAnalyticsAccountListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]DataLakeAnalyticsAccountBasic `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1417,97 +1369,85 @@ func NewDataLakeAnalyticsAccountListResultPage(getNextPage func(context.Context,
 // DataLakeAnalyticsAccountProperties the account specific properties that are associated with an
 // underlying Data Lake Analytics account. Returned only when retrieving a specific account.
 type DataLakeAnalyticsAccountProperties struct {
-	// DefaultDataLakeStoreAccount - The default Data Lake Store account associated with this account.
+	// DefaultDataLakeStoreAccount - READ-ONLY; The default Data Lake Store account associated with this account.
 	DefaultDataLakeStoreAccount *string `json:"defaultDataLakeStoreAccount,omitempty"`
-	// DataLakeStoreAccounts - The list of Data Lake Store accounts associated with this account.
+	// DataLakeStoreAccounts - READ-ONLY; The list of Data Lake Store accounts associated with this account.
 	DataLakeStoreAccounts *[]DataLakeStoreAccountInformation `json:"dataLakeStoreAccounts,omitempty"`
-	// StorageAccounts - The list of Azure Blob Storage accounts associated with this account.
+	// StorageAccounts - READ-ONLY; The list of Azure Blob Storage accounts associated with this account.
 	StorageAccounts *[]StorageAccountInformation `json:"storageAccounts,omitempty"`
-	// ComputePolicies - The list of compute policies associated with this account.
+	// ComputePolicies - READ-ONLY; The list of compute policies associated with this account.
 	ComputePolicies *[]ComputePolicy `json:"computePolicies,omitempty"`
-	// FirewallRules - The list of firewall rules associated with this account.
+	// FirewallRules - READ-ONLY; The list of firewall rules associated with this account.
 	FirewallRules *[]FirewallRule `json:"firewallRules,omitempty"`
-	// FirewallState - The current state of the IP address firewall for this account. Possible values include: 'FirewallStateEnabled', 'FirewallStateDisabled'
+	// FirewallState - READ-ONLY; The current state of the IP address firewall for this account. Possible values include: 'FirewallStateEnabled', 'FirewallStateDisabled'
 	FirewallState FirewallState `json:"firewallState,omitempty"`
-	// FirewallAllowAzureIps - The current state of allowing or disallowing IPs originating within Azure through the firewall. If the firewall is disabled, this is not enforced. Possible values include: 'Enabled', 'Disabled'
+	// FirewallAllowAzureIps - READ-ONLY; The current state of allowing or disallowing IPs originating within Azure through the firewall. If the firewall is disabled, this is not enforced. Possible values include: 'Enabled', 'Disabled'
 	FirewallAllowAzureIps FirewallAllowAzureIpsState `json:"firewallAllowAzureIps,omitempty"`
-	// NewTier - The commitment tier for the next month. Possible values include: 'Consumption', 'Commitment100AUHours', 'Commitment500AUHours', 'Commitment1000AUHours', 'Commitment5000AUHours', 'Commitment10000AUHours', 'Commitment50000AUHours', 'Commitment100000AUHours', 'Commitment500000AUHours'
+	// NewTier - READ-ONLY; The commitment tier for the next month. Possible values include: 'Consumption', 'Commitment100AUHours', 'Commitment500AUHours', 'Commitment1000AUHours', 'Commitment5000AUHours', 'Commitment10000AUHours', 'Commitment50000AUHours', 'Commitment100000AUHours', 'Commitment500000AUHours'
 	NewTier TierType `json:"newTier,omitempty"`
-	// CurrentTier - The commitment tier in use for the current month. Possible values include: 'Consumption', 'Commitment100AUHours', 'Commitment500AUHours', 'Commitment1000AUHours', 'Commitment5000AUHours', 'Commitment10000AUHours', 'Commitment50000AUHours', 'Commitment100000AUHours', 'Commitment500000AUHours'
+	// CurrentTier - READ-ONLY; The commitment tier in use for the current month. Possible values include: 'Consumption', 'Commitment100AUHours', 'Commitment500AUHours', 'Commitment1000AUHours', 'Commitment5000AUHours', 'Commitment10000AUHours', 'Commitment50000AUHours', 'Commitment100000AUHours', 'Commitment500000AUHours'
 	CurrentTier TierType `json:"currentTier,omitempty"`
-	// MaxJobCount - The maximum supported jobs running under the account at the same time.
+	// MaxJobCount - READ-ONLY; The maximum supported jobs running under the account at the same time.
 	MaxJobCount *int32 `json:"maxJobCount,omitempty"`
-	// SystemMaxJobCount - The system defined maximum supported jobs running under the account at the same time, which restricts the maximum number of running jobs the user can set for the account.
+	// SystemMaxJobCount - READ-ONLY; The system defined maximum supported jobs running under the account at the same time, which restricts the maximum number of running jobs the user can set for the account.
 	SystemMaxJobCount *int32 `json:"systemMaxJobCount,omitempty"`
-	// MaxDegreeOfParallelism - The maximum supported degree of parallelism for this account.
+	// MaxDegreeOfParallelism - READ-ONLY; The maximum supported degree of parallelism for this account.
 	MaxDegreeOfParallelism *int32 `json:"maxDegreeOfParallelism,omitempty"`
-	// SystemMaxDegreeOfParallelism - The system defined maximum supported degree of parallelism for this account, which restricts the maximum value of parallelism the user can set for the account.
+	// SystemMaxDegreeOfParallelism - READ-ONLY; The system defined maximum supported degree of parallelism for this account, which restricts the maximum value of parallelism the user can set for the account.
 	SystemMaxDegreeOfParallelism *int32 `json:"systemMaxDegreeOfParallelism,omitempty"`
-	// MaxDegreeOfParallelismPerJob - The maximum supported degree of parallelism per job for this account.
+	// MaxDegreeOfParallelismPerJob - READ-ONLY; The maximum supported degree of parallelism per job for this account.
 	MaxDegreeOfParallelismPerJob *int32 `json:"maxDegreeOfParallelismPerJob,omitempty"`
-	// MinPriorityPerJob - The minimum supported priority per job for this account.
+	// MinPriorityPerJob - READ-ONLY; The minimum supported priority per job for this account.
 	MinPriorityPerJob *int32 `json:"minPriorityPerJob,omitempty"`
-	// QueryStoreRetention - The number of days that job metadata is retained.
+	// QueryStoreRetention - READ-ONLY; The number of days that job metadata is retained.
 	QueryStoreRetention *int32 `json:"queryStoreRetention,omitempty"`
-	// AccountID - The unique identifier associated with this Data Lake Analytics account.
+	// AccountID - READ-ONLY; The unique identifier associated with this Data Lake Analytics account.
 	AccountID *uuid.UUID `json:"accountId,omitempty"`
-	// ProvisioningState - The provisioning status of the Data Lake Analytics account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning status of the Data Lake Analytics account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
 	ProvisioningState DataLakeAnalyticsAccountStatus `json:"provisioningState,omitempty"`
-	// State - The state of the Data Lake Analytics account. Possible values include: 'Active', 'Suspended'
+	// State - READ-ONLY; The state of the Data Lake Analytics account. Possible values include: 'Active', 'Suspended'
 	State DataLakeAnalyticsAccountState `json:"state,omitempty"`
-	// CreationTime - The account creation time.
+	// CreationTime - READ-ONLY; The account creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - The account last modified time.
+	// LastModifiedTime - READ-ONLY; The account last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
-	// Endpoint - The full CName endpoint for this account.
+	// Endpoint - READ-ONLY; The full CName endpoint for this account.
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
 // DataLakeAnalyticsAccountPropertiesBasic the basic account specific properties that are associated with
 // an underlying Data Lake Analytics account.
 type DataLakeAnalyticsAccountPropertiesBasic struct {
-	// AccountID - The unique identifier associated with this Data Lake Analytics account.
+	// AccountID - READ-ONLY; The unique identifier associated with this Data Lake Analytics account.
 	AccountID *uuid.UUID `json:"accountId,omitempty"`
-	// ProvisioningState - The provisioning status of the Data Lake Analytics account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning status of the Data Lake Analytics account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
 	ProvisioningState DataLakeAnalyticsAccountStatus `json:"provisioningState,omitempty"`
-	// State - The state of the Data Lake Analytics account. Possible values include: 'Active', 'Suspended'
+	// State - READ-ONLY; The state of the Data Lake Analytics account. Possible values include: 'Active', 'Suspended'
 	State DataLakeAnalyticsAccountState `json:"state,omitempty"`
-	// CreationTime - The account creation time.
+	// CreationTime - READ-ONLY; The account creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - The account last modified time.
+	// LastModifiedTime - READ-ONLY; The account last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
-	// Endpoint - The full CName endpoint for this account.
+	// Endpoint - READ-ONLY; The full CName endpoint for this account.
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
 // DataLakeStoreAccountInformation data Lake Store account information.
 type DataLakeStoreAccountInformation struct {
 	autorest.Response `json:"-"`
-	// DataLakeStoreAccountInformationProperties - The Data Lake Store account properties.
+	// DataLakeStoreAccountInformationProperties - READ-ONLY; The Data Lake Store account properties.
 	*DataLakeStoreAccountInformationProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DataLakeStoreAccountInformation.
 func (dlsai DataLakeStoreAccountInformation) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dlsai.DataLakeStoreAccountInformationProperties != nil {
-		objectMap["properties"] = dlsai.DataLakeStoreAccountInformationProperties
-	}
-	if dlsai.ID != nil {
-		objectMap["id"] = dlsai.ID
-	}
-	if dlsai.Name != nil {
-		objectMap["name"] = dlsai.Name
-	}
-	if dlsai.Type != nil {
-		objectMap["type"] = dlsai.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1565,9 +1505,9 @@ func (dlsai *DataLakeStoreAccountInformation) UnmarshalJSON(body []byte) error {
 // DataLakeStoreAccountInformationListResult data Lake Store account list information.
 type DataLakeStoreAccountInformationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]DataLakeStoreAccountInformation `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1711,38 +1651,26 @@ func NewDataLakeStoreAccountInformationListResultPage(getNextPage func(context.C
 
 // DataLakeStoreAccountInformationProperties the Data Lake Store account properties.
 type DataLakeStoreAccountInformationProperties struct {
-	// Suffix - The optional suffix for the Data Lake Store account.
+	// Suffix - READ-ONLY; The optional suffix for the Data Lake Store account.
 	Suffix *string `json:"suffix,omitempty"`
 }
 
 // FirewallRule data Lake Analytics firewall rule information.
 type FirewallRule struct {
 	autorest.Response `json:"-"`
-	// FirewallRuleProperties - The firewall rule properties.
+	// FirewallRuleProperties - READ-ONLY; The firewall rule properties.
 	*FirewallRuleProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FirewallRule.
 func (fr FirewallRule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if fr.FirewallRuleProperties != nil {
-		objectMap["properties"] = fr.FirewallRuleProperties
-	}
-	if fr.ID != nil {
-		objectMap["id"] = fr.ID
-	}
-	if fr.Name != nil {
-		objectMap["name"] = fr.Name
-	}
-	if fr.Type != nil {
-		objectMap["type"] = fr.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1800,9 +1728,9 @@ func (fr *FirewallRule) UnmarshalJSON(body []byte) error {
 // FirewallRuleListResult data Lake Analytics firewall rule list information.
 type FirewallRuleListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]FirewallRule `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1945,92 +1873,77 @@ func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRul
 
 // FirewallRuleProperties the firewall rule properties.
 type FirewallRuleProperties struct {
-	// StartIPAddress - The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
+	// StartIPAddress - READ-ONLY; The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	StartIPAddress *string `json:"startIpAddress,omitempty"`
-	// EndIPAddress - The end IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
+	// EndIPAddress - READ-ONLY; The end IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
 // NameAvailabilityInformation data Lake Analytics account name availability result information.
 type NameAvailabilityInformation struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - The Boolean value of true or false to indicate whether the Data Lake Analytics account name is available or not.
+	// NameAvailable - READ-ONLY; The Boolean value of true or false to indicate whether the Data Lake Analytics account name is available or not.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - The reason why the Data Lake Analytics account name is not available, if nameAvailable is false.
+	// Reason - READ-ONLY; The reason why the Data Lake Analytics account name is not available, if nameAvailable is false.
 	Reason *string `json:"reason,omitempty"`
-	// Message - The message describing why the Data Lake Analytics account name is not available, if nameAvailable is false.
+	// Message - READ-ONLY; The message describing why the Data Lake Analytics account name is not available, if nameAvailable is false.
 	Message *string `json:"message,omitempty"`
 }
 
 // Operation an available operation for Data Lake Analytics.
 type Operation struct {
-	// Name - The name of the operation.
+	// Name - READ-ONLY; The name of the operation.
 	Name *string `json:"name,omitempty"`
-	// Display - The display information for the operation.
+	// Display - READ-ONLY; The display information for the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - The intended executor of the operation. Possible values include: 'OperationOriginUser', 'OperationOriginSystem', 'OperationOriginUsersystem'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'OperationOriginUser', 'OperationOriginSystem', 'OperationOriginUsersystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
 }
 
 // OperationDisplay the display information for a particular operation.
 type OperationDisplay struct {
-	// Provider - The resource provider of the operation.
+	// Provider - READ-ONLY; The resource provider of the operation.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The resource type of the operation.
+	// Resource - READ-ONLY; The resource type of the operation.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - A friendly name of the operation.
+	// Operation - READ-ONLY; A friendly name of the operation.
 	Operation *string `json:"operation,omitempty"`
-	// Description - A friendly description of the operation.
+	// Description - READ-ONLY; A friendly description of the operation.
 	Description *string `json:"description,omitempty"`
 }
 
 // OperationListResult the list of available operations for Data Lake Analytics.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // Resource the resource model definition.
 type Resource struct {
-	// ID - The resource identifer.
+	// ID - READ-ONLY; The resource identifer.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
-	if r.Location != nil {
-		objectMap["location"] = r.Location
-	}
-	if r.Tags != nil {
-		objectMap["tags"] = r.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
 // SasTokenInformation SAS token information.
 type SasTokenInformation struct {
-	// AccessToken - The access token for the associated Azure Storage Container.
+	// AccessToken - READ-ONLY; The access token for the associated Azure Storage Container.
 	AccessToken *string `json:"accessToken,omitempty"`
 }
 
@@ -2038,9 +1951,9 @@ type SasTokenInformation struct {
 // associated SAS token for connection use.
 type SasTokenInformationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]SasTokenInformation `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2185,31 +2098,19 @@ func NewSasTokenInformationListResultPage(getNextPage func(context.Context, SasT
 // StorageAccountInformation azure Storage account information.
 type StorageAccountInformation struct {
 	autorest.Response `json:"-"`
-	// StorageAccountInformationProperties - The Azure Storage account properties.
+	// StorageAccountInformationProperties - READ-ONLY; The Azure Storage account properties.
 	*StorageAccountInformationProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageAccountInformation.
 func (sai StorageAccountInformation) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if sai.StorageAccountInformationProperties != nil {
-		objectMap["properties"] = sai.StorageAccountInformationProperties
-	}
-	if sai.ID != nil {
-		objectMap["id"] = sai.ID
-	}
-	if sai.Name != nil {
-		objectMap["name"] = sai.Name
-	}
-	if sai.Type != nil {
-		objectMap["type"] = sai.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -2267,9 +2168,9 @@ func (sai *StorageAccountInformation) UnmarshalJSON(body []byte) error {
 // StorageAccountInformationListResult azure Storage account list information.
 type StorageAccountInformationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]StorageAccountInformation `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2413,38 +2314,26 @@ func NewStorageAccountInformationListResultPage(getNextPage func(context.Context
 
 // StorageAccountInformationProperties the Azure Storage account properties.
 type StorageAccountInformationProperties struct {
-	// Suffix - The optional suffix for the storage account.
+	// Suffix - READ-ONLY; The optional suffix for the storage account.
 	Suffix *string `json:"suffix,omitempty"`
 }
 
 // StorageContainer azure Storage blob container information.
 type StorageContainer struct {
 	autorest.Response `json:"-"`
-	// StorageContainerProperties - The properties of the blob container.
+	// StorageContainerProperties - READ-ONLY; The properties of the blob container.
 	*StorageContainerProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageContainer.
 func (sc StorageContainer) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if sc.StorageContainerProperties != nil {
-		objectMap["properties"] = sc.StorageContainerProperties
-	}
-	if sc.ID != nil {
-		objectMap["id"] = sc.ID
-	}
-	if sc.Name != nil {
-		objectMap["name"] = sc.Name
-	}
-	if sc.Type != nil {
-		objectMap["type"] = sc.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -2503,9 +2392,9 @@ func (sc *StorageContainer) UnmarshalJSON(body []byte) error {
 // the Data Lake Analytics account.
 type StorageContainerListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]StorageContainer `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2648,17 +2537,17 @@ func NewStorageContainerListResultPage(getNextPage func(context.Context, Storage
 
 // StorageContainerProperties azure Storage blob container properties information.
 type StorageContainerProperties struct {
-	// LastModifiedTime - The last modified time of the blob container.
+	// LastModifiedTime - READ-ONLY; The last modified time of the blob container.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 }
 
 // SubResource the resource model definition for a nested resource.
 type SubResource struct {
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 

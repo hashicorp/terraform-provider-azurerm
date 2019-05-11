@@ -52,7 +52,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(rInt, testLocation()),
-				ExpectError: regexp.MustCompile("registry_read key must be set to true when registry_write is set to true"),
+				ExpectError: regexp.MustCompile("If `registry_write` is set to true, `registry_read` must also be set to true"),
 			},
 		},
 	})
@@ -105,8 +105,8 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 
@@ -155,8 +155,8 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 

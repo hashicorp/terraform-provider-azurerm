@@ -97,6 +97,7 @@ func (client DatabaseBlobAuditingPoliciesClient) CreateOrUpdatePreparer(ctx cont
 		"api-version": APIVersion,
 	}
 
+	parameters.Kind = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

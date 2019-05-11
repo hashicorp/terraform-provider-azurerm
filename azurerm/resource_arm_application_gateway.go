@@ -547,7 +547,25 @@ func resourceArmApplicationGateway() *schema.Resource {
 					},
 				},
 			},
-
+			"autoscale_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"min_capacity": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 10),
+						},
+						"max_capacity": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(2, 100),
+						},
+					},
+				},
+			},
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -583,7 +601,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 10),
 						},
 					},
@@ -919,6 +937,83 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 128),
 							Default:      128,
 						},
+						"disabled_rule_group": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"rule_group_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"crs_20_protocol_violations",
+											"crs_21_protocol_anomalies",
+											"crs_23_request_limits",
+											"crs_30_http_policy",
+											"crs_35_bad_robots",
+											"crs_40_generic_attacks",
+											"crs_41_sql_injection_attacks",
+											"crs_41_xss_attacks",
+											"crs_42_tight_security",
+											"crs_45_trojans",
+											"REQUEST-911-METHOD-ENFORCEMENT",
+											"REQUEST-913-SCANNER-DETECTION",
+											"REQUEST-920-PROTOCOL-ENFORCEMENT",
+											"REQUEST-921-PROTOCOL-ATTACK",
+											"REQUEST-930-APPLICATION-ATTACK-LFI",
+											"REQUEST-931-APPLICATION-ATTACK-RFI",
+											"REQUEST-932-APPLICATION-ATTACK-RCE",
+											"REQUEST-933-APPLICATION-ATTACK-PHP",
+											"REQUEST-941-APPLICATION-ATTACK-XSS",
+											"REQUEST-942-APPLICATION-ATTACK-SQLI",
+											"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION",
+										}, false),
+									},
+
+									"rules": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeInt,
+											ValidateFunc: validation.IntAtLeast(1),
+										},
+									},
+								},
+							},
+						},
+						"exclusion": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match_variable": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"RequestHeaderNames",
+											"RequestArgNames",
+											"RequestCookieNames",
+										}, false),
+									},
+
+									"selector_match_operator": {
+										Type: schema.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Equals",
+											"StartsWith",
+											"EndsWith",
+											"Contains",
+										}, false),
+										Optional: true,
+									},
+									"selector": {
+										ValidateFunc: validate.NoEmptyStrings,
+										Type:         schema.TypeString,
+										Optional:     true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -997,6 +1092,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	requestRoutingRules := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	redirectConfigurations := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	sku := expandApplicationGatewaySku(d)
+	autoscaleConfiguration := expandApplicationGatewayAutoscaleConfiguration(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
@@ -1025,6 +1121,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			SslPolicy:                     sslPolicy,
 			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
+			AutoscaleConfiguration:        autoscaleConfiguration,
 		},
 	}
 
@@ -1175,6 +1272,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", setErr)
+		}
+
+		if setErr := d.Set("autoscale_configuration", flattenApplicationGatewayAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
+			return fmt.Errorf("Error setting `autoscale_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); setErr != nil {
@@ -2282,6 +2383,42 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 	return results, nil
 }
 
+func expandApplicationGatewayAutoscaleConfiguration(d *schema.ResourceData) *network.ApplicationGatewayAutoscaleConfiguration {
+	vs := d.Get("autoscale_configuration").([]interface{})
+	if len(vs) == 0 {
+		return nil
+	}
+	v := vs[0].(map[string]interface{})
+
+	minCapacity := int32(v["min_capacity"].(int))
+	maxCapacity := int32(v["max_capacity"].(int))
+
+	configuration := network.ApplicationGatewayAutoscaleConfiguration{
+		MinCapacity: utils.Int32(minCapacity),
+	}
+
+	if maxCapacity != 0 {
+		configuration.MaxCapacity = utils.Int32(maxCapacity)
+	}
+
+	return &configuration
+}
+
+func flattenApplicationGatewayAutoscaleConfiguration(input *network.ApplicationGatewayAutoscaleConfiguration) []interface{} {
+	result := make(map[string]interface{})
+	if input == nil {
+		return []interface{}{}
+	}
+	if v := input.MinCapacity; v != nil {
+		result["min_capacity"] = *v
+	}
+	if input.MaxCapacity != nil {
+		result["max_capacity"] = *input.MaxCapacity
+	}
+
+	return []interface{}{result}
+}
+
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
 	vs := d.Get("sku").([]interface{})
 	v := vs[0].(map[string]interface{})
@@ -2290,11 +2427,16 @@ func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGat
 	tier := v["tier"].(string)
 	capacity := int32(v["capacity"].(int))
 
-	return &network.ApplicationGatewaySku{
-		Name:     network.ApplicationGatewaySkuName(name),
-		Tier:     network.ApplicationGatewayTier(tier),
-		Capacity: utils.Int32(capacity),
+	sku := network.ApplicationGatewaySku{
+		Name: network.ApplicationGatewaySkuName(name),
+		Tier: network.ApplicationGatewayTier(tier),
 	}
+
+	if capacity != 0 {
+		sku.Capacity = utils.Int32(capacity)
+	}
+
+	return &sku
 }
 
 func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interface{} {
@@ -2540,16 +2682,9 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 					}
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
-						if applicationGatewayHasSubResource(props.DefaultBackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
-							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_address_pool_name` and `redirect_configuration_name` (default back-end pool not applicable when redirection specified)")
-						}
 
 						if applicationGatewayHasSubResource(ruleProps.BackendAddressPool) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
 							return nil, fmt.Errorf("[ERROR] Conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
-						}
-
-						if applicationGatewayHasSubResource(props.DefaultBackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
-							return nil, fmt.Errorf("[ERROR] Conflict between `default_backend_http_settings_name` and `redirect_configuration_name` (default back-end settings not applicable when redirection specified)")
 						}
 
 						if applicationGatewayHasSubResource(ruleProps.BackendHTTPSettings) && applicationGatewayHasSubResource(ruleProps.RedirectConfiguration) {
@@ -2627,6 +2762,8 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
+		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]interface{})),
+		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]interface{})),
 	}
 }
 
@@ -2652,6 +2789,10 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 		output["rule_set_version"] = *input.RuleSetVersion
 	}
 
+	if input.DisabledRuleGroups != nil {
+		output["disabled_rule_group"] = flattenApplicationGateWayDisabledRuleGroups(input.DisabledRuleGroups)
+	}
+
 	if input.FileUploadLimitInMb != nil {
 		output["file_upload_limit_mb"] = int(*input.FileUploadLimitInMb)
 	}
@@ -2664,9 +2805,111 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
 	}
 
+	if input.Exclusions != nil {
+		output["exclusion"] = flattenApplicationGatewayFirewallExclusion(input.Exclusions)
+	}
 	results = append(results, output)
 
 	return results
+}
+
+func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]network.ApplicationGatewayFirewallDisabledRuleGroup {
+	if len(d) == 0 {
+		return nil
+	}
+
+	disabledRuleGroups := make([]network.ApplicationGatewayFirewallDisabledRuleGroup, 0)
+	for _, disabledRuleGroup := range d {
+		disabledRuleGroupMap := disabledRuleGroup.(map[string]interface{})
+
+		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
+
+		ruleGroup := network.ApplicationGatewayFirewallDisabledRuleGroup{
+			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		rules := make([]int32, 0)
+		for _, rule := range disabledRuleGroupMap["rules"].([]interface{}) {
+			rules = append(rules, int32(rule.(int)))
+		}
+
+		if len(rules) > 0 {
+			ruleGroup.Rules = &rules
+		}
+
+		disabledRuleGroups = append(disabledRuleGroups, ruleGroup)
+	}
+	return &disabledRuleGroups
+}
+
+func flattenApplicationGateWayDisabledRuleGroups(input *[]network.ApplicationGatewayFirewallDisabledRuleGroup) []interface{} {
+	ruleGroups := make([]interface{}, 0)
+	for _, ruleGroup := range *input {
+		ruleGroupOutput := map[string]interface{}{}
+
+		if ruleGroup.RuleGroupName != nil {
+			ruleGroupOutput["rule_group_name"] = *ruleGroup.RuleGroupName
+		}
+
+		ruleOutputs := make([]interface{}, 0)
+		if rules := ruleGroup.Rules; rules != nil {
+			for _, rule := range *rules {
+				ruleOutputs = append(ruleOutputs, rule)
+			}
+		}
+		ruleGroupOutput["rules"] = ruleOutputs
+
+		ruleGroups = append(ruleGroups, ruleGroupOutput)
+
+	}
+	return ruleGroups
+}
+
+func expandApplicationGatewayFirewallExclusion(d []interface{}) *[]network.ApplicationGatewayFirewallExclusion {
+	if len(d) == 0 {
+		return nil
+	}
+
+	exclusions := make([]network.ApplicationGatewayFirewallExclusion, 0)
+	for _, exclusion := range d {
+		exclusionMap := exclusion.(map[string]interface{})
+
+		matchVariable := exclusionMap["match_variable"].(string)
+		selectorMatchOperator := exclusionMap["selector_match_operator"].(string)
+		selector := exclusionMap["selector"].(string)
+
+		exclusionList := network.ApplicationGatewayFirewallExclusion{
+			MatchVariable:         utils.String(matchVariable),
+			SelectorMatchOperator: utils.String(selectorMatchOperator),
+			Selector:              utils.String(selector),
+		}
+
+		exclusions = append(exclusions, exclusionList)
+	}
+
+	return &exclusions
+}
+
+func flattenApplicationGatewayFirewallExclusion(input *[]network.ApplicationGatewayFirewallExclusion) []interface{} {
+	exclusionLists := make([]interface{}, 0)
+	for _, exclusionList := range *input {
+		exclusionListOutput := map[string]interface{}{}
+
+		if exclusionList.MatchVariable != nil {
+			exclusionListOutput["match_variable"] = *exclusionList.MatchVariable
+		}
+
+		if exclusionList.SelectorMatchOperator != nil {
+			exclusionListOutput["selector_match_operator"] = *exclusionList.SelectorMatchOperator
+		}
+
+		if exclusionList.Selector != nil {
+			exclusionListOutput["selector"] = *exclusionList.Selector
+		}
+		exclusionLists = append(exclusionLists, exclusionListOutput)
+
+	}
+	return exclusionLists
 }
 
 func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {

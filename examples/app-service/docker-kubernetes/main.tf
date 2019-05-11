@@ -24,7 +24,7 @@ resource "azurerm_app_service" "main" {
 
   site_config {
     app_command_line = ""
-    linux_fx_version = "KUBE|${base64encode(file("kubernetes.yml"))}"
+    linux_fx_version = "KUBE|${filebase64("kubernetes.yml")}"
   }
 
   app_settings = {

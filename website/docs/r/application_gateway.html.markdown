@@ -165,6 +165,8 @@ The following arguments are supported:
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
+* `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
+
 ---
 
 A `authentication_certificate` block supports the following:
@@ -352,7 +354,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10.
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
 
 ---
 
@@ -370,11 +372,12 @@ A `url_path_map` block supports the following:
 
 * `name` - (Required) The Name of the URL Path Map.
 
-* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
+* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if there are path_rules with re-direct configurations set.
+* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if there are path_rules with Backend Address Pool or HTTP Settings set.
+* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
+
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
 
@@ -390,11 +393,33 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall.
 
+* `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
+
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
 
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
+
+* `exclusion` - (Optional) one or more `exclusion` blocks as defined below.
+
+---
+
+A `disabled_rule_group` block supports the following:
+
+* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
+
+* `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
+
+---
+
+A `exclusion` block supports the following:
+
+* `match_variable` - (Required) Match variable of the exclusion rule to exclude header, cookie or GET arguments. Possible values are `RequestHeaderNames`, `RequestArgNames` and `RequestCookieNames`
+
+* `selector_match_operator` - (Optional) Operator which will be used to search in the variable content. Possible values are `Equals`, `StartsWith`, `EndsWith`, `Contains`. If empty will exclude all traffic on this `match_variable`
+
+* `selector` - (Optional) String value which will be used for the filter operation. If empty will exclude all traffic on this `match_variable`
 
 ---
 
@@ -419,6 +444,14 @@ A `redirect_configuration` block supports the following:
 * `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
 
 * `include_query_string` - (Optional) Whether or not to include the query string in the redirected Url. Default to `false`
+
+---
+
+A `autoscale_configuration` block supports the following:
+
+* `min_capacity` - (Required) Minimum capacity for autoscaling.
+
+* `max_capacity` - (Optional) Maximum capacity for autoscaling.
 
 ## Attributes Reference
 
@@ -453,6 +486,7 @@ The following attributes are exported:
 * `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 * `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
+
 ---
 
 A `authentication_certificate` block exports the following:

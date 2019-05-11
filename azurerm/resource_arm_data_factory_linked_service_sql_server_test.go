@@ -12,43 +12,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 )
 
-func TestAzureRmDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
-	cases := []struct {
-		Old    string
-		New    string
-		NoDiff bool
-	}{
-		{
-			Old:    "",
-			New:    "",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test",
-			NoDiff: true,
-		},
-		{
-			Old:    "Integrated Security=False;Data Source=test2;Initial Catalog=test;User ID=test",
-			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
-			NoDiff: false,
-		},
-	}
-
-	for _, tc := range cases {
-		noDiff := azureRmDataFactoryLinkedServiceConnectionStringDiff("", tc.Old, tc.New, nil)
-
-		if noDiff != tc.NoDiff {
-			t.Fatalf("Expected azureRmDataFactoryLinkedServiceConnectionStringDiff to be '%t' for '%s' '%s' - got '%t'", tc.NoDiff, tc.Old, tc.New, noDiff)
-		}
-	}
-}
-
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
@@ -65,10 +28,10 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 				),
 			},
 			{
@@ -76,10 +39,10 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
 				),
 			},
 			{
@@ -152,7 +115,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -169,13 +132,15 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
-  parameters {
-    "foo" = "test1"
-    "bar" = "test2"
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
   }
-  additional_properties {
-    "foo" = "test1"
-    "bar" = "test2"
+
+  additional_properties = {
+    foo = "test1"
+    bar = "test2"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -184,7 +149,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -201,13 +166,15 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
-  parameters {
-    "foo" = "test1"
-    "bar" = "test2"
-    "buzz" = "test3"
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
+    buzz = "test3"
   }
-  additional_properties {
-    "foo" = "test1"
+
+  additional_properties = {
+    foo = "test1"
   }
 }
 `, rInt, location, rInt, rInt)

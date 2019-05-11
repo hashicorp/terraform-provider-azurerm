@@ -285,7 +285,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_DS3_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -425,8 +425,8 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
     }
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, template, rInt)
@@ -571,8 +571,8 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
     }
   }
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, template, rInt, rInt, rInt)
@@ -581,7 +581,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 func testAccAzureRMHDInsightStormCluster_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

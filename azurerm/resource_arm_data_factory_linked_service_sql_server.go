@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"sort"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -31,7 +29,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceName,
+				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -44,7 +42,9 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"connection_string": {
 				Type:             schema.TypeString,
@@ -103,7 +103,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_sql_server_linked_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_server", *existing.ID)
 		}
 	}
 
@@ -120,7 +120,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerLinkedService.Parameters = expandDataFactoryLinkedServiceParameters(v.(map[string]interface{}))
+		sqlServerLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -128,11 +128,12 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerLinkedService.AdditionalProperties = expandDataFactoryLinkedServiceAdditionalProperties(v.(map[string]interface{}))
+		sqlServerLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sqlServerLinkedService.Annotations = expandDataFactoryLinkedServiceAnnotations(v.([]interface{}))
+		annotations := v.([]interface{})
+		sqlServerLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -194,12 +195,12 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 		d.Set("description", *sqlServer.Description)
 	}
 
-	annotations := flattenDataFactoryLinkedServiceAnnotations(sqlServer.Annotations)
+	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryLinkedServiceParameters(sqlServer.Parameters)
+	parameters := flattenDataFactoryParameters(sqlServer.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
@@ -246,119 +247,4 @@ func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, 
 	}
 
 	return nil
-}
-
-// Because the password isn't returned from the api in the connection string, we'll check all
-// but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
-
-	sort.Strings(oldSplit)
-	sort.Strings(newSplit)
-
-	// We need to remove the password from the new string since it isn't returned from the api
-	for i, v := range newSplit {
-		if strings.HasPrefix(v, "password") {
-			newSplit = append(newSplit[:i], newSplit[i+1:]...)
-		}
-	}
-
-	if len(oldSplit) != len(newSplit) {
-		return false
-	}
-
-	// We'll error out if we find any differences between the old and the new connection strings
-	for i := range oldSplit {
-		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func validateAzureRMDataFactoryLinkedServiceName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
-	}
-
-	return warnings, errors
-}
-
-func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
-	typeString := "IntegrationRuntimeReference"
-
-	return &datafactory.IntegrationRuntimeReference{
-		ReferenceName: &integrationRuntimeName,
-		Type:          &typeString,
-	}
-}
-
-func expandDataFactoryLinkedServiceParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
-	output := make(map[string]*datafactory.ParameterSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.ParameterSpecification{
-			Type:         datafactory.ParameterTypeString,
-			DefaultValue: v.(string),
-		}
-	}
-
-	return output
-}
-
-func expandDataFactoryLinkedServiceAdditionalProperties(input map[string]interface{}) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		output[k] = v
-	}
-
-	return output
-}
-
-func flattenDataFactoryLinkedServiceParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
-			}
-
-			output[k] = val
-		}
-	}
-
-	return output
-}
-
-func expandDataFactoryLinkedServiceAnnotations(input []interface{}) *[]interface{} {
-	annotations := make([]interface{}, 0)
-
-	for _, annotation := range input {
-		annotations = append(annotations, annotation.(string))
-	}
-
-	return &annotations
-}
-
-func flattenDataFactoryLinkedServiceAnnotations(input *[]interface{}) []string {
-	annotations := make([]string, 0)
-	if input == nil {
-		return annotations
-	}
-
-	for _, annotation := range *input {
-		val, ok := annotation.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping annotation %q since it's not a string", val)
-		}
-		annotations = append(annotations, val)
-	}
-	return annotations
 }
