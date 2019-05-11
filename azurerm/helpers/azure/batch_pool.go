@@ -204,7 +204,8 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 		result["type"] = *armContainerConfiguration.Type
 	}
 
-	return result
+	//return []interface{}{result}
+	return []interface{}{result}
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference

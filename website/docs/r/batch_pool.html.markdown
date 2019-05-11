@@ -206,6 +206,12 @@ A `certificate` block supports the following:
 
 ---
 
+A `container_configuration` block supports the following:
+
+* `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
+
+---
+
 A `resource_file` block supports the following:
 
 * `auto_storage_container_name` - (Optional) The storage container name in the auto storage account.
