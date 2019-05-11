@@ -204,7 +204,6 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 		result["type"] = *armContainerConfiguration.Type
 	}
 
-	//return []interface{}{result}
 	return []interface{}{result}
 }
 
