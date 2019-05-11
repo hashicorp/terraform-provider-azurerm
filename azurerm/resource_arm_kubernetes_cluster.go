@@ -109,8 +109,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.AvailabilitySet),
 								string(containerservice.VirtualMachineScaleSets),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"count": {
