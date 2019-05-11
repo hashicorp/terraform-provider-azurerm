@@ -102,6 +102,17 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validate.KubernetesAgentPoolName,
 						},
 
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.AvailabilitySet),
+								string(containerservice.VirtualMachineScaleSets),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
 						"count": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -897,6 +908,7 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 	config := configs[0].(map[string]interface{})
 
 	name := config["name"].(string)
+	poolType := config["type"].(string)
 	count := int32(config["count"].(int))
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
@@ -904,6 +916,7 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		Name:         utils.String(name),
+		Type:         containerservice.AgentPoolType(poolType),
 		Count:        utils.Int32(count),
 		VMSize:       containerservice.VMSizeTypes(vmSize),
 		OsDiskSizeGB: utils.Int32(osDiskSizeGB),
@@ -931,6 +944,10 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 
 	for _, profile := range *profiles {
 		agentPoolProfile := make(map[string]interface{})
+
+		if profile.Type != "" {
+			agentPoolProfile["type"] = string(profile.Type)
+		}
 
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)

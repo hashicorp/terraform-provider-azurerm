@@ -76,6 +76,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"count": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -550,6 +555,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 	for _, profile := range *input {
 		agentPoolProfile := make(map[string]interface{})
+
+		if profile.Type != "" {
+			agentPoolProfile["type"] = string(profile.Type)
+		}
 
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)

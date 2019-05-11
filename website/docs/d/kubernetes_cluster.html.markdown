@@ -80,6 +80,8 @@ A `addon_profile` block exports the following:
 
 A `agent_pool_profile` block exports the following:
 
+* `type` - The type of the Pool.
+
 * `count` - The number of Agents (VM's) in the Pool.
 
 * `max_pods` - The maximum number of pods that can run on each agent.
