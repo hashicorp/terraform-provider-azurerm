@@ -106,6 +106,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							Default:  string(containerservice.AvailabilitySet),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.AvailabilitySet),
 								string(containerservice.VirtualMachineScaleSets),
