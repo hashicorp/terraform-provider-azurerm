@@ -23,6 +23,7 @@ IMPROVEMENTS:
 
 * `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
 * `azurerm_application_gateway` added validation to ensure `redirect_configuration_name` must not be set if either `backend_address_pool_name` or `backend_http_settings_name` is set [GH-3340]
+* `azurerm_batch_pool` support for the `container_configuration` property [GH-3311]
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 * `azurerm_redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
 * `azurerm_sql_database` - support for the `read_scale` property [GH-3377]
