@@ -2293,8 +2293,8 @@ resource "azurerm_application_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
+    name     = "Standard_Small"
+    tier     = "Standard"
     capacity = 2
   }
 
@@ -2310,7 +2310,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   backend_address_pool {
