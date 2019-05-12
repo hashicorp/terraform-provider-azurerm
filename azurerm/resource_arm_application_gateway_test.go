@@ -3018,13 +3018,20 @@ locals {
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku {
-    name     = "WAF_Medium"
-    tier     = "WAF"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 1
   }
   ssl_policy {
@@ -3042,7 +3049,7 @@ resource "azurerm_application_gateway" "test" {
   }
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
@@ -3068,7 +3075,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-`, template, rInt)
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(rInt int, location string) string {
@@ -3182,7 +3189,7 @@ resource "azurerm_application_gateway" "test" {
   }
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
