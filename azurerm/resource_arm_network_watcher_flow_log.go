@@ -301,9 +301,9 @@ func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *network.Retention
 
 func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return nil
 	} else if isDefaultDisabledFlowLogTrafficAnalytics(input) {
-		return []interface{}{}
+		return nil
 	}
 
 	result := make(map[string]interface{})

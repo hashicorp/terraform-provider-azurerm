@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf`
 )
 
 func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	location := testLocation()
 
@@ -41,7 +42,7 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	location := testLocation()
 
@@ -70,7 +71,7 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	location := testLocation()
 
@@ -113,7 +114,7 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	location := testLocation()
 
@@ -156,7 +157,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	rsNew := acctest.RandString(8)
 	location := testLocation()
@@ -200,7 +201,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(8)
 	location := testLocation()
 
