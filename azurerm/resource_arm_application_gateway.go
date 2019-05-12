@@ -2335,13 +2335,6 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 			}
 		}
 
-		if redirectConfigName := v["redirect_configuration_name"].(string); redirectConfigName != "" {
-			redirectConfigID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigName)
-			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RedirectConfiguration = &network.SubResource{
-				ID: utils.String(redirectConfigID),
-			}
-		}
-
 		if rewriteRuleSetName := v["rewrite_rule_set_name"].(string); rewriteRuleSetName != "" {
 			rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
 			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.RewriteRuleSet = &network.SubResource{
