@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
 
@@ -41,7 +40,7 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.
 }
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
