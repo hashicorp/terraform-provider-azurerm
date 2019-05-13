@@ -39,6 +39,74 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 2, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.max_capacity", "10"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 4, 12),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "4"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.max_capacity", "12"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationGateway_zones(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
@@ -241,6 +309,22 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(ri, testLocation()),
+				ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 			},
 		},
 	})
@@ -536,6 +620,127 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.firewall_mode", "Detection"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_type", "OWASP"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_version", "3.0"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rule_group_name", "REQUEST-921-PROTOCOL-ATTACK"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.0", "921110"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.1", "921151"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.2", "921180"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.1.rule_group_name", "REQUEST-930-APPLICATION-ATTACK-LFI"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.1.rules.0", "930120"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.1.rules.1", "930130"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.2.rule_group_name", "REQUEST-942-APPLICATION-ATTACK-SQLI"),
+				),
+			},
+			{
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups_enabled_some_rules(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.firewall_mode", "Detection"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_type", "OWASP"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_version", "3.0"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rule_group_name", "REQUEST-921-PROTOCOL-ATTACK"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.0", "921110"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.1", "921151"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.0.rules.2", "921180"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.disabled_rule_group.1.rule_group_name", "REQUEST-942-APPLICATION-ATTACK-SQLI"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_many(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.firewall_mode", "Detection"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_type", "OWASP"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_version", "3.0"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.match_variable", "RequestArgNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.selector_match_operator", "Equals"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.selector", "displayNameHtml"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.1.match_variable", "RequestCookieNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.1.selector_match_operator", "EndsWith"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.1.selector", "username"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.2.match_variable", "RequestHeaderNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.2.selector_match_operator", "StartsWith"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.2.selector", "ORIGIN"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.3.match_variable", "RequestHeaderNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.3.selector_match_operator", "Contains"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.3.selector", "ORIGIN"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.4.match_variable", "RequestHeaderNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.4.selector_match_operator", ""),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.4.selector", ""),
+				),
+			},
+			{
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_one(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "WAF_v2"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.firewall_mode", "Detection"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_type", "OWASP"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.rule_set_version", "3.0"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.match_variable", "RequestArgNames"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.selector_match_operator", "Equals"),
+					resource.TestCheckResourceAttr(resourceName, "waf_configuration.0.exclusion.0.selector", "displayNameHtml"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -697,6 +902,171 @@ resource "azurerm_application_gateway" "test" {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt)
+}
+
+func testAccAzureRMApplicationGateway_autoscaleConfiguration(rInt int, location string, minCapacity int, maxCapacity int) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+  }
+
+  autoscale_configuration {
+    min_capacity = %d
+	max_capacity = %d
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt, minCapacity, maxCapacity)
+}
+
+func testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+  }
+
+  autoscale_configuration {
+    min_capacity = 2
   }
 
   gateway_ip_configuration {
@@ -1294,6 +1664,102 @@ resource "azurerm_application_gateway" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2             = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name            = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
+  path_rule_name                  = "${azurerm_virtual_network.test.name}-pathrule1"
+  url_path_map_name               = "${azurerm_virtual_network.test.name}-urlpath1"
+  redirect_configuration_name     = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name2}"
+    port = 8888
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = "${local.target_listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name2}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                        = "${local.request_routing_rule_name}"
+    rule_type                   = "Basic"
+    http_listener_name          = "${local.listener_name}"
+    backend_address_pool_name   = "${local.backend_address_pool_name}"
+    redirect_configuration_name = "${local.redirect_configuration_name}"
+  }
+
+  redirect_configuration {
+    name                 = "${local.redirect_configuration_name}"
+    redirect_type        = "Temporary"
+    target_listener_name = "${local.target_listener_name}"
+    include_path         = true
+    include_query_string = false
+  }
+}
+`, template, rInt)
+}
+
 func testAccAzureRMApplicationGateway_routingRedirect_pathBased(rInt int, location string) string {
 	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
@@ -1408,7 +1874,7 @@ resource "azurerm_application_gateway" "test" {
   redirect_configuration {
     name                 = "${local.redirect_configuration_name}"
     redirect_type        = "Found"
-    target_url 			     = "${local.target_url}"
+    target_url           = "${local.target_url}"
     include_query_string = true
   }
 
@@ -2073,6 +2539,425 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, template, rInt)
+}
+func testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 1
+  }
+
+  waf_configuration {
+    enabled                     = true
+    firewall_mode               = "Detection"
+    rule_set_type               = "OWASP"
+    rule_set_version            = "3.0"
+    request_body_check          = true
+    max_request_body_size_kb    = 128
+    file_upload_limit_mb        = 100
+
+    disabled_rule_group {
+      rule_group_name = "REQUEST-921-PROTOCOL-ATTACK"
+      rules           = [921110, 921151, 921180]
+    }
+  
+    disabled_rule_group {
+      rule_group_name = "REQUEST-930-APPLICATION-ATTACK-LFI"
+      rules           = [930120, 930130]
+    }
+  
+    disabled_rule_group {
+      rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+    }
+    
+  
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt)
+}
+
+func testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups_enabled_some_rules(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 1
+  }
+
+  waf_configuration {
+    enabled                     = true
+    firewall_mode               = "Detection"
+    rule_set_type               = "OWASP"
+    rule_set_version            = "3.0"
+    request_body_check          = true
+    max_request_body_size_kb    = 128
+    file_upload_limit_mb        = 100
+
+    disabled_rule_group {
+      rule_group_name = "REQUEST-921-PROTOCOL-ATTACK"
+      rules           = [921110, 921151, 921180]
+    }
+  
+    disabled_rule_group {
+      rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+    }
+    
+  
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt)
+}
+
+func testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_many(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 1
+  }
+
+  waf_configuration {
+    enabled                     = true
+    firewall_mode               = "Detection"
+    rule_set_type               = "OWASP"
+    rule_set_version            = "3.0"
+    request_body_check          = true
+    max_request_body_size_kb    = 128
+    file_upload_limit_mb        = 100
+
+    exclusion {
+      match_variable          = "RequestArgNames"
+      selector_match_operator = "Equals"
+      selector                = "displayNameHtml"
+    }
+
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector_match_operator = "EndsWith"
+      selector                = "username"
+    }
+
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector_match_operator = "StartsWith"
+      selector                = "ORIGIN"
+    }
+
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector_match_operator = "Contains"
+      selector                = "ORIGIN"
+    }
+
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+    }
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt)
+}
+func testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_one(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 1
+  }
+
+  waf_configuration {
+    enabled                     = true
+    firewall_mode               = "Detection"
+    rule_set_type               = "OWASP"
+    rule_set_version            = "3.0"
+    request_body_check          = true
+    max_request_body_size_kb    = 128
+    file_upload_limit_mb        = 100
+
+    exclusion {
+      match_variable          = "RequestArgNames"
+      selector_match_operator = "Equals"
+      selector                = "displayNameHtml"
+    }
+
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMApplicationGateway_template(rInt int, location string) string {

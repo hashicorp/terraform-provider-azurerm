@@ -191,6 +191,22 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 	return output
 }
 
+// FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
+func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+
+	result := make(map[string]interface{})
+
+	if armContainerConfiguration == nil {
+		return nil
+	}
+
+	if armContainerConfiguration.Type != nil {
+		result["type"] = *armContainerConfiguration.Type
+	}
+
+	return []interface{}{result}
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -212,6 +228,22 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	return imageRef, nil
+}
+
+// ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
+func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.ContainerConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	containerConfiguration := list[0].(map[string]interface{})
+	containerType := containerConfiguration["type"].(string)
+
+	containerConf := &batch.ContainerConfiguration{
+		Type: &containerType,
+	}
+
+	return containerConf, nil
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references

@@ -2,20 +2,46 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
+* **New Data Source:** `azurerm_automation_variable_bool` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_datetime` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_int` [GH-3310]
+* **New Data Source:** `azurerm_automation_variable_string` [GH-3310]
+* **New Data Source:** `azurerm_user_assigned_identity` [GH-3343]
+* **New Resource:** `azurerm_automation_variable_bool` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_datetime` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_int` [GH-3310]
+* **New Resource:** `azurerm_automation_variable_string` [GH-3310]
 * **New Resource:** `azurerm_api_management_api_operation_policy` [GH-3374]
 * **New Resource:** `azurerm_api_management_api_policy` [GH-3367]
 * **New Resource:** `azurerm_api_management_product_policy` [GH-3325]
 * **New Resource:** `azurerm_api_management_schema` [GH-3357]
+* **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
 
 IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v29.0.0 [GH-3335]
+
+* `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
+* `azurerm_application_gateway` added validation to ensure `redirect_configuration_name` must not be set if either `backend_address_pool_name` or `backend_http_settings_name` is set [GH-3340]
+* `azurerm_batch_pool` support for the `container_configuration` property [GH-3311]
+* `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
+* `azurerm_redis_configuration` - make the `azurerm_redis_cache` block optional [GH-3397]
+* `azurerm_sql_database` - support for the `read_scale` property [GH-3377]
 * `azurerm_stream_analytics_job` - `tags` can now be set on the property [GH-3329]
+* `azurerm_virtual_network_peering` - retrying provisioning the peering of the virtual network [GH-3392]
+* `azurerm_virtual_machine_scale_set` - support for the `provision_after_extensions` property to chain multiple extensions togeather [GH-2937]
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values [GH-3385]
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
+* `azurerm_firewall` - ensuring that the value for `subnet_id` within the `ip_configuration` block has the name `AzureFirewallSubnet` [GH-3406]
+* `azurerm_redis_configuration` - correctly display http errors encoutered during creation [GH-3397]
+* `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API [GH-3137]
 * `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output [GH-3318]
+* `azurerm_app_service_plan` - supports `elastic` for the sku tier [GH-3402]
+* `azurerm_application_gateway` - supports `disabled_rule_group` for waf configurations [GH-3394]
+* `azurerm_application_gateway` - supports `exclusion` for waf configurations [GH-3407]
 
 ## 1.27.1 (April 26, 2019)
 

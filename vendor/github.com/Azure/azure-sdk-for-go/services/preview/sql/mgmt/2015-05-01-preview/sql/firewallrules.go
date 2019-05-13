@@ -105,6 +105,8 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"api-version": APIVersion,
 	}
 
+	parameters.Kind = nil
+	parameters.Location = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

@@ -30,6 +30,21 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 
+// ConsentType enumerates the values for consent type.
+type ConsentType string
+
+const (
+	// AllPrincipals ...
+	AllPrincipals ConsentType = "AllPrincipals"
+	// Principal ...
+	Principal ConsentType = "Principal"
+)
+
+// PossibleConsentTypeValues returns an array of possible values for the ConsentType const type.
+func PossibleConsentTypeValues() []ConsentType {
+	return []ConsentType{AllPrincipals, Principal}
+}
+
 // ObjectType enumerates the values for object type.
 type ObjectType string
 
@@ -137,9 +152,9 @@ type ADGroup struct {
 	Mail *string `json:"mail,omitempty"`
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// ObjectID - The object ID.
+	// ObjectID - READ-ONLY; The object ID.
 	ObjectID *string `json:"objectId,omitempty"`
-	// DeletionTimestamp - The time at which the directory object was deleted.
+	// DeletionTimestamp - READ-ONLY; The time at which the directory object was deleted.
 	DeletionTimestamp *date.Time `json:"deletionTimestamp,omitempty"`
 	// ObjectType - Possible values include: 'ObjectTypeDirectoryObject', 'ObjectTypeApplication', 'ObjectTypeGroup', 'ObjectTypeServicePrincipal', 'ObjectTypeUser'
 	ObjectType ObjectType `json:"objectType,omitempty"`
@@ -163,12 +178,6 @@ func (ag ADGroup) MarshalJSON() ([]byte, error) {
 	}
 	if ag.Mail != nil {
 		objectMap["mail"] = ag.Mail
-	}
-	if ag.ObjectID != nil {
-		objectMap["objectId"] = ag.ObjectID
-	}
-	if ag.DeletionTimestamp != nil {
-		objectMap["deletionTimestamp"] = ag.DeletionTimestamp
 	}
 	if ag.ObjectType != "" {
 		objectMap["objectType"] = ag.ObjectType
@@ -313,33 +322,72 @@ type Application struct {
 	autorest.Response `json:"-"`
 	// AppID - The application ID.
 	AppID *string `json:"appId,omitempty"`
+	// AllowGuestsSignIn - A property on the application to indicate if the application accepts other IDPs or not or partially accepts.
+	AllowGuestsSignIn *bool `json:"allowGuestsSignIn,omitempty"`
+	// AllowPassthroughUsers - Indicates that the application supports pass through users who have no presence in the resource tenant.
+	AllowPassthroughUsers *bool `json:"allowPassthroughUsers,omitempty"`
+	// AppLogoURL - The url for the application logo image stored in a CDN.
+	AppLogoURL *string `json:"appLogoUrl,omitempty"`
 	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
 	AppRoles *[]AppRole `json:"appRoles,omitempty"`
 	// AppPermissions - The application permissions.
 	AppPermissions *[]string `json:"appPermissions,omitempty"`
-	// AvailableToOtherTenants - Whether the application is be available to other tenants.
+	// AvailableToOtherTenants - Whether the application is available to other tenants.
 	AvailableToOtherTenants *bool `json:"availableToOtherTenants,omitempty"`
 	// DisplayName - The display name of the application.
 	DisplayName *string `json:"displayName,omitempty"`
-	// IdentifierUris - A collection of URIs for the application.
-	IdentifierUris *[]string `json:"identifierUris,omitempty"`
-	// ReplyUrls - A collection of reply URLs for the application.
-	ReplyUrls *[]string `json:"replyUrls,omitempty"`
+	// ErrorURL - A URL provided by the author of the application to report errors when using the application.
+	ErrorURL *string `json:"errorUrl,omitempty"`
+	// GroupMembershipClaims - Configures the groups claim issued in a user or OAuth 2.0 access token that the app expects.
+	GroupMembershipClaims interface{} `json:"groupMembershipClaims,omitempty"`
 	// Homepage - The home page of the application.
 	Homepage *string `json:"homepage,omitempty"`
-	// Oauth2AllowImplicitFlow - Whether to allow implicit grant flow for OAuth2
-	Oauth2AllowImplicitFlow *bool `json:"oauth2AllowImplicitFlow,omitempty"`
-	// RequiredResourceAccess - Specifies resources that this application requires access to and the set of OAuth permission scopes and application roles that it needs under each of those resources. This pre-configuration of required resource access drives the consent experience.
-	RequiredResourceAccess *[]RequiredResourceAccess `json:"requiredResourceAccess,omitempty"`
+	// IdentifierUris - A collection of URIs for the application.
+	IdentifierUris *[]string `json:"identifierUris,omitempty"`
+	// InformationalUrls - URLs with more information about the application.
+	InformationalUrls *InformationalURL `json:"informationalUrls,omitempty"`
+	// IsDeviceOnlyAuthSupported - Specifies whether this application supports device authentication without a user. The default is false.
+	IsDeviceOnlyAuthSupported *bool `json:"isDeviceOnlyAuthSupported,omitempty"`
 	// KeyCredentials - A collection of KeyCredential objects.
 	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
+	// KnownClientApplications - Client applications that are tied to this resource application. Consent to any of the known client applications will result in implicit consent to the resource application through a combined consent dialog (showing the OAuth permission scopes required by the client and the resource).
+	KnownClientApplications *[]string `json:"knownClientApplications,omitempty"`
+	// LogoutURL - the url of the logout page
+	LogoutURL *string `json:"logoutUrl,omitempty"`
+	// Oauth2AllowImplicitFlow - Whether to allow implicit grant flow for OAuth2
+	Oauth2AllowImplicitFlow *bool `json:"oauth2AllowImplicitFlow,omitempty"`
+	// Oauth2AllowURLPathMatching - Specifies whether during a token Request Azure AD will allow path matching of the redirect URI against the applications collection of replyURLs. The default is false.
+	Oauth2AllowURLPathMatching *bool `json:"oauth2AllowUrlPathMatching,omitempty"`
+	// Oauth2Permissions - The collection of OAuth 2.0 permission scopes that the web API (resource) application exposes to client applications. These permission scopes may be granted to client applications during consent.
+	Oauth2Permissions *[]OAuth2Permission `json:"oauth2Permissions,omitempty"`
+	// Oauth2RequirePostResponse - Specifies whether, as part of OAuth 2.0 token requests, Azure AD will allow POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests will be allowed.
+	Oauth2RequirePostResponse *bool `json:"oauth2RequirePostResponse,omitempty"`
+	// OrgRestrictions - A list of tenants allowed to access application.
+	OrgRestrictions *[]string       `json:"orgRestrictions,omitempty"`
+	OptionalClaims  *OptionalClaims `json:"optionalClaims,omitempty"`
 	// PasswordCredentials - A collection of PasswordCredential objects
 	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// PreAuthorizedApplications - list of pre-authorized applications.
+	PreAuthorizedApplications *[]PreAuthorizedApplication `json:"preAuthorizedApplications,omitempty"`
+	// PublicClient - Specifies whether this application is a public client (such as an installed application running on a mobile device). Default is false.
+	PublicClient *bool `json:"publicClient,omitempty"`
+	// PublisherDomain - Reliable domain which can be used to identify an application.
+	PublisherDomain *string `json:"publisherDomain,omitempty"`
+	// ReplyUrls - A collection of reply URLs for the application.
+	ReplyUrls *[]string `json:"replyUrls,omitempty"`
+	// RequiredResourceAccess - Specifies resources that this application requires access to and the set of OAuth permission scopes and application roles that it needs under each of those resources. This pre-configuration of required resource access drives the consent experience.
+	RequiredResourceAccess *[]RequiredResourceAccess `json:"requiredResourceAccess,omitempty"`
+	// SamlMetadataURL - The URL to the SAML metadata for the application.
+	SamlMetadataURL *string `json:"samlMetadataUrl,omitempty"`
+	// SignInAudience - Audience for signing in to the application (AzureADMyOrganization, AzureADAllOrganizations, AzureADAndMicrosoftAccounts).
+	SignInAudience *string `json:"signInAudience,omitempty"`
+	// WwwHomepage - The primary Web page.
+	WwwHomepage *string `json:"wwwHomepage,omitempty"`
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// ObjectID - The object ID.
+	// ObjectID - READ-ONLY; The object ID.
 	ObjectID *string `json:"objectId,omitempty"`
-	// DeletionTimestamp - The time at which the directory object was deleted.
+	// DeletionTimestamp - READ-ONLY; The time at which the directory object was deleted.
 	DeletionTimestamp *date.Time `json:"deletionTimestamp,omitempty"`
 	// ObjectType - Possible values include: 'ObjectTypeDirectoryObject', 'ObjectTypeApplication', 'ObjectTypeGroup', 'ObjectTypeServicePrincipal', 'ObjectTypeUser'
 	ObjectType ObjectType `json:"objectType,omitempty"`
@@ -351,6 +399,15 @@ func (a Application) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.AppID != nil {
 		objectMap["appId"] = a.AppID
+	}
+	if a.AllowGuestsSignIn != nil {
+		objectMap["allowGuestsSignIn"] = a.AllowGuestsSignIn
+	}
+	if a.AllowPassthroughUsers != nil {
+		objectMap["allowPassthroughUsers"] = a.AllowPassthroughUsers
+	}
+	if a.AppLogoURL != nil {
+		objectMap["appLogoUrl"] = a.AppLogoURL
 	}
 	if a.AppRoles != nil {
 		objectMap["appRoles"] = a.AppRoles
@@ -364,32 +421,77 @@ func (a Application) MarshalJSON() ([]byte, error) {
 	if a.DisplayName != nil {
 		objectMap["displayName"] = a.DisplayName
 	}
-	if a.IdentifierUris != nil {
-		objectMap["identifierUris"] = a.IdentifierUris
+	if a.ErrorURL != nil {
+		objectMap["errorUrl"] = a.ErrorURL
 	}
-	if a.ReplyUrls != nil {
-		objectMap["replyUrls"] = a.ReplyUrls
+	if a.GroupMembershipClaims != nil {
+		objectMap["groupMembershipClaims"] = a.GroupMembershipClaims
 	}
 	if a.Homepage != nil {
 		objectMap["homepage"] = a.Homepage
 	}
-	if a.Oauth2AllowImplicitFlow != nil {
-		objectMap["oauth2AllowImplicitFlow"] = a.Oauth2AllowImplicitFlow
+	if a.IdentifierUris != nil {
+		objectMap["identifierUris"] = a.IdentifierUris
 	}
-	if a.RequiredResourceAccess != nil {
-		objectMap["requiredResourceAccess"] = a.RequiredResourceAccess
+	if a.InformationalUrls != nil {
+		objectMap["informationalUrls"] = a.InformationalUrls
+	}
+	if a.IsDeviceOnlyAuthSupported != nil {
+		objectMap["isDeviceOnlyAuthSupported"] = a.IsDeviceOnlyAuthSupported
 	}
 	if a.KeyCredentials != nil {
 		objectMap["keyCredentials"] = a.KeyCredentials
 	}
+	if a.KnownClientApplications != nil {
+		objectMap["knownClientApplications"] = a.KnownClientApplications
+	}
+	if a.LogoutURL != nil {
+		objectMap["logoutUrl"] = a.LogoutURL
+	}
+	if a.Oauth2AllowImplicitFlow != nil {
+		objectMap["oauth2AllowImplicitFlow"] = a.Oauth2AllowImplicitFlow
+	}
+	if a.Oauth2AllowURLPathMatching != nil {
+		objectMap["oauth2AllowUrlPathMatching"] = a.Oauth2AllowURLPathMatching
+	}
+	if a.Oauth2Permissions != nil {
+		objectMap["oauth2Permissions"] = a.Oauth2Permissions
+	}
+	if a.Oauth2RequirePostResponse != nil {
+		objectMap["oauth2RequirePostResponse"] = a.Oauth2RequirePostResponse
+	}
+	if a.OrgRestrictions != nil {
+		objectMap["orgRestrictions"] = a.OrgRestrictions
+	}
+	if a.OptionalClaims != nil {
+		objectMap["optionalClaims"] = a.OptionalClaims
+	}
 	if a.PasswordCredentials != nil {
 		objectMap["passwordCredentials"] = a.PasswordCredentials
 	}
-	if a.ObjectID != nil {
-		objectMap["objectId"] = a.ObjectID
+	if a.PreAuthorizedApplications != nil {
+		objectMap["preAuthorizedApplications"] = a.PreAuthorizedApplications
 	}
-	if a.DeletionTimestamp != nil {
-		objectMap["deletionTimestamp"] = a.DeletionTimestamp
+	if a.PublicClient != nil {
+		objectMap["publicClient"] = a.PublicClient
+	}
+	if a.PublisherDomain != nil {
+		objectMap["publisherDomain"] = a.PublisherDomain
+	}
+	if a.ReplyUrls != nil {
+		objectMap["replyUrls"] = a.ReplyUrls
+	}
+	if a.RequiredResourceAccess != nil {
+		objectMap["requiredResourceAccess"] = a.RequiredResourceAccess
+	}
+	if a.SamlMetadataURL != nil {
+		objectMap["samlMetadataUrl"] = a.SamlMetadataURL
+	}
+	if a.SignInAudience != nil {
+		objectMap["signInAudience"] = a.SignInAudience
+	}
+	if a.WwwHomepage != nil {
+		objectMap["wwwHomepage"] = a.WwwHomepage
 	}
 	if a.ObjectType != "" {
 		objectMap["objectType"] = a.ObjectType
@@ -448,6 +550,33 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 				}
 				a.AppID = &appID
 			}
+		case "allowGuestsSignIn":
+			if v != nil {
+				var allowGuestsSignIn bool
+				err = json.Unmarshal(*v, &allowGuestsSignIn)
+				if err != nil {
+					return err
+				}
+				a.AllowGuestsSignIn = &allowGuestsSignIn
+			}
+		case "allowPassthroughUsers":
+			if v != nil {
+				var allowPassthroughUsers bool
+				err = json.Unmarshal(*v, &allowPassthroughUsers)
+				if err != nil {
+					return err
+				}
+				a.AllowPassthroughUsers = &allowPassthroughUsers
+			}
+		case "appLogoUrl":
+			if v != nil {
+				var appLogoURL string
+				err = json.Unmarshal(*v, &appLogoURL)
+				if err != nil {
+					return err
+				}
+				a.AppLogoURL = &appLogoURL
+			}
 		case "appRoles":
 			if v != nil {
 				var appRoles []AppRole
@@ -484,23 +613,23 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 				}
 				a.DisplayName = &displayName
 			}
-		case "identifierUris":
+		case "errorUrl":
 			if v != nil {
-				var identifierUris []string
-				err = json.Unmarshal(*v, &identifierUris)
+				var errorURL string
+				err = json.Unmarshal(*v, &errorURL)
 				if err != nil {
 					return err
 				}
-				a.IdentifierUris = &identifierUris
+				a.ErrorURL = &errorURL
 			}
-		case "replyUrls":
+		case "groupMembershipClaims":
 			if v != nil {
-				var replyUrls []string
-				err = json.Unmarshal(*v, &replyUrls)
+				var groupMembershipClaims interface{}
+				err = json.Unmarshal(*v, &groupMembershipClaims)
 				if err != nil {
 					return err
 				}
-				a.ReplyUrls = &replyUrls
+				a.GroupMembershipClaims = groupMembershipClaims
 			}
 		case "homepage":
 			if v != nil {
@@ -511,23 +640,32 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 				}
 				a.Homepage = &homepage
 			}
-		case "oauth2AllowImplicitFlow":
+		case "identifierUris":
 			if v != nil {
-				var oauth2AllowImplicitFlow bool
-				err = json.Unmarshal(*v, &oauth2AllowImplicitFlow)
+				var identifierUris []string
+				err = json.Unmarshal(*v, &identifierUris)
 				if err != nil {
 					return err
 				}
-				a.Oauth2AllowImplicitFlow = &oauth2AllowImplicitFlow
+				a.IdentifierUris = &identifierUris
 			}
-		case "requiredResourceAccess":
+		case "informationalUrls":
 			if v != nil {
-				var requiredResourceAccess []RequiredResourceAccess
-				err = json.Unmarshal(*v, &requiredResourceAccess)
+				var informationalUrls InformationalURL
+				err = json.Unmarshal(*v, &informationalUrls)
 				if err != nil {
 					return err
 				}
-				a.RequiredResourceAccess = &requiredResourceAccess
+				a.InformationalUrls = &informationalUrls
+			}
+		case "isDeviceOnlyAuthSupported":
+			if v != nil {
+				var isDeviceOnlyAuthSupported bool
+				err = json.Unmarshal(*v, &isDeviceOnlyAuthSupported)
+				if err != nil {
+					return err
+				}
+				a.IsDeviceOnlyAuthSupported = &isDeviceOnlyAuthSupported
 			}
 		case "keyCredentials":
 			if v != nil {
@@ -538,6 +676,78 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 				}
 				a.KeyCredentials = &keyCredentials
 			}
+		case "knownClientApplications":
+			if v != nil {
+				var knownClientApplications []string
+				err = json.Unmarshal(*v, &knownClientApplications)
+				if err != nil {
+					return err
+				}
+				a.KnownClientApplications = &knownClientApplications
+			}
+		case "logoutUrl":
+			if v != nil {
+				var logoutURL string
+				err = json.Unmarshal(*v, &logoutURL)
+				if err != nil {
+					return err
+				}
+				a.LogoutURL = &logoutURL
+			}
+		case "oauth2AllowImplicitFlow":
+			if v != nil {
+				var oauth2AllowImplicitFlow bool
+				err = json.Unmarshal(*v, &oauth2AllowImplicitFlow)
+				if err != nil {
+					return err
+				}
+				a.Oauth2AllowImplicitFlow = &oauth2AllowImplicitFlow
+			}
+		case "oauth2AllowUrlPathMatching":
+			if v != nil {
+				var oauth2AllowURLPathMatching bool
+				err = json.Unmarshal(*v, &oauth2AllowURLPathMatching)
+				if err != nil {
+					return err
+				}
+				a.Oauth2AllowURLPathMatching = &oauth2AllowURLPathMatching
+			}
+		case "oauth2Permissions":
+			if v != nil {
+				var oauth2Permissions []OAuth2Permission
+				err = json.Unmarshal(*v, &oauth2Permissions)
+				if err != nil {
+					return err
+				}
+				a.Oauth2Permissions = &oauth2Permissions
+			}
+		case "oauth2RequirePostResponse":
+			if v != nil {
+				var oauth2RequirePostResponse bool
+				err = json.Unmarshal(*v, &oauth2RequirePostResponse)
+				if err != nil {
+					return err
+				}
+				a.Oauth2RequirePostResponse = &oauth2RequirePostResponse
+			}
+		case "orgRestrictions":
+			if v != nil {
+				var orgRestrictions []string
+				err = json.Unmarshal(*v, &orgRestrictions)
+				if err != nil {
+					return err
+				}
+				a.OrgRestrictions = &orgRestrictions
+			}
+		case "optionalClaims":
+			if v != nil {
+				var optionalClaims OptionalClaims
+				err = json.Unmarshal(*v, &optionalClaims)
+				if err != nil {
+					return err
+				}
+				a.OptionalClaims = &optionalClaims
+			}
 		case "passwordCredentials":
 			if v != nil {
 				var passwordCredentials []PasswordCredential
@@ -546,6 +756,78 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				a.PasswordCredentials = &passwordCredentials
+			}
+		case "preAuthorizedApplications":
+			if v != nil {
+				var preAuthorizedApplications []PreAuthorizedApplication
+				err = json.Unmarshal(*v, &preAuthorizedApplications)
+				if err != nil {
+					return err
+				}
+				a.PreAuthorizedApplications = &preAuthorizedApplications
+			}
+		case "publicClient":
+			if v != nil {
+				var publicClient bool
+				err = json.Unmarshal(*v, &publicClient)
+				if err != nil {
+					return err
+				}
+				a.PublicClient = &publicClient
+			}
+		case "publisherDomain":
+			if v != nil {
+				var publisherDomain string
+				err = json.Unmarshal(*v, &publisherDomain)
+				if err != nil {
+					return err
+				}
+				a.PublisherDomain = &publisherDomain
+			}
+		case "replyUrls":
+			if v != nil {
+				var replyUrls []string
+				err = json.Unmarshal(*v, &replyUrls)
+				if err != nil {
+					return err
+				}
+				a.ReplyUrls = &replyUrls
+			}
+		case "requiredResourceAccess":
+			if v != nil {
+				var requiredResourceAccess []RequiredResourceAccess
+				err = json.Unmarshal(*v, &requiredResourceAccess)
+				if err != nil {
+					return err
+				}
+				a.RequiredResourceAccess = &requiredResourceAccess
+			}
+		case "samlMetadataUrl":
+			if v != nil {
+				var samlMetadataURL string
+				err = json.Unmarshal(*v, &samlMetadataURL)
+				if err != nil {
+					return err
+				}
+				a.SamlMetadataURL = &samlMetadataURL
+			}
+		case "signInAudience":
+			if v != nil {
+				var signInAudience string
+				err = json.Unmarshal(*v, &signInAudience)
+				if err != nil {
+					return err
+				}
+				a.SignInAudience = &signInAudience
+			}
+		case "wwwHomepage":
+			if v != nil {
+				var wwwHomepage string
+				err = json.Unmarshal(*v, &wwwHomepage)
+				if err != nil {
+					return err
+				}
+				a.WwwHomepage = &wwwHomepage
 			}
 		default:
 			if v != nil {
@@ -592,186 +874,130 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApplicationCreateParameters request parameters for creating a new application.
-type ApplicationCreateParameters struct {
-	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
-	AdditionalProperties map[string]interface{} `json:""`
+// ApplicationBase active Directive Application common properties shared among GET, POST and PATCH
+type ApplicationBase struct {
+	// AllowGuestsSignIn - A property on the application to indicate if the application accepts other IDPs or not or partially accepts.
+	AllowGuestsSignIn *bool `json:"allowGuestsSignIn,omitempty"`
+	// AllowPassthroughUsers - Indicates that the application supports pass through users who have no presence in the resource tenant.
+	AllowPassthroughUsers *bool `json:"allowPassthroughUsers,omitempty"`
+	// AppLogoURL - The url for the application logo image stored in a CDN.
+	AppLogoURL *string `json:"appLogoUrl,omitempty"`
 	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
 	AppRoles *[]AppRole `json:"appRoles,omitempty"`
+	// AppPermissions - The application permissions.
+	AppPermissions *[]string `json:"appPermissions,omitempty"`
 	// AvailableToOtherTenants - Whether the application is available to other tenants.
 	AvailableToOtherTenants *bool `json:"availableToOtherTenants,omitempty"`
-	// DisplayName - The display name of the application.
-	DisplayName *string `json:"displayName,omitempty"`
+	// ErrorURL - A URL provided by the author of the application to report errors when using the application.
+	ErrorURL *string `json:"errorUrl,omitempty"`
+	// GroupMembershipClaims - Configures the groups claim issued in a user or OAuth 2.0 access token that the app expects.
+	GroupMembershipClaims interface{} `json:"groupMembershipClaims,omitempty"`
 	// Homepage - The home page of the application.
 	Homepage *string `json:"homepage,omitempty"`
-	// IdentifierUris - A collection of URIs for the application.
-	IdentifierUris *[]string `json:"identifierUris,omitempty"`
-	// ReplyUrls - A collection of reply URLs for the application.
-	ReplyUrls *[]string `json:"replyUrls,omitempty"`
-	// KeyCredentials - The list of KeyCredential objects.
+	// InformationalUrls - URLs with more information about the application.
+	InformationalUrls *InformationalURL `json:"informationalUrls,omitempty"`
+	// IsDeviceOnlyAuthSupported - Specifies whether this application supports device authentication without a user. The default is false.
+	IsDeviceOnlyAuthSupported *bool `json:"isDeviceOnlyAuthSupported,omitempty"`
+	// KeyCredentials - A collection of KeyCredential objects.
 	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
-	// PasswordCredentials - The list of PasswordCredential objects.
-	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// KnownClientApplications - Client applications that are tied to this resource application. Consent to any of the known client applications will result in implicit consent to the resource application through a combined consent dialog (showing the OAuth permission scopes required by the client and the resource).
+	KnownClientApplications *[]string `json:"knownClientApplications,omitempty"`
+	// LogoutURL - the url of the logout page
+	LogoutURL *string `json:"logoutUrl,omitempty"`
 	// Oauth2AllowImplicitFlow - Whether to allow implicit grant flow for OAuth2
 	Oauth2AllowImplicitFlow *bool `json:"oauth2AllowImplicitFlow,omitempty"`
+	// Oauth2AllowURLPathMatching - Specifies whether during a token Request Azure AD will allow path matching of the redirect URI against the applications collection of replyURLs. The default is false.
+	Oauth2AllowURLPathMatching *bool `json:"oauth2AllowUrlPathMatching,omitempty"`
+	// Oauth2Permissions - The collection of OAuth 2.0 permission scopes that the web API (resource) application exposes to client applications. These permission scopes may be granted to client applications during consent.
+	Oauth2Permissions *[]OAuth2Permission `json:"oauth2Permissions,omitempty"`
+	// Oauth2RequirePostResponse - Specifies whether, as part of OAuth 2.0 token requests, Azure AD will allow POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests will be allowed.
+	Oauth2RequirePostResponse *bool `json:"oauth2RequirePostResponse,omitempty"`
+	// OrgRestrictions - A list of tenants allowed to access application.
+	OrgRestrictions *[]string       `json:"orgRestrictions,omitempty"`
+	OptionalClaims  *OptionalClaims `json:"optionalClaims,omitempty"`
+	// PasswordCredentials - A collection of PasswordCredential objects
+	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// PreAuthorizedApplications - list of pre-authorized applications.
+	PreAuthorizedApplications *[]PreAuthorizedApplication `json:"preAuthorizedApplications,omitempty"`
+	// PublicClient - Specifies whether this application is a public client (such as an installed application running on a mobile device). Default is false.
+	PublicClient *bool `json:"publicClient,omitempty"`
+	// PublisherDomain - Reliable domain which can be used to identify an application.
+	PublisherDomain *string `json:"publisherDomain,omitempty"`
+	// ReplyUrls - A collection of reply URLs for the application.
+	ReplyUrls *[]string `json:"replyUrls,omitempty"`
 	// RequiredResourceAccess - Specifies resources that this application requires access to and the set of OAuth permission scopes and application roles that it needs under each of those resources. This pre-configuration of required resource access drives the consent experience.
 	RequiredResourceAccess *[]RequiredResourceAccess `json:"requiredResourceAccess,omitempty"`
+	// SamlMetadataURL - The URL to the SAML metadata for the application.
+	SamlMetadataURL *string `json:"samlMetadataUrl,omitempty"`
+	// SignInAudience - Audience for signing in to the application (AzureADMyOrganization, AzureADAllOrganizations, AzureADAndMicrosoftAccounts).
+	SignInAudience *string `json:"signInAudience,omitempty"`
+	// WwwHomepage - The primary Web page.
+	WwwHomepage *string `json:"wwwHomepage,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ApplicationCreateParameters.
-func (acp ApplicationCreateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if acp.AppRoles != nil {
-		objectMap["appRoles"] = acp.AppRoles
-	}
-	if acp.AvailableToOtherTenants != nil {
-		objectMap["availableToOtherTenants"] = acp.AvailableToOtherTenants
-	}
-	if acp.DisplayName != nil {
-		objectMap["displayName"] = acp.DisplayName
-	}
-	if acp.Homepage != nil {
-		objectMap["homepage"] = acp.Homepage
-	}
-	if acp.IdentifierUris != nil {
-		objectMap["identifierUris"] = acp.IdentifierUris
-	}
-	if acp.ReplyUrls != nil {
-		objectMap["replyUrls"] = acp.ReplyUrls
-	}
-	if acp.KeyCredentials != nil {
-		objectMap["keyCredentials"] = acp.KeyCredentials
-	}
-	if acp.PasswordCredentials != nil {
-		objectMap["passwordCredentials"] = acp.PasswordCredentials
-	}
-	if acp.Oauth2AllowImplicitFlow != nil {
-		objectMap["oauth2AllowImplicitFlow"] = acp.Oauth2AllowImplicitFlow
-	}
-	if acp.RequiredResourceAccess != nil {
-		objectMap["requiredResourceAccess"] = acp.RequiredResourceAccess
-	}
-	for k, v := range acp.AdditionalProperties {
-		objectMap[k] = v
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ApplicationCreateParameters struct.
-func (acp *ApplicationCreateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		default:
-			if v != nil {
-				var additionalProperties interface{}
-				err = json.Unmarshal(*v, &additionalProperties)
-				if err != nil {
-					return err
-				}
-				if acp.AdditionalProperties == nil {
-					acp.AdditionalProperties = make(map[string]interface{})
-				}
-				acp.AdditionalProperties[k] = additionalProperties
-			}
-		case "appRoles":
-			if v != nil {
-				var appRoles []AppRole
-				err = json.Unmarshal(*v, &appRoles)
-				if err != nil {
-					return err
-				}
-				acp.AppRoles = &appRoles
-			}
-		case "availableToOtherTenants":
-			if v != nil {
-				var availableToOtherTenants bool
-				err = json.Unmarshal(*v, &availableToOtherTenants)
-				if err != nil {
-					return err
-				}
-				acp.AvailableToOtherTenants = &availableToOtherTenants
-			}
-		case "displayName":
-			if v != nil {
-				var displayName string
-				err = json.Unmarshal(*v, &displayName)
-				if err != nil {
-					return err
-				}
-				acp.DisplayName = &displayName
-			}
-		case "homepage":
-			if v != nil {
-				var homepage string
-				err = json.Unmarshal(*v, &homepage)
-				if err != nil {
-					return err
-				}
-				acp.Homepage = &homepage
-			}
-		case "identifierUris":
-			if v != nil {
-				var identifierUris []string
-				err = json.Unmarshal(*v, &identifierUris)
-				if err != nil {
-					return err
-				}
-				acp.IdentifierUris = &identifierUris
-			}
-		case "replyUrls":
-			if v != nil {
-				var replyUrls []string
-				err = json.Unmarshal(*v, &replyUrls)
-				if err != nil {
-					return err
-				}
-				acp.ReplyUrls = &replyUrls
-			}
-		case "keyCredentials":
-			if v != nil {
-				var keyCredentials []KeyCredential
-				err = json.Unmarshal(*v, &keyCredentials)
-				if err != nil {
-					return err
-				}
-				acp.KeyCredentials = &keyCredentials
-			}
-		case "passwordCredentials":
-			if v != nil {
-				var passwordCredentials []PasswordCredential
-				err = json.Unmarshal(*v, &passwordCredentials)
-				if err != nil {
-					return err
-				}
-				acp.PasswordCredentials = &passwordCredentials
-			}
-		case "oauth2AllowImplicitFlow":
-			if v != nil {
-				var oauth2AllowImplicitFlow bool
-				err = json.Unmarshal(*v, &oauth2AllowImplicitFlow)
-				if err != nil {
-					return err
-				}
-				acp.Oauth2AllowImplicitFlow = &oauth2AllowImplicitFlow
-			}
-		case "requiredResourceAccess":
-			if v != nil {
-				var requiredResourceAccess []RequiredResourceAccess
-				err = json.Unmarshal(*v, &requiredResourceAccess)
-				if err != nil {
-					return err
-				}
-				acp.RequiredResourceAccess = &requiredResourceAccess
-			}
-		}
-	}
-
-	return nil
+// ApplicationCreateParameters request parameters for creating a new application.
+type ApplicationCreateParameters struct {
+	// DisplayName - The display name of the application.
+	DisplayName *string `json:"displayName,omitempty"`
+	// IdentifierUris - A collection of URIs for the application.
+	IdentifierUris *[]string `json:"identifierUris,omitempty"`
+	// AllowGuestsSignIn - A property on the application to indicate if the application accepts other IDPs or not or partially accepts.
+	AllowGuestsSignIn *bool `json:"allowGuestsSignIn,omitempty"`
+	// AllowPassthroughUsers - Indicates that the application supports pass through users who have no presence in the resource tenant.
+	AllowPassthroughUsers *bool `json:"allowPassthroughUsers,omitempty"`
+	// AppLogoURL - The url for the application logo image stored in a CDN.
+	AppLogoURL *string `json:"appLogoUrl,omitempty"`
+	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
+	AppRoles *[]AppRole `json:"appRoles,omitempty"`
+	// AppPermissions - The application permissions.
+	AppPermissions *[]string `json:"appPermissions,omitempty"`
+	// AvailableToOtherTenants - Whether the application is available to other tenants.
+	AvailableToOtherTenants *bool `json:"availableToOtherTenants,omitempty"`
+	// ErrorURL - A URL provided by the author of the application to report errors when using the application.
+	ErrorURL *string `json:"errorUrl,omitempty"`
+	// GroupMembershipClaims - Configures the groups claim issued in a user or OAuth 2.0 access token that the app expects.
+	GroupMembershipClaims interface{} `json:"groupMembershipClaims,omitempty"`
+	// Homepage - The home page of the application.
+	Homepage *string `json:"homepage,omitempty"`
+	// InformationalUrls - URLs with more information about the application.
+	InformationalUrls *InformationalURL `json:"informationalUrls,omitempty"`
+	// IsDeviceOnlyAuthSupported - Specifies whether this application supports device authentication without a user. The default is false.
+	IsDeviceOnlyAuthSupported *bool `json:"isDeviceOnlyAuthSupported,omitempty"`
+	// KeyCredentials - A collection of KeyCredential objects.
+	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
+	// KnownClientApplications - Client applications that are tied to this resource application. Consent to any of the known client applications will result in implicit consent to the resource application through a combined consent dialog (showing the OAuth permission scopes required by the client and the resource).
+	KnownClientApplications *[]string `json:"knownClientApplications,omitempty"`
+	// LogoutURL - the url of the logout page
+	LogoutURL *string `json:"logoutUrl,omitempty"`
+	// Oauth2AllowImplicitFlow - Whether to allow implicit grant flow for OAuth2
+	Oauth2AllowImplicitFlow *bool `json:"oauth2AllowImplicitFlow,omitempty"`
+	// Oauth2AllowURLPathMatching - Specifies whether during a token Request Azure AD will allow path matching of the redirect URI against the applications collection of replyURLs. The default is false.
+	Oauth2AllowURLPathMatching *bool `json:"oauth2AllowUrlPathMatching,omitempty"`
+	// Oauth2Permissions - The collection of OAuth 2.0 permission scopes that the web API (resource) application exposes to client applications. These permission scopes may be granted to client applications during consent.
+	Oauth2Permissions *[]OAuth2Permission `json:"oauth2Permissions,omitempty"`
+	// Oauth2RequirePostResponse - Specifies whether, as part of OAuth 2.0 token requests, Azure AD will allow POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests will be allowed.
+	Oauth2RequirePostResponse *bool `json:"oauth2RequirePostResponse,omitempty"`
+	// OrgRestrictions - A list of tenants allowed to access application.
+	OrgRestrictions *[]string       `json:"orgRestrictions,omitempty"`
+	OptionalClaims  *OptionalClaims `json:"optionalClaims,omitempty"`
+	// PasswordCredentials - A collection of PasswordCredential objects
+	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// PreAuthorizedApplications - list of pre-authorized applications.
+	PreAuthorizedApplications *[]PreAuthorizedApplication `json:"preAuthorizedApplications,omitempty"`
+	// PublicClient - Specifies whether this application is a public client (such as an installed application running on a mobile device). Default is false.
+	PublicClient *bool `json:"publicClient,omitempty"`
+	// PublisherDomain - Reliable domain which can be used to identify an application.
+	PublisherDomain *string `json:"publisherDomain,omitempty"`
+	// ReplyUrls - A collection of reply URLs for the application.
+	ReplyUrls *[]string `json:"replyUrls,omitempty"`
+	// RequiredResourceAccess - Specifies resources that this application requires access to and the set of OAuth permission scopes and application roles that it needs under each of those resources. This pre-configuration of required resource access drives the consent experience.
+	RequiredResourceAccess *[]RequiredResourceAccess `json:"requiredResourceAccess,omitempty"`
+	// SamlMetadataURL - The URL to the SAML metadata for the application.
+	SamlMetadataURL *string `json:"samlMetadataUrl,omitempty"`
+	// SignInAudience - Audience for signing in to the application (AzureADMyOrganization, AzureADAllOrganizations, AzureADAndMicrosoftAccounts).
+	SignInAudience *string `json:"signInAudience,omitempty"`
+	// WwwHomepage - The primary Web page.
+	WwwHomepage *string `json:"wwwHomepage,omitempty"`
 }
 
 // ApplicationListResult application list operation result.
@@ -908,186 +1134,69 @@ func NewApplicationListResultPage(getNextPage func(context.Context, ApplicationL
 	return ApplicationListResultPage{fn: getNextPage}
 }
 
-// ApplicationUpdateParameters request parameters for updating an existing application.
+// ApplicationUpdateParameters request parameters for updating a new application.
 type ApplicationUpdateParameters struct {
-	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
-	AdditionalProperties map[string]interface{} `json:""`
-	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
-	AppRoles *[]AppRole `json:"appRoles,omitempty"`
-	// AvailableToOtherTenants - Whether the application is available to other tenants
-	AvailableToOtherTenants *bool `json:"availableToOtherTenants,omitempty"`
 	// DisplayName - The display name of the application.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Homepage - The home page of the application.
-	Homepage *string `json:"homepage,omitempty"`
 	// IdentifierUris - A collection of URIs for the application.
 	IdentifierUris *[]string `json:"identifierUris,omitempty"`
-	// ReplyUrls - A collection of reply URLs for the application.
-	ReplyUrls *[]string `json:"replyUrls,omitempty"`
-	// KeyCredentials - The list of KeyCredential objects.
+	// AllowGuestsSignIn - A property on the application to indicate if the application accepts other IDPs or not or partially accepts.
+	AllowGuestsSignIn *bool `json:"allowGuestsSignIn,omitempty"`
+	// AllowPassthroughUsers - Indicates that the application supports pass through users who have no presence in the resource tenant.
+	AllowPassthroughUsers *bool `json:"allowPassthroughUsers,omitempty"`
+	// AppLogoURL - The url for the application logo image stored in a CDN.
+	AppLogoURL *string `json:"appLogoUrl,omitempty"`
+	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
+	AppRoles *[]AppRole `json:"appRoles,omitempty"`
+	// AppPermissions - The application permissions.
+	AppPermissions *[]string `json:"appPermissions,omitempty"`
+	// AvailableToOtherTenants - Whether the application is available to other tenants.
+	AvailableToOtherTenants *bool `json:"availableToOtherTenants,omitempty"`
+	// ErrorURL - A URL provided by the author of the application to report errors when using the application.
+	ErrorURL *string `json:"errorUrl,omitempty"`
+	// GroupMembershipClaims - Configures the groups claim issued in a user or OAuth 2.0 access token that the app expects.
+	GroupMembershipClaims interface{} `json:"groupMembershipClaims,omitempty"`
+	// Homepage - The home page of the application.
+	Homepage *string `json:"homepage,omitempty"`
+	// InformationalUrls - URLs with more information about the application.
+	InformationalUrls *InformationalURL `json:"informationalUrls,omitempty"`
+	// IsDeviceOnlyAuthSupported - Specifies whether this application supports device authentication without a user. The default is false.
+	IsDeviceOnlyAuthSupported *bool `json:"isDeviceOnlyAuthSupported,omitempty"`
+	// KeyCredentials - A collection of KeyCredential objects.
 	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
-	// PasswordCredentials - The list of PasswordCredential objects.
-	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// KnownClientApplications - Client applications that are tied to this resource application. Consent to any of the known client applications will result in implicit consent to the resource application through a combined consent dialog (showing the OAuth permission scopes required by the client and the resource).
+	KnownClientApplications *[]string `json:"knownClientApplications,omitempty"`
+	// LogoutURL - the url of the logout page
+	LogoutURL *string `json:"logoutUrl,omitempty"`
 	// Oauth2AllowImplicitFlow - Whether to allow implicit grant flow for OAuth2
 	Oauth2AllowImplicitFlow *bool `json:"oauth2AllowImplicitFlow,omitempty"`
+	// Oauth2AllowURLPathMatching - Specifies whether during a token Request Azure AD will allow path matching of the redirect URI against the applications collection of replyURLs. The default is false.
+	Oauth2AllowURLPathMatching *bool `json:"oauth2AllowUrlPathMatching,omitempty"`
+	// Oauth2Permissions - The collection of OAuth 2.0 permission scopes that the web API (resource) application exposes to client applications. These permission scopes may be granted to client applications during consent.
+	Oauth2Permissions *[]OAuth2Permission `json:"oauth2Permissions,omitempty"`
+	// Oauth2RequirePostResponse - Specifies whether, as part of OAuth 2.0 token requests, Azure AD will allow POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests will be allowed.
+	Oauth2RequirePostResponse *bool `json:"oauth2RequirePostResponse,omitempty"`
+	// OrgRestrictions - A list of tenants allowed to access application.
+	OrgRestrictions *[]string       `json:"orgRestrictions,omitempty"`
+	OptionalClaims  *OptionalClaims `json:"optionalClaims,omitempty"`
+	// PasswordCredentials - A collection of PasswordCredential objects
+	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// PreAuthorizedApplications - list of pre-authorized applications.
+	PreAuthorizedApplications *[]PreAuthorizedApplication `json:"preAuthorizedApplications,omitempty"`
+	// PublicClient - Specifies whether this application is a public client (such as an installed application running on a mobile device). Default is false.
+	PublicClient *bool `json:"publicClient,omitempty"`
+	// PublisherDomain - Reliable domain which can be used to identify an application.
+	PublisherDomain *string `json:"publisherDomain,omitempty"`
+	// ReplyUrls - A collection of reply URLs for the application.
+	ReplyUrls *[]string `json:"replyUrls,omitempty"`
 	// RequiredResourceAccess - Specifies resources that this application requires access to and the set of OAuth permission scopes and application roles that it needs under each of those resources. This pre-configuration of required resource access drives the consent experience.
 	RequiredResourceAccess *[]RequiredResourceAccess `json:"requiredResourceAccess,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ApplicationUpdateParameters.
-func (aup ApplicationUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if aup.AppRoles != nil {
-		objectMap["appRoles"] = aup.AppRoles
-	}
-	if aup.AvailableToOtherTenants != nil {
-		objectMap["availableToOtherTenants"] = aup.AvailableToOtherTenants
-	}
-	if aup.DisplayName != nil {
-		objectMap["displayName"] = aup.DisplayName
-	}
-	if aup.Homepage != nil {
-		objectMap["homepage"] = aup.Homepage
-	}
-	if aup.IdentifierUris != nil {
-		objectMap["identifierUris"] = aup.IdentifierUris
-	}
-	if aup.ReplyUrls != nil {
-		objectMap["replyUrls"] = aup.ReplyUrls
-	}
-	if aup.KeyCredentials != nil {
-		objectMap["keyCredentials"] = aup.KeyCredentials
-	}
-	if aup.PasswordCredentials != nil {
-		objectMap["passwordCredentials"] = aup.PasswordCredentials
-	}
-	if aup.Oauth2AllowImplicitFlow != nil {
-		objectMap["oauth2AllowImplicitFlow"] = aup.Oauth2AllowImplicitFlow
-	}
-	if aup.RequiredResourceAccess != nil {
-		objectMap["requiredResourceAccess"] = aup.RequiredResourceAccess
-	}
-	for k, v := range aup.AdditionalProperties {
-		objectMap[k] = v
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ApplicationUpdateParameters struct.
-func (aup *ApplicationUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		default:
-			if v != nil {
-				var additionalProperties interface{}
-				err = json.Unmarshal(*v, &additionalProperties)
-				if err != nil {
-					return err
-				}
-				if aup.AdditionalProperties == nil {
-					aup.AdditionalProperties = make(map[string]interface{})
-				}
-				aup.AdditionalProperties[k] = additionalProperties
-			}
-		case "appRoles":
-			if v != nil {
-				var appRoles []AppRole
-				err = json.Unmarshal(*v, &appRoles)
-				if err != nil {
-					return err
-				}
-				aup.AppRoles = &appRoles
-			}
-		case "availableToOtherTenants":
-			if v != nil {
-				var availableToOtherTenants bool
-				err = json.Unmarshal(*v, &availableToOtherTenants)
-				if err != nil {
-					return err
-				}
-				aup.AvailableToOtherTenants = &availableToOtherTenants
-			}
-		case "displayName":
-			if v != nil {
-				var displayName string
-				err = json.Unmarshal(*v, &displayName)
-				if err != nil {
-					return err
-				}
-				aup.DisplayName = &displayName
-			}
-		case "homepage":
-			if v != nil {
-				var homepage string
-				err = json.Unmarshal(*v, &homepage)
-				if err != nil {
-					return err
-				}
-				aup.Homepage = &homepage
-			}
-		case "identifierUris":
-			if v != nil {
-				var identifierUris []string
-				err = json.Unmarshal(*v, &identifierUris)
-				if err != nil {
-					return err
-				}
-				aup.IdentifierUris = &identifierUris
-			}
-		case "replyUrls":
-			if v != nil {
-				var replyUrls []string
-				err = json.Unmarshal(*v, &replyUrls)
-				if err != nil {
-					return err
-				}
-				aup.ReplyUrls = &replyUrls
-			}
-		case "keyCredentials":
-			if v != nil {
-				var keyCredentials []KeyCredential
-				err = json.Unmarshal(*v, &keyCredentials)
-				if err != nil {
-					return err
-				}
-				aup.KeyCredentials = &keyCredentials
-			}
-		case "passwordCredentials":
-			if v != nil {
-				var passwordCredentials []PasswordCredential
-				err = json.Unmarshal(*v, &passwordCredentials)
-				if err != nil {
-					return err
-				}
-				aup.PasswordCredentials = &passwordCredentials
-			}
-		case "oauth2AllowImplicitFlow":
-			if v != nil {
-				var oauth2AllowImplicitFlow bool
-				err = json.Unmarshal(*v, &oauth2AllowImplicitFlow)
-				if err != nil {
-					return err
-				}
-				aup.Oauth2AllowImplicitFlow = &oauth2AllowImplicitFlow
-			}
-		case "requiredResourceAccess":
-			if v != nil {
-				var requiredResourceAccess []RequiredResourceAccess
-				err = json.Unmarshal(*v, &requiredResourceAccess)
-				if err != nil {
-					return err
-				}
-				aup.RequiredResourceAccess = &requiredResourceAccess
-			}
-		}
-	}
-
-	return nil
+	// SamlMetadataURL - The URL to the SAML metadata for the application.
+	SamlMetadataURL *string `json:"samlMetadataUrl,omitempty"`
+	// SignInAudience - Audience for signing in to the application (AzureADMyOrganization, AzureADAllOrganizations, AzureADAndMicrosoftAccounts).
+	SignInAudience *string `json:"signInAudience,omitempty"`
+	// WwwHomepage - The primary Web page.
+	WwwHomepage *string `json:"wwwHomepage,omitempty"`
 }
 
 // AppRole ...
@@ -1246,9 +1355,9 @@ type BasicDirectoryObject interface {
 type DirectoryObject struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// ObjectID - The object ID.
+	// ObjectID - READ-ONLY; The object ID.
 	ObjectID *string `json:"objectId,omitempty"`
-	// DeletionTimestamp - The time at which the directory object was deleted.
+	// DeletionTimestamp - READ-ONLY; The time at which the directory object was deleted.
 	DeletionTimestamp *date.Time `json:"deletionTimestamp,omitempty"`
 	// ObjectType - Possible values include: 'ObjectTypeDirectoryObject', 'ObjectTypeApplication', 'ObjectTypeGroup', 'ObjectTypeServicePrincipal', 'ObjectTypeUser'
 	ObjectType ObjectType `json:"objectType,omitempty"`
@@ -1307,12 +1416,6 @@ func unmarshalBasicDirectoryObjectArray(body []byte) ([]BasicDirectoryObject, er
 func (do DirectoryObject) MarshalJSON() ([]byte, error) {
 	do.ObjectType = ObjectTypeDirectoryObject
 	objectMap := make(map[string]interface{})
-	if do.ObjectID != nil {
-		objectMap["objectId"] = do.ObjectID
-	}
-	if do.DeletionTimestamp != nil {
-		objectMap["deletionTimestamp"] = do.DeletionTimestamp
-	}
 	if do.ObjectType != "" {
 		objectMap["objectType"] = do.ObjectType
 	}
@@ -1589,11 +1692,11 @@ type Domain struct {
 	autorest.Response `json:"-"`
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// AuthenticationType - the type of the authentication into the domain.
+	// AuthenticationType - READ-ONLY; the type of the authentication into the domain.
 	AuthenticationType *string `json:"authenticationType,omitempty"`
-	// IsDefault - if this is the default domain in the tenant.
+	// IsDefault - READ-ONLY; if this is the default domain in the tenant.
 	IsDefault *bool `json:"isDefault,omitempty"`
-	// IsVerified - if this domain's ownership is verified.
+	// IsVerified - READ-ONLY; if this domain's ownership is verified.
 	IsVerified *bool `json:"isVerified,omitempty"`
 	// Name - the domain name.
 	Name *string `json:"name,omitempty"`
@@ -1602,15 +1705,6 @@ type Domain struct {
 // MarshalJSON is the custom marshaler for Domain.
 func (d Domain) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if d.AuthenticationType != nil {
-		objectMap["authenticationType"] = d.AuthenticationType
-	}
-	if d.IsDefault != nil {
-		objectMap["isDefault"] = d.IsDefault
-	}
-	if d.IsVerified != nil {
-		objectMap["isVerified"] = d.IsVerified
-	}
 	if d.Name != nil {
 		objectMap["name"] = d.Name
 	}
@@ -2170,6 +2264,19 @@ func NewGroupListResultPage(getNextPage func(context.Context, GroupListResult) (
 	return GroupListResultPage{fn: getNextPage}
 }
 
+// InformationalURL represents a group of URIs that provide terms of service, marketing, support and
+// privacy policy information about an application. The default value for each string is null.
+type InformationalURL struct {
+	// TermsOfService - The terms of service URI
+	TermsOfService *string `json:"termsOfService,omitempty"`
+	// Marketing - The marketing URI
+	Marketing *string `json:"marketing,omitempty"`
+	// Privacy - The privacy policy URI
+	Privacy *string `json:"privacy,omitempty"`
+	// Support - The support URI
+	Support *string `json:"support,omitempty"`
+}
+
 // KeyCredential active Directory Key Credential information.
 type KeyCredential struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
@@ -2323,6 +2430,187 @@ type KeyCredentialsUpdateParameters struct {
 	Value *[]KeyCredential `json:"value,omitempty"`
 }
 
+// OAuth2Permission represents an OAuth 2.0 delegated permission scope. The specified OAuth 2.0 delegated
+// permission scopes may be requested by client applications (through the requiredResourceAccess collection
+// on the Application object) when calling a resource application. The oauth2Permissions property of the
+// ServicePrincipal entity and of the Application entity is a collection of OAuth2Permission.
+type OAuth2Permission struct {
+	// AdminConsentDescription - Permission help text that appears in the admin consent and app assignment experiences.
+	AdminConsentDescription *string `json:"adminConsentDescription,omitempty"`
+	// AdminConsentDisplayName - Display name for the permission that appears in the admin consent and app assignment experiences.
+	AdminConsentDisplayName *string `json:"adminConsentDisplayName,omitempty"`
+	// ID - Unique scope permission identifier inside the oauth2Permissions collection.
+	ID *string `json:"id,omitempty"`
+	// IsEnabled - When creating or updating a permission, this property must be set to true (which is the default). To delete a permission, this property must first be set to false. At that point, in a subsequent call, the permission may be removed.
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// Type - Specifies whether this scope permission can be consented to by an end user, or whether it is a tenant-wide permission that must be consented to by a Company Administrator. Possible values are "User" or "Admin".
+	Type *string `json:"type,omitempty"`
+	// UserConsentDescription - Permission help text that appears in the end user consent experience.
+	UserConsentDescription *string `json:"userConsentDescription,omitempty"`
+	// UserConsentDisplayName - Display name for the permission that appears in the end user consent experience.
+	UserConsentDisplayName *string `json:"userConsentDisplayName,omitempty"`
+	// Value - The value of the scope claim that the resource application should expect in the OAuth 2.0 access token.
+	Value *string `json:"value,omitempty"`
+}
+
+// OAuth2PermissionGrant ...
+type OAuth2PermissionGrant struct {
+	autorest.Response `json:"-"`
+	// OdataType - Microsoft.DirectoryServices.OAuth2PermissionGrant
+	OdataType *string `json:"odata.type,omitempty"`
+	// ClientID - The id of the resource's service principal granted consent to impersonate the user when accessing the resource (represented by the resourceId property).
+	ClientID *string `json:"clientId,omitempty"`
+	// ObjectID - The id of the permission grant
+	ObjectID *string `json:"objectId,omitempty"`
+	// ConsentType - Indicates if consent was provided by the administrator (on behalf of the organization) or by an individual. Possible values include: 'AllPrincipals', 'Principal'
+	ConsentType ConsentType `json:"consentType,omitempty"`
+	// PrincipalID - When consent type is Principal, this property specifies the id of the user that granted consent and applies only for that user.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ResourceID - Object Id of the resource you want to grant
+	ResourceID *string `json:"resourceId,omitempty"`
+	// Scope - Specifies the value of the scope claim that the resource application should expect in the OAuth 2.0 access token. For example, User.Read
+	Scope *string `json:"scope,omitempty"`
+	// StartTime - Start time for TTL
+	StartTime *string `json:"startTime,omitempty"`
+	// ExpiryTime - Expiry time for TTL
+	ExpiryTime *string `json:"expiryTime,omitempty"`
+}
+
+// OAuth2PermissionGrantListResult server response for get oauth2 permissions grants
+type OAuth2PermissionGrantListResult struct {
+	autorest.Response `json:"-"`
+	// Value - the list of oauth2 permissions grants
+	Value *[]OAuth2PermissionGrant `json:"value,omitempty"`
+	// OdataNextLink - the URL to get the next set of results.
+	OdataNextLink *string `json:"odata.nextLink,omitempty"`
+}
+
+// OAuth2PermissionGrantListResultIterator provides access to a complete listing of OAuth2PermissionGrant
+// values.
+type OAuth2PermissionGrantListResultIterator struct {
+	i    int
+	page OAuth2PermissionGrantListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *OAuth2PermissionGrantListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OAuth2PermissionGrantListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OAuth2PermissionGrantListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter OAuth2PermissionGrantListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter OAuth2PermissionGrantListResultIterator) Response() OAuth2PermissionGrantListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter OAuth2PermissionGrantListResultIterator) Value() OAuth2PermissionGrant {
+	if !iter.page.NotDone() {
+		return OAuth2PermissionGrant{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the OAuth2PermissionGrantListResultIterator type.
+func NewOAuth2PermissionGrantListResultIterator(page OAuth2PermissionGrantListResultPage) OAuth2PermissionGrantListResultIterator {
+	return OAuth2PermissionGrantListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (oa2pglr OAuth2PermissionGrantListResult) IsEmpty() bool {
+	return oa2pglr.Value == nil || len(*oa2pglr.Value) == 0
+}
+
+// OAuth2PermissionGrantListResultPage contains a page of OAuth2PermissionGrant values.
+type OAuth2PermissionGrantListResultPage struct {
+	fn      func(context.Context, OAuth2PermissionGrantListResult) (OAuth2PermissionGrantListResult, error)
+	oa2pglr OAuth2PermissionGrantListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *OAuth2PermissionGrantListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OAuth2PermissionGrantListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.oa2pglr)
+	if err != nil {
+		return err
+	}
+	page.oa2pglr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *OAuth2PermissionGrantListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page OAuth2PermissionGrantListResultPage) NotDone() bool {
+	return !page.oa2pglr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page OAuth2PermissionGrantListResultPage) Response() OAuth2PermissionGrantListResult {
+	return page.oa2pglr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page OAuth2PermissionGrantListResultPage) Values() []OAuth2PermissionGrant {
+	if page.oa2pglr.IsEmpty() {
+		return nil
+	}
+	return *page.oa2pglr.Value
+}
+
+// Creates a new instance of the OAuth2PermissionGrantListResultPage type.
+func NewOAuth2PermissionGrantListResultPage(getNextPage func(context.Context, OAuth2PermissionGrantListResult) (OAuth2PermissionGrantListResult, error)) OAuth2PermissionGrantListResultPage {
+	return OAuth2PermissionGrantListResultPage{fn: getNextPage}
+}
+
 // OdataError active Directory OData error information.
 type OdataError struct {
 	// Code - Error code.
@@ -2374,6 +2662,27 @@ func (oe *OdataError) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// OptionalClaim specifying the claims to be included in a token.
+type OptionalClaim struct {
+	// Name - Claim name.
+	Name *string `json:"name,omitempty"`
+	// Source - Claim source.
+	Source *string `json:"source,omitempty"`
+	// Essential - Is this a required claim.
+	Essential            *bool       `json:"essential,omitempty"`
+	AdditionalProperties interface{} `json:"additionalProperties,omitempty"`
+}
+
+// OptionalClaims specifying the claims to be included in the token.
+type OptionalClaims struct {
+	// IDToken - Optional claims requested to be included in the id token.
+	IDToken *[]OptionalClaim `json:"idToken,omitempty"`
+	// AccessToken - Optional claims requested to be included in the access token.
+	AccessToken *[]OptionalClaim `json:"accessToken,omitempty"`
+	// SamlToken - Optional claims requested to be included in the saml token.
+	SamlToken *[]OptionalClaim `json:"samlToken,omitempty"`
 }
 
 // PasswordCredential active Directory Password Credential information.
@@ -2571,25 +2880,29 @@ func (pp *PasswordProfile) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Permissions ...
-type Permissions struct {
-	autorest.Response `json:"-"`
-	// OdataType - Microsoft.DirectoryServices.OAuth2PermissionGrant
-	OdataType *string `json:"odata.type,omitempty"`
-	// ClientID - The objectId of the Service Principal associated with the app
-	ClientID *string `json:"clientId,omitempty"`
-	// ConsentType - Typically set to AllPrincipals
-	ConsentType *string `json:"consentType,omitempty"`
-	// PrincipalID - Set to null if AllPrincipals is set
-	PrincipalID interface{} `json:"principalId,omitempty"`
-	// ResourceID - Service Principal Id of the resource you want to grant
-	ResourceID *string `json:"resourceId,omitempty"`
-	// Scope - Typically set to user_impersonation
-	Scope *string `json:"scope,omitempty"`
-	// StartTime - Start time for TTL
-	StartTime *string `json:"startTime,omitempty"`
-	// ExpiryTime - Expiry time for TTL
-	ExpiryTime *string `json:"expiryTime,omitempty"`
+// PreAuthorizedApplication contains information about pre authorized client application.
+type PreAuthorizedApplication struct {
+	// AppID - Represents the application id.
+	AppID *string `json:"appId,omitempty"`
+	// Permissions - Collection of required app permissions/entitlements from the resource application.
+	Permissions *[]PreAuthorizedApplicationPermission `json:"permissions,omitempty"`
+	// Extensions - Collection of extensions from the resource application.
+	Extensions *[]PreAuthorizedApplicationExtension `json:"extensions,omitempty"`
+}
+
+// PreAuthorizedApplicationExtension representation of an app PreAuthorizedApplicationExtension required by
+// a pre authorized client app.
+type PreAuthorizedApplicationExtension struct {
+	// Conditions - The extension's conditions.
+	Conditions *[]string `json:"conditions,omitempty"`
+}
+
+// PreAuthorizedApplicationPermission contains information about the pre-authorized permissions.
+type PreAuthorizedApplicationPermission struct {
+	// DirectAccessGrant - Indicates whether the permission set is DirectAccess or impersonation.
+	DirectAccessGrant *bool `json:"directAccessGrant,omitempty"`
+	// AccessGrants - The list of permissions.
+	AccessGrants *[]string `json:"accessGrants,omitempty"`
 }
 
 // RequiredResourceAccess specifies the set of OAuth 2.0 permission scopes and app roles under the
@@ -2740,19 +3053,53 @@ func (ra *ResourceAccess) UnmarshalJSON(body []byte) error {
 // ServicePrincipal active Directory service principal information.
 type ServicePrincipal struct {
 	autorest.Response `json:"-"`
-	// DisplayName - The display name of the service principal.
-	DisplayName *string `json:"displayName,omitempty"`
+	// AccountEnabled - whether or not the service principal account is enabled
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
+	// AlternativeNames - alternative names
+	AlternativeNames *[]string `json:"alternativeNames,omitempty"`
+	// AppDisplayName - READ-ONLY; The display name exposed by the associated application.
+	AppDisplayName *string `json:"appDisplayName,omitempty"`
 	// AppID - The application ID.
 	AppID *string `json:"appId,omitempty"`
+	// AppOwnerTenantID - READ-ONLY
+	AppOwnerTenantID *string `json:"appOwnerTenantId,omitempty"`
+	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
+	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
 	// AppRoles - The collection of application roles that an application may declare. These roles can be assigned to users, groups or service principals.
 	AppRoles *[]AppRole `json:"appRoles,omitempty"`
+	// DisplayName - The display name of the service principal.
+	DisplayName *string `json:"displayName,omitempty"`
+	// ErrorURL - A URL provided by the author of the associated application to report errors when using the application.
+	ErrorURL *string `json:"errorUrl,omitempty"`
+	// Homepage - The URL to the homepage of the associated application.
+	Homepage *string `json:"homepage,omitempty"`
+	// KeyCredentials - The collection of key credentials associated with the service principal.
+	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
+	// LogoutURL - A URL provided by the author of the associated application to logout
+	LogoutURL *string `json:"logoutUrl,omitempty"`
+	// Oauth2Permissions - READ-ONLY; The OAuth 2.0 permissions exposed by the associated application.
+	Oauth2Permissions *[]OAuth2Permission `json:"oauth2Permissions,omitempty"`
+	// PasswordCredentials - The collection of password credentials associated with the service principal.
+	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// PreferredTokenSigningKeyThumbprint - The thumbprint of preferred certificate to sign the token
+	PreferredTokenSigningKeyThumbprint *string `json:"preferredTokenSigningKeyThumbprint,omitempty"`
+	// PublisherName - The publisher's name of the associated application
+	PublisherName *string `json:"publisherName,omitempty"`
+	// ReplyUrls - The URLs that user tokens are sent to for sign in with the associated application.  The redirect URIs that the oAuth 2.0 authorization code and access tokens are sent to for the associated application.
+	ReplyUrls *[]string `json:"replyUrls,omitempty"`
+	// SamlMetadataURL - The URL to the SAML metadata of the associated application
+	SamlMetadataURL *string `json:"samlMetadataUrl,omitempty"`
 	// ServicePrincipalNames - A collection of service principal names.
 	ServicePrincipalNames *[]string `json:"servicePrincipalNames,omitempty"`
+	// ServicePrincipalType - the type of the service principal
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	// Tags - Optional list of tags that you can apply to your service principals. Not nullable.
+	Tags *[]string `json:"tags,omitempty"`
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// ObjectID - The object ID.
+	// ObjectID - READ-ONLY; The object ID.
 	ObjectID *string `json:"objectId,omitempty"`
-	// DeletionTimestamp - The time at which the directory object was deleted.
+	// DeletionTimestamp - READ-ONLY; The time at which the directory object was deleted.
 	DeletionTimestamp *date.Time `json:"deletionTimestamp,omitempty"`
 	// ObjectType - Possible values include: 'ObjectTypeDirectoryObject', 'ObjectTypeApplication', 'ObjectTypeGroup', 'ObjectTypeServicePrincipal', 'ObjectTypeUser'
 	ObjectType ObjectType `json:"objectType,omitempty"`
@@ -2762,23 +3109,59 @@ type ServicePrincipal struct {
 func (sp ServicePrincipal) MarshalJSON() ([]byte, error) {
 	sp.ObjectType = ObjectTypeServicePrincipal
 	objectMap := make(map[string]interface{})
-	if sp.DisplayName != nil {
-		objectMap["displayName"] = sp.DisplayName
+	if sp.AccountEnabled != nil {
+		objectMap["accountEnabled"] = sp.AccountEnabled
+	}
+	if sp.AlternativeNames != nil {
+		objectMap["alternativeNames"] = sp.AlternativeNames
 	}
 	if sp.AppID != nil {
 		objectMap["appId"] = sp.AppID
 	}
+	if sp.AppRoleAssignmentRequired != nil {
+		objectMap["appRoleAssignmentRequired"] = sp.AppRoleAssignmentRequired
+	}
 	if sp.AppRoles != nil {
 		objectMap["appRoles"] = sp.AppRoles
+	}
+	if sp.DisplayName != nil {
+		objectMap["displayName"] = sp.DisplayName
+	}
+	if sp.ErrorURL != nil {
+		objectMap["errorUrl"] = sp.ErrorURL
+	}
+	if sp.Homepage != nil {
+		objectMap["homepage"] = sp.Homepage
+	}
+	if sp.KeyCredentials != nil {
+		objectMap["keyCredentials"] = sp.KeyCredentials
+	}
+	if sp.LogoutURL != nil {
+		objectMap["logoutUrl"] = sp.LogoutURL
+	}
+	if sp.PasswordCredentials != nil {
+		objectMap["passwordCredentials"] = sp.PasswordCredentials
+	}
+	if sp.PreferredTokenSigningKeyThumbprint != nil {
+		objectMap["preferredTokenSigningKeyThumbprint"] = sp.PreferredTokenSigningKeyThumbprint
+	}
+	if sp.PublisherName != nil {
+		objectMap["publisherName"] = sp.PublisherName
+	}
+	if sp.ReplyUrls != nil {
+		objectMap["replyUrls"] = sp.ReplyUrls
+	}
+	if sp.SamlMetadataURL != nil {
+		objectMap["samlMetadataUrl"] = sp.SamlMetadataURL
 	}
 	if sp.ServicePrincipalNames != nil {
 		objectMap["servicePrincipalNames"] = sp.ServicePrincipalNames
 	}
-	if sp.ObjectID != nil {
-		objectMap["objectId"] = sp.ObjectID
+	if sp.ServicePrincipalType != nil {
+		objectMap["servicePrincipalType"] = sp.ServicePrincipalType
 	}
-	if sp.DeletionTimestamp != nil {
-		objectMap["deletionTimestamp"] = sp.DeletionTimestamp
+	if sp.Tags != nil {
+		objectMap["tags"] = sp.Tags
 	}
 	if sp.ObjectType != "" {
 		objectMap["objectType"] = sp.ObjectType
@@ -2828,14 +3211,32 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
-		case "displayName":
+		case "accountEnabled":
 			if v != nil {
-				var displayName string
-				err = json.Unmarshal(*v, &displayName)
+				var accountEnabled bool
+				err = json.Unmarshal(*v, &accountEnabled)
 				if err != nil {
 					return err
 				}
-				sp.DisplayName = &displayName
+				sp.AccountEnabled = &accountEnabled
+			}
+		case "alternativeNames":
+			if v != nil {
+				var alternativeNames []string
+				err = json.Unmarshal(*v, &alternativeNames)
+				if err != nil {
+					return err
+				}
+				sp.AlternativeNames = &alternativeNames
+			}
+		case "appDisplayName":
+			if v != nil {
+				var appDisplayName string
+				err = json.Unmarshal(*v, &appDisplayName)
+				if err != nil {
+					return err
+				}
+				sp.AppDisplayName = &appDisplayName
 			}
 		case "appId":
 			if v != nil {
@@ -2846,6 +3247,24 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 				}
 				sp.AppID = &appID
 			}
+		case "appOwnerTenantId":
+			if v != nil {
+				var appOwnerTenantID string
+				err = json.Unmarshal(*v, &appOwnerTenantID)
+				if err != nil {
+					return err
+				}
+				sp.AppOwnerTenantID = &appOwnerTenantID
+			}
+		case "appRoleAssignmentRequired":
+			if v != nil {
+				var appRoleAssignmentRequired bool
+				err = json.Unmarshal(*v, &appRoleAssignmentRequired)
+				if err != nil {
+					return err
+				}
+				sp.AppRoleAssignmentRequired = &appRoleAssignmentRequired
+			}
 		case "appRoles":
 			if v != nil {
 				var appRoles []AppRole
@@ -2855,6 +3274,105 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 				}
 				sp.AppRoles = &appRoles
 			}
+		case "displayName":
+			if v != nil {
+				var displayName string
+				err = json.Unmarshal(*v, &displayName)
+				if err != nil {
+					return err
+				}
+				sp.DisplayName = &displayName
+			}
+		case "errorUrl":
+			if v != nil {
+				var errorURL string
+				err = json.Unmarshal(*v, &errorURL)
+				if err != nil {
+					return err
+				}
+				sp.ErrorURL = &errorURL
+			}
+		case "homepage":
+			if v != nil {
+				var homepage string
+				err = json.Unmarshal(*v, &homepage)
+				if err != nil {
+					return err
+				}
+				sp.Homepage = &homepage
+			}
+		case "keyCredentials":
+			if v != nil {
+				var keyCredentials []KeyCredential
+				err = json.Unmarshal(*v, &keyCredentials)
+				if err != nil {
+					return err
+				}
+				sp.KeyCredentials = &keyCredentials
+			}
+		case "logoutUrl":
+			if v != nil {
+				var logoutURL string
+				err = json.Unmarshal(*v, &logoutURL)
+				if err != nil {
+					return err
+				}
+				sp.LogoutURL = &logoutURL
+			}
+		case "oauth2Permissions":
+			if v != nil {
+				var oauth2Permissions []OAuth2Permission
+				err = json.Unmarshal(*v, &oauth2Permissions)
+				if err != nil {
+					return err
+				}
+				sp.Oauth2Permissions = &oauth2Permissions
+			}
+		case "passwordCredentials":
+			if v != nil {
+				var passwordCredentials []PasswordCredential
+				err = json.Unmarshal(*v, &passwordCredentials)
+				if err != nil {
+					return err
+				}
+				sp.PasswordCredentials = &passwordCredentials
+			}
+		case "preferredTokenSigningKeyThumbprint":
+			if v != nil {
+				var preferredTokenSigningKeyThumbprint string
+				err = json.Unmarshal(*v, &preferredTokenSigningKeyThumbprint)
+				if err != nil {
+					return err
+				}
+				sp.PreferredTokenSigningKeyThumbprint = &preferredTokenSigningKeyThumbprint
+			}
+		case "publisherName":
+			if v != nil {
+				var publisherName string
+				err = json.Unmarshal(*v, &publisherName)
+				if err != nil {
+					return err
+				}
+				sp.PublisherName = &publisherName
+			}
+		case "replyUrls":
+			if v != nil {
+				var replyUrls []string
+				err = json.Unmarshal(*v, &replyUrls)
+				if err != nil {
+					return err
+				}
+				sp.ReplyUrls = &replyUrls
+			}
+		case "samlMetadataUrl":
+			if v != nil {
+				var samlMetadataURL string
+				err = json.Unmarshal(*v, &samlMetadataURL)
+				if err != nil {
+					return err
+				}
+				sp.SamlMetadataURL = &samlMetadataURL
+			}
 		case "servicePrincipalNames":
 			if v != nil {
 				var servicePrincipalNames []string
@@ -2863,6 +3381,24 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sp.ServicePrincipalNames = &servicePrincipalNames
+			}
+		case "servicePrincipalType":
+			if v != nil {
+				var servicePrincipalType string
+				err = json.Unmarshal(*v, &servicePrincipalType)
+				if err != nil {
+					return err
+				}
+				sp.ServicePrincipalType = &servicePrincipalType
+			}
+		case "tags":
+			if v != nil {
+				var tags []string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				sp.Tags = &tags
 			}
 		default:
 			if v != nil {
@@ -2909,225 +3445,39 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ServicePrincipalCreateParameters request parameters for creating a new service principal.
-type ServicePrincipalCreateParameters struct {
-	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
-	AdditionalProperties map[string]interface{} `json:""`
-	// AccountEnabled - Whether the account is enabled
+// ServicePrincipalBase active Directory service principal common properties shared among GET, POST and
+// PATCH
+type ServicePrincipalBase struct {
+	// AccountEnabled - whether or not the service principal account is enabled
 	AccountEnabled *bool `json:"accountEnabled,omitempty"`
-	// AppID - application Id
-	AppID *string `json:"appId,omitempty"`
 	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
 	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
-	// DisplayName - The display name for the service principal.
-	DisplayName *string `json:"displayName,omitempty"`
-	ErrorURL    *string `json:"errorUrl,omitempty"`
-	// Homepage - The URL to the homepage of the associated application.
-	Homepage *string `json:"homepage,omitempty"`
-	// KeyCredentials - A collection of KeyCredential objects.
+	// KeyCredentials - The collection of key credentials associated with the service principal.
 	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
-	// PasswordCredentials - A collection of PasswordCredential objects
+	// PasswordCredentials - The collection of password credentials associated with the service principal.
 	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
-	// PublisherName - The display name of the tenant in which the associated application is specified.
-	PublisherName *string `json:"publisherName,omitempty"`
-	// ReplyUrls - A collection of reply URLs for the service principal.
-	ReplyUrls       *[]string `json:"replyUrls,omitempty"`
-	SamlMetadataURL *string   `json:"samlMetadataUrl,omitempty"`
-	// ServicePrincipalNames - A collection of service principal names.
-	ServicePrincipalNames *[]string `json:"servicePrincipalNames,omitempty"`
-	Tags                  *[]string `json:"tags,omitempty"`
+	// ServicePrincipalType - the type of the service principal
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	// Tags - Optional list of tags that you can apply to your service principals. Not nullable.
+	Tags *[]string `json:"tags,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ServicePrincipalCreateParameters.
-func (spcp ServicePrincipalCreateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if spcp.AccountEnabled != nil {
-		objectMap["accountEnabled"] = spcp.AccountEnabled
-	}
-	if spcp.AppID != nil {
-		objectMap["appId"] = spcp.AppID
-	}
-	if spcp.AppRoleAssignmentRequired != nil {
-		objectMap["appRoleAssignmentRequired"] = spcp.AppRoleAssignmentRequired
-	}
-	if spcp.DisplayName != nil {
-		objectMap["displayName"] = spcp.DisplayName
-	}
-	if spcp.ErrorURL != nil {
-		objectMap["errorUrl"] = spcp.ErrorURL
-	}
-	if spcp.Homepage != nil {
-		objectMap["homepage"] = spcp.Homepage
-	}
-	if spcp.KeyCredentials != nil {
-		objectMap["keyCredentials"] = spcp.KeyCredentials
-	}
-	if spcp.PasswordCredentials != nil {
-		objectMap["passwordCredentials"] = spcp.PasswordCredentials
-	}
-	if spcp.PublisherName != nil {
-		objectMap["publisherName"] = spcp.PublisherName
-	}
-	if spcp.ReplyUrls != nil {
-		objectMap["replyUrls"] = spcp.ReplyUrls
-	}
-	if spcp.SamlMetadataURL != nil {
-		objectMap["samlMetadataUrl"] = spcp.SamlMetadataURL
-	}
-	if spcp.ServicePrincipalNames != nil {
-		objectMap["servicePrincipalNames"] = spcp.ServicePrincipalNames
-	}
-	if spcp.Tags != nil {
-		objectMap["tags"] = spcp.Tags
-	}
-	for k, v := range spcp.AdditionalProperties {
-		objectMap[k] = v
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ServicePrincipalCreateParameters struct.
-func (spcp *ServicePrincipalCreateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		default:
-			if v != nil {
-				var additionalProperties interface{}
-				err = json.Unmarshal(*v, &additionalProperties)
-				if err != nil {
-					return err
-				}
-				if spcp.AdditionalProperties == nil {
-					spcp.AdditionalProperties = make(map[string]interface{})
-				}
-				spcp.AdditionalProperties[k] = additionalProperties
-			}
-		case "accountEnabled":
-			if v != nil {
-				var accountEnabled bool
-				err = json.Unmarshal(*v, &accountEnabled)
-				if err != nil {
-					return err
-				}
-				spcp.AccountEnabled = &accountEnabled
-			}
-		case "appId":
-			if v != nil {
-				var appID string
-				err = json.Unmarshal(*v, &appID)
-				if err != nil {
-					return err
-				}
-				spcp.AppID = &appID
-			}
-		case "appRoleAssignmentRequired":
-			if v != nil {
-				var appRoleAssignmentRequired bool
-				err = json.Unmarshal(*v, &appRoleAssignmentRequired)
-				if err != nil {
-					return err
-				}
-				spcp.AppRoleAssignmentRequired = &appRoleAssignmentRequired
-			}
-		case "displayName":
-			if v != nil {
-				var displayName string
-				err = json.Unmarshal(*v, &displayName)
-				if err != nil {
-					return err
-				}
-				spcp.DisplayName = &displayName
-			}
-		case "errorUrl":
-			if v != nil {
-				var errorURL string
-				err = json.Unmarshal(*v, &errorURL)
-				if err != nil {
-					return err
-				}
-				spcp.ErrorURL = &errorURL
-			}
-		case "homepage":
-			if v != nil {
-				var homepage string
-				err = json.Unmarshal(*v, &homepage)
-				if err != nil {
-					return err
-				}
-				spcp.Homepage = &homepage
-			}
-		case "keyCredentials":
-			if v != nil {
-				var keyCredentials []KeyCredential
-				err = json.Unmarshal(*v, &keyCredentials)
-				if err != nil {
-					return err
-				}
-				spcp.KeyCredentials = &keyCredentials
-			}
-		case "passwordCredentials":
-			if v != nil {
-				var passwordCredentials []PasswordCredential
-				err = json.Unmarshal(*v, &passwordCredentials)
-				if err != nil {
-					return err
-				}
-				spcp.PasswordCredentials = &passwordCredentials
-			}
-		case "publisherName":
-			if v != nil {
-				var publisherName string
-				err = json.Unmarshal(*v, &publisherName)
-				if err != nil {
-					return err
-				}
-				spcp.PublisherName = &publisherName
-			}
-		case "replyUrls":
-			if v != nil {
-				var replyUrls []string
-				err = json.Unmarshal(*v, &replyUrls)
-				if err != nil {
-					return err
-				}
-				spcp.ReplyUrls = &replyUrls
-			}
-		case "samlMetadataUrl":
-			if v != nil {
-				var samlMetadataURL string
-				err = json.Unmarshal(*v, &samlMetadataURL)
-				if err != nil {
-					return err
-				}
-				spcp.SamlMetadataURL = &samlMetadataURL
-			}
-		case "servicePrincipalNames":
-			if v != nil {
-				var servicePrincipalNames []string
-				err = json.Unmarshal(*v, &servicePrincipalNames)
-				if err != nil {
-					return err
-				}
-				spcp.ServicePrincipalNames = &servicePrincipalNames
-			}
-		case "tags":
-			if v != nil {
-				var tags []string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				spcp.Tags = &tags
-			}
-		}
-	}
-
-	return nil
+// ServicePrincipalCreateParameters request parameters for creating a new service principal.
+type ServicePrincipalCreateParameters struct {
+	// AppID - The application ID.
+	AppID *string `json:"appId,omitempty"`
+	// AccountEnabled - whether or not the service principal account is enabled
+	AccountEnabled *bool `json:"accountEnabled,omitempty"`
+	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
+	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
+	// KeyCredentials - The collection of key credentials associated with the service principal.
+	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
+	// PasswordCredentials - The collection of password credentials associated with the service principal.
+	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
+	// ServicePrincipalType - the type of the service principal
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	// Tags - Optional list of tags that you can apply to your service principals. Not nullable.
+	Tags *[]string `json:"tags,omitempty"`
 }
 
 // ServicePrincipalListResult server response for get tenant service principals API call.
@@ -3264,225 +3614,29 @@ func NewServicePrincipalListResultPage(getNextPage func(context.Context, Service
 	return ServicePrincipalListResultPage{fn: getNextPage}
 }
 
-// ServicePrincipalUpdateParameters request parameters for creating a new service principal.
+// ServicePrincipalObjectResult service Principal Object Result.
+type ServicePrincipalObjectResult struct {
+	autorest.Response `json:"-"`
+	// Value - The Object ID of the service principal with the specified application ID.
+	Value *string `json:"value,omitempty"`
+	// OdataMetadata - The URL representing edm equivalent.
+	OdataMetadata *string `json:"odata.metadata,omitempty"`
+}
+
+// ServicePrincipalUpdateParameters request parameters for update an existing service principal.
 type ServicePrincipalUpdateParameters struct {
-	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
-	AdditionalProperties map[string]interface{} `json:""`
-	// AccountEnabled - Whether the account is enabled
+	// AccountEnabled - whether or not the service principal account is enabled
 	AccountEnabled *bool `json:"accountEnabled,omitempty"`
-	// AppID - application Id
-	AppID *string `json:"appId,omitempty"`
 	// AppRoleAssignmentRequired - Specifies whether an AppRoleAssignment to a user or group is required before Azure AD will issue a user or access token to the application.
 	AppRoleAssignmentRequired *bool `json:"appRoleAssignmentRequired,omitempty"`
-	// DisplayName - The display name for the service principal.
-	DisplayName *string `json:"displayName,omitempty"`
-	ErrorURL    *string `json:"errorUrl,omitempty"`
-	// Homepage - The URL to the homepage of the associated application.
-	Homepage *string `json:"homepage,omitempty"`
-	// KeyCredentials - A collection of KeyCredential objects.
+	// KeyCredentials - The collection of key credentials associated with the service principal.
 	KeyCredentials *[]KeyCredential `json:"keyCredentials,omitempty"`
-	// PasswordCredentials - A collection of PasswordCredential objects
+	// PasswordCredentials - The collection of password credentials associated with the service principal.
 	PasswordCredentials *[]PasswordCredential `json:"passwordCredentials,omitempty"`
-	// PublisherName - The display name of the tenant in which the associated application is specified.
-	PublisherName *string `json:"publisherName,omitempty"`
-	// ReplyUrls - A collection of reply URLs for the service principal.
-	ReplyUrls       *[]string `json:"replyUrls,omitempty"`
-	SamlMetadataURL *string   `json:"samlMetadataUrl,omitempty"`
-	// ServicePrincipalNames - A collection of service principal names.
-	ServicePrincipalNames *[]string `json:"servicePrincipalNames,omitempty"`
-	Tags                  *[]string `json:"tags,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ServicePrincipalUpdateParameters.
-func (spup ServicePrincipalUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if spup.AccountEnabled != nil {
-		objectMap["accountEnabled"] = spup.AccountEnabled
-	}
-	if spup.AppID != nil {
-		objectMap["appId"] = spup.AppID
-	}
-	if spup.AppRoleAssignmentRequired != nil {
-		objectMap["appRoleAssignmentRequired"] = spup.AppRoleAssignmentRequired
-	}
-	if spup.DisplayName != nil {
-		objectMap["displayName"] = spup.DisplayName
-	}
-	if spup.ErrorURL != nil {
-		objectMap["errorUrl"] = spup.ErrorURL
-	}
-	if spup.Homepage != nil {
-		objectMap["homepage"] = spup.Homepage
-	}
-	if spup.KeyCredentials != nil {
-		objectMap["keyCredentials"] = spup.KeyCredentials
-	}
-	if spup.PasswordCredentials != nil {
-		objectMap["passwordCredentials"] = spup.PasswordCredentials
-	}
-	if spup.PublisherName != nil {
-		objectMap["publisherName"] = spup.PublisherName
-	}
-	if spup.ReplyUrls != nil {
-		objectMap["replyUrls"] = spup.ReplyUrls
-	}
-	if spup.SamlMetadataURL != nil {
-		objectMap["samlMetadataUrl"] = spup.SamlMetadataURL
-	}
-	if spup.ServicePrincipalNames != nil {
-		objectMap["servicePrincipalNames"] = spup.ServicePrincipalNames
-	}
-	if spup.Tags != nil {
-		objectMap["tags"] = spup.Tags
-	}
-	for k, v := range spup.AdditionalProperties {
-		objectMap[k] = v
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ServicePrincipalUpdateParameters struct.
-func (spup *ServicePrincipalUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		default:
-			if v != nil {
-				var additionalProperties interface{}
-				err = json.Unmarshal(*v, &additionalProperties)
-				if err != nil {
-					return err
-				}
-				if spup.AdditionalProperties == nil {
-					spup.AdditionalProperties = make(map[string]interface{})
-				}
-				spup.AdditionalProperties[k] = additionalProperties
-			}
-		case "accountEnabled":
-			if v != nil {
-				var accountEnabled bool
-				err = json.Unmarshal(*v, &accountEnabled)
-				if err != nil {
-					return err
-				}
-				spup.AccountEnabled = &accountEnabled
-			}
-		case "appId":
-			if v != nil {
-				var appID string
-				err = json.Unmarshal(*v, &appID)
-				if err != nil {
-					return err
-				}
-				spup.AppID = &appID
-			}
-		case "appRoleAssignmentRequired":
-			if v != nil {
-				var appRoleAssignmentRequired bool
-				err = json.Unmarshal(*v, &appRoleAssignmentRequired)
-				if err != nil {
-					return err
-				}
-				spup.AppRoleAssignmentRequired = &appRoleAssignmentRequired
-			}
-		case "displayName":
-			if v != nil {
-				var displayName string
-				err = json.Unmarshal(*v, &displayName)
-				if err != nil {
-					return err
-				}
-				spup.DisplayName = &displayName
-			}
-		case "errorUrl":
-			if v != nil {
-				var errorURL string
-				err = json.Unmarshal(*v, &errorURL)
-				if err != nil {
-					return err
-				}
-				spup.ErrorURL = &errorURL
-			}
-		case "homepage":
-			if v != nil {
-				var homepage string
-				err = json.Unmarshal(*v, &homepage)
-				if err != nil {
-					return err
-				}
-				spup.Homepage = &homepage
-			}
-		case "keyCredentials":
-			if v != nil {
-				var keyCredentials []KeyCredential
-				err = json.Unmarshal(*v, &keyCredentials)
-				if err != nil {
-					return err
-				}
-				spup.KeyCredentials = &keyCredentials
-			}
-		case "passwordCredentials":
-			if v != nil {
-				var passwordCredentials []PasswordCredential
-				err = json.Unmarshal(*v, &passwordCredentials)
-				if err != nil {
-					return err
-				}
-				spup.PasswordCredentials = &passwordCredentials
-			}
-		case "publisherName":
-			if v != nil {
-				var publisherName string
-				err = json.Unmarshal(*v, &publisherName)
-				if err != nil {
-					return err
-				}
-				spup.PublisherName = &publisherName
-			}
-		case "replyUrls":
-			if v != nil {
-				var replyUrls []string
-				err = json.Unmarshal(*v, &replyUrls)
-				if err != nil {
-					return err
-				}
-				spup.ReplyUrls = &replyUrls
-			}
-		case "samlMetadataUrl":
-			if v != nil {
-				var samlMetadataURL string
-				err = json.Unmarshal(*v, &samlMetadataURL)
-				if err != nil {
-					return err
-				}
-				spup.SamlMetadataURL = &samlMetadataURL
-			}
-		case "servicePrincipalNames":
-			if v != nil {
-				var servicePrincipalNames []string
-				err = json.Unmarshal(*v, &servicePrincipalNames)
-				if err != nil {
-					return err
-				}
-				spup.ServicePrincipalNames = &servicePrincipalNames
-			}
-		case "tags":
-			if v != nil {
-				var tags []string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				spup.Tags = &tags
-			}
-		}
-	}
-
-	return nil
+	// ServicePrincipalType - the type of the service principal
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	// Tags - Optional list of tags that you can apply to your service principals. Not nullable.
+	Tags *[]string `json:"tags,omitempty"`
 }
 
 // SignInName contains information about a sign-in name of a local account user in an Azure Active
@@ -3583,9 +3737,9 @@ type User struct {
 	SignInNames *[]SignInName `json:"signInNames,omitempty"`
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// ObjectID - The object ID.
+	// ObjectID - READ-ONLY; The object ID.
 	ObjectID *string `json:"objectId,omitempty"`
-	// DeletionTimestamp - The time at which the directory object was deleted.
+	// DeletionTimestamp - READ-ONLY; The time at which the directory object was deleted.
 	DeletionTimestamp *date.Time `json:"deletionTimestamp,omitempty"`
 	// ObjectType - Possible values include: 'ObjectTypeDirectoryObject', 'ObjectTypeApplication', 'ObjectTypeGroup', 'ObjectTypeServicePrincipal', 'ObjectTypeUser'
 	ObjectType ObjectType `json:"objectType,omitempty"`
@@ -3627,12 +3781,6 @@ func (u User) MarshalJSON() ([]byte, error) {
 	}
 	if u.SignInNames != nil {
 		objectMap["signInNames"] = u.SignInNames
-	}
-	if u.ObjectID != nil {
-		objectMap["objectId"] = u.ObjectID
-	}
-	if u.DeletionTimestamp != nil {
-		objectMap["deletionTimestamp"] = u.DeletionTimestamp
 	}
 	if u.ObjectType != "" {
 		objectMap["objectType"] = u.ObjectType
