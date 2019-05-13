@@ -30,9 +30,9 @@ data "azurerm_client_config" "current" {}
 
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" {
-  name                = "example"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  name                 = "example"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  data_factory_name    = "${azurerm_data_factory.test.name}"
   service_principal_id  = "${data.azurerm_client_config.current.client_id}"
   service_principal_key = "exampleKey"
   tenant                = "11111111-1111-1111-1111-111111111111"
