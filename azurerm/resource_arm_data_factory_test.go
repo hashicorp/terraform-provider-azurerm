@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactory_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -38,7 +37,7 @@ func TestAccAzureRMDataFactory_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_tags(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_tags(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -65,7 +64,7 @@ func TestAccAzureRMDataFactory_tags(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMDataFactory_tagsUpdated(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
@@ -102,7 +101,7 @@ func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_identity(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_identity(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -131,7 +130,7 @@ func TestAccAzureRMDataFactory_identity(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -153,7 +152,7 @@ func TestAccAzureRMDataFactory_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_github(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_github(ri, testLocation())
 	config2 := testAccAzureRMDataFactory_githubUpdated(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -117,7 +117,7 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -154,7 +154,7 @@ func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T
 func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 	// TODO: once `azurerm_api_management_schema` is supported add `request.0.representation.0.schema_id`
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
