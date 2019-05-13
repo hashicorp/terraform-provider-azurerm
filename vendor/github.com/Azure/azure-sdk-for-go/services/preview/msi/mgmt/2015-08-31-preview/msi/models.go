@@ -64,9 +64,9 @@ type CloudErrorBody struct {
 // Identity describes an identity resource.
 type Identity struct {
 	autorest.Response `json:"-"`
-	// ID - The id of the created identity.
+	// ID - READ-ONLY; The id of the created identity.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the created identity.
+	// Name - READ-ONLY; The name of the created identity.
 	Name *string `json:"name,omitempty"`
 	// Location - The Azure region where the identity lives.
 	Location *string `json:"location,omitempty"`
@@ -74,19 +74,13 @@ type Identity struct {
 	Tags map[string]*string `json:"tags"`
 	// IdentityProperties - The properties associated with the identity.
 	*IdentityProperties `json:"properties,omitempty"`
-	// Type - The type of resource i.e. Microsoft.ManagedIdentity/userAssignedIdentities. Possible values include: 'MicrosoftManagedIdentityuserAssignedIdentities'
+	// Type - READ-ONLY; The type of resource i.e. Microsoft.ManagedIdentity/userAssignedIdentities. Possible values include: 'MicrosoftManagedIdentityuserAssignedIdentities'
 	Type UserAssignedIdentities `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Identity.
 func (i Identity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if i.ID != nil {
-		objectMap["id"] = i.ID
-	}
-	if i.Name != nil {
-		objectMap["name"] = i.Name
-	}
 	if i.Location != nil {
 		objectMap["location"] = i.Location
 	}
@@ -95,9 +89,6 @@ func (i Identity) MarshalJSON() ([]byte, error) {
 	}
 	if i.IdentityProperties != nil {
 		objectMap["properties"] = i.IdentityProperties
-	}
-	if i.Type != "" {
-		objectMap["type"] = i.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -173,13 +164,13 @@ func (i *Identity) UnmarshalJSON(body []byte) error {
 
 // IdentityProperties the properties associated with the identity.
 type IdentityProperties struct {
-	// TenantID - The id of the tenant which the identity belongs to.
+	// TenantID - READ-ONLY; The id of the tenant which the identity belongs to.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
-	// PrincipalID - The id of the service principal object associated with the created identity.
+	// PrincipalID - READ-ONLY; The id of the service principal object associated with the created identity.
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
-	// ClientID - The id of the app associated with the identity. This is a random generated UUID by MSI.
+	// ClientID - READ-ONLY; The id of the app associated with the identity. This is a random generated UUID by MSI.
 	ClientID *uuid.UUID `json:"clientId,omitempty"`
-	// ClientSecretURL -  The ManagedServiceIdentity DataPlane URL that can be queried to obtain the identity credentials.
+	// ClientSecretURL - READ-ONLY;  The ManagedServiceIdentity DataPlane URL that can be queried to obtain the identity credentials.
 	ClientSecretURL *string `json:"clientSecretUrl,omitempty"`
 }
 
