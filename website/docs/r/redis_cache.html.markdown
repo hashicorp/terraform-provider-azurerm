@@ -80,7 +80,7 @@ The following arguments are supported:
 
 A `redis_configuration` block supports the following:
 
-* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
+* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Only supported if launched within a subnet.
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
@@ -116,7 +116,6 @@ redis_configuration {
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
-| enable_authentication           | true         | true         | true         |
 | maxmemory_reserved              | 2            | 50           | 200          |
 | maxfragmentationmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta                 | 2            | 50           | 200          |

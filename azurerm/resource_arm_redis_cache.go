@@ -189,7 +189,6 @@ func resourceArmRedisCache() *schema.Resource {
 						"enable_authentication": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
 						},
 					},
 				},
@@ -283,6 +282,11 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
+	redisConfiguration, err := expandRedisConfiguration(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
+	}
+
 	parameters := redis.CreateParameters{
 		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
@@ -293,7 +297,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Name:     sku,
 			},
 			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
-			RedisConfiguration: expandRedisConfiguration(d),
+			RedisConfiguration: redisConfiguration,
 		},
 		Tags: expandedTags,
 	}
@@ -405,7 +409,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("redis_configuration") {
-		redisConfiguration := expandRedisConfiguration(d)
+		redisConfiguration, err := expandRedisConfiguration(d)
+		if err != nil {
+			return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
+		}
 		parameters.RedisConfiguration = redisConfiguration
 	}
 
@@ -600,7 +607,7 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 	}
 }
 
-func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
+func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error) {
 	output := make(map[string]*string)
 
 	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
@@ -665,13 +672,16 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
-	// Redis Auth
-	if v, ok := d.GetOk("redis_configuration.0.enable_authentication"); ok {
-		value := isAuthNotRequiredAsString(v.(bool))
-		output["authnotrequired"] = utils.String(value)
+	// Redis authentication can only be disabled if it is launched inside a VNET.
+	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
+		if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
+			return nil, fmt.Errorf("Cannot set `enable_authentication` when `subnet_id` is not set")
+		} else {
+			value := isAuthNotRequiredAsString(v.(bool))
+			output["authnotrequired"] = utils.String(value)
+		}
 	}
-
-	return output
+	return output, nil
 }
 
 func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
