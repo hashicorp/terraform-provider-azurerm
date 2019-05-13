@@ -21,10 +21,12 @@ import (
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetCreateUpdate,
-		Read:   resourceArmVirtualMachineScaleSetRead,
-		Update: resourceArmVirtualMachineScaleSetCreateUpdate,
-		Delete: resourceArmVirtualMachineScaleSetDelete,
+		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Read:          resourceArmVirtualMachineScaleSetRead,
+		Update:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Delete:        resourceArmVirtualMachineScaleSetDelete,
+		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
+		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -712,6 +714,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"auto_upgrade_minor_version": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+
+						"provision_after_extensions": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
 						},
 
 						"settings": {
@@ -1464,6 +1476,14 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
 
+			provisionAfterExtensions := make([]interface{}, 0)
+			if properties.ProvisionAfterExtensions != nil {
+				for _, provisionAfterExtension := range *properties.ProvisionAfterExtensions {
+					provisionAfterExtensions = append(provisionAfterExtensions, provisionAfterExtension)
+				}
+			}
+			e["provision_after_extensions"] = schema.NewSet(schema.HashString, provisionAfterExtensions)
+
 			if settings := properties.Settings; settings != nil {
 				settingsVal := settings.(map[string]interface{})
 				settingsJson, err := structure.FlattenJsonToString(settingsVal)
@@ -1565,6 +1585,10 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		if v, ok := m["provision_after_extensions"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -2149,6 +2173,18 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		if u := config["auto_upgrade_minor_version"]; u != nil {
 			upgrade := u.(bool)
 			extension.VirtualMachineScaleSetExtensionProperties.AutoUpgradeMinorVersion = &upgrade
+		}
+
+		if a := config["provision_after_extensions"]; a != nil {
+			provision_after_extensions := config["provision_after_extensions"].(*schema.Set).List()
+			if len(provision_after_extensions) > 0 {
+				var provisionAfterExtensions []string
+				for _, a := range provision_after_extensions {
+					str := a.(string)
+					provisionAfterExtensions = append(provisionAfterExtensions, str)
+				}
+				extension.VirtualMachineScaleSetExtensionProperties.ProvisionAfterExtensions = &provisionAfterExtensions
+			}
 		}
 
 		if s := config["settings"].(string); s != "" {

@@ -171,6 +171,7 @@ func (client ServersClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"api-version": APIVersion,
 	}
 
+	parameters.Kind = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

@@ -99,6 +99,7 @@ func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdatePreparer(ctx c
 		"api-version": APIVersion,
 	}
 
+	parameters.Location = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

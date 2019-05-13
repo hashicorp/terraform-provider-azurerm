@@ -103,7 +103,7 @@ type CreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *CreateOrUpdateFuture) Result(client Client) (rt ResourceType, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -171,7 +171,7 @@ type DeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DeleteFuture) Result(client Client) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.DeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -431,15 +431,15 @@ type OperationProperties struct {
 // Properties a class that describes the properties of the SignalR service that should contain more
 // read-only properties than AzSignalR.Models.SignalRCreateOrUpdateProperties
 type Properties struct {
-	// ProvisioningState - Provisioning state of the resource. Possible values include: 'Unknown', 'Succeeded', 'Failed', 'Canceled', 'Running', 'Creating', 'Updating', 'Deleting', 'Moving'
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource. Possible values include: 'Unknown', 'Succeeded', 'Failed', 'Canceled', 'Running', 'Creating', 'Updating', 'Deleting', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// ExternalIP - The publicly accessible IP of the SignalR service.
+	// ExternalIP - READ-ONLY; The publicly accessible IP of the SignalR service.
 	ExternalIP *string `json:"externalIP,omitempty"`
-	// HostName - FQDN of the SignalR service instance. Format: xxx.service.signalr.net
+	// HostName - READ-ONLY; FQDN of the SignalR service instance. Format: xxx.service.signalr.net
 	HostName *string `json:"hostName,omitempty"`
-	// PublicPort - The publicly accessibly port of the SignalR service which is designed for browser/client side usage.
+	// PublicPort - READ-ONLY; The publicly accessibly port of the SignalR service which is designed for browser/client side usage.
 	PublicPort *int32 `json:"publicPort,omitempty"`
-	// ServerPort - The publicly accessibly port of the SignalR service which is designed for customer server side usage.
+	// ServerPort - READ-ONLY; The publicly accessibly port of the SignalR service which is designed for customer server side usage.
 	ServerPort *int32 `json:"serverPort,omitempty"`
 	// Version - Version of the SignalR resource. Probably you need the same or higher version of client SDKs.
 	Version *string `json:"version,omitempty"`
@@ -458,7 +458,7 @@ type RegenerateKeyFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegenerateKeyFuture) Result(client Client) (kVar Keys, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.RegenerateKeyFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -485,11 +485,11 @@ type RegenerateKeyParameters struct {
 
 // Resource the core properties of ARM resources.
 type Resource struct {
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the service - e.g. "Microsoft.SignalRService/SignalR"
+	// Type - READ-ONLY; The type of the service - e.g. "Microsoft.SignalRService/SignalR"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -666,11 +666,11 @@ type ResourceType struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the service which is a list of key value pairs that describe the resource.
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the service - e.g. "Microsoft.SignalRService/SignalR"
+	// Type - READ-ONLY; The type of the service - e.g. "Microsoft.SignalRService/SignalR"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -688,15 +688,6 @@ func (rt ResourceType) MarshalJSON() ([]byte, error) {
 	}
 	if rt.Tags != nil {
 		objectMap["tags"] = rt.Tags
-	}
-	if rt.ID != nil {
-		objectMap["id"] = rt.ID
-	}
-	if rt.Name != nil {
-		objectMap["name"] = rt.Name
-	}
-	if rt.Type != nil {
-		objectMap["type"] = rt.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -791,11 +782,11 @@ type TrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the service which is a list of key value pairs that describe the resource.
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the service - e.g. "Microsoft.SignalRService/SignalR"
+	// Type - READ-ONLY; The type of the service - e.g. "Microsoft.SignalRService/SignalR"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -807,15 +798,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -829,7 +811,7 @@ type UpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *UpdateFuture) Result(client Client) (rt ResourceType, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.UpdateFuture", "Result", future.Response(), "Polling failure")
 		return
