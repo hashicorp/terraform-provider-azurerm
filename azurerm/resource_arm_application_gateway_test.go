@@ -3219,12 +3219,12 @@ resource "azurerm_application_gateway" "test" {
 
       condition {
         variable = "var_http_status"
-	pattern = "502"
+        pattern = "502"
       }
 
       request_header_configuration {
-	header_name = "X-custom"
-	header_value = "customvalue"
+        header_name = "X-custom"
+        header_value = "customvalue"
       }
     }
   }
@@ -3334,12 +3334,12 @@ resource "azurerm_application_gateway" "test" {
 
       condition {
         variable = "var_http_status"
-	pattern = "502"
+        pattern = "502"
       }
 
       request_header_configuration {
-	header_name = "X-custom"
-	header_value = "customvalue"
+        header_name = "X-custom"
+        header_value = "customvalue"
       }
     }
   }

@@ -778,8 +778,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"rule_sequence": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 1000),
 									},
 
 									"condition": {
@@ -2541,46 +2542,84 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 			if rulesConfig := props.RewriteRules; rulesConfig != nil {
 				rules := make([]interface{}, 0)
 				for _, rule := range *rulesConfig {
-					if rule.Name != nil {
 
-						conditions := make([]interface{}, 0)
+					ruleOutput := map[string]interface{}{}
+
+					if rule.Name != nil {
+						ruleOutput["name"] = *rule.Name
+					}
+
+					if rule.RuleSequence != nil {
+						ruleOutput["rule_sequence"] = *rule.RuleSequence
+					}
+
+					conditions := make([]interface{}, 0)
+					if rule.Conditions != nil {
 						for _, config := range *rule.Conditions {
-							condition := map[string]interface{}{
-								"variable":    *config.Variable,
-								"pattern":     *config.Pattern,
-								"ignore_case": *config.IgnoreCase,
-								"negate":      *config.Negate,
+							condition := map[string]interface{}{}
+
+							if config.Variable != nil {
+								condition["variable"] = *config.Variable
 							}
+
+							if config.Pattern != nil {
+								condition["pattern"] = *config.Pattern
+							}
+
+							if config.IgnoreCase != nil {
+								condition["ignore_case"] = *config.IgnoreCase
+							}
+
+							if config.Negate != nil {
+								condition["negate"] = *config.Negate
+							}
+
 							conditions = append(conditions, condition)
 						}
-
-						requestConfigs := make([]interface{}, 0)
-						for _, config := range *rule.ActionSet.RequestHeaderConfigurations {
-							requestConfig := map[string]interface{}{
-								"header_name":  *config.HeaderName,
-								"header_value": *config.HeaderValue,
-							}
-							requestConfigs = append(requestConfigs, requestConfig)
-						}
-
-						responseConfigs := make([]interface{}, 0)
-						for _, config := range *rule.ActionSet.ResponseHeaderConfigurations {
-							responseConfig := map[string]interface{}{
-								"header_name":  *config.HeaderName,
-								"header_value": *config.HeaderValue,
-							}
-							responseConfigs = append(responseConfigs, responseConfig)
-						}
-
-						ruleOutput := map[string]interface{}{
-							"name":                          *rule.Name,
-							"rule_sequence":                 *rule.RuleSequence,
-							"condition":                     conditions,
-							"request_header_configuration":  requestConfigs,
-							"response_header_configuration": responseConfigs,
-						}
-						rules = append(rules, ruleOutput)
 					}
+					ruleOutput["condition"] = conditions
+
+					requestConfigs := make([]interface{}, 0)
+					responseConfigs := make([]interface{}, 0)
+					if rule.ActionSet != nil {
+						actionSet := *rule.ActionSet
+
+						if actionSet.RequestHeaderConfigurations != nil {
+							for _, config := range *actionSet.RequestHeaderConfigurations {
+								requestConfig := map[string]interface{}{}
+
+								if config.HeaderName != nil {
+									requestConfig["header_name"] = *config.HeaderName
+								}
+
+								if config.HeaderValue != nil {
+									requestConfig["header_value"] = *config.HeaderValue
+								}
+
+								requestConfigs = append(requestConfigs, requestConfig)
+							}
+						}
+
+						if actionSet.ResponseHeaderConfigurations != nil {
+							for _, config := range *actionSet.ResponseHeaderConfigurations {
+								responseConfig := map[string]interface{}{}
+
+								if config.HeaderName != nil {
+									responseConfig["header_name"] = *config.HeaderName
+								}
+
+								if config.HeaderValue != nil {
+									responseConfig["header_value"] = *config.HeaderValue
+								}
+
+								responseConfigs = append(responseConfigs, responseConfig)
+							}
+						}
+					}
+					ruleOutput["request_header_configuration"] = requestConfigs
+					ruleOutput["response_header_configuration"] = responseConfigs
+
+					rules = append(rules, ruleOutput)
 				}
 				output["rewrite_rule"] = rules
 			}
