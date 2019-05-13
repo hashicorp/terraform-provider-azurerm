@@ -238,7 +238,7 @@ resource "azurerm_network_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  container_network_interface_configuration {
+  container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {
@@ -260,11 +260,11 @@ resource "azurerm_network_profile" "import" {
   location            = "${azurerm_network_profile.test.location}"
   resource_group_name = "${azurerm_network_profile.test.resource_group_name}"
 
-  container_network_interface_configuration {
-    name = "${azurerm_network_profile.test.container_network_interface_configuration.0.name}"
+  container_network_interface {
+    name = "${azurerm_network_profile.test.container_network_interface.0.name}"
 
     ip_configuration {
-      name      = "${azurerm_network_profile.test.container_network_interface_configuration.0.ip_configuration.0.name}"
+      name      = "${azurerm_network_profile.test.container_network_interface.0.ip_configuration.0.name}"
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -307,7 +307,7 @@ resource "azurerm_network_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  container_network_interface_configuration {
+  container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {
@@ -359,7 +359,7 @@ resource "azurerm_network_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  container_network_interface_configuration {
+  container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {

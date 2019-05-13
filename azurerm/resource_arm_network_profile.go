@@ -36,7 +36,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"container_network_interface_configuration": {
+			"container_network_interface": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -107,12 +107,12 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	cniConfigs, err := expandArmContainerNetworkInterfaceConfigurations(d)
+	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
 	if err != nil {
 		return fmt.Errorf("Error building list of Container Network Interface Configurations: %+v", err)
 	}
 
-	subnetsToLock, vnetsToLock, err := extractVnetAndSubnetNames(d)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -181,12 +181,12 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props := profile.ProfilePropertiesFormat; props != nil {
-		cniConfigs := flattenArmContainerNetworkInterfaceConfigurations(props.ContainerNetworkInterfaceConfigurations)
-		if err := d.Set("container_network_interface_configuration", cniConfigs); err != nil {
-			return fmt.Errorf("Error setting `container_network_interface_configuration`: %+v", err)
+		cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
+		if err := d.Set("container_network_interface", cniConfigs); err != nil {
+			return fmt.Errorf("Error setting `container_network_interface`: %+v", err)
 		}
 
-		cniIDs := flattenArmContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
+		cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
 		if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
 			return fmt.Errorf("Error setting `container_network_interface_ids`: %+v", err)
 		}
@@ -219,7 +219,7 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	subnetsToLock, vnetsToLock, err := extractVnetAndSubnetNames(d)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -240,8 +240,8 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func expandArmContainerNetworkInterfaceConfigurations(d *schema.ResourceData) (*[]network.ContainerNetworkInterfaceConfiguration, error) {
-	cniConfigs := d.Get("container_network_interface_configuration").([]interface{})
+func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) (*[]network.ContainerNetworkInterfaceConfiguration, error) {
+	cniConfigs := d.Get("container_network_interface").([]interface{})
 	retCNIConfigs := make([]network.ContainerNetworkInterfaceConfiguration, 0)
 
 	for _, cniConfig := range cniConfigs {
@@ -280,8 +280,8 @@ func expandArmContainerNetworkInterfaceConfigurations(d *schema.ResourceData) (*
 	return &retCNIConfigs, nil
 }
 
-func extractVnetAndSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {
-	cniConfigs := d.Get("container_network_interface_configuration").([]interface{})
+func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {
+	cniConfigs := d.Get("container_network_interface").([]interface{})
 	subnetNames := make([]string, 0)
 	vnetNames := make([]string, 0)
 
@@ -314,7 +314,7 @@ func extractVnetAndSubnetNames(d *schema.ResourceData) (*[]string, *[]string, er
 	return &subnetNames, &vnetNames, nil
 }
 
-func flattenArmContainerNetworkInterfaceConfigurations(input *[]network.ContainerNetworkInterfaceConfiguration) []interface{} {
+func flattenNetworkProfileContainerNetworkInterface(input *[]network.ContainerNetworkInterfaceConfiguration) []interface{} {
 	retCNIConfigs := make([]interface{}, 0)
 	if input == nil {
 		return retCNIConfigs
@@ -353,7 +353,7 @@ func flattenArmContainerNetworkInterfaceConfigurations(input *[]network.Containe
 	return retCNIConfigs
 }
 
-func flattenArmContainerNetworkInterfaceIDs(input *[]network.ContainerNetworkInterface) []string {
+func flattenNetworkProfileContainerNetworkInterfaceIDs(input *[]network.ContainerNetworkInterface) []string {
 	retCNIs := make([]string, 0)
 	if input == nil {
 		return retCNIs
