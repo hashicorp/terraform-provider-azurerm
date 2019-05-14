@@ -25,6 +25,8 @@ IMPROVEMENTS:
 * Data Source `azurerm_kubernetes_cluster` - exposing the `type` field within the `agent_pool_profile ` block [GH-3424]
 * `azurerm_application_gateway` - support for the `autoscale_configuration` property [GH-3353]
 * `azurerm_application_gateway` added validation to ensure `redirect_configuration_name` must not be set if either `backend_address_pool_name` or `backend_http_settings_name` is set [GH-3340]
+* `azurerm_application_gateway` - support for `affinity_cookie_name` [GH-3434]
+* `azurerm_application_gateway` - support for `disabled_rule_groups` [GH-3394]
 * `azurerm_batch_pool` support for the `container_configuration` property [GH-3311]
 * `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property [GH-3262]
 * `azurerm_kubernetes_cluster` - support for setting `type` within the `agent_pool_profile` block (Agent Pools via Virtual Machine Scale Sets) [GH-3424]
