@@ -302,6 +302,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"gateway_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 2,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -1094,7 +1095,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	backendHTTPSettingsCollection := expandApplicationGatewayBackendHTTPSettings(d, gatewayID)
 	frontendIPConfigurations := expandApplicationGatewayFrontendIPConfigurations(d)
 	frontendPorts := expandApplicationGatewayFrontendPorts(d)
-	gatewayIPConfigurations := expandApplicationGatewayIPConfigurations(d)
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 	httpListeners := expandApplicationGatewayHTTPListeners(d, gatewayID)
 	probes := expandApplicationGatewayProbes(d)
 	sku := expandApplicationGatewaySku(d)
@@ -1175,6 +1176,17 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
+	if stopApplicationGateway {
+		future, err := client.Stop(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error Stopping Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to stop: %+v", name, resGroup, err)
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
@@ -1182,6 +1194,17 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the create/update of Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Start(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error Starting Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to start: %+v", name, resGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -1839,9 +1862,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 	return results, nil
 }
 
-func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
+func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]network.ApplicationGatewayIPConfiguration, bool) {
 	vs := d.Get("gateway_ip_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayIPConfiguration, 0)
+	stopApplicationGateway := false
 
 	for _, configRaw := range vs {
 		data := configRaw.(map[string]interface{})
@@ -1860,7 +1884,35 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network
 		results = append(results, output)
 	}
 
-	return &results
+	if d.HasChange("gateway_ip_configuration") {
+		oldRaw, newRaw := d.GetChange("gateway_ip_configuration")
+		oldVS := oldRaw.([]interface{})
+		newVS := newRaw.([]interface{})
+
+		// If we're creating the applicaiton gateway return the current gateway ip configuration.
+		if len(oldVS) == 0 {
+			return &results, stopApplicationGateway
+		}
+
+		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
+		if len(oldVS) != len(newVS) {
+			stopApplicationGateway = true
+		}
+
+		for i, configRaw := range newVS {
+			newData := configRaw.(map[string]interface{})
+			oldData := oldVS[i].(map[string]interface{})
+
+			newSubnetID := newData["subnet_id"].(string)
+			oldSubnetID := oldData["subnet_id"].(string)
+			// The application gateway needs to be shutdown if the subnet ids don't match
+			if newSubnetID != oldSubnetID {
+				stopApplicationGateway = true
+			}
+		}
+	}
+
+	return &results, stopApplicationGateway
 }
 
 func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatewayIPConfiguration) []interface{} {
