@@ -48,6 +48,7 @@ BUG FIXES:
 * `azurerm_app_service_plan` - supports `elastic` for the sku tier [GH-3402]
 * `azurerm_application_gateway` - supports `disabled_rule_group` for waf configurations [GH-3394]
 * `azurerm_application_gateway` - supports `exclusion` for waf configurations [GH-3407]
+* `azurerm_application_gateway` - supports updating a `gateway_ip_configuration.x.subnet_id` [GH-3437]
 
 ## 1.27.1 (April 26, 2019)
 
