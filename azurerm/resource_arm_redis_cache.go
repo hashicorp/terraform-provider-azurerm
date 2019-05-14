@@ -674,13 +674,13 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 	}
 
 	// Redis authentication can only be disabled if it is launched inside a VNET.
-	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
-		if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
+	if authEnabled, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
+		if _, isPrivate := d.GetOk("subnet_id"); !isPrivate && !authEnabled {
 			return nil, fmt.Errorf("Cannot set `enable_authentication` when `subnet_id` is not set")
-		} else {
-			value := isAuthNotRequiredAsString(v.(bool))
-			output["authnotrequired"] = utils.String(value)
 		}
+		
+		value := isAuthNotRequiredAsString(authEnabled.(bool))
+		output["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }
