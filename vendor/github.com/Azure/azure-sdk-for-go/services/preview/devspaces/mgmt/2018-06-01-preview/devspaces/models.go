@@ -88,7 +88,7 @@ func PossibleSkuTierValues() []SkuTier {
 type ContainerHostMapping struct {
 	// ContainerHostResourceID - ARM ID of the Container Host resource
 	ContainerHostResourceID *string `json:"containerHostResourceId,omitempty"`
-	// MappedControllerResourceID - ARM ID of the mapped Controller resource
+	// MappedControllerResourceID - READ-ONLY; ARM ID of the mapped Controller resource
 	MappedControllerResourceID *string `json:"mappedControllerResourceId,omitempty"`
 }
 
@@ -101,11 +101,11 @@ type Controller struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - Region where the Azure resource is located.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -123,15 +123,6 @@ func (c Controller) MarshalJSON() ([]byte, error) {
 	}
 	if c.Location != nil {
 		objectMap["location"] = c.Location
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -216,11 +207,11 @@ func (c *Controller) UnmarshalJSON(body []byte) error {
 
 // ControllerConnectionDetails ...
 type ControllerConnectionDetails struct {
-	// AuthKey - Authentication key for communicating with services.
+	// AuthKey - READ-ONLY; Authentication key for communicating with services.
 	AuthKey *string `json:"authKey,omitempty"`
-	// WorkspaceStorageAccountName - Workspace storage account name.
+	// WorkspaceStorageAccountName - READ-ONLY; Workspace storage account name.
 	WorkspaceStorageAccountName *string `json:"workspaceStorageAccountName,omitempty"`
-	// WorkspaceStorageSasToken - Workspace storage account SAS token.
+	// WorkspaceStorageSasToken - READ-ONLY; Workspace storage account SAS token.
 	WorkspaceStorageSasToken              *string                                    `json:"workspaceStorageSasToken,omitempty"`
 	OrchestratorSpecificConnectionDetails BasicOrchestratorSpecificConnectionDetails `json:"orchestratorSpecificConnectionDetails,omitempty"`
 }
@@ -287,7 +278,7 @@ type ControllerList struct {
 	autorest.Response `json:"-"`
 	// Value - List of Azure Dev Spaces Controllers.
 	Value *[]Controller `json:"value,omitempty"`
-	// NextLink - The URI that can be used to request the next page for list of Azure Dev Spaces Controllers.
+	// NextLink - READ-ONLY; The URI that can be used to request the next page for list of Azure Dev Spaces Controllers.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -430,11 +421,11 @@ func NewControllerListPage(getNextPage func(context.Context, ControllerList) (Co
 
 // ControllerProperties ...
 type ControllerProperties struct {
-	// ProvisioningState - Provisioning state of the Azure Dev Spaces Controller. Possible values include: 'Succeeded', 'Failed', 'Canceled', 'Updating', 'Creating', 'Deleting', 'Deleted'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Azure Dev Spaces Controller. Possible values include: 'Succeeded', 'Failed', 'Canceled', 'Updating', 'Creating', 'Deleting', 'Deleted'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// HostSuffix - DNS suffix for public endpoints running in the Azure Dev Spaces Controller.
 	HostSuffix *string `json:"hostSuffix,omitempty"`
-	// DataPlaneFqdn - DNS name for accessing DataPlane services
+	// DataPlaneFqdn - READ-ONLY; DNS name for accessing DataPlane services
 	DataPlaneFqdn *string `json:"dataPlaneFqdn,omitempty"`
 	// TargetContainerHostResourceID - Resource ID of the target container host
 	TargetContainerHostResourceID *string `json:"targetContainerHostResourceId,omitempty"`
@@ -452,7 +443,7 @@ type ControllersCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ControllersCreateFuture) Result(client ControllersClient) (c Controller, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -481,7 +472,7 @@ type ControllersDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ControllersDeleteFuture) Result(client ControllersClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -511,11 +502,11 @@ func (cup ControllerUpdateParameters) MarshalJSON() ([]byte, error) {
 
 // ErrorDetails ...
 type ErrorDetails struct {
-	// Code - Status code for the error.
+	// Code - READ-ONLY; Status code for the error.
 	Code *string `json:"code,omitempty"`
-	// Message - Error message describing the error in detail.
+	// Message - READ-ONLY; Error message describing the error in detail.
 	Message *string `json:"message,omitempty"`
-	// Target - The target of the particular error.
+	// Target - READ-ONLY; The target of the particular error.
 	Target *string `json:"target,omitempty"`
 }
 
@@ -640,11 +631,11 @@ func (oscd OrchestratorSpecificConnectionDetails) AsBasicOrchestratorSpecificCon
 
 // Resource an Azure resource.
 type Resource struct {
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -672,7 +663,7 @@ type ResourceProviderOperationList struct {
 	autorest.Response `json:"-"`
 	// Value - Resource provider operations list.
 	Value *[]ResourceProviderOperationDefinition `json:"value,omitempty"`
-	// NextLink - The URI that can be used to request the next page for list of Azure operations.
+	// NextLink - READ-ONLY; The URI that can be used to request the next page for list of Azure operations.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -834,11 +825,11 @@ type TrackedResource struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - Region where the Azure resource is located.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -850,15 +841,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Location != nil {
 		objectMap["location"] = tr.Location
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }

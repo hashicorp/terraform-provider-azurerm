@@ -438,6 +438,83 @@ func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (r
 	return
 }
 
+// Restart restarts a server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+func (client ServersClient) Restart(ctx context.Context, resourceGroupName string, serverName string) (result ServersRestartFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Restart")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RestartPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Restart", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestartSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Restart", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestartPreparer prepares the Restart request.
+func (client ServersClient) RestartPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2017-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforPostgreSQL/servers/{serverName}/restart", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestartSender sends the Restart request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) RestartSender(req *http.Request) (future ServersRestartFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestartResponder handles the response to the Restart request. The method always
+// closes the http.Response Body.
+func (client ServersClient) RestartResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update updates an existing server. The request body can contain one to many of the properties present in the normal
 // server definition.
 // Parameters:

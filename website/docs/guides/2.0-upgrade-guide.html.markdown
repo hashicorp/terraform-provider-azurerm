@@ -189,7 +189,7 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
-### Resource: `azurerm_connection_monitor
+### Resource: `azurerm_connection_monitor`
 
 The `azurerm_connection_monitor` resource will be deprecated in favour of a new resources `azurerm_network_connection_monitor`.
 
@@ -197,7 +197,7 @@ The `azurerm_connection_monitor` resource will be deprecated in favour of a new 
 
 The deprecated `port` and `protocol` fields in the `container`  block will be removed. These fields have been moved into the `ports` block within the `ports` field.
 
-The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the container` block.
+The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the `container` block.
 
 ### Resource: `azurerm_container_registry`
 
@@ -211,7 +211,7 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
-### Resource: `azurerm_ddos_protection_plan
+### Resource: `azurerm_ddos_protection_plan`
 
 The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
 
@@ -295,7 +295,7 @@ The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` bl
 
 The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
 
-### Resource: `azurerm_packet_capture
+### Resource: `azurerm_packet_capture`
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
 

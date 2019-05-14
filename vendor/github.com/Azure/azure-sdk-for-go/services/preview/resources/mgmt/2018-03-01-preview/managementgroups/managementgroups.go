@@ -84,6 +84,8 @@ func (client Client) CreateOrUpdatePreparer(ctx context.Context, groupID string,
 		"api-version": APIVersion,
 	}
 
+	createManagementGroupRequest.ID = nil
+	createManagementGroupRequest.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

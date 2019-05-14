@@ -804,6 +804,9 @@ func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resource
 		"api-version": APIVersion,
 	}
 
+	resource.ID = nil
+	resource.Name = nil
+	resource.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

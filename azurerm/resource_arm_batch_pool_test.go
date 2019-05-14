@@ -296,6 +296,27 @@ func TestAccAzureRMBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchPool_container(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPoolContainerConfiguration(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.type", "DockerCompatible"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -918,4 +939,50 @@ resource "azurerm_batch_pool" "test" {
 }
 
 `, rInt, location, rString, rString)
+}
+
+func testaccAzureRMBatchPoolContainerConfiguration(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testregistry%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "Basic"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
+    version   = "latest"
+  }
+
+  container_configuration {
+    type = "DockerCompatible"
+  }
+}
+
+`, rInt, location, rString, rString, rString)
 }
