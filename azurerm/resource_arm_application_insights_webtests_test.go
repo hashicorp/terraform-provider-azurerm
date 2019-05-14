@@ -133,22 +133,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name		= "acctestappinsights-%d"
-  location	    = "${azurerm_resource_group.test.location}"
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_webtest" "test" {
-  name		    = "acctestappinsightswebtests-%d"
-  location		= "${azurerm_resource_group.test.location}"
+  name                    = "acctestappinsightswebtests-%d"
+  location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
-  kind		    = "Ping"
-  frequency	       = 300
-  timeout		 = 120
-  enabled		 = true
-  geo_locations	   = ["us-tx-sn1-azr"]
+  kind                    = "Ping"
+  frequency               = 300
+  timeout                 = 120
+  enabled                 = true
+  geo_locations           = ["us-tx-sn1-azr"]
 
   test_configuration = "${file("testdata/application_insights_webtest_test.xml")}"
 }
@@ -161,7 +161,7 @@ func testAccAzureRMApplicationInsightsWebTests_requiresImport(rInt int, location
 %s
 
 resource "azurerm_application_insights_webtest" "import" {
-  name		    = "${azurerm_application_insights_webtest.test.name}"
+  name                    = "${azurerm_application_insights_webtest.test.name}"
   application_insights_id = "${azurerm_application_insights_webtest.test.application_insights_id}"
 }
 `, template)
