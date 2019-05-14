@@ -328,8 +328,8 @@ func flattenNetworkProfileContainerNetworkInterface(input *[]network.ContainerNe
 			retCNIConfig["name"] = *cniConfig.Name
 		}
 
+		retIPConfigs := make([]interface{}, 0)
 		if cniProps := cniConfig.ContainerNetworkInterfaceConfigurationPropertiesFormat; cniProps != nil && cniProps.IPConfigurations != nil {
-			retIPConfigs := make([]interface{}, 0)
 			for _, ipConfig := range *cniProps.IPConfigurations {
 				retIPConfig := make(map[string]interface{})
 
@@ -343,9 +343,8 @@ func flattenNetworkProfileContainerNetworkInterface(input *[]network.ContainerNe
 
 				retIPConfigs = append(retIPConfigs, retIPConfig)
 			}
-
-			retCNIConfig["ip_configuration"] = retIPConfigs
 		}
+		retCNIConfig["ip_configuration"] = retIPConfigs
 
 		retCNIConfigs = append(retCNIConfigs, retCNIConfig)
 	}

@@ -81,6 +81,7 @@ A `container_network_interface_configuration` block supports the following:
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as documented below.
 
 ---
+
 A `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
