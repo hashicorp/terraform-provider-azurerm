@@ -1151,7 +1151,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 				continue
 			}
 
-			if *props.HostName != "" && *props.PickHostNameFromBackendAddress{
+			if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
 				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
 			}
 		}
