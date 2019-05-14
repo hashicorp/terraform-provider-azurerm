@@ -28,6 +28,7 @@ import (
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
@@ -248,6 +249,9 @@ type ArmClient struct {
 
 	// Databricks
 	databricksWorkspacesClient databricks.WorkspacesClient
+
+	// Frontdoor
+	frontdoorClient               frontdoor.FrontDoorsClient 
 
 	// HDInsight
 	hdinsightApplicationsClient   hdinsight.ApplicationsClient
@@ -508,6 +512,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
+	client.registerFrontdoorInstanceClients(endpoint, c.SubscriptionID, auth)
 	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
@@ -1029,6 +1034,12 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ehnc.Client, auth)
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerFrontdoorInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	fdc := frontdoor.NewFrontDoorsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&fdc.Client, auth)
+	c.frontdoorClient = fdc
 }
 
 func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
