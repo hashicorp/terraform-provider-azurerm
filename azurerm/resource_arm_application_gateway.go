@@ -1889,7 +1889,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 		oldVS := oldRaw.([]interface{})
 		newVS := newRaw.([]interface{})
 
-		// If we're creating the applicaiton gateway return the current gateway ip configuration.
+		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
 			return &results, stopApplicationGateway
 		}
