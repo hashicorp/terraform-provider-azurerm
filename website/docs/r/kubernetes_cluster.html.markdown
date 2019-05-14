@@ -111,15 +111,15 @@ A `agent_pool_profile` block supports the following:
 
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
-* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
-
-~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. You can enable this feature using the Azure CLI by running `az feature show --namespace Microsoft.ContainerService --name VMSSPreview`
-
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent.
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
+
+* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
+
+~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. You can enable this feature using the Azure CLI by running `az feature show --namespace Microsoft.ContainerService --name VMSSPreview`
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
