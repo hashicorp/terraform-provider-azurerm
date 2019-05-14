@@ -148,6 +148,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"affinity_cookie_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"host_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -1527,6 +1533,11 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
 		}
 
+		affinityCookieName := v["affinity_cookie_name"].(string)
+		if affinityCookieName != "" {
+			setting.AffinityCookieName = utils.String(affinityCookieName)
+		}
+
 		if v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]network.SubResource, 0)
@@ -1578,6 +1589,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+
+			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
+				output["affinity_cookie_name"] = affinityCookieName
+			}
 
 			if path := props.Path; path != nil {
 				output["path"] = *path
