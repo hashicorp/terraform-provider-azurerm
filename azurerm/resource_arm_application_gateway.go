@@ -1146,28 +1146,30 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
-		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
-		if backendHttpSettingsProperties.HostName != nil {
-			hostName := *backendHttpSettingsProperties.HostName
-			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
+				continue
+			}
 
-			if hostName != "" && pick {
+			if *props.HostName != "" && *props.PickHostNameFromBackendAddress{
 				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
 			}
 		}
 	}
 
 	for _, probe := range *probes {
-		probeProperties := *probe.ApplicationGatewayProbePropertiesFormat
-		host := *probeProperties.Host
-		pick := *probeProperties.PickHostNameFromBackendHTTPSettings
+		if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
+			if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
+				continue
+			}
 
-		if host == "" && !pick {
-			return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
-		}
+			if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
+				return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+			}
 
-		if host != "" && pick {
-			return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+			if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
+				return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+			}
 		}
 	}
 
