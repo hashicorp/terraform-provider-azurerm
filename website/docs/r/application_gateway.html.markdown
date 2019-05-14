@@ -201,6 +201,8 @@ A `backend_http_settings` block supports the following:
 
 * `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
 
+* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
+
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
 
 * `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
