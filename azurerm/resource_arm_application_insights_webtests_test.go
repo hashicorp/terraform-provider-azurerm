@@ -80,8 +80,6 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 			return err
 		}
 		resGroup := id.ResourceGroup
-		//appInsightsName := id.Path["components"]
-		//webTestName := id.Path["webtests"]
 
 		resp, err := conn.Get(ctx, resGroup, name)
 
@@ -111,9 +109,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 			return err
 		}
 		resGroup := id.ResourceGroup
-		//appInsightsName := id.Path["components"]
-		//webTestName := id.Path["webtests"]
-
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
