@@ -316,7 +316,7 @@ resource "azurerm_network_profile" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -368,7 +368,7 @@ resource "azurerm_network_profile" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "Staging"
   }
 }
