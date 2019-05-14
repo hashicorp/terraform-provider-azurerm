@@ -82,7 +82,7 @@ A `redis_configuration` block supports the following:
 
 * `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication.
 
--> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only one Redis Cache per Subnet may have authentication disabled
+-> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
