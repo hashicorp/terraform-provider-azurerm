@@ -29,9 +29,10 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -46,14 +47,13 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 			"location": locationSchema(),
 
 			"kind": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"ping",
-					"multistep",
-				}, true),
+					string(insights.Multistep),
+					string(insights.Ping),
+				}, false),
 			},
 
 			"frequency": {
@@ -191,7 +191,6 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
-
 	if err != nil {
 		return fmt.Errorf("Error creating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
 	}
