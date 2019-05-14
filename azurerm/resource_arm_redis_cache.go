@@ -190,6 +190,7 @@ func resourceArmRedisCache() *schema.Resource {
 						"enable_authentication": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 					},
 				},
@@ -673,15 +674,19 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
-	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
 		authEnabled := v.(bool)
-		if _, isPrivate := d.GetOk("subnet_id"); !isPrivate && !authEnabled {
-			return nil, fmt.Errorf("Cannot set `enable_authentication` when `subnet_id` is not set")
+		_, isPrivate := d.GetOk("subnet_id")
+
+		// Redis authentication can only be disabled if it is launched inside a VNET.
+		if !isPrivate {
+			if !authEnabled {
+				return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
+			}
+		} else {
+			value := isAuthNotRequiredAsString(authEnabled)
+			output["authnotrequired"] = utils.String(value)
 		}
-		
-		value := isAuthNotRequiredAsString(authEnabled)
-		output["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }
@@ -793,7 +798,8 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		outputs["aof_storage_connection_string_1"] = *v
 	}
 
-	//  Redis Auth
+	// `authnotrequired` is not set for instances launched outside a VNET
+	outputs["enable_authentication"] = true
 	if v := input["authnotrequired"]; v != nil {
 		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
 	}

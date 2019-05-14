@@ -80,7 +80,7 @@ The following arguments are supported:
 
 A `redis_configuration` block supports the following:
 
-* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication.
+* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 
 -> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
 
@@ -118,6 +118,7 @@ redis_configuration {
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
+| enable_authentication           | true         | true         | true         |
 | maxmemory_reserved              | 2            | 50           | 200          |
 | maxfragmentationmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta                 | 2            | 50           | 200          |
