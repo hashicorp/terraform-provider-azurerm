@@ -104,6 +104,9 @@ func (client FavoritesClient) AddPreparer(ctx context.Context, resourceGroupName
 		"api-version": APIVersion,
 	}
 
+	favoriteProperties.FavoriteID = nil
+	favoriteProperties.TimeModified = nil
+	favoriteProperties.UserID = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -480,6 +483,9 @@ func (client FavoritesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		"api-version": APIVersion,
 	}
 
+	favoriteProperties.FavoriteID = nil
+	favoriteProperties.TimeModified = nil
+	favoriteProperties.UserID = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

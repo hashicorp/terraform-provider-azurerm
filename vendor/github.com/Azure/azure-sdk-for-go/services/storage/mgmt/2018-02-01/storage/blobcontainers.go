@@ -116,6 +116,7 @@ func (client BlobContainersClient) ClearLegalHoldPreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
+	legalHold.HasLegalHold = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
@@ -1281,6 +1282,7 @@ func (client BlobContainersClient) SetLegalHoldPreparer(ctx context.Context, res
 		"api-version": APIVersion,
 	}
 
+	legalHold.HasLegalHold = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

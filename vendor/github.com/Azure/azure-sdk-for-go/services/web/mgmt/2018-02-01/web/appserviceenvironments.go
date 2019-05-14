@@ -93,6 +93,8 @@ func (client AppServiceEnvironmentsClient) ChangeVnetPreparer(ctx context.Contex
 		"api-version": APIVersion,
 	}
 
+	vnetInfo.Name = nil
+	vnetInfo.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

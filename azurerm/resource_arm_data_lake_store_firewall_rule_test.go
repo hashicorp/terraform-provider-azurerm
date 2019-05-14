@@ -208,7 +208,7 @@ resource "azurerm_data_lake_store_firewall_rule" "test" {
   start_ip_address    = "%s"
   end_ip_address      = "%s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
+`, rInt, location, strconv.Itoa(rInt)[2:17], startIP, endIP)
 }
 
 func testAccAzureRMDataLakeStoreFirewallRule_requiresImport(rInt int, location, startIP, endIP string) string {

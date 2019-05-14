@@ -336,13 +336,13 @@ type AadConnectivityState1 struct {
 // workspace.
 type AadExternalSecuritySolution struct {
 	Properties *AadSolutionProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
 	Kind KindEnum `json:"kind,omitempty"`
@@ -354,18 +354,6 @@ func (aess AadExternalSecuritySolution) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aess.Properties != nil {
 		objectMap["properties"] = aess.Properties
-	}
-	if aess.ID != nil {
-		objectMap["id"] = aess.ID
-	}
-	if aess.Name != nil {
-		objectMap["name"] = aess.Name
-	}
-	if aess.Type != nil {
-		objectMap["type"] = aess.Type
-	}
-	if aess.Location != nil {
-		objectMap["location"] = aess.Location
 	}
 	if aess.Kind != "" {
 		objectMap["kind"] = aess.Kind
@@ -413,11 +401,11 @@ type AdaptiveNetworkHardening struct {
 	autorest.Response `json:"-"`
 	// AdaptiveNetworkHardeningProperties - Properties of the Adaptive Network Hardening resource
 	*AdaptiveNetworkHardeningProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -426,15 +414,6 @@ func (anh AdaptiveNetworkHardening) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if anh.AdaptiveNetworkHardeningProperties != nil {
 		objectMap["properties"] = anh.AdaptiveNetworkHardeningProperties
-	}
-	if anh.ID != nil {
-		objectMap["id"] = anh.ID
-	}
-	if anh.Name != nil {
-		objectMap["name"] = anh.Name
-	}
-	if anh.Type != nil {
-		objectMap["type"] = anh.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -518,7 +497,7 @@ type AdaptiveNetworkHardeningsEnforceFuture struct {
 // If the operation has not completed it will return an error.
 func (future *AdaptiveNetworkHardeningsEnforceFuture) Result(client AdaptiveNetworkHardeningsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsEnforceFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -688,11 +667,11 @@ type AdvancedThreatProtectionProperties struct {
 type AdvancedThreatProtectionSetting struct {
 	autorest.Response                   `json:"-"`
 	*AdvancedThreatProtectionProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -701,15 +680,6 @@ func (atps AdvancedThreatProtectionSetting) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if atps.AdvancedThreatProtectionProperties != nil {
 		objectMap["properties"] = atps.AdvancedThreatProtectionProperties
-	}
-	if atps.ID != nil {
-		objectMap["id"] = atps.ID
-	}
-	if atps.Name != nil {
-		objectMap["name"] = atps.Name
-	}
-	if atps.Type != nil {
-		objectMap["type"] = atps.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -769,11 +739,11 @@ func (atps *AdvancedThreatProtectionSetting) UnmarshalJSON(body []byte) error {
 type Alert struct {
 	autorest.Response `json:"-"`
 	*AlertProperties  `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -782,15 +752,6 @@ func (a Alert) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.AlertProperties != nil {
 		objectMap["properties"] = a.AlertProperties
-	}
-	if a.ID != nil {
-		objectMap["id"] = a.ID
-	}
-	if a.Name != nil {
-		objectMap["name"] = a.Name
-	}
-	if a.Type != nil {
-		objectMap["type"] = a.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -848,9 +809,9 @@ func (a *Alert) UnmarshalJSON(body []byte) error {
 
 // AlertConfidenceReason factors that increase our confidence that the alert is a true positive
 type AlertConfidenceReason struct {
-	// Type - Type of confidence factor
+	// Type - READ-ONLY; Type of confidence factor
 	Type *string `json:"type,omitempty"`
-	// Reason - description of the confidence reason
+	// Reason - READ-ONLY; description of the confidence reason
 	Reason *string `json:"reason,omitempty"`
 }
 
@@ -858,16 +819,13 @@ type AlertConfidenceReason struct {
 type AlertEntity struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// Type - Type of entity
+	// Type - READ-ONLY; Type of entity
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AlertEntity.
 func (ae AlertEntity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ae.Type != nil {
-		objectMap["type"] = ae.Type
-	}
 	for k, v := range ae.AdditionalProperties {
 		objectMap[k] = v
 	}
@@ -914,7 +872,7 @@ func (ae *AlertEntity) UnmarshalJSON(body []byte) error {
 type AlertList struct {
 	autorest.Response `json:"-"`
 	Value             *[]Alert `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1057,124 +1015,64 @@ func NewAlertListPage(getNextPage func(context.Context, AlertList) (AlertList, e
 
 // AlertProperties describes security alert properties.
 type AlertProperties struct {
-	// State - State of the alert (Active, Dismissed etc.)
+	// State - READ-ONLY; State of the alert (Active, Dismissed etc.)
 	State *string `json:"state,omitempty"`
-	// ReportedTimeUtc - The time the incident was reported to Microsoft.Security in UTC
+	// ReportedTimeUtc - READ-ONLY; The time the incident was reported to Microsoft.Security in UTC
 	ReportedTimeUtc *date.Time `json:"reportedTimeUtc,omitempty"`
-	// VendorName - Name of the vendor that discovered the incident
+	// VendorName - READ-ONLY; Name of the vendor that discovered the incident
 	VendorName *string `json:"vendorName,omitempty"`
-	// AlertName - Name of the alert type
+	// AlertName - READ-ONLY; Name of the alert type
 	AlertName *string `json:"alertName,omitempty"`
-	// AlertDisplayName - Display name of the alert type
+	// AlertDisplayName - READ-ONLY; Display name of the alert type
 	AlertDisplayName *string `json:"alertDisplayName,omitempty"`
-	// DetectedTimeUtc - The time the incident was detected by the vendor
+	// DetectedTimeUtc - READ-ONLY; The time the incident was detected by the vendor
 	DetectedTimeUtc *date.Time `json:"detectedTimeUtc,omitempty"`
-	// Description - Description of the incident and what it means
+	// Description - READ-ONLY; Description of the incident and what it means
 	Description *string `json:"description,omitempty"`
-	// RemediationSteps - Recommended steps to reradiate the incident
+	// RemediationSteps - READ-ONLY; Recommended steps to reradiate the incident
 	RemediationSteps *string `json:"remediationSteps,omitempty"`
-	// ActionTaken - The action that was taken as a response to the alert (Active, Blocked etc.)
+	// ActionTaken - READ-ONLY; The action that was taken as a response to the alert (Active, Blocked etc.)
 	ActionTaken *string `json:"actionTaken,omitempty"`
-	// ReportedSeverity - Estimated severity of this alert. Possible values include: 'Silent', 'Information', 'Low', 'High'
+	// ReportedSeverity - READ-ONLY; Estimated severity of this alert. Possible values include: 'Silent', 'Information', 'Low', 'High'
 	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
-	// CompromisedEntity - The entity that the incident happened on
+	// CompromisedEntity - READ-ONLY; The entity that the incident happened on
 	CompromisedEntity *string `json:"compromisedEntity,omitempty"`
-	// AssociatedResource - Azure resource ID of the associated resource
+	// AssociatedResource - READ-ONLY; Azure resource ID of the associated resource
 	AssociatedResource *string                `json:"associatedResource,omitempty"`
 	ExtendedProperties map[string]interface{} `json:"extendedProperties"`
-	// SystemSource - The type of the alerted resource (Azure, Non-Azure)
+	// SystemSource - READ-ONLY; The type of the alerted resource (Azure, Non-Azure)
 	SystemSource *string `json:"systemSource,omitempty"`
-	// CanBeInvestigated - Whether this alert can be investigated with Azure Security Center
+	// CanBeInvestigated - READ-ONLY; Whether this alert can be investigated with Azure Security Center
 	CanBeInvestigated *bool `json:"canBeInvestigated,omitempty"`
-	// IsIncident - Whether this alert is for incident type or not (otherwise - single alert)
+	// IsIncident - READ-ONLY; Whether this alert is for incident type or not (otherwise - single alert)
 	IsIncident *bool `json:"isIncident,omitempty"`
 	// Entities - objects that are related to this alerts
 	Entities *[]AlertEntity `json:"entities,omitempty"`
-	// ConfidenceScore - level of confidence we have on the alert
+	// ConfidenceScore - READ-ONLY; level of confidence we have on the alert
 	ConfidenceScore *float64 `json:"confidenceScore,omitempty"`
 	// ConfidenceReasons - reasons the alert got the confidenceScore value
 	ConfidenceReasons *[]AlertConfidenceReason `json:"confidenceReasons,omitempty"`
-	// SubscriptionID - Azure subscription ID of the resource that had the security alert or the subscription ID of the workspace that this resource reports to
+	// SubscriptionID - READ-ONLY; Azure subscription ID of the resource that had the security alert or the subscription ID of the workspace that this resource reports to
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
-	// InstanceID - Instance ID of the alert.
+	// InstanceID - READ-ONLY; Instance ID of the alert.
 	InstanceID *string `json:"instanceId,omitempty"`
-	// WorkspaceArmID - Azure resource ID of the workspace that the alert was reported to.
+	// WorkspaceArmID - READ-ONLY; Azure resource ID of the workspace that the alert was reported to.
 	WorkspaceArmID *string `json:"workspaceArmId,omitempty"`
-	// CorrelationKey - Alerts with the same CorrelationKey will be grouped together in Ibiza.
+	// CorrelationKey - READ-ONLY; Alerts with the same CorrelationKey will be grouped together in Ibiza.
 	CorrelationKey *string `json:"correlationKey,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AlertProperties.
 func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ap.State != nil {
-		objectMap["state"] = ap.State
-	}
-	if ap.ReportedTimeUtc != nil {
-		objectMap["reportedTimeUtc"] = ap.ReportedTimeUtc
-	}
-	if ap.VendorName != nil {
-		objectMap["vendorName"] = ap.VendorName
-	}
-	if ap.AlertName != nil {
-		objectMap["alertName"] = ap.AlertName
-	}
-	if ap.AlertDisplayName != nil {
-		objectMap["alertDisplayName"] = ap.AlertDisplayName
-	}
-	if ap.DetectedTimeUtc != nil {
-		objectMap["detectedTimeUtc"] = ap.DetectedTimeUtc
-	}
-	if ap.Description != nil {
-		objectMap["description"] = ap.Description
-	}
-	if ap.RemediationSteps != nil {
-		objectMap["remediationSteps"] = ap.RemediationSteps
-	}
-	if ap.ActionTaken != nil {
-		objectMap["actionTaken"] = ap.ActionTaken
-	}
-	if ap.ReportedSeverity != "" {
-		objectMap["reportedSeverity"] = ap.ReportedSeverity
-	}
-	if ap.CompromisedEntity != nil {
-		objectMap["compromisedEntity"] = ap.CompromisedEntity
-	}
-	if ap.AssociatedResource != nil {
-		objectMap["associatedResource"] = ap.AssociatedResource
-	}
 	if ap.ExtendedProperties != nil {
 		objectMap["extendedProperties"] = ap.ExtendedProperties
-	}
-	if ap.SystemSource != nil {
-		objectMap["systemSource"] = ap.SystemSource
-	}
-	if ap.CanBeInvestigated != nil {
-		objectMap["canBeInvestigated"] = ap.CanBeInvestigated
-	}
-	if ap.IsIncident != nil {
-		objectMap["isIncident"] = ap.IsIncident
 	}
 	if ap.Entities != nil {
 		objectMap["entities"] = ap.Entities
 	}
-	if ap.ConfidenceScore != nil {
-		objectMap["confidenceScore"] = ap.ConfidenceScore
-	}
 	if ap.ConfidenceReasons != nil {
 		objectMap["confidenceReasons"] = ap.ConfidenceReasons
-	}
-	if ap.SubscriptionID != nil {
-		objectMap["subscriptionId"] = ap.SubscriptionID
-	}
-	if ap.InstanceID != nil {
-		objectMap["instanceId"] = ap.InstanceID
-	}
-	if ap.WorkspaceArmID != nil {
-		objectMap["workspaceArmId"] = ap.WorkspaceArmID
-	}
-	if ap.CorrelationKey != nil {
-		objectMap["correlationKey"] = ap.CorrelationKey
 	}
 	return json.Marshal(objectMap)
 }
@@ -1182,8 +1080,9 @@ func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 // AllowedConnectionsList list of all possible traffic between Azure resources
 type AllowedConnectionsList struct {
 	autorest.Response `json:"-"`
-	Value             *[]AllowedConnectionsResource `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// Value - READ-ONLY
+	Value *[]AllowedConnectionsResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1329,35 +1228,21 @@ func NewAllowedConnectionsListPage(getNextPage func(context.Context, AllowedConn
 // resources
 type AllowedConnectionsResource struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
-	Location                              *string `json:"location,omitempty"`
+	// Location - READ-ONLY; Location where the resource is stored
+	Location *string `json:"location,omitempty"`
+	// AllowedConnectionsResourceProperties - READ-ONLY
 	*AllowedConnectionsResourceProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AllowedConnectionsResource.
 func (acr AllowedConnectionsResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if acr.ID != nil {
-		objectMap["id"] = acr.ID
-	}
-	if acr.Name != nil {
-		objectMap["name"] = acr.Name
-	}
-	if acr.Type != nil {
-		objectMap["type"] = acr.Type
-	}
-	if acr.Location != nil {
-		objectMap["location"] = acr.Location
-	}
-	if acr.AllowedConnectionsResourceProperties != nil {
-		objectMap["properties"] = acr.AllowedConnectionsResourceProperties
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1423,9 +1308,9 @@ func (acr *AllowedConnectionsResource) UnmarshalJSON(body []byte) error {
 
 // AllowedConnectionsResourceProperties describes the allowed traffic between Azure resources
 type AllowedConnectionsResourceProperties struct {
-	// CalculatedDateTime - The UTC time on which the allowed connections resource was calculated
+	// CalculatedDateTime - READ-ONLY; The UTC time on which the allowed connections resource was calculated
 	CalculatedDateTime *date.Time `json:"calculatedDateTime,omitempty"`
-	// ConnectableResources - List of connectable resources
+	// ConnectableResources - READ-ONLY; List of connectable resources
 	ConnectableResources *[]ConnectableResource `json:"connectableResources,omitempty"`
 }
 
@@ -1434,11 +1319,11 @@ type AllowedConnectionsResourceProperties struct {
 type AllowlistCustomAlertRule struct {
 	// AllowlistValues - The values to allow. The format of the values depends on the rule type.
 	AllowlistValues *[]string `json:"allowlistValues,omitempty"`
-	// ValueType - The value type of the items in the list. Possible values include: 'IPCidr', 'String'
+	// ValueType - READ-ONLY; The value type of the items in the list. Possible values include: 'IPCidr', 'String'
 	ValueType ValueType `json:"valueType,omitempty"`
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -1450,19 +1335,20 @@ type AllowlistCustomAlertRule struct {
 type AscLocation struct {
 	autorest.Response `json:"-"`
 	Properties        interface{} `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
 // AscLocationList list of locations where ASC saves your data
 type AscLocationList struct {
 	autorest.Response `json:"-"`
-	Value             *[]AscLocation `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// Value - READ-ONLY
+	Value *[]AscLocation `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1606,13 +1492,13 @@ func NewAscLocationListPage(getNextPage func(context.Context, AscLocationList) (
 // AtaExternalSecuritySolution represents an ATA security solution which sends logs to an OMS workspace
 type AtaExternalSecuritySolution struct {
 	Properties *AtaSolutionProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
 	Kind KindEnum `json:"kind,omitempty"`
@@ -1624,18 +1510,6 @@ func (aess AtaExternalSecuritySolution) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aess.Properties != nil {
 		objectMap["properties"] = aess.Properties
-	}
-	if aess.ID != nil {
-		objectMap["id"] = aess.ID
-	}
-	if aess.Name != nil {
-		objectMap["name"] = aess.Name
-	}
-	if aess.Type != nil {
-		objectMap["type"] = aess.Type
-	}
-	if aess.Location != nil {
-		objectMap["location"] = aess.Location
 	}
 	if aess.Kind != "" {
 		objectMap["kind"] = aess.Kind
@@ -1767,11 +1641,11 @@ type AutoProvisioningSetting struct {
 	autorest.Response `json:"-"`
 	// AutoProvisioningSettingProperties - Auto provisioning setting data
 	*AutoProvisioningSettingProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1780,15 +1654,6 @@ func (aps AutoProvisioningSetting) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aps.AutoProvisioningSettingProperties != nil {
 		objectMap["properties"] = aps.AutoProvisioningSettingProperties
-	}
-	if aps.ID != nil {
-		objectMap["id"] = aps.ID
-	}
-	if aps.Name != nil {
-		objectMap["name"] = aps.Name
-	}
-	if aps.Type != nil {
-		objectMap["type"] = aps.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1849,7 +1714,7 @@ type AutoProvisioningSettingList struct {
 	autorest.Response `json:"-"`
 	// Value - List of all the auto provisioning settings
 	Value *[]AutoProvisioningSetting `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2000,13 +1865,13 @@ type AutoProvisioningSettingProperties struct {
 // CefExternalSecuritySolution represents a security solution which sends CEF logs to an OMS workspace
 type CefExternalSecuritySolution struct {
 	Properties *CefSolutionProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
 	Kind KindEnum `json:"kind,omitempty"`
@@ -2018,18 +1883,6 @@ func (cess CefExternalSecuritySolution) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if cess.Properties != nil {
 		objectMap["properties"] = cess.Properties
-	}
-	if cess.ID != nil {
-		objectMap["id"] = cess.ID
-	}
-	if cess.Name != nil {
-		objectMap["name"] = cess.Name
-	}
-	if cess.Type != nil {
-		objectMap["type"] = cess.Type
-	}
-	if cess.Location != nil {
-		objectMap["location"] = cess.Location
 	}
 	if cess.Kind != "" {
 		objectMap["kind"] = cess.Kind
@@ -2223,9 +2076,9 @@ func (ce *CloudError) UnmarshalJSON(body []byte) error {
 
 // CloudErrorBody error details.
 type CloudErrorBody struct {
-	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	// Code - READ-ONLY; An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
-	// Message - A message describing the error, intended to be suitable for display in a user interface.
+	// Message - READ-ONLY; A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
 }
 
@@ -2234,11 +2087,11 @@ type Compliance struct {
 	autorest.Response `json:"-"`
 	// ComplianceProperties - Compliance data
 	*ComplianceProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2247,15 +2100,6 @@ func (c Compliance) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.ComplianceProperties != nil {
 		objectMap["properties"] = c.ComplianceProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2316,7 +2160,7 @@ type ComplianceList struct {
 	autorest.Response `json:"-"`
 	// Value - List of Compliance objects
 	Value *[]Compliance `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2461,39 +2305,39 @@ func NewComplianceListPage(getNextPage func(context.Context, ComplianceList) (Co
 // Compliances under the given Subscription. A Resource Compliance is defined as the compliant ('healthy')
 // Policy Definitions out of all Policy Definitions applicable to a given resource.
 type ComplianceProperties struct {
-	// AssessmentTimestampUtcDate - The timestamp when the Compliance calculation was conducted.
+	// AssessmentTimestampUtcDate - READ-ONLY; The timestamp when the Compliance calculation was conducted.
 	AssessmentTimestampUtcDate *date.Time `json:"assessmentTimestampUtcDate,omitempty"`
-	// ResourceCount - The resource count of the given subscription for which the Compliance calculation was conducted (needed for Management Group Compliance calculation).
+	// ResourceCount - READ-ONLY; The resource count of the given subscription for which the Compliance calculation was conducted (needed for Management Group Compliance calculation).
 	ResourceCount *int32 `json:"resourceCount,omitempty"`
-	// AssessmentResult - An array of segment, which is the actually the compliance assessment.
+	// AssessmentResult - READ-ONLY; An array of segment, which is the actually the compliance assessment.
 	AssessmentResult *[]ComplianceSegment `json:"assessmentResult,omitempty"`
 }
 
 // ComplianceSegment a segment of a compliance assessment.
 type ComplianceSegment struct {
-	// SegmentType - The segment type, e.g. compliant, non-compliance, insufficient coverage, N/A, etc.
+	// SegmentType - READ-ONLY; The segment type, e.g. compliant, non-compliance, insufficient coverage, N/A, etc.
 	SegmentType *string `json:"segmentType,omitempty"`
-	// Percentage - The size (%) of the segment.
+	// Percentage - READ-ONLY; The size (%) of the segment.
 	Percentage *float64 `json:"percentage,omitempty"`
 }
 
 // ConnectableResource describes the allowed inbound and outbound traffic of an Azure resource
 type ConnectableResource struct {
-	// ID - The Azure resource id
+	// ID - READ-ONLY; The Azure resource id
 	ID *string `json:"id,omitempty"`
-	// InboundConnectedResources - The list of Azure resources that the resource has inbound allowed connection from
+	// InboundConnectedResources - READ-ONLY; The list of Azure resources that the resource has inbound allowed connection from
 	InboundConnectedResources *[]ConnectedResource `json:"inboundConnectedResources,omitempty"`
-	// OutboundConnectedResources - The list of Azure resources that the resource has outbound allowed connection to
+	// OutboundConnectedResources - READ-ONLY; The list of Azure resources that the resource has outbound allowed connection to
 	OutboundConnectedResources *[]ConnectedResource `json:"outboundConnectedResources,omitempty"`
 }
 
 // ConnectedResource describes properties of a connected resource
 type ConnectedResource struct {
-	// ConnectedResourceID - The Azure resource id of the connected resource
+	// ConnectedResourceID - READ-ONLY; The Azure resource id of the connected resource
 	ConnectedResourceID *string `json:"connectedResourceId,omitempty"`
-	// TCPPorts - The allowed tcp ports
+	// TCPPorts - READ-ONLY; The allowed tcp ports
 	TCPPorts *string `json:"tcpPorts,omitempty"`
-	// UDPPorts - The allowed udp ports
+	// UDPPorts - READ-ONLY; The allowed udp ports
 	UDPPorts *string `json:"udpPorts,omitempty"`
 }
 
@@ -2508,11 +2352,11 @@ type Contact struct {
 	autorest.Response `json:"-"`
 	// ContactProperties - Security contact data
 	*ContactProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2521,15 +2365,6 @@ func (c Contact) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.ContactProperties != nil {
 		objectMap["properties"] = c.ContactProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2588,9 +2423,9 @@ func (c *Contact) UnmarshalJSON(body []byte) error {
 // ContactList list of security contacts response
 type ContactList struct {
 	autorest.Response `json:"-"`
-	// Value - List of security contacts
+	// Value - READ-ONLY; List of security contacts
 	Value *[]Contact `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2745,9 +2580,9 @@ type ContactProperties struct {
 
 // CustomAlertRule a custom alert rule
 type CustomAlertRule struct {
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -2761,11 +2596,11 @@ type DataExportSetting struct {
 	*DataExportSettingProperties `json:"properties,omitempty"`
 	// Kind - the kind of the settings string (DataExportSetting). Possible values include: 'SettingKindDataExportSetting', 'SettingKindAlertSuppressionSetting'
 	Kind SettingKind `json:"kind,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2777,15 +2612,6 @@ func (desVar DataExportSetting) MarshalJSON() ([]byte, error) {
 	}
 	if desVar.Kind != "" {
 		objectMap["kind"] = desVar.Kind
-	}
-	if desVar.ID != nil {
-		objectMap["id"] = desVar.ID
-	}
-	if desVar.Name != nil {
-		objectMap["name"] = desVar.Name
-	}
-	if desVar.Type != nil {
-		objectMap["type"] = desVar.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2861,11 +2687,11 @@ type DataExportSettingProperties struct {
 type DenylistCustomAlertRule struct {
 	// DenylistValues - The values to deny. The format of the values depends on the rule type.
 	DenylistValues *[]string `json:"denylistValues,omitempty"`
-	// ValueType - The value type of the items in the list. Possible values include: 'IPCidr', 'String'
+	// ValueType - READ-ONLY; The value type of the items in the list. Possible values include: 'IPCidr', 'String'
 	ValueType ValueType `json:"valueType,omitempty"`
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -2878,11 +2704,11 @@ type DeviceSecurityGroup struct {
 	autorest.Response `json:"-"`
 	// DeviceSecurityGroupProperties - Device Security group data
 	*DeviceSecurityGroupProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2891,15 +2717,6 @@ func (dsg DeviceSecurityGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dsg.DeviceSecurityGroupProperties != nil {
 		objectMap["properties"] = dsg.DeviceSecurityGroupProperties
-	}
-	if dsg.ID != nil {
-		objectMap["id"] = dsg.ID
-	}
-	if dsg.Name != nil {
-		objectMap["name"] = dsg.Name
-	}
-	if dsg.Type != nil {
-		objectMap["type"] = dsg.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2960,7 +2777,7 @@ type DeviceSecurityGroupList struct {
 	autorest.Response `json:"-"`
 	// Value - List of device security group objects
 	Value *[]DeviceSecurityGroup `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3116,13 +2933,13 @@ type DeviceSecurityGroupProperties struct {
 // DiscoveredSecuritySolution ...
 type DiscoveredSecuritySolution struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location                              *string `json:"location,omitempty"`
 	*DiscoveredSecuritySolutionProperties `json:"properties,omitempty"`
 }
@@ -3130,18 +2947,6 @@ type DiscoveredSecuritySolution struct {
 // MarshalJSON is the custom marshaler for DiscoveredSecuritySolution.
 func (dss DiscoveredSecuritySolution) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dss.ID != nil {
-		objectMap["id"] = dss.ID
-	}
-	if dss.Name != nil {
-		objectMap["name"] = dss.Name
-	}
-	if dss.Type != nil {
-		objectMap["type"] = dss.Type
-	}
-	if dss.Location != nil {
-		objectMap["location"] = dss.Location
-	}
 	if dss.DiscoveredSecuritySolutionProperties != nil {
 		objectMap["properties"] = dss.DiscoveredSecuritySolutionProperties
 	}
@@ -3212,7 +3017,7 @@ func (dss *DiscoveredSecuritySolution) UnmarshalJSON(body []byte) error {
 type DiscoveredSecuritySolutionList struct {
 	autorest.Response `json:"-"`
 	Value             *[]DiscoveredSecuritySolution `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3387,13 +3192,13 @@ type BasicExternalSecuritySolution interface {
 // information to an OMS workspace and whose data is displayed by Azure Security Center.
 type ExternalSecuritySolution struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
 	Kind KindEnum `json:"kind,omitempty"`
@@ -3448,18 +3253,6 @@ func unmarshalBasicExternalSecuritySolutionArray(body []byte) ([]BasicExternalSe
 func (ess ExternalSecuritySolution) MarshalJSON() ([]byte, error) {
 	ess.Kind = KindExternalSecuritySolution
 	objectMap := make(map[string]interface{})
-	if ess.ID != nil {
-		objectMap["id"] = ess.ID
-	}
-	if ess.Name != nil {
-		objectMap["name"] = ess.Name
-	}
-	if ess.Type != nil {
-		objectMap["type"] = ess.Type
-	}
-	if ess.Location != nil {
-		objectMap["location"] = ess.Location
-	}
 	if ess.Kind != "" {
 		objectMap["kind"] = ess.Kind
 	}
@@ -3501,7 +3294,7 @@ type ExternalSecuritySolutionKind1 struct {
 type ExternalSecuritySolutionList struct {
 	autorest.Response `json:"-"`
 	Value             *[]BasicExternalSecuritySolution `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3790,11 +3583,11 @@ type InformationProtectionPolicy struct {
 	autorest.Response `json:"-"`
 	// InformationProtectionPolicyProperties - Information protection policy data
 	*InformationProtectionPolicyProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3803,15 +3596,6 @@ func (ipp InformationProtectionPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ipp.InformationProtectionPolicyProperties != nil {
 		objectMap["properties"] = ipp.InformationProtectionPolicyProperties
-	}
-	if ipp.ID != nil {
-		objectMap["id"] = ipp.ID
-	}
-	if ipp.Name != nil {
-		objectMap["name"] = ipp.Name
-	}
-	if ipp.Type != nil {
-		objectMap["type"] = ipp.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3872,7 +3656,7 @@ type InformationProtectionPolicyList struct {
 	autorest.Response `json:"-"`
 	// Value - List of information protection policies.
 	Value *[]InformationProtectionPolicy `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -4016,7 +3800,7 @@ func NewInformationProtectionPolicyListPage(getNextPage func(context.Context, In
 
 // InformationProtectionPolicyProperties describes properties of an information protection policy.
 type InformationProtectionPolicyProperties struct {
-	// LastModifiedUtc - Describes the last UTC time the policy was modified.
+	// LastModifiedUtc - READ-ONLY; Describes the last UTC time the policy was modified.
 	LastModifiedUtc *date.Time `json:"lastModifiedUtc,omitempty"`
 	// Labels - Dictionary of sensitivity labels.
 	Labels map[string]*SensitivityLabel `json:"labels"`
@@ -4027,9 +3811,6 @@ type InformationProtectionPolicyProperties struct {
 // MarshalJSON is the custom marshaler for InformationProtectionPolicyProperties.
 func (ippp InformationProtectionPolicyProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ippp.LastModifiedUtc != nil {
-		objectMap["lastModifiedUtc"] = ippp.LastModifiedUtc
-	}
 	if ippp.Labels != nil {
 		objectMap["labels"] = ippp.Labels
 	}
@@ -4059,7 +3840,7 @@ type InformationType struct {
 type JitNetworkAccessPoliciesList struct {
 	autorest.Response `json:"-"`
 	Value             *[]JitNetworkAccessPolicy `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -4204,15 +3985,15 @@ func NewJitNetworkAccessPoliciesListPage(getNextPage func(context.Context, JitNe
 // JitNetworkAccessPolicy ...
 type JitNetworkAccessPolicy struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Kind - Kind of the resource
 	Kind *string `json:"kind,omitempty"`
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location                          *string `json:"location,omitempty"`
 	*JitNetworkAccessPolicyProperties `json:"properties,omitempty"`
 }
@@ -4220,20 +4001,8 @@ type JitNetworkAccessPolicy struct {
 // MarshalJSON is the custom marshaler for JitNetworkAccessPolicy.
 func (jnap JitNetworkAccessPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if jnap.ID != nil {
-		objectMap["id"] = jnap.ID
-	}
-	if jnap.Name != nil {
-		objectMap["name"] = jnap.Name
-	}
-	if jnap.Type != nil {
-		objectMap["type"] = jnap.Type
-	}
 	if jnap.Kind != nil {
 		objectMap["kind"] = jnap.Kind
-	}
-	if jnap.Location != nil {
-		objectMap["location"] = jnap.Location
 	}
 	if jnap.JitNetworkAccessPolicyProperties != nil {
 		objectMap["properties"] = jnap.JitNetworkAccessPolicyProperties
@@ -4338,7 +4107,7 @@ type JitNetworkAccessPolicyProperties struct {
 	// VirtualMachines - Configurations for Microsoft.Compute/virtualMachines resource type.
 	VirtualMachines *[]JitNetworkAccessPolicyVirtualMachine `json:"virtualMachines,omitempty"`
 	Requests        *[]JitNetworkAccessRequest              `json:"requests,omitempty"`
-	// ProvisioningState - Gets the provisioning state of the Just-in-Time policy.
+	// ProvisioningState - READ-ONLY; Gets the provisioning state of the Just-in-Time policy.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
@@ -4404,11 +4173,11 @@ type Kind struct {
 
 // ListCustomAlertRule a List custom alert rule
 type ListCustomAlertRule struct {
-	// ValueType - The value type of the items in the list. Possible values include: 'IPCidr', 'String'
+	// ValueType - READ-ONLY; The value type of the items in the list. Possible values include: 'IPCidr', 'String'
 	ValueType ValueType `json:"valueType,omitempty"`
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -4418,28 +4187,28 @@ type ListCustomAlertRule struct {
 
 // Location describes an Azure resource with location
 type Location struct {
-	// Location - Location where the resource is stored
+	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 }
 
 // Operation possible operation in the REST API of Microsoft.Security
 type Operation struct {
-	// Name - Name of the operation
+	// Name - READ-ONLY; Name of the operation
 	Name *string `json:"name,omitempty"`
-	// Origin - Where the operation is originated
+	// Origin - READ-ONLY; Where the operation is originated
 	Origin  *string           `json:"origin,omitempty"`
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
 // OperationDisplay security operation display
 type OperationDisplay struct {
-	// Provider - The resource provider for the operation.
+	// Provider - READ-ONLY; The resource provider for the operation.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The display name of the resource the operation applies to.
+	// Resource - READ-ONLY; The display name of the resource the operation applies to.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - The display name of the security operation.
+	// Operation - READ-ONLY; The display name of the security operation.
 	Operation *string `json:"operation,omitempty"`
-	// Description - The description of the operation.
+	// Description - READ-ONLY; The description of the operation.
 	Description *string `json:"description,omitempty"`
 }
 
@@ -4448,7 +4217,7 @@ type OperationList struct {
 	autorest.Response `json:"-"`
 	// Value - List of Security operations
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -4594,11 +4363,11 @@ type Pricing struct {
 	autorest.Response `json:"-"`
 	// PricingProperties - Pricing data
 	*PricingProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4607,15 +4376,6 @@ func (p Pricing) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if p.PricingProperties != nil {
 		objectMap["properties"] = p.PricingProperties
-	}
-	if p.ID != nil {
-		objectMap["id"] = p.ID
-	}
-	if p.Name != nil {
-		objectMap["name"] = p.Name
-	}
-	if p.Type != nil {
-		objectMap["type"] = p.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -4676,7 +4436,7 @@ type PricingList struct {
 	autorest.Response `json:"-"`
 	// Value - List of pricing configurations
 	Value *[]Pricing `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -4828,11 +4588,11 @@ type RegulatoryComplianceAssessment struct {
 	autorest.Response `json:"-"`
 	// RegulatoryComplianceAssessmentProperties - Regulatory compliance assessment data
 	*RegulatoryComplianceAssessmentProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4841,15 +4601,6 @@ func (rca RegulatoryComplianceAssessment) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rca.RegulatoryComplianceAssessmentProperties != nil {
 		objectMap["properties"] = rca.RegulatoryComplianceAssessmentProperties
-	}
-	if rca.ID != nil {
-		objectMap["id"] = rca.ID
-	}
-	if rca.Name != nil {
-		objectMap["name"] = rca.Name
-	}
-	if rca.Type != nil {
-		objectMap["type"] = rca.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -4909,7 +4660,7 @@ func (rca *RegulatoryComplianceAssessment) UnmarshalJSON(body []byte) error {
 type RegulatoryComplianceAssessmentList struct {
 	autorest.Response `json:"-"`
 	Value             *[]RegulatoryComplianceAssessment `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -5053,21 +4804,21 @@ func NewRegulatoryComplianceAssessmentListPage(getNextPage func(context.Context,
 
 // RegulatoryComplianceAssessmentProperties regulatory compliance assessment data
 type RegulatoryComplianceAssessmentProperties struct {
-	// Description - The description of the regulatory compliance assessment
+	// Description - READ-ONLY; The description of the regulatory compliance assessment
 	Description *string `json:"description,omitempty"`
-	// AssessmentType - The expected type of assessment contained in the AssessmentDetailsLink
+	// AssessmentType - READ-ONLY; The expected type of assessment contained in the AssessmentDetailsLink
 	AssessmentType *string `json:"assessmentType,omitempty"`
-	// AssessmentDetailsLink - Link to more detailed assessment results data. The response type will be according to the assessmentType field
+	// AssessmentDetailsLink - READ-ONLY; Link to more detailed assessment results data. The response type will be according to the assessmentType field
 	AssessmentDetailsLink *string `json:"assessmentDetailsLink,omitempty"`
 	// State - Aggregative state based on the assessment's scanned resources states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
 	State State `json:"state,omitempty"`
-	// PassedResources - The given assessment's related resources count with passed state.
+	// PassedResources - READ-ONLY; The given assessment's related resources count with passed state.
 	PassedResources *int32 `json:"passedResources,omitempty"`
-	// FailedResources - The given assessment's related resources count with failed state.
+	// FailedResources - READ-ONLY; The given assessment's related resources count with failed state.
 	FailedResources *int32 `json:"failedResources,omitempty"`
-	// SkippedResources - The given assessment's related resources count with skipped state.
+	// SkippedResources - READ-ONLY; The given assessment's related resources count with skipped state.
 	SkippedResources *int32 `json:"skippedResources,omitempty"`
-	// UnsupportedResources - The given assessment's related resources count with unsupported state.
+	// UnsupportedResources - READ-ONLY; The given assessment's related resources count with unsupported state.
 	UnsupportedResources *int32 `json:"unsupportedResources,omitempty"`
 }
 
@@ -5076,11 +4827,11 @@ type RegulatoryComplianceControl struct {
 	autorest.Response `json:"-"`
 	// RegulatoryComplianceControlProperties - Regulatory compliance control data
 	*RegulatoryComplianceControlProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5089,15 +4840,6 @@ func (rcc RegulatoryComplianceControl) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rcc.RegulatoryComplianceControlProperties != nil {
 		objectMap["properties"] = rcc.RegulatoryComplianceControlProperties
-	}
-	if rcc.ID != nil {
-		objectMap["id"] = rcc.ID
-	}
-	if rcc.Name != nil {
-		objectMap["name"] = rcc.Name
-	}
-	if rcc.Type != nil {
-		objectMap["type"] = rcc.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5158,7 +4900,7 @@ type RegulatoryComplianceControlList struct {
 	autorest.Response `json:"-"`
 	// Value - List of regulatory compliance controls
 	Value *[]RegulatoryComplianceControl `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -5302,15 +5044,15 @@ func NewRegulatoryComplianceControlListPage(getNextPage func(context.Context, Re
 
 // RegulatoryComplianceControlProperties regulatory compliance control data
 type RegulatoryComplianceControlProperties struct {
-	// Description - The description of the regulatory compliance control
+	// Description - READ-ONLY; The description of the regulatory compliance control
 	Description *string `json:"description,omitempty"`
 	// State - Aggregative state based on the control's supported assessments states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
 	State State `json:"state,omitempty"`
-	// PassedAssessments - The number of supported regulatory compliance assessments of the given control with a passed state
+	// PassedAssessments - READ-ONLY; The number of supported regulatory compliance assessments of the given control with a passed state
 	PassedAssessments *int32 `json:"passedAssessments,omitempty"`
-	// FailedAssessments - The number of supported regulatory compliance assessments of the given control with a failed state
+	// FailedAssessments - READ-ONLY; The number of supported regulatory compliance assessments of the given control with a failed state
 	FailedAssessments *int32 `json:"failedAssessments,omitempty"`
-	// SkippedAssessments - The number of supported regulatory compliance assessments of the given control with a skipped state
+	// SkippedAssessments - READ-ONLY; The number of supported regulatory compliance assessments of the given control with a skipped state
 	SkippedAssessments *int32 `json:"skippedAssessments,omitempty"`
 }
 
@@ -5319,11 +5061,11 @@ type RegulatoryComplianceStandard struct {
 	autorest.Response `json:"-"`
 	// RegulatoryComplianceStandardProperties - Regulatory compliance standard data
 	*RegulatoryComplianceStandardProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5332,15 +5074,6 @@ func (rcs RegulatoryComplianceStandard) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rcs.RegulatoryComplianceStandardProperties != nil {
 		objectMap["properties"] = rcs.RegulatoryComplianceStandardProperties
-	}
-	if rcs.ID != nil {
-		objectMap["id"] = rcs.ID
-	}
-	if rcs.Name != nil {
-		objectMap["name"] = rcs.Name
-	}
-	if rcs.Type != nil {
-		objectMap["type"] = rcs.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5400,7 +5133,7 @@ func (rcs *RegulatoryComplianceStandard) UnmarshalJSON(body []byte) error {
 type RegulatoryComplianceStandardList struct {
 	autorest.Response `json:"-"`
 	Value             *[]RegulatoryComplianceStandard `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -5546,23 +5279,23 @@ func NewRegulatoryComplianceStandardListPage(getNextPage func(context.Context, R
 type RegulatoryComplianceStandardProperties struct {
 	// State - Aggregative state based on the standard's supported controls states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
 	State State `json:"state,omitempty"`
-	// PassedControls - The number of supported regulatory compliance controls of the given standard with a passed state
+	// PassedControls - READ-ONLY; The number of supported regulatory compliance controls of the given standard with a passed state
 	PassedControls *int32 `json:"passedControls,omitempty"`
-	// FailedControls - The number of supported regulatory compliance controls of the given standard with a failed state
+	// FailedControls - READ-ONLY; The number of supported regulatory compliance controls of the given standard with a failed state
 	FailedControls *int32 `json:"failedControls,omitempty"`
-	// SkippedControls - The number of supported regulatory compliance controls of the given standard with a skipped state
+	// SkippedControls - READ-ONLY; The number of supported regulatory compliance controls of the given standard with a skipped state
 	SkippedControls *int32 `json:"skippedControls,omitempty"`
-	// UnsupportedControls - The number of regulatory compliance controls of the given standard which are unsupported by automated assessments
+	// UnsupportedControls - READ-ONLY; The number of regulatory compliance controls of the given standard which are unsupported by automated assessments
 	UnsupportedControls *int32 `json:"unsupportedControls,omitempty"`
 }
 
 // Resource describes an Azure resource.
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5596,11 +5329,11 @@ type Setting struct {
 	autorest.Response `json:"-"`
 	// Kind - the kind of the settings string (DataExportSetting). Possible values include: 'SettingKindDataExportSetting', 'SettingKindAlertSuppressionSetting'
 	Kind SettingKind `json:"kind,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5608,11 +5341,11 @@ type Setting struct {
 type SettingResource struct {
 	// Kind - the kind of the settings string (DataExportSetting). Possible values include: 'SettingKindDataExportSetting', 'SettingKindAlertSuppressionSetting'
 	Kind SettingKind `json:"kind,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5621,7 +5354,7 @@ type SettingsList struct {
 	autorest.Response `json:"-"`
 	// Value - The settings list.
 	Value *[]Setting `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -5766,11 +5499,11 @@ func NewSettingsListPage(getNextPage func(context.Context, SettingsList) (Settin
 type Task struct {
 	autorest.Response `json:"-"`
 	*TaskProperties   `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5779,15 +5512,6 @@ func (t Task) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if t.TaskProperties != nil {
 		objectMap["properties"] = t.TaskProperties
-	}
-	if t.ID != nil {
-		objectMap["id"] = t.ID
-	}
-	if t.Name != nil {
-		objectMap["name"] = t.Name
-	}
-	if t.Type != nil {
-		objectMap["type"] = t.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5846,8 +5570,9 @@ func (t *Task) UnmarshalJSON(body []byte) error {
 // TaskList list of security task recommendations
 type TaskList struct {
 	autorest.Response `json:"-"`
-	Value             *[]Task `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// Value - READ-ONLY
+	Value *[]Task `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -5993,16 +5718,13 @@ func NewTaskListPage(getNextPage func(context.Context, TaskList) (TaskList, erro
 type TaskParameters struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
-	// Name - Name of the task type
+	// Name - READ-ONLY; Name of the task type
 	Name *string `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TaskParameters.
 func (tp TaskParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if tp.Name != nil {
-		objectMap["name"] = tp.Name
-	}
 	for k, v := range tp.AdditionalProperties {
 		objectMap[k] = v
 	}
@@ -6047,14 +5769,14 @@ func (tp *TaskParameters) UnmarshalJSON(body []byte) error {
 
 // TaskProperties describes properties of a task.
 type TaskProperties struct {
-	// State - State of the task (Active, Resolved etc.)
+	// State - READ-ONLY; State of the task (Active, Resolved etc.)
 	State *string `json:"state,omitempty"`
-	// CreationTimeUtc - The time this task was discovered in UTC
+	// CreationTimeUtc - READ-ONLY; The time this task was discovered in UTC
 	CreationTimeUtc        *date.Time      `json:"creationTimeUtc,omitempty"`
 	SecurityTaskParameters *TaskParameters `json:"securityTaskParameters,omitempty"`
-	// LastStateChangeTimeUtc - The time this task's details were last changed in UTC
+	// LastStateChangeTimeUtc - READ-ONLY; The time this task's details were last changed in UTC
 	LastStateChangeTimeUtc *date.Time `json:"lastStateChangeTimeUtc,omitempty"`
-	// SubState - Additional data on the state of the task
+	// SubState - READ-ONLY; Additional data on the state of the task
 	SubState *string `json:"subState,omitempty"`
 }
 
@@ -6065,9 +5787,9 @@ type ThresholdCustomAlertRule struct {
 	MinThreshold *int32 `json:"minThreshold,omitempty"`
 	// MaxThreshold - The maximum threshold.
 	MaxThreshold *int32 `json:"maxThreshold,omitempty"`
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -6078,9 +5800,9 @@ type ThresholdCustomAlertRule struct {
 // TimeWindowCustomAlertRule a custom alert rule that checks if the number of activities (depends on the
 // custom alert type) in a time window is within the given range.
 type TimeWindowCustomAlertRule struct {
-	// DisplayName - The display name of the custom alert.
+	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Description - The description of the custom alert.
+	// Description - READ-ONLY; The description of the custom alert.
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Whether the custom alert is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
@@ -6097,8 +5819,9 @@ type TimeWindowCustomAlertRule struct {
 // TopologyList ...
 type TopologyList struct {
 	autorest.Response `json:"-"`
-	Value             *[]TopologyResource `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// Value - READ-ONLY
+	Value *[]TopologyResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -6242,35 +5965,21 @@ func NewTopologyListPage(getNextPage func(context.Context, TopologyList) (Topolo
 // TopologyResource ...
 type TopologyResource struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - Location where the resource is stored
-	Location                    *string `json:"location,omitempty"`
+	// Location - READ-ONLY; Location where the resource is stored
+	Location *string `json:"location,omitempty"`
+	// TopologyResourceProperties - READ-ONLY
 	*TopologyResourceProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TopologyResource.
 func (tr TopologyResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
-	}
-	if tr.Location != nil {
-		objectMap["location"] = tr.Location
-	}
-	if tr.TopologyResourceProperties != nil {
-		objectMap["properties"] = tr.TopologyResourceProperties
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -6336,41 +6045,41 @@ func (tr *TopologyResource) UnmarshalJSON(body []byte) error {
 
 // TopologyResourceProperties ...
 type TopologyResourceProperties struct {
-	// CalculatedDateTime - The UTC time on which the topology was calculated
+	// CalculatedDateTime - READ-ONLY; The UTC time on which the topology was calculated
 	CalculatedDateTime *date.Time `json:"calculatedDateTime,omitempty"`
-	// TopologyResources - Azure resources which are part of this topology resource
+	// TopologyResources - READ-ONLY; Azure resources which are part of this topology resource
 	TopologyResources *[]TopologySingleResource `json:"topologyResources,omitempty"`
 }
 
 // TopologySingleResource ...
 type TopologySingleResource struct {
-	// ResourceID - Azure resource id
+	// ResourceID - READ-ONLY; Azure resource id
 	ResourceID *string `json:"resourceId,omitempty"`
-	// Severity - The security severity of the resource
+	// Severity - READ-ONLY; The security severity of the resource
 	Severity *string `json:"severity,omitempty"`
-	// RecommendationsExist - Indicates if the resource has security recommendations
+	// RecommendationsExist - READ-ONLY; Indicates if the resource has security recommendations
 	RecommendationsExist *bool `json:"recommendationsExist,omitempty"`
-	// NetworkZones - Indicates the resource connectivity level to the Internet (InternetFacing, Internal ,etc.)
+	// NetworkZones - READ-ONLY; Indicates the resource connectivity level to the Internet (InternetFacing, Internal ,etc.)
 	NetworkZones *string `json:"networkZones,omitempty"`
-	// TopologyScore - Score of the resource based on its security severity
+	// TopologyScore - READ-ONLY; Score of the resource based on its security severity
 	TopologyScore *int32 `json:"topologyScore,omitempty"`
-	// Location - The location of this resource
+	// Location - READ-ONLY; The location of this resource
 	Location *string `json:"location,omitempty"`
-	// Parents - Azure resources connected to this resource which are in higher level in the topology view
+	// Parents - READ-ONLY; Azure resources connected to this resource which are in higher level in the topology view
 	Parents *[]TopologySingleResourceParent `json:"parents,omitempty"`
-	// Children - Azure resources connected to this resource which are in lower level in the topology view
+	// Children - READ-ONLY; Azure resources connected to this resource which are in lower level in the topology view
 	Children *[]TopologySingleResourceChild `json:"children,omitempty"`
 }
 
 // TopologySingleResourceChild ...
 type TopologySingleResourceChild struct {
-	// ResourceID - Azure resource id which serves as child resource in topology view
+	// ResourceID - READ-ONLY; Azure resource id which serves as child resource in topology view
 	ResourceID *string `json:"resourceId,omitempty"`
 }
 
 // TopologySingleResourceParent ...
 type TopologySingleResourceParent struct {
-	// ResourceID - Azure resource id which serves as parent resource in topology view
+	// ResourceID - READ-ONLY; Azure resource id which serves as parent resource in topology view
 	ResourceID *string `json:"resourceId,omitempty"`
 }
 
@@ -6379,11 +6088,11 @@ type WorkspaceSetting struct {
 	autorest.Response `json:"-"`
 	// WorkspaceSettingProperties - Workspace setting data
 	*WorkspaceSettingProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6392,15 +6101,6 @@ func (ws WorkspaceSetting) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ws.WorkspaceSettingProperties != nil {
 		objectMap["properties"] = ws.WorkspaceSettingProperties
-	}
-	if ws.ID != nil {
-		objectMap["id"] = ws.ID
-	}
-	if ws.Name != nil {
-		objectMap["name"] = ws.Name
-	}
-	if ws.Type != nil {
-		objectMap["type"] = ws.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -6461,7 +6161,7 @@ type WorkspaceSettingList struct {
 	autorest.Response `json:"-"`
 	// Value - List of workspace settings
 	Value *[]WorkspaceSetting `json:"value,omitempty"`
-	// NextLink - The URI to fetch the next page.
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 

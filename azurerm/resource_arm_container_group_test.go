@@ -5,11 +5,103 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(ri, testLocation())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "0"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"identity.0.principal_id",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(14)
+	config := testAccAzureRMContainerGroup_UserAssignedIdentity(ri, testLocation(), rs)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.principal_id", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(14)
+	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri, testLocation(), rs)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"identity.0.principal_id",
+				},
+			},
+		},
+	})
+}
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
@@ -364,6 +456,121 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	})
 }
 
+func testAccAzureRMContainerGroup_SystemAssignedIdentity(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
+  }
+
+	identity {
+		type = "SystemAssigned"
+	}
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_UserAssignedIdentity(ri int, location string, rString string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  name = "acctest%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
+	
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, rString, ri)
+}
+
+func testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri int, location string, rString string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  name = "acctest%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
+	
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, rString, ri)
+}
+
 func testAccAzureRMContainerGroup_linuxBasic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -638,13 +845,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -677,8 +884,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }
@@ -754,7 +961,7 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    gpu = {
+    gpu {
       count = 1
       sku = "K80"
     }
@@ -770,13 +977,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -809,8 +1016,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }

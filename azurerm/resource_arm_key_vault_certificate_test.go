@@ -398,7 +398,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
-    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
+    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
     password = ""
   }
 
@@ -470,7 +470,7 @@ resource "azurerm_key_vault_certificate" "test" {
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 
   certificate {
-    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
+    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
     password = ""
   }
 
@@ -504,7 +504,7 @@ resource "azurerm_key_vault_certificate" "import" {
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
-    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
+    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
     password = ""
   }
 

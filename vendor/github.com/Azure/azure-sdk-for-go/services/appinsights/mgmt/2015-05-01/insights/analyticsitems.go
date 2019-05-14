@@ -413,6 +413,9 @@ func (client AnalyticsItemsClient) PutPreparer(ctx context.Context, resourceGrou
 		queryParameters["overrideItem"] = autorest.Encode("query", *overrideItem)
 	}
 
+	itemProperties.Version = nil
+	itemProperties.TimeCreated = nil
+	itemProperties.TimeModified = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

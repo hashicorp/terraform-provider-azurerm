@@ -37,7 +37,7 @@ func testAccDataSourceAzureRMNetworkWatcher_basic(t *testing.T) {
 func testAccDataSourceAzureRMNetworkWatcher_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

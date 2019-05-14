@@ -93,7 +93,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
-    contents = "${base64encode(file("certificate-to-import.pfx"))}"
+    contents = "${filebase64("certificate-to-import.pfx")}"
     password = ""
   }
 

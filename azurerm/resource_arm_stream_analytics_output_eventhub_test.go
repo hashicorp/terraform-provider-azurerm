@@ -24,6 +24,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_avro(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
 				),
 			},
 			{
@@ -53,6 +54,9 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_csv(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Csv"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.field_delimiter", ","),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
 			{
@@ -82,6 +86,39 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "LineSeparated"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// not returned from the API
+					"shared_access_policy_key",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_output_eventhub.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "Array"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Json"),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
 			{
@@ -117,6 +154,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsOutputEventHub_updated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
 				),
 			},
 			{
@@ -275,6 +313,29 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     type     = "Json"
     encoding = "UTF8"
     format   = "LineSeparated"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(rInt int, location string) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  eventhub_name             = "${azurerm_eventhub.test.name}"
+  servicebus_namespace      = "${azurerm_eventhub_namespace.test.name}"
+  shared_access_policy_key  = "${azurerm_eventhub_namespace.test.default_primary_key}"
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "Array"
   }
 }
 `, template, rInt)

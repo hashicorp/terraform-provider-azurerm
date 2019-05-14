@@ -127,7 +127,7 @@ func resourceArmFunctionApp() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.SystemAssigned),
+								string(web.ManagedServiceIdentityTypeSystemAssigned),
 							}, true),
 						},
 						"principal_id": {

@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactory_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -38,7 +37,7 @@ func TestAccAzureRMDataFactory_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_tags(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_tags(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -65,7 +64,7 @@ func TestAccAzureRMDataFactory_tags(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMDataFactory_tagsUpdated(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
@@ -102,7 +101,7 @@ func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_identity(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_identity(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -131,7 +130,7 @@ func TestAccAzureRMDataFactory_identity(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
 
@@ -153,7 +152,7 @@ func TestAccAzureRMDataFactory_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_github(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactory_github(ri, testLocation())
 	config2 := testAccAzureRMDataFactory_githubUpdated(ri, testLocation())
 	resourceName := "azurerm_data_factory.test"
@@ -167,7 +166,7 @@ func TestAccAzureRMDataFactory_github(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestrg-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGH-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.repository_name", "terraform-provider-azurerm"),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.branch_name", "master"),
@@ -178,7 +177,7 @@ func TestAccAzureRMDataFactory_github(t *testing.T) {
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestrg-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGitHub-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.repository_name", "terraform-provider-azuread"),
 					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.branch_name", "stable-website"),
@@ -281,7 +280,7 @@ func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
 func testAccAzureRMDataFactory_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
 
@@ -296,7 +295,7 @@ func testAccAzureRMDataFactory_basic(rInt int, location string) string {
 func testAccAzureRMDataFactory_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
 
@@ -315,7 +314,7 @@ func testAccAzureRMDataFactory_tags(rInt int, location string) string {
 func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
 
@@ -335,7 +334,7 @@ func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
 func testAccAzureRMDataFactory_identity(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
 
@@ -354,7 +353,7 @@ func testAccAzureRMDataFactory_identity(rInt int, location string) string {
 func testAccAzureRMDataFactory_github(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
 
@@ -368,7 +367,7 @@ func testAccAzureRMDataFactory_github(rInt int, location string) string {
       repository_name = "terraform-provider-azurerm"
       branch_name     = "master"
       root_folder     = "/"
-      account_name    = "acctestrg-%d"
+      account_name    = "acctestGH-%d"
     }
   }
 `, rInt, location, rInt, rInt)
@@ -377,7 +376,7 @@ func testAccAzureRMDataFactory_github(rInt int, location string) string {
 func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
   }
   resource "azurerm_data_factory" "test" {
@@ -390,7 +389,7 @@ func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
       repository_name = "terraform-provider-azuread"
       branch_name     = "stable-website"
       root_folder     = "/azuread"
-      account_name    = "acctestrg-%d"
+      account_name    = "acctestGitHub-%d"
     }
   }
 `, rInt, location, rInt, rInt)

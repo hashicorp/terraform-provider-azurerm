@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryDatasetSQLServerTable_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
 
@@ -38,7 +37,7 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactoryDatasetSQLServerTable_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryDatasetSQLServerTable_update1(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryDatasetSQLServerTable_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
@@ -140,7 +139,7 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State)
 func testAccAzureRMDataFactoryDatasetSQLServerTable_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -169,7 +168,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 func testAccAzureRMDataFactoryDatasetSQLServerTable_update1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -197,12 +196,12 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   table_name  = "testTable"
   folder      = "testFolder"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
   }
  
-  additional_properties {
+  additional_properties = {
     foo = "test1"
     bar = "test2"
   }
@@ -219,7 +218,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 func testAccAzureRMDataFactoryDatasetSQLServerTable_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -247,13 +246,13 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   table_name  = "testTable"
   folder      = "testFolder"
 
-  parameters {
+  parameters = {
     foo = "test1"
     bar = "test2"
     buzz = "test3"
   }
  
-  additional_properties {
+  additional_properties = {
     foo = "test1"
   }
 	

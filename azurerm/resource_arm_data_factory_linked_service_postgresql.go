@@ -41,7 +41,9 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"connection_string": {
 				Type:             schema.TypeString,
