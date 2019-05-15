@@ -12,7 +12,7 @@ import (
 
 func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataArmSourceContainerOrchestratorVersionsRead,
+		Read: dataSourceArmKubernetesServiceVersionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"location": locationSchema(),
