@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmContainerOrchestratorVersions() *schema.Resource {
+func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataArmSourceContainerOrchestratorVersionsRead,
 
