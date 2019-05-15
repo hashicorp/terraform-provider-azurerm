@@ -93,7 +93,7 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 	database := d.Get("database_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+		existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
@@ -113,9 +113,9 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 		ttl = utils.Int(v.(int))
 	}
 
-	db := documentdb.MongoCollectionCreateUpdateParameters{
-		MongoCollectionCreateUpdateProperties: &documentdb.MongoCollectionCreateUpdateProperties{
-			Resource: &documentdb.MongoCollectionResource{
+	db := documentdb.MongoDBCollectionCreateUpdateParameters{
+		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
+			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
 				/*ShardKey: map[string]*string{ // errors
@@ -126,7 +126,7 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	future, err := client.CreateUpdateMongoCollection(ctx, resourceGroup, account, database, name, db)
+	future, err := client.CreateUpdateMongoDBCollection(ctx, resourceGroup, account, database, name, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
@@ -135,7 +135,7 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
-	resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+	resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
@@ -158,7 +158,7 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.GetMongoCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Cosmos Mongo Collection %s (Account %s, Database %s)", id.Collection, id.Account, id.Database)
@@ -169,7 +169,7 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error reading Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
 	}
 
-	if props := resp.MongoCollectionProperties; props != nil {
+	if props := resp.MongoDBCollectionProperties; props != nil {
 		d.Set("name", props.ID)
 		d.Set("resource_group_name", id.ResourceGroup)
 		d.Set("account_name", id.Account)
@@ -194,7 +194,7 @@ func resourceArmCosmosMongoCollectionDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	future, err := client.DeleteMongoCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)

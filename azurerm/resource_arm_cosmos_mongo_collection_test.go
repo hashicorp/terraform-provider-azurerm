@@ -160,7 +160,7 @@ func testCheckAzureRMCosmosMongoCollectionDestroy(s *terraform.State) error {
 		database := rs.Primary.Attributes["database_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+		resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Error checking destroy for Cosmos Mongo Collection %s (account %s, database %s) still exists:\n%v", name, account, database, err)
@@ -194,7 +194,7 @@ func testCheckAzureRMCosmosMongoCollectionExists(resourceName string) resource.T
 		database := rs.Primary.Attributes["database_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoCollection(ctx, resourceGroup, account, database, name)
+		resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}

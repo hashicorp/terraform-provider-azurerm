@@ -81,9 +81,9 @@ func resourceArmCosmosSQLContainerCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	db := documentdb.ContainerCreateUpdateParameters{
-		ContainerCreateUpdateProperties: &documentdb.ContainerCreateUpdateProperties{
-			Resource: &documentdb.ContainerResource{
+	db := documentdb.SQLContainerCreateUpdateParameters{
+		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
+			Resource: &documentdb.SQLContainerResource{
 				ID: &name,
 			},
 			Options: map[string]*string{},
@@ -133,7 +133,7 @@ func resourceArmCosmosSQLContainerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error reading Cosmos SQL Container %s (Account %s, Database %s): %+v", id.Container, id.Account, id.Database, err)
 	}
 
-	if props := resp.ContainerProperties; props != nil {
+	if props := resp.SQLContainerProperties; props != nil {
 		d.Set("name", props.ID)
 		d.Set("resource_group_name", id.ResourceGroup)
 		d.Set("account_name", id.Account)
