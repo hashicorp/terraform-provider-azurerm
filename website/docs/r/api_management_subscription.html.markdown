@@ -35,7 +35,7 @@ resource "azurerm_api_management_subscription" "test" {
   api_management_name = "${data.azurerm_api_management.test.name}"
   resource_group_name = "${data.azurerm_api_management.test.resource_group_name}"
   user_id             = "${data.azurerm_api_management_user.test.id}"
-  product_id          = "${data.azurerm_api_management_product.test.id}"
+  scope               = "${data.azurerm_api_management_product.test.id}"
   display_name        = "Parser API"
 }
 ```
@@ -51,7 +51,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `product_id` - (Required) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
+* `product_id` - (Optional / **Deprecated**) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
+
+~> **NOTE:** This field has been replaced by `scope` and will be removed in version 2.0 of the AzureRM Provider.
+
+* `scope` - (Optional) The ID of the Product (`/products/123`), API (`/apis/123`) or all API's (`/apis`) which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
 * `user_id` - (Required) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
 

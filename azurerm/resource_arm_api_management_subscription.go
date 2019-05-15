@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -35,7 +36,23 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 
 			"user_id": azure.SchemaApiManagementChildID(),
 
-			"product_id": azure.SchemaApiManagementChildID(),
+			// TODO: replace with `azure.SchemaApiManagementChildID()` in 2.0
+			"scope": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"product_id"},
+			},
+
+			// TODO: remove in 2.0
+			"product_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"scope"},
+				Deprecated:    "This field has been renamed `scope` to match the API.",
+			},
 
 			"resource_group_name": resourceGroupNameSchema(),
 
@@ -103,18 +120,20 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	}
 
 	displayName := d.Get("display_name").(string)
-	productId := d.Get("product_id").(string)
 	state := d.Get("state").(string)
 	userId := d.Get("user_id").(string)
+
+	scope := d.Get("scope").(string)
+	if scope == "" {
+		scope = d.Get("product_id").(string)
+	}
 
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName: utils.String(displayName),
 			State:       apimanagement.SubscriptionState(state),
 			OwnerID:     utils.String(userId),
-
-			// TODO: deprecate this in favour of `scope`
-			Scope: utils.String(productId),
+			Scope:       utils.String(scope),
 		},
 	}
 
@@ -173,11 +192,18 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("display_name", props.DisplayName)
 		d.Set("primary_key", props.PrimaryKey)
 		d.Set("secondary_key", props.SecondaryKey)
+		d.Set("scope", props.Scope)
 		d.Set("state", string(props.State))
 		d.Set("user_id", props.OwnerID)
 
-		// TODO: deprecate this in favour of `scope`.
-		d.Set("product_id", props.Scope)
+		// since this field now supports different kind of scopes; but this field is explicitly called Product
+		if scope := props.Scope; scope != nil {
+			if strings.HasPrefix(*scope, "/products/") {
+				d.Set("product_id", props.Scope)
+			} else {
+				d.Set("product_id", "")
+			}
+		}
 	}
 
 	return nil
