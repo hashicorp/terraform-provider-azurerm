@@ -140,10 +140,6 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 		}
 
 		name := rs.Primary.Attributes["name"]
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
-		if err != nil {
-			return err
-		}
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resGroup, name)
@@ -169,10 +165,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 		}
 
 		name := rs.Primary.Attributes["name"]
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
-		if err != nil {
-			return err
-		}
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -210,7 +202,7 @@ resource "azurerm_application_insights_web_test" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   kind                    = "ping"
-  geo_locations           = ["West Europe"]
+  geo_locations           = ["us-tx-sn1-azr"]
 
   test_configuration = <<XML
 <WebTest Name="WebTest1" Id="ABD48585-0831-40CB-9069-682EA6BB3583" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="default" StopOnError="False" RecordedResultFile="" ResultsLocale="">
@@ -246,7 +238,7 @@ resource "azurerm_application_insights_web_test" "test" {
   frequency               = 900
   timeout                 = 120
   enabled                 = true
-  geo_locations           = ["West Europe", "North Europe"]
+  geo_locations           = ["us-tx-sn1-azr", "us-il-ch1-azr"]
 
   test_configuration = <<XML
 <WebTest Name="WebTest1" Id="ABD48585-0831-40CB-9069-682EA6BB3583" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="default" StopOnError="False" RecordedResultFile="" ResultsLocale="">
