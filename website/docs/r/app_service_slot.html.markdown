@@ -260,6 +260,15 @@ The following attributes are exported:
 
 * `default_site_hostname` - The Default Hostname associated with the App Service Slot - such as `mysite.azurewebsites.net`
 
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
+
 ## Import
 
 App Service Slots can be imported using the `resource id`, e.g.
