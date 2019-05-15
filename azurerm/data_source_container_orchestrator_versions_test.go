@@ -10,8 +10,8 @@ import (
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
 
-func TestAccDataSourceAzureRMContainerOrchestratorVersions_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_container_orchestrator_versions.test"
+func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_service_versions.test"
 	location := testLocation()
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
@@ -20,7 +20,7 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMContainerOrchestratorVersions_basic(location),
+				Config: testAccDataSourceAzureRMKubernetesServiceVersions_basic(location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "versions.#"),
 					resource.TestMatchResourceAttr(dataSourceName, "versions.0", kvrx),
@@ -32,8 +32,8 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T) {
-	dataSourceName := "data.azurerm_container_orchestrator_versions.test"
+func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_service_versions.test"
 	location := testLocation()
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
@@ -42,7 +42,7 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMContainerOrchestratorVersions_filtered(location),
+				Config: testAccDataSourceAzureRMKubernetesServiceVersions_filtered(location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "versions.#"),
 					resource.TestMatchResourceAttr(dataSourceName, "versions.0", kvrx),
@@ -54,17 +54,17 @@ func TestAccDataSourceAzureRMContainerOrchestratorVersions_filtered(t *testing.T
 	})
 }
 
-func testAccDataSourceAzureRMContainerOrchestratorVersions_basic(location string) string {
+func testAccDataSourceAzureRMKubernetesServiceVersions_basic(location string) string {
 	return fmt.Sprintf(`
-data "azurerm_container_orchestrator_versions" "test" {
+data "azurerm_kubernetes_service_versions" "test" {
   location = "%s"
 }
 `, location)
 }
 
-func testAccDataSourceAzureRMContainerOrchestratorVersions_filtered(location string) string {
+func testAccDataSourceAzureRMKubernetesServiceVersions_filtered(location string) string {
 	return fmt.Sprintf(`
-data "azurerm_container_orchestrator_versions" "test" {
+data "azurerm_kubernetes_service_versions" "test" {
   location       = "%s"
   version_prefix = "1."
 }

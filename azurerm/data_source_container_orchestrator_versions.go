@@ -42,7 +42,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 	listResp, err := client.ListOrchestrators(ctx, location, "managedClusters")
 	if err != nil {
 		if utils.ResponseWasNotFound(listResp.Response) {
-			return fmt.Errorf("Error: Container Orchestrators not found for location %q", location)
+			return fmt.Errorf("Error: No Kubernetes Service versions found for location %q", location)
 		}
 		return fmt.Errorf("Error retrieving Kubernetes Versions in %q: %+v", location, err)
 	}
