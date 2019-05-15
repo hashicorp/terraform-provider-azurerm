@@ -213,7 +213,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Application Insights WebTest %q was not found in Resource Group %q - removing from state!")
+			log.Printf("[DEBUG] Application Insights WebTest %q was not found in Resource Group %q - removing from state!", name, resGroup)
 			d.SetId("")
 			return nil
 		}
