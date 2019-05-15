@@ -73,43 +73,9 @@ type CosmosDatabaseCollectionID struct {
 	Collection string
 }
 
-func ParseCosmosDatabaseCollectionID(id string) (*CosmosDatabaseCollectionID, error) {
-	subid, err := ParseCosmosDatabaseID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	collection, ok := subid.Path["collections"]
-	if !ok {
-		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Resource ID: collections is missing from: %s", id)
-	}
-
-	return &CosmosDatabaseCollectionID{
-		CosmosDatabaseID: *subid,
-		Collection:       collection,
-	}, nil
-}
-
 type CosmosDatabaseContainerID struct {
 	CosmosDatabaseID
 	Container string
-}
-
-func ParseCosmosDatabaseContainerID(id string) (*CosmosDatabaseContainerID, error) {
-	subid, err := ParseCosmosDatabaseID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	container, ok := subid.Path["containers"]
-	if !ok {
-		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Container Resource ID: containers is missing from: %s", id)
-	}
-
-	return &CosmosDatabaseContainerID{
-		CosmosDatabaseID: *subid,
-		Container:        container,
-	}, nil
 }
 
 type CosmosKeyspaceID struct {
@@ -137,23 +103,6 @@ func ParseCosmosKeyspaceID(id string) (*CosmosKeyspaceID, error) {
 type CosmosKeyspaceTableID struct {
 	CosmosKeyspaceID
 	Table string
-}
-
-func ParseCosmosKeyspaceTableID(id string) (*CosmosKeyspaceTableID, error) {
-	subid, err := ParseCosmosKeyspaceID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	table, ok := subid.Path["tables"]
-	if !ok {
-		return nil, fmt.Errorf("Error: Unable to parse Cosmos Keyspace Table Resource ID: tables is missing from: %s", id)
-	}
-
-	return &CosmosKeyspaceTableID{
-		CosmosKeyspaceID: *subid,
-		Table:            table,
-	}, nil
 }
 
 type CosmosTableID struct {
