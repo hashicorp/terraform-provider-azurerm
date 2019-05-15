@@ -175,7 +175,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error making Read request for Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
