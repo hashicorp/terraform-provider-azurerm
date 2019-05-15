@@ -41,6 +41,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values [GH-3385]
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
+* `azurerm_application_gateway` prevent a potential panic in backend and probe validation [GH-3438]
 * `azurerm_eventhub` - decrease minimum `partition_count` to correct value of `1` [GH-3439]
 * `azurerm_eventhub_namespace` - decrease maximum `maximum_throughput_units` to correct value of `20` [GH-3440]
 * `azurerm_firewall` - ensuring that the value for `subnet_id` within the `ip_configuration` block has the name `AzureFirewallSubnet` [GH-3406]
