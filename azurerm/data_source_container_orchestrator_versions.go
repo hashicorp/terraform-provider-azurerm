@@ -38,7 +38,7 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	}
 }
 
-func dataArmSourceContainerOrchestratorVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
