@@ -41,6 +41,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values [GH-3385]
 * `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time [GH-3286]
+* `azurerm_eventhub_namespace` - increase maximum `maximum_throughput_units` to 100 [GH-3440]
 * `azurerm_firewall` - ensuring that the value for `subnet_id` within the `ip_configuration` block has the name `AzureFirewallSubnet` [GH-3406]
 * `azurerm_redis_configuration` - correctly display http errors encoutered during creation [GH-3397]
 * `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API [GH-3137]
@@ -177,9 +178,9 @@ IMPROVEMENTS:
 * `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties ([#3071](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3071))
 * `azurerm_container_group` - support for attaching GPU's ([#3053](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3053))
 * `azurerm_eventhub` - support for the `skip_empty_archives` property ([#3074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3074))
-* `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
+* `azurerm_eventhub_namespace` - increase maximum `maximum_throughput_units` to 100 ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` ([#3043](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3043))
-* `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
+* `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type ([#2951](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2951))
 * `azurerm_image` - support for the `zone_resilient` property ([#3100](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3100))
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property ([#2987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2987))
 * `azurerm_key_vault` - support for the `storage_permissions` property ([#3081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3081))
