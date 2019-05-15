@@ -484,22 +484,6 @@ func (cc ClusterConfigurations) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ClusterConfigurations the configuration object for the specified cluster.
-type ClusterConfigurations struct {
-	autorest.Response `json:"-"`
-	// Configurations - The configuration object for the specified configuration for the specified cluster.
-	Configurations map[string]map[string]*string `json:"configurations"`
-}
-
-// MarshalJSON is the custom marshaler for ClusterConfigurations.
-func (cc ClusterConfigurations) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if cc.Configurations != nil {
-		objectMap["configurations"] = cc.Configurations
-	}
-	return json.Marshal(objectMap)
-}
-
 // ClusterCreateParametersExtended the CreateCluster request parameters.
 type ClusterCreateParametersExtended struct {
 	// Location - The location of the cluster.
