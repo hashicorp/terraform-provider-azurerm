@@ -52,6 +52,13 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 			// SDK shardkey doesn't seem to work. Send the exact same data across the wire and we get:
 			// The partition key component definition path ''$v'\\\\/akey\\\\/'$v'' could not be accepted, failed near position '0'.
 
+			"shard_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose it
 			"default_ttl_seconds": {
 				Type:     schema.TypeInt,
@@ -119,7 +126,7 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 				ID:      &name,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
 				/*ShardKey: map[string]*string{ // errors
-					"akey": utils.String("Hash"),
+					"seven": utils.String("Hash"), // looks like only hash is supported for now
 				},*/
 			},
 			Options: map[string]*string{},
@@ -177,9 +184,11 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 
 		// the API returns index data, but the SDK ignores it?? so lets too
 		// looks like they are using key.keys rather then key.key returned by the API
-		/*if err := d.Set("indexes", flattenCosmosMongoCollectionIndexes(props.Indexes)); err != nil {
+		if err := d.Set("indexes", flattenCosmosMongoCollectionIndexes(props.Indexes)); err != nil {
 			return fmt.Errorf("Error setting `indexes`: %+v", err)
-		}*/
+		}
+
+		//get shard key
 	}
 
 	return nil
@@ -259,7 +268,7 @@ func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *[]ma
 				k := (*keys)[0]
 
 				if !strings.HasPrefix(k, "_") { // lets ignore system properties?
-					m["keys"] = k
+					m["key"] = k
 
 					// only append indexes with a non system key
 					slice = append(slice, m)

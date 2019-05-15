@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -49,8 +50,67 @@ func resourceArmCosmosCassandraTable() *schema.Resource {
 			},
 
 			"default_ttl_seconds": {
-				Type:     schema.TypeInt,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
+			"schema": {
+				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"columns": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+
+						"cluster_keys": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"order_by": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+
+						"partition_keys": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -88,6 +148,10 @@ func resourceArmCosmosCassandraTableCreateUpdate(d *schema.ResourceData, meta in
 			},
 			Options: map[string]*string{},
 		},
+	}
+
+	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
+		db.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(v.(int)))
 	}
 
 	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, db)

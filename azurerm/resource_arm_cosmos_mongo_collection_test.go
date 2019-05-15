@@ -231,6 +231,7 @@ resource "azurerm_cosmos_mongo_collection" "test" {
   database_name       = "${azurerm_cosmos_mongo_database.test.name}"
 
   default_ttl_seconds = 707
+  shard_key           = "seven"
 
   indexes {
     key = "seven"
@@ -260,6 +261,7 @@ resource "azurerm_cosmos_mongo_collection" "test" {
   database_name       = "${azurerm_cosmos_mongo_database.test.name}"
 
   default_ttl_seconds = 70707
+  shard_key           = "days"
 
   indexes {
     key    = "seven"
@@ -267,7 +269,8 @@ resource "azurerm_cosmos_mongo_collection" "test" {
   }
 
   indexes {
-    key = "day"
+    key    = "day"
+    unique = true
   }
 
   indexes {
@@ -283,9 +286,9 @@ func testAccAzureRMCosmosMongoCollection_debug(rInt int, location string) string
 
 resource "azurerm_cosmos_mongo_collection" "test" {
   name                = "seven-day-tables-cola"
-  resource_group_name = "kt-cosmos-201904"
+  resource_group_name = "kt-cosmos-201905"
   account_name        = "kt-cosmos-mongo"
-  database_name       = "SevenDayDBs"
+  database_name       = "SevenDayDBs22"
 
   default_ttl_seconds = 10000
 
@@ -307,7 +310,7 @@ func testAccAzureRMCosmosMongoCollection_debug2(rInt int, location string) strin
 
 resource "azurerm_cosmos_mongo_collection" "test" {
   name                = "seven-day-tables-more123ugg"
-  resource_group_name = "kt-cosmos-201904"
+  resource_group_name = "kt-cosmos-201905"
   account_name        = "kt-cosmos-mongo"
   database_name       = "SevenDayDBs"
 
