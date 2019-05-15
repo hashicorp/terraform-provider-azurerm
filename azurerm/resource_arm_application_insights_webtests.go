@@ -112,11 +112,6 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"provisioning_state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -147,7 +142,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_insights_webTests", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_application_insights_web_tests", *existing.ID)
 		}
 	}
 
@@ -158,7 +153,8 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	timeout := int32(d.Get("timeout").(int))
 	isEnabled := d.Get("enabled").(bool)
 	retryEnabled := d.Get("retry_enabled").(bool)
-	geoLocations := extractGeoLocations(d)
+	geoLocationsRaw := d.Get("geo_locations").([]interface{})
+	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
 	testConf := d.Get("test_configuration").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
@@ -220,10 +216,8 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights WebTests '%s': %+v", name, err)
+		return fmt.Errorf("Error retrieving Application Insights WebTests %q (Resource Group %q): %+v", name, resGroup, err)
 	}
-
-	log.Printf("[DEBUG] AzureRM Application Insights WebTests name '%s'", name)
 
 	appInsightsId := ""
 	tags := resp.Tags
@@ -233,16 +227,12 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 	d.Set("application_insights_id", appInsightsId)
-
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
-	}
-
-	if kind := resp.Kind; kind != "" {
-		d.Set("kind", resp.Kind)
 	}
 
 	if props := resp.WebTestProperties; props != nil {
@@ -253,15 +243,15 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		d.Set("timeout", props.Timeout)
 		d.Set("retry_enabled", props.RetryEnabled)
 		d.Set("configuration", props.Configuration)
-		d.Set("provisioning_state", props.ProvisioningState)
-		d.Set("test_configuration", props.Configuration.WebTest)
 
-		if err := d.Set("geo_locations", flattenGeoLocations(props.Locations)); err != nil {
+		if config := props.Configuration; props != nil {
+			d.Set("test_configuration", config.WebTest)
+		}
+
+		if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
 			return fmt.Errorf("Error setting `geo_locations`: %+v", err)
 		}
 	}
-
-	log.Printf("[DEBUG] AzureRM Application Insights WebTests synetheticmonitorid '%s'", d.Get("synthetic_monitor_id"))
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -292,12 +282,11 @@ func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta i
 	return err
 }
 
-func extractGeoLocations(d *schema.ResourceData) []insights.WebTestGeolocation {
-	geoLocations := d.Get("geo_locations").([]interface{})
+func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []insights.WebTestGeolocation {
 	locations := make([]insights.WebTestGeolocation, 0)
 
-	for _, location := range geoLocations {
-		lc := location.(string)
+	for _, v := range input {
+		lc := v.(string)
 		loc := insights.WebTestGeolocation{
 			Location: &lc,
 		}
@@ -307,7 +296,7 @@ func extractGeoLocations(d *schema.ResourceData) []insights.WebTestGeolocation {
 	return locations
 }
 
-func flattenGeoLocations(input *[]insights.WebTestGeolocation) []string {
+func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeolocation) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results

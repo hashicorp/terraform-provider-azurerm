@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
-	resourceName := "azurerm_application_insights_webtest.test"
+	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation())
 
@@ -24,7 +24,6 @@ func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provisioning_state", "Succeeded"),
 				),
 			},
 			{
@@ -37,7 +36,7 @@ func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
-	resourceName := "azurerm_application_insights_webtest.test"
+	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +48,6 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provisioning_state", "Succeeded"),
 				),
 			},
 			{
@@ -62,8 +60,9 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
-	resourceName := "azurerm_application_insights_webtest.test"
+	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,30 +70,27 @@ func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation()),
+				Config: testAccAzureRMApplicationInsightsWebTests_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provisioning_state", "Succeeded"),
 					resource.TestCheckResourceAttr(resourceName, "geo_locations.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "frequency", "300"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "30"),
 				),
 			},
 			{
-				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, testLocation()),
+				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provisioning_state", "Succeeded"),
 					resource.TestCheckResourceAttr(resourceName, "geo_locations.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "frequency", "900"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "120"),
 				),
 			},
 			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation()),
+				Config: testAccAzureRMApplicationInsightsWebTests_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provisioning_state", "Succeeded"),
 					resource.TestCheckResourceAttr(resourceName, "geo_locations.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "frequency", "300"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "30"),
@@ -110,9 +106,10 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_application_insights_webtest.test"
+	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation())
+	location := testLocation()
+	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -126,8 +123,8 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMApplicationInsightsWebTests_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_application_insights_webtest"),
+				Config:      testAccAzureRMApplicationInsightsWebTests_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_application_insights_web_test"),
 			},
 		},
 	})
@@ -138,7 +135,7 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_application_insights_webtest" {
+		if rs.Type != "azurerm_application_insights_web_test" {
 			continue
 		}
 
@@ -147,7 +144,7 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 		if err != nil {
 			return err
 		}
-		resGroup := id.ResourceGroup
+		resGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resGroup, name)
 
@@ -176,7 +173,7 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 		if err != nil {
 			return err
 		}
-		resGroup := id.ResourceGroup
+		resGroup := rs.Primary.Attributes["resource_group_name"]
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -207,7 +204,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_webtest" "test" {
+resource "azurerm_application_insights_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
@@ -240,7 +237,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_webtest" "test" {
+resource "azurerm_application_insights_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
@@ -267,9 +264,9 @@ func testAccAzureRMApplicationInsightsWebTests_requiresImport(rInt int, location
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_application_insights_webtest" "import" {
-  name                    = "${azurerm_application_insights_webtest.test.name}"
-  application_insights_id = "${azurerm_application_insights_webtest.test.application_insights_id}"
+resource "azurerm_application_insights_web_test" "import" {
+  name                    = "${azurerm_application_insights_web_test.test.name}"
+  application_insights_id = "${azurerm_application_insights_web_test.test.application_insights_id}"
 }
 `, template)
 }
