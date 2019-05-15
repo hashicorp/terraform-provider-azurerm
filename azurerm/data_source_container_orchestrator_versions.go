@@ -16,11 +16,6 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"location": locationSchema(),
-			"orchestrator_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Kubernetes",
-			},
 			"version_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -43,7 +38,6 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 	ctx := meta.(*ArmClient).StopContext
 
 	location := d.Get("location").(string)
-	ot := d.Get("orchestrator_type").(string)
 
 	listResp, err := client.ListOrchestrators(ctx, location, "managedClusters")
 	if err != nil {
@@ -53,18 +47,17 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error retrieving Kubernetes Versions in %q: %+v", location, err)
 	}
 
-	bv, err := version.NewVersion("0.0.0")
+	lv, err := version.NewVersion("0.0.0")
 	if err != nil {
 		return fmt.Errorf("Cannot set version baseline (likely an issue in go-version): %+v", err)
 	}
-	lv := bv
 	versions := []string{}
 	for _, rawV := range *listResp.Orchestrators {
 		if rawV.OrchestratorType != nil && rawV.OrchestratorVersion != nil {
-			if !strings.HasPrefix(*rawV.OrchestratorVersion, d.Get("version_prefix").(string)) {
-				continue
-			}
-			if *rawV.OrchestratorType == ot {
+			if *rawV.OrchestratorType == "Kubernetes" {
+				if !strings.HasPrefix(*rawV.OrchestratorVersion, d.Get("version_prefix").(string)) {
+					continue
+				}
 				versions = append(versions, *rawV.OrchestratorVersion)
 				v, err := version.NewVersion(*rawV.OrchestratorVersion)
 				if err != nil {
@@ -79,9 +72,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 	}
 	d.SetId(*listResp.ID)
 	d.Set("versions", versions)
-	if lv.GreaterThan(bv) {
-		d.Set("latest_version", lv.Original())
-	}
+	d.Set("latest_version", lv.Original())
 
 	return nil
 }
