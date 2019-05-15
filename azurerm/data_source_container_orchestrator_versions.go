@@ -50,7 +50,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 		if utils.ResponseWasNotFound(listResp.Response) {
 			return fmt.Errorf("Error: Container Orchestrators not found for location %q", location)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Container Service %q: %+v", location, err)
+		return fmt.Errorf("Error retrieving Kubernetes Versions in %q: %+v", location, err)
 	}
 
 	bv, err := version.NewVersion("0.0.0")
