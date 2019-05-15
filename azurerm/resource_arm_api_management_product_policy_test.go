@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -111,7 +112,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 
 		conn := testAccProvider.Meta().(*ArmClient).apiManagementProductPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
+		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Product Policy (API Management Service %q / Product %q/  Resource Group %q) does not exist", serviceName, productID, resourceGroup)
@@ -136,7 +137,7 @@ func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
+		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

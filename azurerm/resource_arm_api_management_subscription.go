@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
@@ -110,9 +110,11 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName: utils.String(displayName),
-			ProductID:   utils.String(productId),
 			State:       apimanagement.SubscriptionState(state),
-			UserID:      utils.String(userId),
+			OwnerID:     utils.String(userId),
+
+			// TODO: deprecate this in favour of `scope`
+			Scope: utils.String(productId),
 		},
 	}
 
@@ -172,8 +174,10 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("primary_key", props.PrimaryKey)
 		d.Set("secondary_key", props.SecondaryKey)
 		d.Set("state", string(props.State))
-		d.Set("product_id", props.ProductID)
-		d.Set("user_id", props.UserID)
+		d.Set("user_id", props.OwnerID)
+
+		// TODO: deprecate this in favour of `scope`.
+		d.Set("product_id", props.Scope)
 	}
 
 	return nil

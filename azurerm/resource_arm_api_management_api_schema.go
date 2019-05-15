@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -70,8 +70,8 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 
 	contentType := d.Get("content_type").(string)
 	value := d.Get("value").(string)
-	parameters := apimanagement.SchemaContract{
-		SchemaContractProperties: &apimanagement.SchemaContractProperties{
+	parameters := apimanagement.SchemaCreateOrUpdateContract{
+		SchemaCreateOrUpdateProperties: &apimanagement.SchemaCreateOrUpdateProperties{
 			ContentType: &contentType,
 			SchemaDocumentProperties: &apimanagement.SchemaDocumentProperties{
 				Value: &value,
@@ -126,8 +126,12 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
-		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
-			d.Set("value", documentProperties.Value)
+		if documentProperties := properties.Document; documentProperties != nil {
+			// TODO: file a bug about the Swagger being broken forcing this
+			docProps, ok := documentProperties.(apimanagement.SchemaDocumentProperties)
+			if ok {
+				d.Set("value", docProps.Value)
+			}
 		}
 	}
 
@@ -147,7 +151,8 @@ func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interf
 	apiName := id.Path["apis"]
 	schemaID := id.Path["schemas"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, ""); err != nil {
+	force := false
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, "", &force); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 		}
