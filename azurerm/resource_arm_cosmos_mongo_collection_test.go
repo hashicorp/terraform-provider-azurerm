@@ -237,10 +237,11 @@ resource "azurerm_cosmos_mongo_collection" "test" {
   database_name       = "${azurerm_cosmos_mongo_database.test.name}"
 
   default_ttl_seconds = 707
-  shard_key           = "seven"
+  shard_key           = "day"
 
   indexes {
-    key = "seven"
+    key    = "seven"
+	unique = false
   }
 
   indexes {
@@ -266,7 +267,7 @@ resource "azurerm_cosmos_mongo_collection" "test" {
 
   indexes {
     key    = "seven"
-    unique = false
+    unique = true
   }
 
   indexes {

@@ -80,7 +80,7 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 							Default:  true, // portal defaults to true
 						},
 
-						// expire_after_seconds seem to always cause a 400: Unable to parse request payload so leaving it out.
+						// expire_after_seconds is only allowed on `_ts`:
 						// Unable to parse request payload due to the following reason: 'The 'expireAfterSeconds' option is supported on '_ts' field only.
 					},
 				},
@@ -229,10 +229,9 @@ func resourceArmCosmosMongoCollectionDelete(d *schema.ResourceData, meta interfa
 }
 
 func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
-	inputs := input.([]interface{})
 	outputs := make([]documentdb.MongoIndex, 0)
 
-	for _, i := range inputs {
+	for _, i := range input.(*schema.Set).List() {
 		b := i.(map[string]interface{})
 		outputs = append(outputs, documentdb.MongoIndex{
 			Key: &documentdb.MongoIndexKeys{
