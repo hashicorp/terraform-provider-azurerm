@@ -49,9 +49,7 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			// SDK shardkey doesn't seem to work. Send the exact same data across the wire and we get:
-			// The partition key component definition path ''$v'\\\\/akey\\\\/'$v'' could not be accepted, failed near position '0'.
-
+			// SDK/api accepts an array.. but only one is allowed
 			"shard_key": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -59,14 +57,14 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose it
+			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
 
 			"indexes": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -82,7 +80,8 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 							Default:  true, // portal defaults to true
 						},
 
-						// expire_after_seconds seem to always cause a 400: Unable to parse request payload so leaving itout.
+						// expire_after_seconds seem to always cause a 400: Unable to parse request payload so leaving it out.
+						// Unable to parse request payload due to the following reason: 'The 'expireAfterSeconds' option is supported on '_ts' field only.
 					},
 				},
 			},
@@ -125,12 +124,15 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
-				/*ShardKey: map[string]*string{ // errors
-					"seven": utils.String("Hash"), // looks like only hash is supported for now
-				},*/
 			},
 			Options: map[string]*string{},
 		},
+	}
+
+	if v, ok := d.GetOkExists("shard_key"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{ // errors
+			v.(string): utils.String("Hash"), // looks like only hash is supported for now
+		}
 	}
 
 	future, err := client.CreateUpdateMongoDBCollection(ctx, resourceGroup, account, database, name, db)
@@ -182,13 +184,21 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 		d.Set("account_name", id.Account)
 		d.Set("database_name", id.Database)
 
-		// the API returns index data, but the SDK ignores it?? so lets too
-		// looks like they are using key.keys rather then key.key returned by the API
-		if err := d.Set("indexes", flattenCosmosMongoCollectionIndexes(props.Indexes)); err != nil {
+		// you can only have one
+		if len(props.ShardKey) > 2 {
+			return fmt.Errorf("enexpected number of shard keys: %d", len(props.ShardKey))
+		}
+
+		for k := range props.ShardKey {
+			d.Set("shard_key", k)
+		}
+
+		indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
+		d.Set("default_ttl_seconds", ttl)
+		if err := d.Set("indexes", indexes); err != nil {
 			return fmt.Errorf("Error setting `indexes`: %+v", err)
 		}
 
-		//get shard key
 	}
 
 	return nil
@@ -230,7 +240,6 @@ func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]d
 			},
 			Options: &documentdb.MongoIndexOptions{
 				Unique: utils.Bool(b["unique"].(bool)),
-				//ExpireAfterSeconds: utils.Int32(100), //404 if this is set to anything aside from the _ts field
 			},
 		})
 	}
@@ -241,7 +250,7 @@ func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]d
 				Keys: &[]string{"_ts"},
 			},
 			Options: &documentdb.MongoIndexOptions{
-				ExpireAfterSeconds: utils.Int32(100),
+				ExpireAfterSeconds: utils.Int32(int32(*defaultTtl)),
 			},
 		})
 	}
@@ -249,12 +258,14 @@ func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]d
 	return &outputs
 }
 
-func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *[]map[string]interface{} {
+func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) (*[]map[string]interface{}, *int) {
 	slice := make([]map[string]interface{}, 0)
 
+	var ttl int
 	for _, i := range *indexes {
 		if key := i.Key; key != nil {
 			m := map[string]interface{}{}
+			var ttlInner int32
 
 			if options := i.Options; options != nil {
 				if v := options.Unique; v != nil {
@@ -262,20 +273,28 @@ func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *[]ma
 				} else {
 					m["unique"] = false // todo required? API sends back nothing for false
 				}
+
+				if v := options.ExpireAfterSeconds; v != nil {
+					ttlInner = *v
+				}
 			}
 
 			if keys := key.Keys; keys != nil && len(*keys) > 0 {
 				k := (*keys)[0]
 
-				if !strings.HasPrefix(k, "_") { // lets ignore system properties?
+				if !strings.HasPrefix(k, "_") && k != "DocumentDBDefaultIndex" { // lets ignore system properties?
 					m["key"] = k
 
 					// only append indexes with a non system key
 					slice = append(slice, m)
 				}
+
+				if k == "_ts" {
+					ttl = int(ttlInner)
+				}
 			}
 		}
 	}
 
-	return &slice
+	return &slice, &ttl
 }

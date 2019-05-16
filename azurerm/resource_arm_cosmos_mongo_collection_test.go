@@ -135,6 +135,12 @@ func TestAccAzureRMCosmosMongoCollection_debug(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMCosmosMongoCollection_debug2(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosMongoCollectionExists(resourceName),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -239,13 +245,9 @@ resource "azurerm_cosmos_mongo_collection" "test" {
 
   indexes {
     key    = "day"
-    unique = false
+    unique = true
   }
 
-  indexes {
-    key    = "fool"
-    unique = false
-  }
 }
 `, testAccAzureRMCosmosMongoDatabase_basic(rInt, location), rInt)
 }
@@ -261,7 +263,6 @@ resource "azurerm_cosmos_mongo_collection" "test" {
   database_name       = "${azurerm_cosmos_mongo_database.test.name}"
 
   default_ttl_seconds = 70707
-  shard_key           = "days"
 
   indexes {
     key    = "seven"
@@ -270,11 +271,12 @@ resource "azurerm_cosmos_mongo_collection" "test" {
 
   indexes {
     key    = "day"
-    unique = true
+    unique = false
   }
 
   indexes {
-    key = "fools"
+    key    = "fool"
+    unique = false
   }
 }
 `, testAccAzureRMCosmosMongoDatabase_basic(rInt, location), rInt)
@@ -285,21 +287,24 @@ func testAccAzureRMCosmosMongoCollection_debug(rInt int, location string) string
 
 
 resource "azurerm_cosmos_mongo_collection" "test" {
-  name                = "seven-day-tables-cola"
+  name                = "seven-day-tables-colu"
   resource_group_name = "kt-cosmos-201905"
   account_name        = "kt-cosmos-mongo"
-  database_name       = "SevenDayDBs22"
+  database_name       = "SevenDayDBs"
 
-  default_ttl_seconds = 10000
+ default_ttl_seconds = 707
+  shard_key           = "day"
 
   indexes {
     key = "seven"
-    unique = false
+unique = false
   }
 
   indexes {
-    key = "seven11"
+    key    = "day"
+    unique = true
   }
+ 
 }
 `)
 }
@@ -309,14 +314,26 @@ func testAccAzureRMCosmosMongoCollection_debug2(rInt int, location string) strin
 
 
 resource "azurerm_cosmos_mongo_collection" "test" {
-  name                = "seven-day-tables-more123ugg"
+  name                = "seven-day-tables-colu"
   resource_group_name = "kt-cosmos-201905"
   account_name        = "kt-cosmos-mongo"
   database_name       = "SevenDayDBs"
 
+  default_ttl_seconds = 70707
+
   indexes {
-    key = "seven"
-	unique = false
+    key    = "seven"
+    unique = true
+  }
+
+  indexes {
+    key    = "day"
+    unique = false
+  }
+
+  indexes {
+    key    = "fool"
+    unique = false
   }
 }
 `)
