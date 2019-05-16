@@ -388,9 +388,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, rInt, location, rInt)
 }
@@ -411,9 +409,7 @@ resource "azurerm_app_service_plan" "import" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, template)
 }
@@ -520,10 +516,8 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    per_site_scaling = true
-    reserved         = false
-  }
+  per_site_scaling = true
+  reserved         = false
 
   tags = {
     environment = "Test"
