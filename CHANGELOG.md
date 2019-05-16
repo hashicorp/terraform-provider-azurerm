@@ -17,6 +17,7 @@ FEATURES:
 * **New Resource:** `azurerm_api_management_schema` [GH-3357]
 * **New Resource:** `azurerm_cosmosdb_table` [GH-3442]
 * **New Resource:** `azurerm_cosmosdb_cassandra_keyspace` [GH-3442]
+* **New Resource:(( `azurerm_cosmosdb_mongo_collection` [GH-3459]
 * **New Resource:** `azurerm_cosmosdb_mongo_database` [GH-3442]
 * **New Resource:** `azurerm_cosmosdb_sql_database` [GH-3442]
 * **New Resource:** `azurerm_firewall_nat_rule_collection` [GH-3218]
