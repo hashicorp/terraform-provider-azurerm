@@ -236,6 +236,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_container_service":                                  resourceArmContainerService(),
 			"azurerm_cosmosdb_account":                                   resourceArmCosmosDbAccount(),
 			"azurerm_cosmosdb_cassandra_keyspace":                        resourceArmCosmosDbCassandraKeyspace(),
+			"azurerm_cosmosdb_mongo_collection":                          resourceArmCosmosDbMongoCollection(),
 			"azurerm_cosmosdb_mongo_database":                            resourceArmCosmosDbMongoDatabase(),
 			"azurerm_cosmosdb_sql_database":                              resourceArmCosmosDbSQLDatabase(),
 			"azurerm_cosmosdb_table":                                     resourceArmCosmosDbTable(),

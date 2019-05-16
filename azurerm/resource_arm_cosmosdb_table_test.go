@@ -11,19 +11,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosTable_basic(t *testing.T) {
+func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosTableDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosTable_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbTable_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosTableExists(resourceName),
+					testCheckAzureRMCosmosDbTableExists(resourceName),
 				),
 			},
 			{
@@ -35,7 +35,7 @@ func TestAccAzureRMCosmosTable_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosTableDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -63,7 +63,7 @@ func testCheckAzureRMCosmosTableDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMCosmosTableExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -91,7 +91,7 @@ func testCheckAzureRMCosmosTableExists(resourceName string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMCosmosTable_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbTable_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
