@@ -44,7 +44,7 @@ The following attributes are exported:
 
 ## Import
 
-Cosmos Mongo KeySpace can be imported using the `resource id`, e.g.
+Cosmos Mongo Database can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_mongo_database.db1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/mongodb/databases/db1

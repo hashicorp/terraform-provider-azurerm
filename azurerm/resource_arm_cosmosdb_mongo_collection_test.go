@@ -14,7 +14,6 @@ import (
 func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
-	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,9 +24,6 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
-					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
 				),
 			},
 			{
@@ -42,7 +38,6 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
-	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,9 +48,9 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
-					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
+					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
+					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
+					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
 				),
 			},
 			{
@@ -70,7 +65,6 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
-	rn := fmt.Sprintf("acctest-%[1]d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -81,19 +75,15 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
-					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
 				),
 			},
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
-					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
-					//todo check set values when the SDK actually reads them
+					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
+					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
+					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
 				),
 			},
 			{
@@ -105,9 +95,8 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_updated(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
-					resource.TestCheckResourceAttr(resourceName, "database_name", rn),
+					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
+					resource.TestCheckResourceAttr(resourceName, "indexes.#", "3"),
 				),
 			},
 			{
@@ -123,7 +112,7 @@ func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	for rn, rs := range s.RootModule().Resources {
+	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_mongo_collection" {
 			continue
 		}
@@ -183,9 +172,9 @@ func testAccAzureRMCosmosDbMongoCollection_basic(rInt int, location string) stri
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
+  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
 }
@@ -196,9 +185,9 @@ func testAccAzureRMCosmosDbMongoCollection_complete(rInt int, location string) s
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
+  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 
   default_ttl_seconds = 707
   shard_key           = "day"
@@ -223,9 +212,9 @@ func testAccAzureRMCosmosDbMongoCollection_updated(rInt int, location string) st
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmos_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmos_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmos_mongo_database.test.name}"
+  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
+  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 
   default_ttl_seconds = 70707
 
