@@ -1,0 +1,46 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_cosmos_cassandra_keyspace"
+sidebar_current: "docs-azurerm-resource-cosmos-cassandra-keyspace"
+description: |-
+  Manages a Cosmos Cassandra KeySpace.
+---
+
+# azurerm_cosmos_cassandra_keyspace
+
+Manages a Cosmos Cassandra KeySpace.
+
+## Example Usage
+
+```hcl
+resource "azurerm_cosmos_cassandra_keyspace" "keyspace" {
+  name                = "tfex-cosmos-cassandra-keyspace"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  account_name        = "${azurerm_cosmosdb_account.account.name}"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the Cosmos Cassandra KeySpace. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Cosmos Cassandra KeySpace is created. Changing this forces a new resource to be created.
+
+* `account_name` - (Required) The name of the Cosmos Cassandra KeySpace to create the table within. Changing this forces a new resource to be created.
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The Cosmos Cassandra KeySpace ID.
+
+## Import
+
+Cosmos Cassandra KeySpace can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_cosmos_cassandra_keyspace.ks1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/cassandra/keyspaces/ks1
+```
