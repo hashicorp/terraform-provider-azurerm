@@ -24,10 +24,6 @@ func TestAccAzureRMFirewallNatRuleCollection_basic(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
 			},
 			{
@@ -83,25 +79,23 @@ func TestAccAzureRMFirewallNatRuleCollection_updatedName(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.name", "rule1"),
-					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.translated_address", "53"),
-					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.translated_port", "8.8.8.8"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_updatedName(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rule.1700340761.name", "rule2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -122,37 +116,36 @@ func TestAccAzureRMFirewallNatRuleCollection_multipleRuleCollections(t *testing.
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
-					resource.TestCheckResourceAttr(firstRule, "action", "Dnat"),
-					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      firstRule,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
-					resource.TestCheckResourceAttr(firstRule, "action", "Dnat"),
-					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
 					testCheckAzureRMFirewallNatRuleCollectionExists(secondRule),
-					resource.TestCheckResourceAttr(secondRule, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(secondRule, "priority", "200"),
-					resource.TestCheckResourceAttr(secondRule, "action", "Snat"),
-					resource.TestCheckResourceAttr(secondRule, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      firstRule,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(firstRule),
-					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
-					resource.TestCheckResourceAttr(firstRule, "action", "Dnat"),
-					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
 					testCheckAzureRMFirewallNatRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
 				),
+			},
+			{
+				ResourceName:      firstRule,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -173,31 +166,25 @@ func TestAccAzureRMFirewallNatRuleCollection_update(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(firstResourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(firstResourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
 					testCheckAzureRMFirewallNatRuleCollectionExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(secondResourceName, "priority", "200"),
-					resource.TestCheckResourceAttr(secondResourceName, "action", "Snat"),
-					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_multipleUpdate(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(firstResourceName, "priority", "300"),
-					resource.TestCheckResourceAttr(firstResourceName, "action", "Snat"),
-					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
 					testCheckAzureRMFirewallNatRuleCollectionExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(secondResourceName, "priority", "400"),
-					resource.TestCheckResourceAttr(secondResourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -217,10 +204,6 @@ func TestAccAzureRMFirewallNatRuleCollection_disappears(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
@@ -243,31 +226,34 @@ func TestAccAzureRMFirewallNatRuleCollection_multipleRules(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_multipleRules(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -287,21 +273,23 @@ func TestAccAzureRMFirewallNatRuleCollection_updateFirewallTags(t *testing.T) {
 				Config: testAccAzureRMFirewallNatRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMFirewallNatRuleCollection_updateFirewallTags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNatRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Dnat"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -418,7 +406,7 @@ func testAccAzureRMFirewallNatRuleCollection_basic(rInt int, location string) st
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -436,7 +424,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -447,7 +435,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 		translated_address = "8.8.8.8"
   }
 }
-`, template)
+`, template, rInt)
 }
 
 func testAccAzureRMFirewallNatRuleCollection_requiresImport(rInt int, location string) string {
@@ -474,7 +462,7 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -494,7 +482,7 @@ func testAccAzureRMFirewallNatRuleCollection_updatedName(rInt int, location stri
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -512,7 +500,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -523,7 +511,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 		translated_address = "8.8.8.8"
   }
 }
-`, template)
+`, template, rInt)
 }
 
 func testAccAzureRMFirewallNatRuleCollection_multiple(rInt int, location string) string {
@@ -532,7 +520,7 @@ func testAccAzureRMFirewallNatRuleCollection_multiple(rInt int, location string)
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -550,7 +538,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -563,11 +551,11 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 }
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
-  name                = "acctestnrc_add"
+  name                = "acctestnrc_add-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 200
-  action              = "Snat"
+  action              = "Dnat"
 
   rule {
     name = "acctestruleadd"
@@ -581,7 +569,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     ]
 
     destination_addresses = [
-      "8.8.4.4",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -592,7 +580,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 		translated_address = "8.8.4.4"
   }
 }
-`, template)
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMFirewallNatRuleCollection_multipleUpdate(rInt int, location string) string {
@@ -601,11 +589,11 @@ func testAccAzureRMFirewallNatRuleCollection_multipleUpdate(rInt int, location s
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 300
-  action              = "Snat"
+  action              = "Dnat"
 
   rule {
     name = "acctestrule"
@@ -619,7 +607,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -632,7 +620,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 }
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
-  name                = "acctestnrc_add"
+  name                = "acctestnrc_add-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 400
@@ -650,7 +638,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     ]
 
     destination_addresses = [
-      "8.8.4.4",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -661,7 +649,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 		translated_address = "10.0.0.1"
   }
 }
-`, template)
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMFirewallNatRuleCollection_multipleRules(rInt int, location string) string {
@@ -670,7 +658,7 @@ func testAccAzureRMFirewallNatRuleCollection_multipleRules(rInt int, location st
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -688,7 +676,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -711,7 +699,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "1.1.1.1",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -722,7 +710,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 		translated_address = "192.168.0.1"
   }
 }
-`, template)
+`, template, rInt)
 }
 
 func testAccAzureRMFirewallNatRuleCollection_updateFirewallTags(rInt int, location string) string {
@@ -731,7 +719,7 @@ func testAccAzureRMFirewallNatRuleCollection_updateFirewallTags(rInt int, locati
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
-  name                = "acctestnrc"
+  name                = "acctestnrc-%d"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 100
@@ -749,7 +737,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
+      "${azurerm_public_ip.test.ip_address}",
     ]
 
     protocols = [
@@ -760,5 +748,5 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 		translated_address = "10.0.0.1"
   }
 }
-`, template)
+`, template, rInt)
 }
