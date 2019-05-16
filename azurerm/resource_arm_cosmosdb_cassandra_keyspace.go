@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosCassandraKeyspace() *schema.Resource {
+func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosCassandraKeyspaceCreate,
-		Read:   resourceArmCosmosCassandraKeyspaceRead,
-		Delete: resourceArmCosmosCassandraKeyspaceDelete,
+		Create: resourceArmCosmosDbCassandraKeyspaceCreate,
+		Read:   resourceArmCosmosDbCassandraKeyspaceRead,
+		Delete: resourceArmCosmosDbCassandraKeyspaceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,7 +43,7 @@ func resourceArmCosmosCassandraKeyspace() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -63,7 +63,7 @@ func resourceArmCosmosCassandraKeyspaceCreate(d *schema.ResourceData, meta inter
 				return fmt.Errorf("Error generating import ID for Cosmos Cassandra Keyspace '%s' (Account %s)", name, account)
 			}
 
-			return tf.ImportAsExistsError("azurerm_cosmos_cassandra_keyspace", id)
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", id)
 		}
 	}
 
@@ -92,14 +92,14 @@ func resourceArmCosmosCassandraKeyspaceCreate(d *schema.ResourceData, meta inter
 
 	id, err := azure.CosmosGetIDFromResponse(resp.Response)
 	if err != nil {
-		return fmt.Errorf("Error creating Cosmos Cassandra Keyspace '%s' (Account %s) ID: %v", name, account, err)
+		return fmt.Errorf("Error retrieving the ID for Cosmos Cassandra Keyspace '%s' (Account %s) ID: %v", name, account, err)
 	}
 	d.SetId(id)
 
-	return resourceArmCosmosCassandraKeyspaceRead(d, meta)
+	return resourceArmCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceArmCosmosCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -119,16 +119,16 @@ func resourceArmCosmosCassandraKeyspaceRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error reading Cosmos Cassandra Keyspace %s (Account %s): %+v", id.Keyspace, id.Account, err)
 	}
 
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.Account)
 	if props := resp.CassandraKeyspaceProperties; props != nil {
 		d.Set("name", props.ID)
-		d.Set("resource_group_name", id.ResourceGroup)
-		d.Set("account_name", id.Account)
 	}
 
 	return nil
 }
 
-func resourceArmCosmosCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 

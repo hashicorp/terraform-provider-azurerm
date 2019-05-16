@@ -1,7 +1,6 @@
 package tf
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -25,15 +24,4 @@ func AccRandTimeInt() int {
 	}
 
 	return i
-}
-
-func AccCheckResourceAttributes(attributes map[string]string, check ...string) error {
-	for _, a := range check {
-		_, ok := attributes[a]
-		if !ok {
-			return fmt.Errorf("missing %s", a)
-		}
-	}
-
-	return nil
 }

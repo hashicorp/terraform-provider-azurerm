@@ -13,8 +13,7 @@ import (
 
 func TestAccAzureRMCosmosCassandraKeyspace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_cassandra_keyspace.test"
-	rn := fmt.Sprintf("acctest-%[1]d", ri)
+	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,8 +24,6 @@ func TestAccAzureRMCosmosCassandraKeyspace_basic(t *testing.T) {
 				Config: testAccAzureRMCosmosCassandraKeyspace_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosCassandraKeyspaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
 				),
 			},
 			{
@@ -42,14 +39,11 @@ func testCheckAzureRMCosmosCassandraKeyspaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	for rn, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmos_cassandra_keyspace" {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_cosmosdb_cassandra_keyspace" {
 			continue
 		}
 
-		if err := tf.AccCheckResourceAttributes(rs.Primary.Attributes, "name", "resource_group_name", "account_name"); err != nil {
-			return fmt.Errorf("resource %s is missing an attribute: %v", rn, err)
-		}
 		name := rs.Primary.Attributes["name"]
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -80,9 +74,6 @@ func testCheckAzureRMCosmosCassandraKeyspaceExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		if err := tf.AccCheckResourceAttributes(rs.Primary.Attributes, "name", "resource_group_name", "account_name"); err != nil {
-			return fmt.Errorf("resource %s is missing an attribute: %v", resourceName, err)
-		}
 		name := rs.Primary.Attributes["name"]
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -104,7 +95,7 @@ func testAccAzureRMCosmosCassandraKeyspace_basic(rInt int, location string) stri
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_cassandra_keyspace" "test" {
+resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"

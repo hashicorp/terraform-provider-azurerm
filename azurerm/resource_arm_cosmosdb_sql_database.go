@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosSQLDatabase() *schema.Resource {
+func resourceArmCosmosDbSQLDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosSQLDatabaseCreate,
-		Read:   resourceArmCosmosSQLDatabaseRead,
-		Delete: resourceArmCosmosSQLDatabaseDelete,
+		Create: resourceArmCosmosDbSQLDatabaseCreate,
+		Read:   resourceArmCosmosDbSQLDatabaseRead,
+		Delete: resourceArmCosmosDbSQLDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,7 +43,7 @@ func resourceArmCosmosSQLDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -63,7 +63,7 @@ func resourceArmCosmosSQLDatabaseCreate(d *schema.ResourceData, meta interface{}
 				return fmt.Errorf("Error generating import ID for Cosmos SQL Database '%s' (Account %s)", name, account)
 			}
 
-			return tf.ImportAsExistsError("azurerm_cosmos_sql_database", id)
+			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_database", id)
 		}
 	}
 
@@ -92,14 +92,14 @@ func resourceArmCosmosSQLDatabaseCreate(d *schema.ResourceData, meta interface{}
 
 	id, err := azure.CosmosGetIDFromResponse(resp.Response)
 	if err != nil {
-		return fmt.Errorf("Error creating Cosmos SQL Database '%s' (Account %s) ID: %v", name, account, err)
+		return fmt.Errorf("Error retrieving the ID for Cosmos SQL Database '%s' (Account %s) ID: %v", name, account, err)
 	}
 	d.SetId(id)
 
-	return resourceArmCosmosSQLDatabaseRead(d, meta)
+	return resourceArmCosmosDbSQLDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -119,16 +119,16 @@ func resourceArmCosmosSQLDatabaseRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error reading Cosmos SQL Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.Account)
 	if props := resp.SQLDatabaseProperties; props != nil {
 		d.Set("name", props.ID)
-		d.Set("resource_group_name", id.ResourceGroup)
-		d.Set("account_name", id.Account)
 	}
 
 	return nil
 }
 
-func resourceArmCosmosSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 

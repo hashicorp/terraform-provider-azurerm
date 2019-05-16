@@ -5,29 +5,25 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosSQLDatabase_basic(t *testing.T) {
+func TestAccAzureRMCosmosTable_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmos_sql_database.test"
-	rn := fmt.Sprintf("acctest-%[1]d", ri)
+	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosSQLDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosTable_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosSQLDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", rn),
-					resource.TestCheckResourceAttr(resourceName, "account_name", rn),
+					testCheckAzureRMCosmosTableExists(resourceName),
 				),
 			},
 			{
@@ -39,38 +35,35 @@ func TestAccAzureRMCosmosSQLDatabase_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosSQLDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosTableDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	for rn, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmos_sql_database" {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_cosmosdb_table" {
 			continue
 		}
 
-		if err := tf.AccCheckResourceAttributes(rs.Primary.Attributes, "name", "resource_group_name", "account_name"); err != nil {
-			return fmt.Errorf("resource %s is missing an attribute: %v", rn, err)
-		}
 		name := rs.Primary.Attributes["name"]
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Database %s (account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos Table %s (account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos SQL Database %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos Table %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosSQLDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -81,34 +74,31 @@ func testCheckAzureRMCosmosSQLDatabaseExists(resourceName string) resource.TestC
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		if err := tf.AccCheckResourceAttributes(rs.Primary.Attributes, "name", "resource_group_name", "account_name"); err != nil {
-			return fmt.Errorf("resource %s is missing an attribute: %v", resourceName, err)
-		}
 		name := rs.Primary.Attributes["name"]
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos database '%s' (account: '%s') does not exist", name, account)
+			return fmt.Errorf("Bad: Cosmos Table '%s' (account: '%s') does not exist", name, account)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMCosmosSQLDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosTable_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmos_sql_database" "test" {
+resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 }
-`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
+`, testAccAzureRMCosmosDBAccount_capabilityTable(rInt, location), rInt)
 }
