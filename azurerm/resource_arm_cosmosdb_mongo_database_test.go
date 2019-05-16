@@ -11,19 +11,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosMongoDatabase_basic(t *testing.T) {
+func TestAccAzureRMCosmosDbMongoDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_mongo_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosMongoDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosMongoDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosMongoDatabaseExists(resourceName),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
 				),
 			},
 			{
@@ -35,7 +35,7 @@ func TestAccAzureRMCosmosMongoDatabase_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosMongoDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -63,7 +63,7 @@ func testCheckAzureRMCosmosMongoDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMCosmosMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -91,7 +91,7 @@ func testCheckAzureRMCosmosMongoDatabaseExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMCosmosMongoDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbMongoDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 

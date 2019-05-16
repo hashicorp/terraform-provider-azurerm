@@ -12,19 +12,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosSQLDatabase_basic(t *testing.T) {
+func TestAccAzureRMCosmosDbSqlDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_sql_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosSQLDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosSQLDatabaseExists(resourceName),
+					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
 				),
 			},
 			{
@@ -36,7 +36,7 @@ func TestAccAzureRMCosmosSQLDatabase_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosSQLDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -64,7 +64,7 @@ func testCheckAzureRMCosmosSQLDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMCosmosSQLDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -92,7 +92,7 @@ func testCheckAzureRMCosmosSQLDatabaseExists(resourceName string) resource.TestC
 	}
 }
 
-func testAccAzureRMCosmosSQLDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 

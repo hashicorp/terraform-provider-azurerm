@@ -11,19 +11,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosCassandraKeyspace_basic(t *testing.T) {
+func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosCassandraKeyspaceDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosCassandraKeyspace_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosCassandraKeyspaceExists(resourceName),
+					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
 				),
 			},
 			{
@@ -35,7 +35,7 @@ func TestAccAzureRMCosmosCassandraKeyspace_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosCassandraKeyspaceDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbCassandraKeyspaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -63,7 +63,7 @@ func testCheckAzureRMCosmosCassandraKeyspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMCosmosCassandraKeyspaceExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -91,7 +91,7 @@ func testCheckAzureRMCosmosCassandraKeyspaceExists(resourceName string) resource
 	}
 }
 
-func testAccAzureRMCosmosCassandraKeyspace_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbCassandraKeyspace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 

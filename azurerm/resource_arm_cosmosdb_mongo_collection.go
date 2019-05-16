@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosMongoCollection() *schema.Resource {
+func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosMongoCollectionCreateUpdate,
-		Read:   resourceArmCosmosMongoCollectionRead,
-		Update: resourceArmCosmosMongoCollectionCreateUpdate,
-		Delete: resourceArmCosmosMongoCollectionDelete,
+		Create: resourceArmCosmosDbMongoCollectionCreateUpdate,
+		Read:   resourceArmCosmosDbMongoCollectionRead,
+		Update: resourceArmCosmosDbMongoCollectionCreateUpdate,
+		Delete: resourceArmCosmosDbMongoCollectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -89,7 +89,7 @@ func resourceArmCosmosMongoCollection() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -110,7 +110,7 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 				return fmt.Errorf("Error generating import ID for Cosmos Mongo Collection %s (Account %s, Database %s)", name, account, database)
 			}
 
-			return tf.ImportAsExistsError("azurerm_cosmos_mongo_collection", id)
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id)
 		}
 	}
 
@@ -155,10 +155,10 @@ func resourceArmCosmosMongoCollectionCreateUpdate(d *schema.ResourceData, meta i
 	}
 	d.SetId(id)
 
-	return resourceArmCosmosMongoCollectionRead(d, meta)
+	return resourceArmCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -178,11 +178,11 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error reading Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
 	}
 
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.Account)
+	d.Set("database_name", id.Database)
 	if props := resp.MongoDBCollectionProperties; props != nil {
 		d.Set("name", props.ID)
-		d.Set("resource_group_name", id.ResourceGroup)
-		d.Set("account_name", id.Account)
-		d.Set("database_name", id.Database)
 
 		// you can only have one
 		if len(props.ShardKey) > 2 {
@@ -204,7 +204,7 @@ func resourceArmCosmosMongoCollectionRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmCosmosMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
