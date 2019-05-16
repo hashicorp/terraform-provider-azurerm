@@ -1,11 +1,11 @@
 ## 1.28.0 (Unreleased)
 
 FEATURES:
-
 * **New Data Source:** `azurerm_automation_variable_bool` [GH-3310]
 * **New Data Source:** `azurerm_automation_variable_datetime` [GH-3310]
 * **New Data Source:** `azurerm_automation_variable_int` [GH-3310]
 * **New Data Source:** `azurerm_automation_variable_string` [GH-3310]
+* **New Data Source:** `zurerm_kubernetes_service_versions` [GH-3382]
 * **New Data Source:** `azurerm_user_assigned_identity` [GH-3343]
 * **New Resource:** `azurerm_automation_variable_bool` [GH-3310]
 * **New Resource:** `azurerm_automation_variable_datetime` [GH-3310]
