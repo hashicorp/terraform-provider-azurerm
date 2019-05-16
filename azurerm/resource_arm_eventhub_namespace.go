@@ -58,7 +58,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(1, 20),
 			},
 
 			"auto_inflate_enabled": {
@@ -77,7 +77,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.IntBetween(0, 20),
 			},
 
 			"default_primary_connection_string": {

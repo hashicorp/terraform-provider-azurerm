@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosAccount() *schema.Resource {
+func resourceArmCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDBAccountCreate,
-		Read:   resourceArmCosmosDBAccountRead,
-		Update: resourceArmCosmosDBAccountUpdate,
-		Delete: resourceArmCosmosDBAccountDelete,
+		Create: resourceArmCosmosDbAccountCreate,
+		Read:   resourceArmCosmosDbAccountRead,
+		Update: resourceArmCosmosDbAccountUpdate,
+		Delete: resourceArmCosmosDbAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -296,7 +296,7 @@ func resourceArmCosmosAccount() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
@@ -368,7 +368,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	resp, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
+	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -395,10 +395,10 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*id)
 
-	return resourceArmCosmosDBAccountRead(d, meta)
+	return resourceArmCosmosDbAccountRead(d, meta)
 }
 
-func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
@@ -472,7 +472,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if _, err = resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -488,7 +488,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				removedOne = true
 				continue
 			}
-			if *l.ID == "" && *ol.ID == resourceArmCosmosDBAccountGenerateDefaultId(name, *l.LocationName) {
+			if *l.ID == "" && *ol.ID == resourceArmCosmosDbAccountGenerateDefaultId(name, *l.LocationName) {
 				continue
 			}
 			if *l.ID != *ol.ID {
@@ -509,14 +509,14 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err = resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	//add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	upsertResponse, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
+	upsertResponse, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -543,10 +543,10 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*id)
 
-	return resourceArmCosmosDBAccountRead(d, meta)
+	return resourceArmCosmosDbAccountRead(d, meta)
 }
 
-func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -682,7 +682,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -729,7 +729,7 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
+func resourceArmCosmosDbAccountApiUpsert(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -791,7 +791,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 	return &policy
 }
 
-func resourceArmCosmosDBAccountGenerateDefaultId(databaseName string, location string) string {
+func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location string) string {
 	return fmt.Sprintf("%s-%s", databaseName, location)
 }
 
@@ -809,7 +809,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		if v, ok := data["prefix"].(string); ok {
 			data["id"] = v
 		} else {
-			data["id"] = utils.String(resourceArmCosmosDBAccountGenerateDefaultId(databaseName, *location.LocationName))
+			data["id"] = utils.String(resourceArmCosmosDbAccountGenerateDefaultId(databaseName, *location.LocationName))
 		}
 		location.ID = utils.String(data["id"].(string))
 
@@ -974,7 +974,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		}
 
 		//if id is not the default then it must be set via prefix
-		if id != resourceArmCosmosDBAccountGenerateDefaultId(d.Get("name").(string), lb["location"].(string)) {
+		if id != resourceArmCosmosDbAccountGenerateDefaultId(d.Get("name").(string), lb["location"].(string)) {
 			lb["prefix"] = id
 		}
 
