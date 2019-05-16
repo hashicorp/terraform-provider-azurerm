@@ -2464,8 +2464,8 @@ resource "azurerm_application_gateway" "test" {
     firewall_mode    = "Detection"
     rule_set_type    = "OWASP"
     rule_set_version = "3.0"
-    file_upload_limit_mb = 100
-    request_body_check = true
+    file_upload_limit_mb     = 100
+    request_body_check       = true
     max_request_body_size_kb = 100
   }
 
