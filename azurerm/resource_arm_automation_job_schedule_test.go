@@ -273,7 +273,11 @@ resource "azurerm_automation_job_schedule" "test" {
   runbook_name            = "${azurerm_automation_runbook.test.name}"
 
   parameters = {
-    output                = "Earth"
+    OutPut                = "Earth"
+    Case                  = "MATTERS"
+    KeepCount             = "20"
+    WebhookUri            = "http://www.example.com/hook"
+    URL                   = "https://www.Example.com"
   }
 }
 `, template)
@@ -287,8 +291,12 @@ func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource
 		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.%", "5"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.output", "Earth"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.Case", "MATTERS"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.KeepCount", "20"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.WebhookUri", "http://www.example.com/hook"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.URL", "https://www.Example.com"),
 	)
 }
 
