@@ -46,6 +46,7 @@ BUG FIXES:
 * `azurerm_eventhub` - decrease minimum `partition_count` to correct value of `1` [GH-3439]
 * `azurerm_eventhub_namespace` - decrease maximum `maximum_throughput_units` to correct value of `20` [GH-3440]
 * `azurerm_firewall` - ensuring that the value for `subnet_id` within the `ip_configuration` block has the name `AzureFirewallSubnet` [GH-3406]
+* `azurerm_managed_disk` - can now actually create `UltraSSD_LRS` disks [GH-3453]
 * `azurerm_redis_configuration` - correctly display http errors encoutered during creation [GH-3397]
 * `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API [GH-3137]
 * `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output [GH-3318]
