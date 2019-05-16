@@ -194,14 +194,13 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   indexes {
     key    = "seven"
-	unique = false
+    unique = false
   }
 
   indexes {
     key    = "day"
     unique = true
   }
-
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
 }
