@@ -62,17 +62,17 @@ The following arguments are supported:
 An `indexes` block supports the following:
 
 * `key` - (Required) The name of the key to use for this index.
-* `unique` - (Required) Should the index key be unique?
+* `unique` - (Required) Whether the index key should be unique.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Mongo Database ID.
+* `id` - the Cosmos DB Mongo Collection ID.
 
 ## Import
 
-Cosmos Mongo KeySpace can be imported using the `resource id`, e.g.
+Cosmos DB Mongo Collection can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_mongo_collection.collection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/mongodb/databases/db1/collections/collection1

@@ -188,7 +188,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 
 		// you can only have one
 		if len(props.ShardKey) > 2 {
-			return fmt.Errorf("enexpected number of shard keys: %d", len(props.ShardKey))
+			return fmt.Errorf("unexpected number of shard keys: %d", len(props.ShardKey))
 		}
 
 		for k := range props.ShardKey {
