@@ -132,7 +132,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if v, ok := d.GetOkExists("shard_key"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{ 
+		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
 			v.(string): utils.String("Hash"), // looks like only hash is supported for now
 		}
 	}
