@@ -30,7 +30,7 @@ output "latest_version" {
 
 * `location` - (Required) Specifies the location in which to query for versions.
 
-* `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.x` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
+* `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 
 ## Attributes Reference
 
