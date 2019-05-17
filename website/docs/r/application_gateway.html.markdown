@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
 
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
+
 ---
 
 A `authentication_certificate` block supports the following:
@@ -306,6 +308,8 @@ A `path_rule` block supports the following:
 
 * `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
 
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
+
 ---
 
 A `probe` block support the following:
@@ -346,6 +350,8 @@ A `request_routing_rule` block supports the following:
 
 * `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 ---
@@ -380,6 +386,7 @@ A `url_path_map` block supports the following:
 
 * `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
+* `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
 
@@ -454,6 +461,56 @@ A `autoscale_configuration` block supports the following:
 * `min_capacity` - (Required) Minimum capacity for autoscaling.
 
 * `max_capacity` - (Optional) Maximum capacity for autoscaling.
+
+---
+
+A `rewrite_rule_set` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule set block
+
+* `rewrite_rule` - (Required) One or more `rewrite_rule` blocks as defined above.
+
+---
+
+A `rewrite_rule` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule block
+
+* `rule_sequence` - (Required) Rule sequence of the rewrite rule that determines the order of execution in a set.
+
+* `condition` - (Optional) One or more `condition` blocks as defined above.
+
+* `request_header_configuration` - (Optional) One or more `request_header_configuration` blocks as defined above.
+
+* `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
+
+---
+
+A `condition` block supports the following:
+
+* `variable` - (Required) The [variable](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
+
+* `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
+
+* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`
+
+* `negate` - (Optional) Negate the result of the condition evaluation. Defaults to `false`
+
+---
+
+A `request_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
+
+---
+
+A `response_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
 
 ## Attributes Reference
 
@@ -557,6 +614,8 @@ A `path_rule` block exports the following:
 
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
+* `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
 ---
 
 A `probe` block exports the following:
@@ -576,6 +635,8 @@ A `request_routing_rule` block exports the following:
 * `backend_http_settings_id` - The ID of the associated Backend HTTP Settings Configuration.
 
 * `redirect_configuration_id` - The ID of the associated Redirect Configuration.
+
+* `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
 
@@ -612,6 +673,12 @@ A `custom_error_configuration` block exports the following:
 A `redirect_configuration` block exports the following:
 
 * `id` - The ID of the Redirect Configuration.
+
+---
+
+A `rewrite_rule_set` block exports the following:
+
+* `id` - The ID of the Rewrite Rule Set
 
 ## Import
 
