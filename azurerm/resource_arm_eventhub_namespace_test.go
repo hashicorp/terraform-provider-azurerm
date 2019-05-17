@@ -217,7 +217,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
+	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -238,7 +238,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
+	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 	postConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 2)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -494,7 +494,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
-  maximum_throughput_units = 100
+  maximum_throughput_units = 20
 }
 `, rInt, location, rInt)
 }
