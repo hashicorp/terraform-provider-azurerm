@@ -1,4 +1,7 @@
 ## 1.29.0 (Unreleased)
+
+* `azurerm_application_gateway` - support for rewrite rules [GH-3423]
+
 ## 1.28.0 (May 17, 2019)
 
 FEATURES:
