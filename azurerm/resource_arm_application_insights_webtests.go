@@ -243,7 +243,6 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		d.Set("frequency", props.Frequency)
 		d.Set("timeout", props.Timeout)
 		d.Set("retry_enabled", props.RetryEnabled)
-		d.Set("configuration", props.Configuration)
 
 		if config := props.Configuration; config != nil {
 			d.Set("test_configuration", config.WebTest)
