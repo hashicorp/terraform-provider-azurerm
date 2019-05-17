@@ -1,10 +1,14 @@
 ## 1.29.0 (Unreleased)
 
+IMPROVEMENTS:
+
 * `azurerm_application_gateway` - support for rewrite rules [GH-3423]
+* `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
 
 ## 1.28.0 (May 17, 2019)
 
 FEATURES:
+
 * **New Data Source:** `azurerm_automation_variable_bool` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
 * **New Data Source:** `azurerm_automation_variable_datetime` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
 * **New Data Source:** `azurerm_automation_variable_int` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
