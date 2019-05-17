@@ -588,6 +588,46 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_virtualMachineScaleSets(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMKubernetesCluster_virtualMachineScaleSets(ri, clientId, clientSecret, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -1428,6 +1468,34 @@ resource "azurerm_kubernetes_cluster" "test" {
 	"8.8.4.4/32",
 	"8.8.2.0/24",
   ]
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_virtualMachineScaleSets(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  agent_pool_profile {
+    name    = "default"
+    type    = "VirtualMachineScaleSets"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }

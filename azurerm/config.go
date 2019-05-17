@@ -95,7 +95,7 @@ type ArmClient struct {
 
 	StopContext context.Context
 
-	cosmosDBClient documentdb.DatabaseAccountsClient
+	cosmosAccountsClient documentdb.DatabaseAccountsClient
 
 	automationAccountClient               automation.AccountClient
 	automationAgentRegistrationInfoClient automation.AgentRegistrationInformationClient
@@ -296,6 +296,7 @@ type ArmClient struct {
 	ifaceClient                     network.InterfacesClient
 	loadBalancerClient              network.LoadBalancersClient
 	localNetConnClient              network.LocalNetworkGatewaysClient
+	netProfileClient                network.ProfilesClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
 	publicIPPrefixClient            network.PublicIPPrefixesClient
@@ -497,7 +498,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
-	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth)
+	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
@@ -734,10 +735,10 @@ func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId str
 	c.cognitiveAccountsClient = accountsClient
 }
 
-func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&cdb.Client, auth)
-	c.cosmosDBClient = cdb
+func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	ca := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&ca.Client, auth)
+	c.cosmosAccountsClient = ca
 }
 
 func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1147,6 +1148,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	gatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&gatewayConnectionsClient.Client, auth)
 	c.vnetGatewayConnectionsClient = gatewayConnectionsClient
+
+	netProfileClient := network.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&netProfileClient.Client, auth)
+	c.netProfileClient = netProfileClient
 
 	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&networksClient.Client, auth)

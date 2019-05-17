@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )

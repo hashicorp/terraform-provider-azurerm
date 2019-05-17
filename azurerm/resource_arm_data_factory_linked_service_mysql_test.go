@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServiceMySQL_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_mysql.test"
 
@@ -42,7 +41,7 @@ func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServiceMySQL_update1(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryLinkedServiceMySQL_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_mysql.test"

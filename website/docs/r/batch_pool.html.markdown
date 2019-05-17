@@ -68,10 +68,14 @@ EOF
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
     version   = "latest"
+  }
+
+  container_configuration {
+    type = "DockerCompatible"
   }
 
   start_task {
@@ -127,6 +131,8 @@ The following arguments are supported:
 * `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
 
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
+
+* `container_configuration` - (Optional) The container configuration used in the pool's VMs.
 
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
@@ -197,6 +203,12 @@ A `certificate` block supports the following:
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
 
 * `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
+
+---
+
+A `container_configuration` block supports the following:
+
+* `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
 ---
 

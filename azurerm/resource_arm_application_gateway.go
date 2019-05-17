@@ -148,6 +148,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"affinity_cookie_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"host_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -296,6 +302,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"gateway_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 2,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -1221,7 +1228,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	backendHTTPSettingsCollection := expandApplicationGatewayBackendHTTPSettings(d, gatewayID)
 	frontendIPConfigurations := expandApplicationGatewayFrontendIPConfigurations(d)
 	frontendPorts := expandApplicationGatewayFrontendPorts(d)
-	gatewayIPConfigurations := expandApplicationGatewayIPConfigurations(d)
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 	httpListeners := expandApplicationGatewayHTTPListeners(d, gatewayID)
 	probes := expandApplicationGatewayProbes(d)
 	sku := expandApplicationGatewaySku(d)
@@ -1275,33 +1282,46 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
-		backendHttpSettingsProperties := *backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat
-		if backendHttpSettingsProperties.HostName != nil {
-			hostName := *backendHttpSettingsProperties.HostName
-			pick := *backendHttpSettingsProperties.PickHostNameFromBackendAddress
+		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
+				continue
+			}
 
-			if hostName != "" && pick {
+			if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
 				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
 			}
 		}
 	}
 
 	for _, probe := range *probes {
-		probeProperties := *probe.ApplicationGatewayProbePropertiesFormat
-		host := *probeProperties.Host
-		pick := *probeProperties.PickHostNameFromBackendHTTPSettings
+		if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
+			if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
+				continue
+			}
 
-		if host == "" && !pick {
-			return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
-		}
+			if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
+				return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+			}
 
-		if host != "" && pick {
-			return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+			if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
+				return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+			}
 		}
 	}
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Stop(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error Stopping Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to stop: %+v", name, resGroup, err)
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
@@ -1311,6 +1331,17 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the create/update of Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Start(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error Starting Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to start: %+v", name, resGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -1667,6 +1698,11 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.HostName = utils.String(hostName)
 		}
 
+		affinityCookieName := v["affinity_cookie_name"].(string)
+		if affinityCookieName != "" {
+			setting.AffinityCookieName = utils.String(affinityCookieName)
+		}
+
 		if v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]network.SubResource, 0)
@@ -1718,6 +1754,10 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+
+			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
+				output["affinity_cookie_name"] = affinityCookieName
+			}
 
 			if path := props.Path; path != nil {
 				output["path"] = *path
@@ -1964,9 +2004,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 	return results, nil
 }
 
-func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
+func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]network.ApplicationGatewayIPConfiguration, bool) {
 	vs := d.Get("gateway_ip_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayIPConfiguration, 0)
+	stopApplicationGateway := false
 
 	for _, configRaw := range vs {
 		data := configRaw.(map[string]interface{})
@@ -1985,7 +2026,35 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network
 		results = append(results, output)
 	}
 
-	return &results
+	if d.HasChange("gateway_ip_configuration") {
+		oldRaw, newRaw := d.GetChange("gateway_ip_configuration")
+		oldVS := oldRaw.([]interface{})
+		newVS := newRaw.([]interface{})
+
+		// If we're creating the application gateway return the current gateway ip configuration.
+		if len(oldVS) == 0 {
+			return &results, stopApplicationGateway
+		}
+
+		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
+		if len(oldVS) != len(newVS) {
+			stopApplicationGateway = true
+		}
+
+		for i, configRaw := range newVS {
+			newData := configRaw.(map[string]interface{})
+			oldData := oldVS[i].(map[string]interface{})
+
+			newSubnetID := newData["subnet_id"].(string)
+			oldSubnetID := oldData["subnet_id"].(string)
+			// The application gateway needs to be shutdown if the subnet ids don't match
+			if newSubnetID != oldSubnetID {
+				stopApplicationGateway = true
+			}
+		}
+	}
+
+	return &results, stopApplicationGateway
 }
 
 func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatewayIPConfiguration) []interface{} {
