@@ -93,6 +93,11 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	parameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
+			RoutingRules:          &[]frontdoor.RoutingRule{},
+			LoadBalancingSettings: &[]frontdoor.LoadBalancingSettingsModel{},
+			HealthProbeSettings:   &[]frontdoor.HealthProbeSettingsModel{},
+			BackendPools:          &[]frontdoor.BackendPool{},
+			FrontendEndpoints:     &[]frontdoor.FrontendEndpoint{},
 			BackendPoolsSettings: &frontdoor.BackendPoolsSettings{
 				EnforceCertificateNameCheck: frontdoor.EnforceCertificateNameCheckEnabledState(enforceCertificateNameCheck),
 			},
