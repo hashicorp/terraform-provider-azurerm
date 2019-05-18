@@ -1,5 +1,9 @@
 ## 1.29.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_application_insights_web_test` [GH-3331]
+
 IMPROVEMENTS:
 
 * `azurerm_application_gateway` - support for rewrite rules [GH-3423]
