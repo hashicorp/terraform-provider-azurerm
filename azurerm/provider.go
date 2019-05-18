@@ -207,6 +207,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_application_gateway":                                resourceArmApplicationGateway(),
 			"azurerm_application_insights_api_key":                       resourceArmApplicationInsightsAPIKey(),
 			"azurerm_application_insights":                               resourceArmApplicationInsights(),
+			"azurerm_application_insights_web_test":                      resourceArmApplicationInsightsWebTests(),
 			"azurerm_application_security_group":                         resourceArmApplicationSecurityGroup(),
 			"azurerm_automation_account":                                 resourceArmAutomationAccount(),
 			"azurerm_automation_credential":                              resourceArmAutomationCredential(),
