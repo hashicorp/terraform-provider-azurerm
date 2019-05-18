@@ -100,7 +100,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				Optional: true,
 			},
 
-			"test_configuration": {
+			"configuration": {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.XmlDiff,
@@ -155,35 +155,31 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	retryEnabled := d.Get("retry_enabled").(bool)
 	geoLocationsRaw := d.Get("geo_locations").([]interface{})
 	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
-	testConf := d.Get("test_configuration").(string)
+	testConf := d.Get("configuration").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
 	tags[tagKey] = "Resource"
 
-	testConfiguration := insights.WebTestPropertiesConfiguration{
-		WebTest: &testConf,
-	}
-
-	webTestProperties := insights.WebTestProperties{
-		SyntheticMonitorID: &name,
-		WebTestName:        &name,
-		Description:        &description,
-		Enabled:            &isEnabled,
-		Frequency:          &frequency,
-		Timeout:            &timeout,
-		WebTestKind:        insights.WebTestKind(kind),
-		RetryEnabled:       &retryEnabled,
-		Locations:          &geoLocations,
-		Configuration:      &testConfiguration,
-	}
-
 	webTest := insights.WebTest{
-		Name:              &name,
-		Location:          &location,
-		Kind:              insights.WebTestKind(kind),
-		WebTestProperties: &webTestProperties,
-		Tags:              expandTags(tags),
+		Name:     &name,
+		Location: &location,
+		Kind:     insights.WebTestKind(kind),
+		WebTestProperties: &insights.WebTestProperties{
+			SyntheticMonitorID: &name,
+			WebTestName:        &name,
+			Description:        &description,
+			Enabled:            &isEnabled,
+			Frequency:          &frequency,
+			Timeout:            &timeout,
+			WebTestKind:        insights.WebTestKind(kind),
+			RetryEnabled:       &retryEnabled,
+			Locations:          &geoLocations,
+			Configuration: &insights.WebTestPropertiesConfiguration{
+				WebTest: &testConf,
+			},
+		},
+		Tags: expandTags(tags),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
@@ -245,7 +241,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		d.Set("retry_enabled", props.RetryEnabled)
 
 		if config := props.Configuration; config != nil {
-			d.Set("test_configuration", config.WebTest)
+			d.Set("configuration", config.WebTest)
 		}
 
 		if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
