@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -173,6 +174,7 @@ func resourceArmStorageAccount() *schema.Resource {
 							},
 							Set: schema.HashString,
 						},
+
 						"ip_rules": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -180,6 +182,7 @@ func resourceArmStorageAccount() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
 						"virtual_network_subnet_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -187,9 +190,10 @@ func resourceArmStorageAccount() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
 						"default_action": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.DefaultActionAllow),
 								string(storage.DefaultActionDeny),
@@ -375,7 +379,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 							}, true),
@@ -458,8 +462,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
-	networkRules := expandStorageAccountNetworkRules(d)
-
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
 		Sku: &storage.Sku{
@@ -479,7 +481,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         networkRules,
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
 		},
 	}
@@ -641,17 +643,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
 	}
 
 	if d.HasChange("custom_domain") {
-		customDomain := expandStorageAccountCustomDomain(d)
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: customDomain,
+				CustomDomain: expandStorageAccountCustomDomain(d),
 			},
 		}
 
@@ -677,10 +677,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
-
 		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
+			Identity: expandAzureRmStorageAccountIdentity(d),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -689,11 +687,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("network_rules") {
-		networkRules := expandStorageAccountNetworkRules(d)
-
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: networkRules,
+				NetworkRuleSet: expandStorageAccountNetworkRules(d),
 			},
 		}
 
@@ -805,8 +801,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
-		networkRules := props.NetworkRuleSet
-		if networkRules != nil {
+		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
@@ -917,18 +912,15 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	}
 
 	networkRule := networkRules[0].(map[string]interface{})
-	networkRuleSet := &storage.NetworkRuleSet{}
-
-	if networkRule["default_action"].(string) == string(storage.DefaultActionAllow) {
-		// If Default Access is enabled then no network rules are set.
-		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
+	networkRuleSet := &storage.NetworkRuleSet{
+		IPRules:             expandStorageAccountIPRules(networkRule),
+		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
+		Bypass:              expandStorageAccountBypass(networkRule),
 	}
 
-	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
-	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
-	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	// Default Access is disabled when network rules are set.
-	networkRuleSet.DefaultAction = storage.DefaultActionDeny
+	if v := networkRule["default_action"]; v != nil {
+		networkRuleSet.DefaultAction = storage.DefaultAction(v.(string))
+	}
 
 	return networkRuleSet
 }
