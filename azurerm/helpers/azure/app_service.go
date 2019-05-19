@@ -838,10 +838,17 @@ func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 }
 
 func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
-	result := make(map[string]interface{}, len(*input))
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		return result
+	}
 
 	for _, k := range *input {
 		parts := strings.Split(k, "=")
+		if len(parts) != 2 {
+			continue // Params not following the format `key=value` is considered malformed and will be ignored.
+		}
 		key := parts[0]
 		value := parts[1]
 

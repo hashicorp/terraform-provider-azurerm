@@ -289,7 +289,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
-		return err
+		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+s", name, resGroup, err)
 	}
 
 	return resourceArmAppServiceUpdate(d, meta)
@@ -462,7 +462,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service AuthSettings %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
@@ -530,7 +530,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
-		return err
+		return fmt.Errorf("Error setting `auth_settings`: %+s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
