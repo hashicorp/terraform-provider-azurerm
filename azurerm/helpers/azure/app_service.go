@@ -838,7 +838,7 @@ func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 }
 
 func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		return result
