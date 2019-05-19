@@ -221,7 +221,15 @@ resource "azurerm_automation_runbook" "test" {
 
   content = <<EOF
   param(
-    [string]$Output = "World"
+    [string]$Output = "World",
+
+    [string]$Case = "Original",
+
+    [int]$KeepCount = 10,
+
+    [uri]$WebhookUri = "https://example.com/hook",
+
+    [uri]$URL = "https://Example.com"
   )
   "Hello, " + $Output + "!"
 EOF
@@ -275,7 +283,7 @@ resource "azurerm_automation_job_schedule" "test" {
   parameters = {
     OutPut                = "Earth"
     Case                  = "MATTERS"
-    KeepCount             = "20"
+    KeepCount             = 20
     WebhookUri            = "http://www.example.com/hook"
     URL                   = "https://www.Example.com"
   }
@@ -292,7 +300,7 @@ func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource
 		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.%", "5"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.output", "Earth"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.Output", "Earth"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.Case", "MATTERS"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.KeepCount", "20"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.WebhookUri", "http://www.example.com/hook"),
