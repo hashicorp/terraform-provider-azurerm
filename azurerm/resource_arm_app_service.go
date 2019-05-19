@@ -281,7 +281,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	authSettings := azure.ExpandAppServiceAuthSettings(d.Get("auth_settings"))
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
@@ -351,7 +352,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("auth_settings") {
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(d.Get("auth_settings"))
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
 		id := d.Id()
 		authSettings := web.SiteAuthSettings{
 			ID:                         &id,

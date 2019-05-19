@@ -647,15 +647,14 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 	return append(results, result)
 }
 
-func ExpandAppServiceAuthSettings(input interface{}) web.SiteAuthSettingsProperties {
-	settings := input.([]interface{})
+func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsProperties {
 	siteAuthSettingsProperties := web.SiteAuthSettingsProperties{}
 
-	if len(settings) == 0 {
+	if len(input) == 0 {
 		return siteAuthSettingsProperties
 	}
 
-	setting := settings[0].(map[string]interface{})
+	setting := input[0].(map[string]interface{})
 
 	if v, ok := setting["enabled"]; ok {
 		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
