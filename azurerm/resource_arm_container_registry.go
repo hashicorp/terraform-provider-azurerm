@@ -116,12 +116,14 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"network_access_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_action": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  containerregistry.DefaultActionAllow,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerregistry.DefaultActionAllow),
 								string(containerregistry.DefaultActionDeny),
