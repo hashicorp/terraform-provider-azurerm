@@ -107,6 +107,21 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"interval_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntInSlice([]int{10, 30}),
+						},
+						"timeout_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(5, 10),
+						},
+						"tolerated_number_of_failures": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 9),
+						},
 					},
 				},
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
@@ -121,7 +136,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).trafficManagerProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
+	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
 
 	name := d.Get("name").(string)
 	// must be provided in request
@@ -252,11 +267,17 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	proto := monitor["protocol"].(string)
 	port := int64(monitor["port"].(int))
 	path := monitor["path"].(string)
+	interval := int64(monitor["interval_in_seconds"].(int))
+	timeout := int64(monitor["timeout_in_seconds"].(int))
+	tolerated := int64(monitor["tolerated_number_of_failures"].(int))
 
 	return &trafficmanager.MonitorConfig{
-		Protocol: trafficmanager.MonitorProtocol(proto),
-		Port:     &port,
-		Path:     &path,
+		Protocol:                  trafficmanager.MonitorProtocol(proto),
+		Port:                      &port,
+		Path:                      &path,
+		IntervalInSeconds:         &interval,
+		TimeoutInSeconds:          &timeout,
+		ToleratedNumberOfFailures: &tolerated,
 	}
 }
 
@@ -292,6 +313,10 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 		result["path"] = *cfg.Path
 	}
 
+	result["interval_in_seconds"] = int(*cfg.IntervalInSeconds)
+	result["timeout_in_seconds"] = int(*cfg.TimeoutInSeconds)
+	result["tolerated_number_of_failures"] = int(*cfg.ToleratedNumberOfFailures)
+
 	return []interface{}{result}
 }
 
@@ -315,6 +340,18 @@ func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
 
 		if v, ok := m["path"]; ok && v != "" {
 			buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+		}
+
+		if v, ok := m["interval_in_seconds"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["interval_in_seconds"].(int)))
+		}
+
+		if v, ok := m["timeout_in_seconds"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["timeout_in_seconds"].(int)))
+		}
+
+		if v, ok := m["tolerated_number_of_failures"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["tolerated_number_of_failures"].(int)))
 		}
 	}
 
