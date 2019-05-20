@@ -467,6 +467,10 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
+
+  network_access_profile {
+
+  }
 }
 `, rInt, location, rInt, sku)
 }
@@ -481,6 +485,10 @@ resource "azurerm_container_registry" "import" {
   resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
   location            = "${azurerm_container_registry.test.location}"
   sku                 = "${azurerm_container_registry.test.sku}"
+
+  network_access_profile {
+
+  }
 }
 `, template)
 }
@@ -498,6 +506,10 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
   sku                 = "Basic"
+
+  network_access_profile {
+
+  }
 
   tags = {
     environment = "production"
@@ -520,6 +532,10 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = true
   sku                 = "Basic"
 
+  network_access_profile {
+
+  }
+
   tags = {
     environment = "production"
   }
@@ -540,6 +556,10 @@ resource "azurerm_container_registry" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   sku                      = "%s"
   georeplication_locations = ["%s"]
+
+  network_access_profile {
+
+  }
 }
 `, rInt, location, rInt, sku, georeplicationLocations)
 }
@@ -556,6 +576,10 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
+
+  network_access_profile {
+
+  }
 }
 `, rInt, location, rInt, sku)
 }
