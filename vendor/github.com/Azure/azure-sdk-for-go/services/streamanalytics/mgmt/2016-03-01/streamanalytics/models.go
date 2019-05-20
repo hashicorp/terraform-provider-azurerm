@@ -1347,18 +1347,18 @@ type CsvSerializationProperties struct {
 // DiagnosticCondition condition applicable to the resource, or to the job overall, that warrant customer
 // attention.
 type DiagnosticCondition struct {
-	// Since - The UTC timestamp of when the condition started. Customers should be able to find a corresponding event in the ops log around this time.
+	// Since - READ-ONLY; The UTC timestamp of when the condition started. Customers should be able to find a corresponding event in the ops log around this time.
 	Since *string `json:"since,omitempty"`
-	// Code - The opaque diagnostic code.
+	// Code - READ-ONLY; The opaque diagnostic code.
 	Code *string `json:"code,omitempty"`
-	// Message - The human-readable message describing the condition in detail. Localized in the Accept-Language of the client request.
+	// Message - READ-ONLY; The human-readable message describing the condition in detail. Localized in the Accept-Language of the client request.
 	Message *string `json:"message,omitempty"`
 }
 
 // Diagnostics describes conditions applicable to the Input, Output, or the job overall, that warrant
 // customer attention.
 type Diagnostics struct {
-	// Conditions - A collection of zero or more conditions applicable to the resource, or to the job overall, that warrant customer attention.
+	// Conditions - READ-ONLY; A collection of zero or more conditions applicable to the resource, or to the job overall, that warrant customer attention.
 	Conditions *[]DiagnosticCondition `json:"conditions,omitempty"`
 }
 
@@ -1489,9 +1489,9 @@ type DocumentDbOutputDataSourceProperties struct {
 
 // ErrorResponse describes the error that occurred.
 type ErrorResponse struct {
-	// Code - Error code associated with the error that occurred.
+	// Code - READ-ONLY; Error code associated with the error that occurred.
 	Code *string `json:"code,omitempty"`
-	// Message - Describes the error in detail.
+	// Message - READ-ONLY; Describes the error in detail.
 	Message *string `json:"message,omitempty"`
 }
 
@@ -1730,11 +1730,11 @@ type Function struct {
 	autorest.Response `json:"-"`
 	// Properties - The properties that are associated with a function.
 	Properties BasicFunctionProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1885,9 +1885,9 @@ type FunctionInput struct {
 // FunctionListResult object containing a list of functions under a streaming job.
 type FunctionListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A list of functions under a streaming job. Populated by a 'List' operation.
+	// Value - READ-ONLY; A list of functions under a streaming job. Populated by a 'List' operation.
 	Value *[]Function `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2042,7 +2042,7 @@ type BasicFunctionProperties interface {
 
 // FunctionProperties the properties that are associated with a function.
 type FunctionProperties struct {
-	// Etag - The current entity tag for the function. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the function. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 	// Type - Possible values include: 'TypeFunctionProperties', 'TypeScalar'
 	Type TypeBasicFunctionProperties `json:"type,omitempty"`
@@ -2089,9 +2089,6 @@ func unmarshalBasicFunctionPropertiesArray(body []byte) ([]BasicFunctionProperti
 func (fp FunctionProperties) MarshalJSON() ([]byte, error) {
 	fp.Type = TypeFunctionProperties
 	objectMap := make(map[string]interface{})
-	if fp.Etag != nil {
-		objectMap["etag"] = fp.Etag
-	}
 	if fp.Type != "" {
 		objectMap["type"] = fp.Type
 	}
@@ -2209,7 +2206,7 @@ type FunctionsTestFuture struct {
 // If the operation has not completed it will return an error.
 func (future *FunctionsTestFuture) Result(client FunctionsClient) (rts ResourceTestStatus, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2234,11 +2231,11 @@ type Input struct {
 	autorest.Response `json:"-"`
 	// Properties - The properties that are associated with an input. Required on PUT (CreateOrReplace) requests.
 	Properties BasicInputProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2295,9 +2292,9 @@ func (i *Input) UnmarshalJSON(body []byte) error {
 // InputListResult object containing a list of inputs under a streaming job.
 type InputListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A list of inputs under a streaming job. Populated by a 'List' operation.
+	// Value - READ-ONLY; A list of inputs under a streaming job. Populated by a 'List' operation.
 	Value *[]Input `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2449,9 +2446,9 @@ type BasicInputProperties interface {
 type InputProperties struct {
 	// Serialization - Describes how data from an input is serialized or how data is serialized when written to an output. Required on PUT (CreateOrReplace) requests.
 	Serialization BasicSerialization `json:"serialization,omitempty"`
-	// Diagnostics - Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
+	// Diagnostics - READ-ONLY; Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
 	Diagnostics *Diagnostics `json:"diagnostics,omitempty"`
-	// Etag - The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 	// Type - Possible values include: 'TypeInputProperties', 'TypeReference', 'TypeStream'
 	Type TypeBasicInputProperties `json:"type,omitempty"`
@@ -2503,12 +2500,6 @@ func (IP InputProperties) MarshalJSON() ([]byte, error) {
 	IP.Type = TypeInputProperties
 	objectMap := make(map[string]interface{})
 	objectMap["serialization"] = IP.Serialization
-	if IP.Diagnostics != nil {
-		objectMap["diagnostics"] = IP.Diagnostics
-	}
-	if IP.Etag != nil {
-		objectMap["etag"] = IP.Etag
-	}
 	if IP.Type != "" {
 		objectMap["type"] = IP.Type
 	}
@@ -2594,7 +2585,7 @@ type InputsTestFuture struct {
 // If the operation has not completed it will return an error.
 func (future *InputsTestFuture) Result(client InputsClient) (rts ResourceTestStatus, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2972,21 +2963,21 @@ type OAuthBasedDataSourceProperties struct {
 
 // Operation a Stream Analytics REST API operation
 type Operation struct {
-	// Name - The name of the operation being performed on this particular object.
+	// Name - READ-ONLY; The name of the operation being performed on this particular object.
 	Name *string `json:"name,omitempty"`
-	// Display - Contains the localized display information for this particular operation / action.
+	// Display - READ-ONLY; Contains the localized display information for this particular operation / action.
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
 // OperationDisplay contains the localized display information for this particular operation / action.
 type OperationDisplay struct {
-	// Provider - The localized friendly form of the resource provider name.
+	// Provider - READ-ONLY; The localized friendly form of the resource provider name.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The localized friendly form of the resource type related to this action/operation.
+	// Resource - READ-ONLY; The localized friendly form of the resource type related to this action/operation.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - The localized friendly name for the operation.
+	// Operation - READ-ONLY; The localized friendly name for the operation.
 	Operation *string `json:"operation,omitempty"`
-	// Description - The localized friendly description for the operation.
+	// Description - READ-ONLY; The localized friendly description for the operation.
 	Description *string `json:"description,omitempty"`
 }
 
@@ -2994,9 +2985,9 @@ type OperationDisplay struct {
 // operations and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of Stream Analytics operations supported by the Microsoft.StreamAnalytics resource provider.
+	// Value - READ-ONLY; List of Stream Analytics operations supported by the Microsoft.StreamAnalytics resource provider.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3143,11 +3134,11 @@ type Output struct {
 	autorest.Response `json:"-"`
 	// OutputProperties - The properties that are associated with an output. Required on PUT (CreateOrReplace) requests.
 	*OutputProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3157,14 +3148,8 @@ func (o Output) MarshalJSON() ([]byte, error) {
 	if o.OutputProperties != nil {
 		objectMap["properties"] = o.OutputProperties
 	}
-	if o.ID != nil {
-		objectMap["id"] = o.ID
-	}
 	if o.Name != nil {
 		objectMap["name"] = o.Name
-	}
-	if o.Type != nil {
-		objectMap["type"] = o.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3377,9 +3362,9 @@ func (ods OutputDataSource) AsBasicOutputDataSource() (BasicOutputDataSource, bo
 // OutputListResult object containing a list of outputs under a streaming job.
 type OutputListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A list of outputs under a streaming job. Populated by a 'List' operation.
+	// Value - READ-ONLY; A list of outputs under a streaming job. Populated by a 'List' operation.
 	Value *[]Output `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3526,9 +3511,9 @@ type OutputProperties struct {
 	Datasource BasicOutputDataSource `json:"datasource,omitempty"`
 	// Serialization - Describes how data from an input is serialized or how data is serialized when written to an output. Required on PUT (CreateOrReplace) requests.
 	Serialization BasicSerialization `json:"serialization,omitempty"`
-	// Diagnostics - Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
+	// Diagnostics - READ-ONLY; Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
 	Diagnostics *Diagnostics `json:"diagnostics,omitempty"`
-	// Etag - The current entity tag for the output. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the output. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 }
 
@@ -3590,7 +3575,7 @@ type OutputsTestFuture struct {
 // If the operation has not completed it will return an error.
 func (future *OutputsTestFuture) Result(client OutputsClient) (rts ResourceTestStatus, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsTestFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3816,9 +3801,9 @@ type ReferenceInputProperties struct {
 	Datasource BasicReferenceInputDataSource `json:"datasource,omitempty"`
 	// Serialization - Describes how data from an input is serialized or how data is serialized when written to an output. Required on PUT (CreateOrReplace) requests.
 	Serialization BasicSerialization `json:"serialization,omitempty"`
-	// Diagnostics - Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
+	// Diagnostics - READ-ONLY; Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
 	Diagnostics *Diagnostics `json:"diagnostics,omitempty"`
-	// Etag - The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 	// Type - Possible values include: 'TypeInputProperties', 'TypeReference', 'TypeStream'
 	Type TypeBasicInputProperties `json:"type,omitempty"`
@@ -3830,12 +3815,6 @@ func (rip ReferenceInputProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	objectMap["datasource"] = rip.Datasource
 	objectMap["serialization"] = rip.Serialization
-	if rip.Diagnostics != nil {
-		objectMap["diagnostics"] = rip.Diagnostics
-	}
-	if rip.Etag != nil {
-		objectMap["etag"] = rip.Etag
-	}
 	if rip.Type != "" {
 		objectMap["type"] = rip.Type
 	}
@@ -3922,11 +3901,11 @@ func (rip *ReferenceInputProperties) UnmarshalJSON(body []byte) error {
 
 // Resource the base resource model definition.
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location. Required on PUT (CreateOrReplace) requests.
 	Location *string `json:"location,omitempty"`
@@ -3937,15 +3916,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -3959,9 +3929,9 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 // applicable.
 type ResourceTestStatus struct {
 	autorest.Response `json:"-"`
-	// Status - The status of the test operation.
+	// Status - READ-ONLY; The status of the test operation.
 	Status *string `json:"status,omitempty"`
-	// Error - Describes the error that occurred.
+	// Error - READ-ONLY; Describes the error that occurred.
 	Error *ErrorResponse `json:"error,omitempty"`
 }
 
@@ -4020,7 +3990,7 @@ func (sfc *ScalarFunctionConfiguration) UnmarshalJSON(body []byte) error {
 type ScalarFunctionProperties struct {
 	// ScalarFunctionConfiguration - Describes the configuration of the scalar function.
 	*ScalarFunctionConfiguration `json:"properties,omitempty"`
-	// Etag - The current entity tag for the function. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the function. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 	// Type - Possible values include: 'TypeFunctionProperties', 'TypeScalar'
 	Type TypeBasicFunctionProperties `json:"type,omitempty"`
@@ -4032,9 +4002,6 @@ func (sfp ScalarFunctionProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sfp.ScalarFunctionConfiguration != nil {
 		objectMap["properties"] = sfp.ScalarFunctionConfiguration
-	}
-	if sfp.Etag != nil {
-		objectMap["etag"] = sfp.Etag
 	}
 	if sfp.Type != "" {
 		objectMap["type"] = sfp.Type
@@ -4481,11 +4448,11 @@ type StreamingJob struct {
 	autorest.Response `json:"-"`
 	// StreamingJobProperties - The properties that are associated with a streaming job.  Required on PUT (CreateOrReplace) requests.
 	*StreamingJobProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location. Required on PUT (CreateOrReplace) requests.
 	Location *string `json:"location,omitempty"`
@@ -4498,15 +4465,6 @@ func (sj StreamingJob) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sj.StreamingJobProperties != nil {
 		objectMap["properties"] = sj.StreamingJobProperties
-	}
-	if sj.ID != nil {
-		objectMap["id"] = sj.ID
-	}
-	if sj.Name != nil {
-		objectMap["name"] = sj.Name
-	}
-	if sj.Type != nil {
-		objectMap["type"] = sj.Type
 	}
 	if sj.Location != nil {
 		objectMap["location"] = sj.Location
@@ -4589,9 +4547,9 @@ func (sj *StreamingJob) UnmarshalJSON(body []byte) error {
 // StreamingJobListResult object containing a list of streaming jobs.
 type StreamingJobListResult struct {
 	autorest.Response `json:"-"`
-	// Value - A list of streaming jobs. Populated by a 'List' operation.
+	// Value - READ-ONLY; A list of streaming jobs. Populated by a 'List' operation.
 	Value *[]StreamingJob `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -4736,17 +4694,17 @@ func NewStreamingJobListResultPage(getNextPage func(context.Context, StreamingJo
 type StreamingJobProperties struct {
 	// Sku - Describes the SKU of the streaming job. Required on PUT (CreateOrReplace) requests.
 	Sku *Sku `json:"sku,omitempty"`
-	// JobID - A GUID uniquely identifying the streaming job. This GUID is generated upon creation of the streaming job.
+	// JobID - READ-ONLY; A GUID uniquely identifying the streaming job. This GUID is generated upon creation of the streaming job.
 	JobID *string `json:"jobId,omitempty"`
-	// ProvisioningState - Describes the provisioning status of the streaming job.
+	// ProvisioningState - READ-ONLY; Describes the provisioning status of the streaming job.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// JobState - Describes the state of the streaming job.
+	// JobState - READ-ONLY; Describes the state of the streaming job.
 	JobState *string `json:"jobState,omitempty"`
 	// OutputStartMode - This property should only be utilized when it is desired that the job be started immediately upon creation. Value may be JobStartTime, CustomTime, or LastOutputEventTime to indicate whether the starting point of the output event stream should start whenever the job is started, start at a custom user time stamp specified via the outputStartTime property, or start from the last event output time. Possible values include: 'JobStartTime', 'CustomTime', 'LastOutputEventTime'
 	OutputStartMode OutputStartMode `json:"outputStartMode,omitempty"`
 	// OutputStartTime - Value is either an ISO-8601 formatted time stamp that indicates the starting point of the output event stream, or null to indicate that the output event stream will start whenever the streaming job is started. This property must have a value if outputStartMode is set to CustomTime.
 	OutputStartTime *date.Time `json:"outputStartTime,omitempty"`
-	// LastOutputEventTime - Value is either an ISO-8601 formatted timestamp indicating the last output event time of the streaming job or null indicating that output has not yet been produced. In case of multiple outputs or multiple streams, this shows the latest value in that set.
+	// LastOutputEventTime - READ-ONLY; Value is either an ISO-8601 formatted timestamp indicating the last output event time of the streaming job or null indicating that output has not yet been produced. In case of multiple outputs or multiple streams, this shows the latest value in that set.
 	LastOutputEventTime *date.Time `json:"lastOutputEventTime,omitempty"`
 	// EventsOutOfOrderPolicy - Indicates the policy to apply to events that arrive out of order in the input event stream. Possible values include: 'Adjust', 'Drop'
 	EventsOutOfOrderPolicy EventsOutOfOrderPolicy `json:"eventsOutOfOrderPolicy,omitempty"`
@@ -4760,7 +4718,7 @@ type StreamingJobProperties struct {
 	DataLocale *string `json:"dataLocale,omitempty"`
 	// CompatibilityLevel - Controls certain runtime behaviors of the streaming job. Possible values include: 'OneFullStopZero'
 	CompatibilityLevel CompatibilityLevel `json:"compatibilityLevel,omitempty"`
-	// CreatedDate - Value is an ISO-8601 formatted UTC timestamp indicating when the streaming job was created.
+	// CreatedDate - READ-ONLY; Value is an ISO-8601 formatted UTC timestamp indicating when the streaming job was created.
 	CreatedDate *date.Time `json:"createdDate,omitempty"`
 	// Inputs - A list of one or more inputs to the streaming job. The name property for each input is required when specifying this property in a PUT request. This property cannot be modify via a PATCH operation. You must use the PATCH API available for the individual input.
 	Inputs *[]Input `json:"inputs,omitempty"`
@@ -4770,7 +4728,7 @@ type StreamingJobProperties struct {
 	Outputs *[]Output `json:"outputs,omitempty"`
 	// Functions - A list of one or more functions for the streaming job. The name property for each function is required when specifying this property in a PUT request. This property cannot be modify via a PATCH operation. You must use the PATCH API available for the individual transformation.
 	Functions *[]Function `json:"functions,omitempty"`
-	// Etag - The current entity tag for the streaming job. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the streaming job. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 }
 
@@ -4784,7 +4742,7 @@ type StreamingJobsCreateOrReplaceFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingJobsCreateOrReplaceFuture) Result(client StreamingJobsClient) (sj StreamingJob, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsCreateOrReplaceFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4813,7 +4771,7 @@ type StreamingJobsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingJobsDeleteFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4836,7 +4794,7 @@ type StreamingJobsStartFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingJobsStartFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsStartFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4859,7 +4817,7 @@ type StreamingJobsStopFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingJobsStopFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsStopFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4972,9 +4930,9 @@ type StreamInputProperties struct {
 	Datasource BasicStreamInputDataSource `json:"datasource,omitempty"`
 	// Serialization - Describes how data from an input is serialized or how data is serialized when written to an output. Required on PUT (CreateOrReplace) requests.
 	Serialization BasicSerialization `json:"serialization,omitempty"`
-	// Diagnostics - Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
+	// Diagnostics - READ-ONLY; Describes conditions applicable to the Input, Output, or the job overall, that warrant customer attention.
 	Diagnostics *Diagnostics `json:"diagnostics,omitempty"`
-	// Etag - The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the input. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 	// Type - Possible values include: 'TypeInputProperties', 'TypeReference', 'TypeStream'
 	Type TypeBasicInputProperties `json:"type,omitempty"`
@@ -4986,12 +4944,6 @@ func (sip StreamInputProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	objectMap["datasource"] = sip.Datasource
 	objectMap["serialization"] = sip.Serialization
-	if sip.Diagnostics != nil {
-		objectMap["diagnostics"] = sip.Diagnostics
-	}
-	if sip.Etag != nil {
-		objectMap["etag"] = sip.Etag
-	}
 	if sip.Type != "" {
 		objectMap["type"] = sip.Type
 	}
@@ -5078,40 +5030,31 @@ func (sip *StreamInputProperties) UnmarshalJSON(body []byte) error {
 
 // SubResource the base sub-resource model definition.
 type SubResource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
 // SubscriptionQuota describes the current quota for the subscription.
 type SubscriptionQuota struct {
-	// SubscriptionQuotaProperties - Describes the properties of the quota.
+	// SubscriptionQuotaProperties - READ-ONLY; Describes the properties of the quota.
 	*SubscriptionQuotaProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SubscriptionQuota.
 func (sq SubscriptionQuota) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if sq.SubscriptionQuotaProperties != nil {
-		objectMap["properties"] = sq.SubscriptionQuotaProperties
-	}
-	if sq.ID != nil {
-		objectMap["id"] = sq.ID
-	}
 	if sq.Name != nil {
 		objectMap["name"] = sq.Name
-	}
-	if sq.Type != nil {
-		objectMap["type"] = sq.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5169,9 +5112,9 @@ func (sq *SubscriptionQuota) UnmarshalJSON(body []byte) error {
 
 // SubscriptionQuotaProperties describes the properties of the quota.
 type SubscriptionQuotaProperties struct {
-	// MaxCount - The max permitted usage of this resource.
+	// MaxCount - READ-ONLY; The max permitted usage of this resource.
 	MaxCount *int32 `json:"maxCount,omitempty"`
-	// CurrentCount - The current usage of this resource.
+	// CurrentCount - READ-ONLY; The current usage of this resource.
 	CurrentCount *int32 `json:"currentCount,omitempty"`
 }
 
@@ -5179,7 +5122,7 @@ type SubscriptionQuotaProperties struct {
 // subscription in a particular region.
 type SubscriptionQuotasListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of quotas for the subscription in a particular region.
+	// Value - READ-ONLY; List of quotas for the subscription in a particular region.
 	Value *[]SubscriptionQuota `json:"value,omitempty"`
 }
 
@@ -5189,11 +5132,11 @@ type Transformation struct {
 	autorest.Response `json:"-"`
 	// TransformationProperties - The properties that are associated with a transformation. Required on PUT (CreateOrReplace) requests.
 	*TransformationProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5203,14 +5146,8 @@ func (t Transformation) MarshalJSON() ([]byte, error) {
 	if t.TransformationProperties != nil {
 		objectMap["properties"] = t.TransformationProperties
 	}
-	if t.ID != nil {
-		objectMap["id"] = t.ID
-	}
 	if t.Name != nil {
 		objectMap["name"] = t.Name
-	}
-	if t.Type != nil {
-		objectMap["type"] = t.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5272,6 +5209,6 @@ type TransformationProperties struct {
 	StreamingUnits *int32 `json:"streamingUnits,omitempty"`
 	// Query - Specifies the query that will be run in the streaming job. You can learn more about the Stream Analytics Query Language (SAQL) here: https://msdn.microsoft.com/library/azure/dn834998 . Required on PUT (CreateOrReplace) requests.
 	Query *string `json:"query,omitempty"`
-	// Etag - The current entity tag for the transformation. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
+	// Etag - READ-ONLY; The current entity tag for the transformation. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
 }

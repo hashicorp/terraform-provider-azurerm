@@ -194,13 +194,13 @@ The following arguments are supported:
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
-* `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined below.
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
 
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
 
-* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7` and `1.8`.
+* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11`.
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
@@ -246,12 +246,11 @@ A `identity` block supports the following:
 
 ---
 
-A `ip_restriction` block supports the following:
+Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
-
 
 ## Attributes Reference
 
@@ -260,6 +259,15 @@ The following attributes are exported:
 * `id` - The ID of the App Service Slot.
 
 * `default_site_hostname` - The Default Hostname associated with the App Service Slot - such as `mysite.azurewebsites.net`
+
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
 
 ## Import
 

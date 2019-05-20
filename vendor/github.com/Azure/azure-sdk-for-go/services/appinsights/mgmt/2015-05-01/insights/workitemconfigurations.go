@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -42,7 +43,7 @@ func NewWorkItemConfigurationsClientWithBaseURI(baseURI string, subscriptionID s
 
 // Create create a work item configuration for an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // workItemConfigurationProperties - properties that need to be specified to create a work item configuration
 // of a Application Insights component.
@@ -57,6 +58,16 @@ func (client WorkItemConfigurationsClient) Create(ctx context.Context, resourceG
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkItemConfigurationsClient", "Create", err.Error())
+	}
+
 	req, err := client.CreatePreparer(ctx, resourceGroupName, resourceName, workItemConfigurationProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "Create", nil, "Failure preparing request")
@@ -123,7 +134,7 @@ func (client WorkItemConfigurationsClient) CreateResponder(resp *http.Response) 
 
 // Delete delete a work item configuration of an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // workItemConfigID - the unique work item configuration Id. This can be either friendly name of connector as
 // defined in connector configuration
@@ -138,6 +149,16 @@ func (client WorkItemConfigurationsClient) Delete(ctx context.Context, resourceG
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkItemConfigurationsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, workItemConfigID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "Delete", nil, "Failure preparing request")
@@ -203,7 +224,7 @@ func (client WorkItemConfigurationsClient) DeleteResponder(resp *http.Response) 
 
 // GetDefault gets default work item configurations that exist for the application
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 func (client WorkItemConfigurationsClient) GetDefault(ctx context.Context, resourceGroupName string, resourceName string) (result WorkItemConfiguration, err error) {
 	if tracing.IsEnabled() {
@@ -216,6 +237,16 @@ func (client WorkItemConfigurationsClient) GetDefault(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkItemConfigurationsClient", "GetDefault", err.Error())
+	}
+
 	req, err := client.GetDefaultPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "GetDefault", nil, "Failure preparing request")
@@ -280,7 +311,7 @@ func (client WorkItemConfigurationsClient) GetDefaultResponder(resp *http.Respon
 
 // List gets the list work item configurations that exist for the application
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 func (client WorkItemConfigurationsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result WorkItemConfigurationsListResult, err error) {
 	if tracing.IsEnabled() {
@@ -293,6 +324,16 @@ func (client WorkItemConfigurationsClient) List(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.WorkItemConfigurationsClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "List", nil, "Failure preparing request")

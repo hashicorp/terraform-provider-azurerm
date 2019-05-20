@@ -989,10 +989,8 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Standard"
     size = "S1"
   }
-  
-  properties {
-    reserved = true
-  }
+
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {
@@ -1121,10 +1119,8 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Standard"
     size = "S1"
   }
-  
-  properties {
-    reserved = true
-  }
+
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {
@@ -1173,9 +1169,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {

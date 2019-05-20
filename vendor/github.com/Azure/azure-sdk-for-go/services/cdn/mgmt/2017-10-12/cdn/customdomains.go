@@ -321,7 +321,10 @@ func (client CustomDomainsClient) DisableCustomHTTPSResponder(resp *http.Respons
 // profileName - name of the CDN profile which is unique within the resource group.
 // endpointName - name of the endpoint under the profile which is unique globally.
 // customDomainName - name of the custom domain within an endpoint.
-func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string) (result CustomDomain, err error) {
+// customDomainHTTPSParameters - the configuration specifying how to enable HTTPS for the custom domain - using
+// CDN managed certificate or user's own certificate. If not specified, enabling ssl uses CDN managed
+// certificate by default.
+func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string, customDomainHTTPSParameters *BasicCustomDomainHTTPSParameters) (result CustomDomain, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.EnableCustomHTTPS")
 		defer func() {
@@ -340,7 +343,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 		return result, validation.NewError("cdn.CustomDomainsClient", "EnableCustomHTTPS", err.Error())
 	}
 
-	req, err := client.EnableCustomHTTPSPreparer(ctx, resourceGroupName, profileName, endpointName, customDomainName)
+	req, err := client.EnableCustomHTTPSPreparer(ctx, resourceGroupName, profileName, endpointName, customDomainName, customDomainHTTPSParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "EnableCustomHTTPS", nil, "Failure preparing request")
 		return
@@ -362,7 +365,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 }
 
 // EnableCustomHTTPSPreparer prepares the EnableCustomHTTPS request.
-func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string) (*http.Request, error) {
+func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string, customDomainHTTPSParameters *BasicCustomDomainHTTPSParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"customDomainName":  autorest.Encode("path", customDomainName),
 		"endpointName":      autorest.Encode("path", endpointName),
@@ -377,10 +380,15 @@ func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/endpoints/{endpointName}/customDomains/{customDomainName}/enableCustomHttps", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if customDomainHTTPSParameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(customDomainHTTPSParameters))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

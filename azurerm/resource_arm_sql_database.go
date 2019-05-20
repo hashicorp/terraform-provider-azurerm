@@ -148,10 +148,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: suppress.CaseDifference,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
 			},
 
 			"max_size_bytes": {
@@ -291,6 +292,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 				},
 			},
 
+			"read_scale": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tagsSchema(),
 		},
 
@@ -415,6 +422,15 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if v, ok := d.GetOk("read_scale"); ok {
+		readScale := v.(bool)
+		if readScale {
+			properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
+		} else {
+			properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
+		}
+	}
+
 	// The requested Service Objective Name does not match the requested Service Objective Id.
 	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
@@ -533,6 +549,13 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
+
+		readScale := props.ReadScale
+		if readScale == sql.ReadScaleEnabled {
+			d.Set("read_scale", true)
+		} else {
+			d.Set("read_scale", false)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)

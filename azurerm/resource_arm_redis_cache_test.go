@@ -640,6 +640,27 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
+	resourceName := "azurerm_redis_cache.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMRedisCacheWithoutAuth(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "redis_configuration.0.enable_authentication", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMRedisCache_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1092,6 +1113,43 @@ resource "azurerm_redis_cache" "test" {
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {}
   zones               = ["1"]
+}
+`, ri, location, ri, ri)
+}
+
+func testAccAzureRMRedisCacheWithoutAuth(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  subnet_id           = "${azurerm_subnet.test.id}"
+  redis_configuration {
+		enable_authentication = false
+	}
 }
 `, ri, location, ri, ri)
 }

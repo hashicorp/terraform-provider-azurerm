@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
@@ -115,7 +114,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -132,13 +131,15 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
-  parameters {
-    "foo" = "test1"
-    "bar" = "test2"
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
   }
-  additional_properties {
-    "foo" = "test1"
-    "bar" = "test2"
+
+  additional_properties = {
+    foo = "test1"
+    bar = "test2"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -147,7 +148,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -164,13 +165,15 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
-  parameters {
-    "foo" = "test1"
-    "bar" = "test2"
-    "buzz" = "test3"
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
+    buzz = "test3"
   }
-  additional_properties {
-    "foo" = "test1"
+
+  additional_properties = {
+    foo = "test1"
   }
 }
 `, rInt, location, rInt, rInt)

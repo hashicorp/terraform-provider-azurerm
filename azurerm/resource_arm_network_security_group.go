@@ -36,9 +36,10 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"security_rule": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeSet,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {

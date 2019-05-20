@@ -56,7 +56,7 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 
 		pricingName := rs.Primary.Attributes["pricings"]
 
-		resp, err := client.Get(ctx, pricingName)
+		resp, err := client.GetSubscriptionPricing(ctx, pricingName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Security Center Subscription Pricing %q was not found: %+v", pricingName, err)
