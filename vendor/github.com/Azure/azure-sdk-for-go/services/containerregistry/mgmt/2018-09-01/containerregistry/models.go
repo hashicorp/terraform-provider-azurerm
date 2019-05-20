@@ -775,7 +775,7 @@ type DockerBuildStep struct {
 	Target *string `json:"target,omitempty"`
 	// Arguments - The collection of override arguments to be used when executing this build step.
 	Arguments *[]Argument `json:"arguments,omitempty"`
-	// BaseImageDependencies - List of base image dependencies for a step.
+	// BaseImageDependencies - READ-ONLY; List of base image dependencies for a step.
 	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
 	// ContextPath - The URL(absolute or relative) of the source context for the task step.
 	ContextPath *string `json:"contextPath,omitempty"`
@@ -806,9 +806,6 @@ func (dbs DockerBuildStep) MarshalJSON() ([]byte, error) {
 	}
 	if dbs.Arguments != nil {
 		objectMap["arguments"] = dbs.Arguments
-	}
-	if dbs.BaseImageDependencies != nil {
-		objectMap["baseImageDependencies"] = dbs.BaseImageDependencies
 	}
 	if dbs.ContextPath != nil {
 		objectMap["contextPath"] = dbs.ContextPath
@@ -1028,7 +1025,7 @@ type EncodedTaskStep struct {
 	EncodedValuesContent *string `json:"encodedValuesContent,omitempty"`
 	// Values - The collection of overridable values that can be passed when running a task.
 	Values *[]SetValue `json:"values,omitempty"`
-	// BaseImageDependencies - List of base image dependencies for a step.
+	// BaseImageDependencies - READ-ONLY; List of base image dependencies for a step.
 	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
 	// ContextPath - The URL(absolute or relative) of the source context for the task step.
 	ContextPath *string `json:"contextPath,omitempty"`
@@ -1050,9 +1047,6 @@ func (ets EncodedTaskStep) MarshalJSON() ([]byte, error) {
 	}
 	if ets.Values != nil {
 		objectMap["values"] = ets.Values
-	}
-	if ets.BaseImageDependencies != nil {
-		objectMap["baseImageDependencies"] = ets.BaseImageDependencies
 	}
 	if ets.ContextPath != nil {
 		objectMap["contextPath"] = ets.ContextPath
@@ -1508,7 +1502,7 @@ type FileTaskStep struct {
 	ValuesFilePath *string `json:"valuesFilePath,omitempty"`
 	// Values - The collection of overridable values that can be passed when running a task.
 	Values *[]SetValue `json:"values,omitempty"`
-	// BaseImageDependencies - List of base image dependencies for a step.
+	// BaseImageDependencies - READ-ONLY; List of base image dependencies for a step.
 	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
 	// ContextPath - The URL(absolute or relative) of the source context for the task step.
 	ContextPath *string `json:"contextPath,omitempty"`
@@ -1530,9 +1524,6 @@ func (fts FileTaskStep) MarshalJSON() ([]byte, error) {
 	}
 	if fts.Values != nil {
 		objectMap["values"] = fts.Values
-	}
-	if fts.BaseImageDependencies != nil {
-		objectMap["baseImageDependencies"] = fts.BaseImageDependencies
 	}
 	if fts.ContextPath != nil {
 		objectMap["contextPath"] = fts.ContextPath
@@ -2002,11 +1993,11 @@ type PlatformUpdateParameters struct {
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags.
 type ProxyResource struct {
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2032,7 +2023,7 @@ type RegistriesCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesCreateFuture) Result(client RegistriesClient) (r Registry, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2061,7 +2052,7 @@ type RegistriesDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesDeleteFuture) Result(client RegistriesClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2084,7 +2075,7 @@ type RegistriesImportImageFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesImportImageFuture) Result(client RegistriesClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesImportImageFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2107,7 +2098,7 @@ type RegistriesScheduleRunFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesScheduleRunFuture) Result(client RegistriesClient) (r Run, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesScheduleRunFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2136,7 +2127,7 @@ type RegistriesUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesUpdateFuture) Result(client RegistriesClient) (r Registry, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2165,7 +2156,7 @@ type RegistriesUpdatePoliciesFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RegistriesUpdatePoliciesFuture) Result(client RegistriesClient) (rp RegistryPolicies, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdatePoliciesFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2193,11 +2184,11 @@ type Registry struct {
 	Identity *RegistryIdentity `json:"identity,omitempty"`
 	// RegistryProperties - The properties of the container registry.
 	*RegistryProperties `json:"properties,omitempty"`
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 	// Location - The location of the resource. This cannot be changed after the resource is created.
 	Location *string `json:"location,omitempty"`
@@ -2216,15 +2207,6 @@ func (r Registry) MarshalJSON() ([]byte, error) {
 	}
 	if r.RegistryProperties != nil {
 		objectMap["properties"] = r.RegistryProperties
-	}
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
 	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
@@ -2525,13 +2507,13 @@ type RegistryPolicies struct {
 
 // RegistryProperties the properties of a container registry.
 type RegistryProperties struct {
-	// LoginServer - The URL that can be used to log into the container registry.
+	// LoginServer - READ-ONLY; The URL that can be used to log into the container registry.
 	LoginServer *string `json:"loginServer,omitempty"`
-	// CreationDate - The creation date of the container registry in ISO8601 format.
+	// CreationDate - READ-ONLY; The creation date of the container registry in ISO8601 format.
 	CreationDate *date.Time `json:"creationDate,omitempty"`
-	// ProvisioningState - The provisioning state of the container registry at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning state of the container registry at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// Status - The status of the container registry at the time the operation was called.
+	// Status - READ-ONLY; The status of the container registry at the time the operation was called.
 	Status *Status `json:"status,omitempty"`
 	// AdminUserEnabled - The value that indicates whether the admin user is enabled.
 	AdminUserEnabled *bool `json:"adminUserEnabled,omitempty"`
@@ -2656,11 +2638,11 @@ type Replication struct {
 	autorest.Response `json:"-"`
 	// ReplicationProperties - The properties of the replication.
 	*ReplicationProperties `json:"properties,omitempty"`
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 	// Location - The location of the resource. This cannot be changed after the resource is created.
 	Location *string `json:"location,omitempty"`
@@ -2673,15 +2655,6 @@ func (r Replication) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if r.ReplicationProperties != nil {
 		objectMap["properties"] = r.ReplicationProperties
-	}
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
 	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
@@ -2909,9 +2882,9 @@ func NewReplicationListResultPage(getNextPage func(context.Context, ReplicationL
 
 // ReplicationProperties the properties of a replication.
 type ReplicationProperties struct {
-	// ProvisioningState - The provisioning state of the replication at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning state of the replication at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// Status - The status of the replication at the time the operation was called.
+	// Status - READ-ONLY; The status of the replication at the time the operation was called.
 	Status *Status `json:"status,omitempty"`
 }
 
@@ -2925,7 +2898,7 @@ type ReplicationsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ReplicationsCreateFuture) Result(client ReplicationsClient) (r Replication, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2954,7 +2927,7 @@ type ReplicationsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ReplicationsDeleteFuture) Result(client ReplicationsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -2977,7 +2950,7 @@ type ReplicationsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ReplicationsUpdateFuture) Result(client ReplicationsClient) (r Replication, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3027,11 +3000,11 @@ type Request struct {
 
 // Resource an Azure resource.
 type Resource struct {
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 	// Location - The location of the resource. This cannot be changed after the resource is created.
 	Location *string `json:"location,omitempty"`
@@ -3042,15 +3015,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -3065,11 +3029,11 @@ type Run struct {
 	autorest.Response `json:"-"`
 	// RunProperties - The properties of a run.
 	*RunProperties `json:"properties,omitempty"`
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3078,15 +3042,6 @@ func (r Run) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if r.RunProperties != nil {
 		objectMap["properties"] = r.RunProperties
-	}
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3348,6 +3303,8 @@ type RunProperties struct {
 	SourceRegistryAuth *string `json:"sourceRegistryAuth,omitempty"`
 	// CustomRegistries - The list of custom registries that were logged in during this run.
 	CustomRegistries *[]string `json:"customRegistries,omitempty"`
+	// RunErrorMessage - READ-ONLY; The error message received from backend systems after the run is scheduled.
+	RunErrorMessage *string `json:"runErrorMessage,omitempty"`
 	// ProvisioningState - The provisioning state of a run. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// IsArchiveEnabled - The value that indicates whether archiving is enabled or not.
@@ -3472,7 +3429,7 @@ type RunsCancelFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RunsCancelFuture) Result(client RunsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsCancelFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3494,7 +3451,7 @@ type RunsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RunsUpdateFuture) Result(client RunsClient) (r Run, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3544,7 +3501,7 @@ type SetValue struct {
 type Sku struct {
 	// Name - The SKU name of the container registry. Required for registry creation. Possible values include: 'Classic', 'Basic', 'Standard', 'Premium'
 	Name SkuName `json:"name,omitempty"`
-	// Tier - The SKU tier based on the SKU name. Possible values include: 'SkuTierClassic', 'SkuTierBasic', 'SkuTierStandard', 'SkuTierPremium'
+	// Tier - READ-ONLY; The SKU tier based on the SKU name. Possible values include: 'SkuTierClassic', 'SkuTierBasic', 'SkuTierStandard', 'SkuTierPremium'
 	Tier SkuTier `json:"tier,omitempty"`
 }
 
@@ -3644,11 +3601,11 @@ type SourceUploadDefinition struct {
 
 // Status the status of an Azure resource at the time the operation was called.
 type Status struct {
-	// DisplayStatus - The short label for the status.
+	// DisplayStatus - READ-ONLY; The short label for the status.
 	DisplayStatus *string `json:"displayStatus,omitempty"`
-	// Message - The detailed message for the status, including alerts and error messages.
+	// Message - READ-ONLY; The detailed message for the status, including alerts and error messages.
 	Message *string `json:"message,omitempty"`
-	// Timestamp - The timestamp when the status was changed to the current value.
+	// Timestamp - READ-ONLY; The timestamp when the status was changed to the current value.
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 }
 
@@ -3675,6 +3632,10 @@ type Target struct {
 	URL *string `json:"url,omitempty"`
 	// Tag - The tag name.
 	Tag *string `json:"tag,omitempty"`
+	// Name - The name of the artifact.
+	Name *string `json:"name,omitempty"`
+	// Version - The version of the artifact.
+	Version *string `json:"version,omitempty"`
 }
 
 // Task the task that has the ARM resource and task properties.
@@ -3683,11 +3644,11 @@ type Task struct {
 	autorest.Response `json:"-"`
 	// TaskProperties - The properties of a task.
 	*TaskProperties `json:"properties,omitempty"`
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 	// Location - The location of the resource. This cannot be changed after the resource is created.
 	Location *string `json:"location,omitempty"`
@@ -3700,15 +3661,6 @@ func (t Task) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if t.TaskProperties != nil {
 		objectMap["properties"] = t.TaskProperties
-	}
-	if t.ID != nil {
-		objectMap["id"] = t.ID
-	}
-	if t.Name != nil {
-		objectMap["name"] = t.Name
-	}
-	if t.Type != nil {
-		objectMap["type"] = t.Type
 	}
 	if t.Location != nil {
 		objectMap["location"] = t.Location
@@ -3936,9 +3888,9 @@ func NewTaskListResultPage(getNextPage func(context.Context, TaskListResult) (Ta
 
 // TaskProperties the properties of a task.
 type TaskProperties struct {
-	// ProvisioningState - The provisioning state of the task. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning state of the task. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// CreationDate - The creation date of task.
+	// CreationDate - READ-ONLY; The creation date of task.
 	CreationDate *date.Time `json:"creationDate,omitempty"`
 	// Status - The current status of task. Possible values include: 'TaskStatusDisabled', 'TaskStatusEnabled'
 	Status TaskStatus `json:"status,omitempty"`
@@ -4216,7 +4168,7 @@ type TasksCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TasksCreateFuture) Result(client TasksClient) (t Task, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4244,7 +4196,7 @@ type TasksDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TasksDeleteFuture) Result(client TasksClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4267,7 +4219,7 @@ type BasicTaskStepProperties interface {
 
 // TaskStepProperties base properties for any task step.
 type TaskStepProperties struct {
-	// BaseImageDependencies - List of base image dependencies for a step.
+	// BaseImageDependencies - READ-ONLY; List of base image dependencies for a step.
 	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
 	// ContextPath - The URL(absolute or relative) of the source context for the task step.
 	ContextPath *string `json:"contextPath,omitempty"`
@@ -4326,9 +4278,6 @@ func unmarshalBasicTaskStepPropertiesArray(body []byte) ([]BasicTaskStepProperti
 func (tsp TaskStepProperties) MarshalJSON() ([]byte, error) {
 	tsp.Type = TypeTaskStepProperties
 	objectMap := make(map[string]interface{})
-	if tsp.BaseImageDependencies != nil {
-		objectMap["baseImageDependencies"] = tsp.BaseImageDependencies
-	}
 	if tsp.ContextPath != nil {
 		objectMap["contextPath"] = tsp.ContextPath
 	}
@@ -4479,7 +4428,7 @@ type TasksUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TasksUpdateFuture) Result(client TasksClient) (t Task, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -4588,11 +4537,11 @@ type Webhook struct {
 	autorest.Response `json:"-"`
 	// WebhookProperties - The properties of the webhook.
 	*WebhookProperties `json:"properties,omitempty"`
-	// ID - The resource ID.
+	// ID - READ-ONLY; The resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 	// Location - The location of the resource. This cannot be changed after the resource is created.
 	Location *string `json:"location,omitempty"`
@@ -4605,15 +4554,6 @@ func (w Webhook) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if w.WebhookProperties != nil {
 		objectMap["properties"] = w.WebhookProperties
-	}
-	if w.ID != nil {
-		objectMap["id"] = w.ID
-	}
-	if w.Name != nil {
-		objectMap["name"] = w.Name
-	}
-	if w.Type != nil {
-		objectMap["type"] = w.Type
 	}
 	if w.Location != nil {
 		objectMap["location"] = w.Location
@@ -4914,7 +4854,7 @@ type WebhookProperties struct {
 	Scope *string `json:"scope,omitempty"`
 	// Actions - The list of actions that trigger the webhook to post notifications.
 	Actions *[]WebhookAction `json:"actions,omitempty"`
-	// ProvisioningState - The provisioning state of the webhook at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning state of the webhook at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -4998,7 +4938,7 @@ type WebhooksCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *WebhooksCreateFuture) Result(client WebhooksClient) (w Webhook, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.WebhooksCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -5027,7 +4967,7 @@ type WebhooksDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *WebhooksDeleteFuture) Result(client WebhooksClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.WebhooksDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -5050,7 +4990,7 @@ type WebhooksUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *WebhooksUpdateFuture) Result(client WebhooksClient) (w Webhook, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.WebhooksUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
