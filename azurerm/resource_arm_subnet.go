@@ -52,6 +52,7 @@ func resourceArmSubnet() *schema.Resource {
 			"route_table_id": {
 				Type:       schema.TypeString,
 				Optional:   true,
+				Computed:   true,
 				Deprecated: "Use the `azurerm_subnet_route_table_association` resource instead.",
 			},
 
