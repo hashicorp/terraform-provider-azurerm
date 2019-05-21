@@ -221,7 +221,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if space := props.AddressSpace; space != nil {
-			d.Set("address_space", utils.FlattenStringArray(space.AddressPrefixes))
+			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
 		}
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
@@ -316,10 +316,10 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: utils.ExpandStringArray(d.Get("address_space").([]interface{})),
+			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
+			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
 	}

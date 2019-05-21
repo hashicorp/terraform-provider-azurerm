@@ -84,16 +84,16 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if as := props.AddressSpace; as != nil {
-			if err := d.Set("address_spaces", utils.FlattenStringArray(as.AddressPrefixes)); err != nil { //todo remove in 2.0
+			if err := d.Set("address_spaces", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil { //todo remove in 2.0
 				return fmt.Errorf("error setting `address_spaces`: %v", err)
 			}
-			if err := d.Set("address_space", utils.FlattenStringArray(as.AddressPrefixes)); err != nil {
+			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
 				return fmt.Errorf("error setting `address_space`: %v", err)
 			}
 		}
 
 		if options := props.DhcpOptions; options != nil {
-			if err := d.Set("dns_servers", utils.FlattenStringArray(options.DNSServers)); err != nil {
+			if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DNSServers)); err != nil {
 				return fmt.Errorf("error setting `dns_servers`: %v", err)
 			}
 		}

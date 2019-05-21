@@ -283,7 +283,7 @@ func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnCl
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringArray(pool.AddressPrefixes)
+		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

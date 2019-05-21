@@ -518,7 +518,7 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 
 	addresses := make([]string, 0, 0)
 	if v, ok := d.GetOkExists("address_space"); ok {
-		addresses = *utils.ExpandStringArray(v.([]interface{}))
+		addresses = *utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	var rootCerts []network.VpnClientRootCertificate
@@ -640,7 +640,7 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringArray(pool.AddressPrefixes)
+		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

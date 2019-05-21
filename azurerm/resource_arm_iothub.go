@@ -612,7 +612,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 			Name:          &name,
 			Source:        source,
 			Condition:     &condition,
-			EndpointNames: utils.ExpandStringArray(endpointNamesRaw),
+			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     &isEnabled,
 		})
 	}
@@ -710,7 +710,7 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 	return &devices.FallbackRouteProperties{
 		Source:        &source,
 		Condition:     &condition,
-		EndpointNames: utils.ExpandStringArray(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: utils.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     &isEnabled,
 	}
 }
@@ -905,7 +905,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = utils.FlattenStringArray(route.EndpointNames)
+	output["endpoint_names"] = utils.FlattenStringSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }
