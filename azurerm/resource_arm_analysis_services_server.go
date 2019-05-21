@@ -136,14 +136,14 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	sku := d.Get("sku").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 
-	serverProperties := expandServerProperties(d)
+	serverProperties := expandAnalysisServicesServerProperties(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
 		Name:             &name,
 		Location:         &location,
-		Sku:              expandSku(sku),
+		Sku:              expandAnalysisServicesServerSku(sku),
 		ServerProperties: serverProperties,
 		Tags:             expandTags(tags),
 	}
@@ -200,27 +200,27 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenSku(server.Sku))
+	d.Set("sku", flattenAnalysisServicesServerSku(server.Sku))
 
 	if serverProps := server.ServerProperties; serverProps != nil {
 		if serverProps.AsAdministrators != nil {
-			d.Set("admin_users", *flattenAdminUsers(server.AsAdministrators))
+			d.Set("admin_users", *flattenAnalysisServicesServerAdminUsers(server.AsAdministrators))
 		}
 
 		//if serverProps.BackupBlobContainerURI != nil {
 		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
 		//}
 
-		gatewayResourceId := flattenGatewayDetails(serverProps)
+		gatewayResourceId := flattenAnalysisServicesServerGatewayDetails(serverProps)
 		if gatewayResourceId != nil {
 			d.Set("gateway_resource_id", *gatewayResourceId)
 		}
 
-		//_, fwRules := flattenFirewallSettings(serverProps)
-		//d.Set("enable_power_bi_service", flattenFirewallSettings(serverProps))
+		//_, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
+		//d.Set("enable_power_bi_service", flattenAnalysisServicesServerFirewallSettings(serverProps))
 		//d.Set("ipv4_firewall_rules", fwRules)
 
-		d.Set("querypool_connection_mode", *flattenQuerypoolConnectionMode(serverProps))
+		d.Set("querypool_connection_mode", *flattenAnalysisServicesServerQuerypoolConnectionMode(serverProps))
 	}
 
 	flattenAndSetTags(d, server.Tags)
@@ -252,12 +252,12 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	sku := d.Get("sku").(string)
 
-	serverProperties := expandServerMutableProperties(d)
+	serverProperties := expandAnalysisServicesServerMutableProperties(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
-		Sku:                     expandSku(sku),
+		Sku:                     expandAnalysisServicesServerSku(sku),
 		Tags:                    expandTags(tags),
 		ServerMutableProperties: serverProperties,
 	}
@@ -328,18 +328,18 @@ func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
 	return validation.StringInSlice(connectionModes, true)
 }
 
-func expandSku(sku string) *analysisservices.ResourceSku {
+func expandAnalysisServicesServerSku(sku string) *analysisservices.ResourceSku {
 	return &analysisservices.ResourceSku{
 		Name: &sku,
 	}
 }
 
-func flattenSku(sku *analysisservices.ResourceSku) string {
+func flattenAnalysisServicesServerSku(sku *analysisservices.ResourceSku) string {
 	return *sku.Name
 }
 
-func expandServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
-	adminUsers := expandAdminUsers(d)
+func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
+	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
 	serverProperties := analysisservices.ServerProperties{AsAdministrators: adminUsers}
 
@@ -347,21 +347,21 @@ func expandServerProperties(d *schema.ResourceData) *analysisservices.ServerProp
 	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
 	//}
 
-	if gatewayDetails := expandGatewayDetails(d); gatewayDetails != nil {
+	if gatewayDetails := expandAnalysisServicesServerGatewayDetails(d); gatewayDetails != nil {
 		serverProperties.GatewayDetails = gatewayDetails
 	}
 
-	//serverProperties.IPV4FirewallSettings = expandFirewallSettings(d)
+	//serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
-	if connectionMode := expandQuerypoolConnectionMode(d); connectionMode != nil {
+	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
 		serverProperties.QuerypoolConnectionMode = *connectionMode
 	}
 
 	return &serverProperties
 }
 
-func expandServerMutableProperties(d *schema.ResourceData) *analysisservices.ServerMutableProperties {
-	adminUsers := expandAdminUsers(d)
+func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *analysisservices.ServerMutableProperties {
+	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
 	serverProperties := analysisservices.ServerMutableProperties{AsAdministrators: adminUsers}
 
@@ -369,20 +369,20 @@ func expandServerMutableProperties(d *schema.ResourceData) *analysisservices.Ser
 	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
 	//}
 
-	if gatewayDetails := expandGatewayDetails(d); gatewayDetails != nil {
+	if gatewayDetails := expandAnalysisServicesServerGatewayDetails(d); gatewayDetails != nil {
 		serverProperties.GatewayDetails = gatewayDetails
 	}
 
-	//serverProperties.IPV4FirewallSettings = expandFirewallSettings(d)
+	//serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
-	if connectionMode := expandQuerypoolConnectionMode(d); connectionMode != nil {
+	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
 		serverProperties.QuerypoolConnectionMode = *connectionMode
 	}
 
 	return &serverProperties
 }
 
-func expandAdminUsers(d *schema.ResourceData) *analysisservices.ServerAdministrators {
+func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisservices.ServerAdministrators {
 	adminUsers := d.Get("admin_users").([]interface{})
 	members := make([]string, 0)
 
@@ -395,7 +395,7 @@ func expandAdminUsers(d *schema.ResourceData) *analysisservices.ServerAdministra
 	return &analysisservices.ServerAdministrators{Members: &members}
 }
 
-func expandGatewayDetails(d *schema.ResourceData) *analysisservices.GatewayDetails {
+func expandAnalysisServicesServerGatewayDetails(d *schema.ResourceData) *analysisservices.GatewayDetails {
 	if gatewayResourceId, ok := d.GetOk("gateway_resource_id"); ok {
 		rId := gatewayResourceId.(string)
 		return &analysisservices.GatewayDetails{GatewayResourceID: &rId}
@@ -404,7 +404,7 @@ func expandGatewayDetails(d *schema.ResourceData) *analysisservices.GatewayDetai
 	return nil
 }
 
-func expandQuerypoolConnectionMode(d *schema.ResourceData) *analysisservices.ConnectionMode {
+func expandAnalysisServicesServerQuerypoolConnectionMode(d *schema.ResourceData) *analysisservices.ConnectionMode {
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
 		connMode := analysisservices.ConnectionMode(querypoolConnectionMode.(string))
 		return &connMode
@@ -413,7 +413,7 @@ func expandQuerypoolConnectionMode(d *schema.ResourceData) *analysisservices.Con
 	return nil
 }
 
-func expandFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
+func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
 	firewallSettings := analysisservices.IPv4FirewallSettings{}
 
 	if enablePowerBi, exists := d.GetOkExists("enable_power_bi_service"); exists {
@@ -438,7 +438,7 @@ func expandFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4Firewa
 	return &firewallSettings
 }
 
-func flattenAdminUsers(serverAdministrators *analysisservices.ServerAdministrators) *[]string {
+func flattenAnalysisServicesServerAdminUsers(serverAdministrators *analysisservices.ServerAdministrators) *[]string {
 	if serverAdministrators.Members == nil {
 		return &[]string{}
 	}
@@ -446,7 +446,7 @@ func flattenAdminUsers(serverAdministrators *analysisservices.ServerAdministrato
 	return serverAdministrators.Members
 }
 
-func flattenGatewayDetails(serverProperties *analysisservices.ServerProperties) *string {
+func flattenAnalysisServicesServerGatewayDetails(serverProperties *analysisservices.ServerProperties) *string {
 	if serverProperties.GatewayDetails == nil {
 		return nil
 	}
@@ -454,7 +454,7 @@ func flattenGatewayDetails(serverProperties *analysisservices.ServerProperties) 
 	return serverProperties.GatewayDetails.GatewayResourceID
 }
 
-func flattenFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
+func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
 	if serverProperties.IPV4FirewallSettings == nil {
 		return nil, nil
 	}
@@ -479,7 +479,7 @@ func flattenFirewallSettings(serverProperties *analysisservices.ServerProperties
 	return enablePowerBi, fwRules
 }
 
-func flattenQuerypoolConnectionMode(serverProperties *analysisservices.ServerProperties) *string {
+func flattenAnalysisServicesServerQuerypoolConnectionMode(serverProperties *analysisservices.ServerProperties) *string {
 	connMode := string(serverProperties.QuerypoolConnectionMode)
 	return &connMode
 }
