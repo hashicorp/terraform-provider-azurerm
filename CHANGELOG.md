@@ -12,6 +12,8 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_automation_module` - now polls to wait until the module's finished provisioning [GH-3482]
+* `azurerm_api_management_api` - correct validation to allow empty and strings 400 characters long [GH-3475]
+
 
 ## 1.28.0 (May 17, 2019)
 
