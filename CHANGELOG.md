@@ -9,6 +9,10 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for rewrite rules [GH-3423]
 * `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
 
+BUG FIXES:
+
+* `azurerm_automation_module` - now polls to wait until the module's finished provisioning [GH-3482]
+
 ## 1.28.0 (May 17, 2019)
 
 FEATURES:
