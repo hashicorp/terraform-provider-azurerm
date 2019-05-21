@@ -778,7 +778,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/windowsservercore:latest"
+    image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
     ports {
@@ -836,7 +836,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/windowsservercore:latest"
+    image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
     ports {

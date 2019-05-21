@@ -81,7 +81,7 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv` and `Json`.
 
-* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output.
+* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 
@@ -89,7 +89,7 @@ A `serialization` block supports the following:
 
 -> **NOTE:** This is required when `type` is set to `Csv`.
 
-* `format` - (Optional) Specifies the format of the JSON the output will be written in.
+* `format` - (Optional) Specifies the format of the JSON the output will be written in. Possible values are `Array` and `LineSeparated`.
 
 -> **NOTE:** This is Required and can only be specified when `type` is set to `Json`.
 
