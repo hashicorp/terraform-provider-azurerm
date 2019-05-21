@@ -1,5 +1,6 @@
 package utils
 
+// todo array -> slice ?
 func ExpandStringArray(input []interface{}) *[]string {
 	result := make([]string, 0)
 	for _, item := range input {
@@ -8,6 +9,7 @@ func ExpandStringArray(input []interface{}) *[]string {
 	return &result
 }
 
+// todo array -> slice ?
 func FlattenStringArray(input *[]string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
