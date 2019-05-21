@@ -10,6 +10,7 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -382,6 +383,9 @@ type ArmClient struct {
 	policyAssignmentsClient    policy.AssignmentsClient
 	policyDefinitionsClient    policy.DefinitionsClient
 	policySetDefinitionsClient policy.SetDefinitionsClient
+
+	// Analysis Services
+	analysisServicesServerClient analysisservices.ServersClient
 }
 
 var (
