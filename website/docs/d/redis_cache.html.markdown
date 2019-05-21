@@ -13,17 +13,17 @@ Use this data source to access information about an existing Redis Cache
 
 # Example Usage
 ```hcl
-data "azurerm_redis_cache" "test" {
-  name = "myrediscache"
+data "azurerm_redis_cache" "example" {
+  name                = "myrediscache"
   resource_group_name = "redis-cache"
 }
 
 output "primary_access_key" {
-  value = "${data.azurerm_redis_cache.test.primary_access_key}"
+  value = "${data.azurerm_redis_cache.example.primary_access_key}"
 }
 
 output "hostname" {
-  value = "${data.azurerm_redis_cache.test.hostname}"
+  value = "${data.azurerm_redis_cache.example.hostname}"
 }
 
 ```
