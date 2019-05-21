@@ -1,8 +1,8 @@
 package validate
 
 import (
-	"testing"
 	s "strings"
+	"testing"
 )
 
 func TestAzureRMApiManagementServiceName_validation(t *testing.T) {
