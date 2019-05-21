@@ -207,9 +207,9 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 			d.Set("admin_users", *flattenAdminUsers(server.AsAdministrators))
 		}
 
-		if serverProps.BackupBlobContainerURI != nil {
-			d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
-		}
+		//if serverProps.BackupBlobContainerURI != nil {
+		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
+		//}
 
 		gatewayResourceId := flattenGatewayDetails(serverProps)
 		if gatewayResourceId != nil {
