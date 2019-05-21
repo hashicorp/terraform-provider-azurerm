@@ -262,7 +262,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(ctx, resourceGroup, name)
+	resp, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)

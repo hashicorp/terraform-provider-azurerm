@@ -131,7 +131,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		return nil, fmt.Errorf("Error waiting for creation of Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
 	}

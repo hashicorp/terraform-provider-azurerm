@@ -424,7 +424,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	resourceGroupName := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
@@ -516,7 +516,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
 
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
 	}
@@ -711,7 +711,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := client.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -828,7 +828,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
