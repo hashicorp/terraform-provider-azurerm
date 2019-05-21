@@ -77,7 +77,7 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("sku_name", *resp.Sku)
 
-	if *resp.EnableNonSslPort == false {
+	if !*resp.EnableNonSslPort {
 		d.Set("port", *resp.Port)
 	}
 
