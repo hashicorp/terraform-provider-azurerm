@@ -138,7 +138,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	// There is the potential for the express to get out of sync when the service provider updates
+	// There is the potential for the express route circuit to become out of sync when the service provider updates
 	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
 	// We also want to keep track of the resource obtained from the api and pass down any attributes not
 	// managed by Terraform.
