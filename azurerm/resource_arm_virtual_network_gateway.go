@@ -516,9 +516,10 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 	configSets := d.Get("vpn_client_configuration").([]interface{})
 	conf := configSets[0].(map[string]interface{})
 
-	addresses := make([]string, 0)
-	if v, ok := d.GetOkExists("address_space"); ok {
-		addresses = *utils.ExpandStringSlice(v.([]interface{}))
+	confAddresses := conf["address_space"].([]interface{})
+	addresses := make([]string, 0, len(confAddresses))
+	for _, addr := range confAddresses {
+		addresses = append(addresses, addr.(string))
 	}
 
 	var rootCerts []network.VpnClientRootCertificate
