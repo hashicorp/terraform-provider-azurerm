@@ -57,48 +57,6 @@ resource "azurerm_app_service" "test" {
 }
 ```
 
-## Example Usage (Java 1.8)
-
-```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "some-resource-group"
-  location = "West Europe"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-    java_version           = "1.8"
-    java_container         = "JETTY"
-    java_container_version = "9.3"
-    scm_type               = "LocalGit"
-  }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -213,20 +171,27 @@ A `cors` block supports the following:
 
 ---
 
-Elements of `ip_restriction` support:
-`auth_settings` supports the following:
+A `auth_settings` block supports the following:
 
 * `enabled` - (Required) Is Authentication enabled?
+
+* `active_directory` - (Optional) A `active_directory` block as defined below.
 
 * `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
 
 * `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app.
 
-~> **NOTE:** When providing multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
-
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+
+* `facebook` - (Optional) A `facebook` block as defined below.
+
+* `google` - (Optional) A `google` block as defined below.
+
 * `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+
+* `microsoft` - (Optional) A `microsoft` block as defined below.
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
@@ -234,21 +199,13 @@ Elements of `ip_restriction` support:
 
 * `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
 
+* `twitter` - (Optional) A `twitter` block as defined below.
+
 * `unauthenticated_client_action` - (Optional) The action to take when an unauthenticated client attempts to access the app. Possible values are `AllowAnonymous` and `RedirectToLoginPage`.
-
-* `active_directory` - (Optional) Active directory Authentication configuration.
-
-* `facebook` - (Optional) Facebook Authentication configuration.
-
-* `google` - (Optional) Google Authentication configuration.
-
-* `microsoft` - (Optional) Microsoft Account Authentication configuration.
-
-* `twitter` - (Optional) Twitter Authentication configuration.
 
 ---
 
-`active_directory` supports the following:
+A `active_directory` block supports the following:
 
 * `client_id` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
 
@@ -258,7 +215,7 @@ Elements of `ip_restriction` support:
 
 ---
 
-`facebook` supports the following:
+A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login
 
@@ -268,7 +225,7 @@ Elements of `ip_restriction` support:
 
 ---
 
-`google` supports the following:
+A `google` block supports the following:
 
 * `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
 
@@ -278,21 +235,21 @@ Elements of `ip_restriction` support:
 
 ---
 
-`microsoft` supports the following:
+A `ip_restriction` block supports the following:
+
+* `ip_address` - (Required) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+---
+
+A `microsoft` block supports the following:
 
 * `client_id` - (Required) The OAuth 2.0 client ID that was created for the app used for authentication.
 
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
-
----
-
-`ip_restriction` supports the following:
-
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
-
-* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
 ## Attributes Reference
 
@@ -314,7 +271,7 @@ The following attributes are exported:
 
 ---
 
-`identity` exports the following:
+A `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
@@ -324,7 +281,7 @@ The following attributes are exported:
 
 ---
 
-`site_credential` exports the following:
+A `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
@@ -333,7 +290,7 @@ The following attributes are exported:
 
 ---
 
-`source_control` exports the following:
+A `source_control` block exports the following:
 
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
