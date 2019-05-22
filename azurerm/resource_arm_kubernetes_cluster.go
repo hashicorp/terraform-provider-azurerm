@@ -825,7 +825,7 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		enabled := value["enabled"].(bool)
 
 		if subnetName, ok := value["subnet_name"]; ok {
-			config["subnetName"] = utils.String(subnetName.(string))
+			config["SubnetName"] = utils.String(subnetName.(string))
 		}
 
 		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
@@ -888,7 +888,7 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		}
 
 		subnetName := ""
-		if v := aciConnector.Config["subnetName"]; v != nil {
+		if v := aciConnector.Config["SubnetName"]; v != nil {
 			subnetName = *v
 		}
 
