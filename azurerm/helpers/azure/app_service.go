@@ -143,6 +143,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -860,11 +861,11 @@ func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
 
 func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
 	if input == nil {
 		return results
 	}
+
+	result := make(map[string]interface{})
 
 	if input.Enabled != nil {
 		result["enabled"] = *input.Enabled

@@ -3067,12 +3067,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3088,8 +3090,8 @@ resource "azurerm_app_service" "test" {
     issuer  = "https://sts.windows.net/%s"
 
     additional_login_params = {
-			test_key = "test_value"
-		}
+      test_key = "test_value"
+    }
 
     active_directory {
       client_id     = "aadclientid"
@@ -3116,12 +3118,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3165,12 +3169,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3211,12 +3217,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3257,12 +3265,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3303,12 +3313,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3349,12 +3361,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3393,12 +3407,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3436,12 +3452,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3479,6 +3497,7 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
@@ -3522,12 +3541,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3561,12 +3582,14 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "acctestRG-%d"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"

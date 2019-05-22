@@ -530,7 +530,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("Error setting `auth_settings`: %+s", err)
+		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
