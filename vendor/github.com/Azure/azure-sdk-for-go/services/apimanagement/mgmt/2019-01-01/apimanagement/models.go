@@ -9265,8 +9265,53 @@ func (sc *SchemaContract) UnmarshalJSON(body []byte) error {
 type SchemaContractProperties struct {
 	// ContentType - Must be a valid a media type used in a Content-Type header as defined in the RFC 2616. Media type of the schema document (e.g. application/json, application/xml). </br> - `Swagger` Schema use `application/vnd.ms-azure-apim.swagger.definitions+json` </br> - `WSDL` Schema use `application/vnd.ms-azure-apim.xsd+xml` </br> - `OpenApi` Schema use `application/vnd.oai.openapi.components+json` </br> - `WADL Schema` use `application/vnd.ms-azure-apim.wadl.grammars+xml`.
 	ContentType *string `json:"contentType,omitempty"`
-	// Document - Properties of the Schema Document.
-	Document interface{} `json:"document,omitempty"`
+	// SchemaDocumentProperties - Properties of the Schema Document.
+	*SchemaDocumentProperties `json:"document,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SchemaContractProperties.
+func (scp SchemaContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scp.ContentType != nil {
+		objectMap["contentType"] = scp.ContentType
+	}
+	if scp.SchemaDocumentProperties != nil {
+		objectMap["document"] = scp.SchemaDocumentProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SchemaContractProperties struct.
+func (scp *SchemaContractProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "contentType":
+			if v != nil {
+				var contentType string
+				err = json.Unmarshal(*v, &contentType)
+				if err != nil {
+					return err
+				}
+				scp.ContentType = &contentType
+			}
+		case "document":
+			if v != nil {
+				var schemaDocumentProperties SchemaDocumentProperties
+				err = json.Unmarshal(*v, &schemaDocumentProperties)
+				if err != nil {
+					return err
+				}
+				scp.SchemaDocumentProperties = &schemaDocumentProperties
+			}
+		}
+	}
+
+	return nil
 }
 
 // SchemaCreateOrUpdateContract schema Contract details.

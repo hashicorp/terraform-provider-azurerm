@@ -126,12 +126,8 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
-		if documentProperties := properties.Document; documentProperties != nil {
-			// TODO: file a bug about the Swagger being broken forcing this
-			docProps, ok := documentProperties.(*apimanagement.SchemaDocumentProperties)
-			if ok {
-				d.Set("value", docProps.Value)
-			}
+		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
+			d.Set("value", documentProperties.Value)
 		}
 	}
 
