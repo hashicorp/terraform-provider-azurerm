@@ -15,9 +15,9 @@ import (
 
 func resourceArmDevTestVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestVirtualNetworkCreateUpdate,
+		Create: resourceArmDevTestVirtualNetworkCreate,
 		Read:   resourceArmDevTestVirtualNetworkRead,
-		Update: resourceArmDevTestVirtualNetworkCreateUpdate,
+		Update: resourceArmDevTestVirtualNetworkUpdate,
 		Delete: resourceArmDevTestVirtualNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -87,7 +87,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestVirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -127,11 +127,11 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error creating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, labName, name, "")
@@ -145,7 +145,7 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestVirtualNetworkRead(d, meta)
+	return resourceArmDevTestVirtualNetworkUpdate(d, meta)
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
@@ -190,6 +190,54 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	flattenAndSetTags(d, read.Tags)
 
 	return nil
+}
+
+func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).devTestVirtualNetworksClient
+	ctx := meta.(*ArmClient).StopContext
+
+	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
+
+	name := d.Get("name").(string)
+	labName := d.Get("lab_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	description := d.Get("description").(string)
+	tags := d.Get("tags").(map[string]interface{})
+
+	subscriptionId := meta.(*ArmClient).subscriptionId
+	subnetsRaw := d.Get("subnet").([]interface{})
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+
+	parameters := dtl.VirtualNetwork{
+		Tags: expandTags(tags),
+		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
+			Description:     utils.String(description),
+			SubnetOverrides: subnets,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read DevTest Virtual Network %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
+	}
+
+	d.SetId(*read.ID)
+
+	return resourceArmDevTestVirtualNetworkRead(d, meta)
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
