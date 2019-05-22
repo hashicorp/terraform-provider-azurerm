@@ -24,6 +24,7 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"address_spaces": {
 				Type:     schema.TypeList,
 				Computed: true,
+					Deprecated: "This resource has been deprecated in favour of `address_space` to be more consistent with the `azurerm_virtual_network` resource",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
