@@ -1,9 +1,9 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_firewall"
-sidebar_current: "docs-azurerm-datasource-firewall"
+page_title: "Azure Resource Manager: azurerm_redis_cache"
+sidebar_current: "docs-azurerm-datasource-redis-cache"
 description: |-
-  Gets information about an existing Azure Firewall.
+  Gets information about an existing Azure Redis Cache.
 
 ---
 
@@ -47,4 +47,12 @@ output "hostname" {
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Instance
 
-* `redis_configuration` - A `redis_configuration` block
+* `redis_configuration` - A `redis_configuration` block as defined below.
+
+---
+
+A `redis_configuration` block exports the following:
+
+* `enable_authentication` - Is the Redis instance will be accessible without authentication?
+
+* `maxmemory_reserved` - The value in megabytes reserved for non-cache usage e.g. failover
