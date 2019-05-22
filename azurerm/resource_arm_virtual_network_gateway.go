@@ -516,7 +516,7 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 	configSets := d.Get("vpn_client_configuration").([]interface{})
 	conf := configSets[0].(map[string]interface{})
 
-	addresses := make([]string, 0, 0)
+	addresses := make([]string, 0)
 	if v, ok := d.GetOkExists("address_space"); ok {
 		addresses = *utils.ExpandStringSlice(v.([]interface{}))
 	}
