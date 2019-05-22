@@ -274,6 +274,23 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"windows_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"admin_username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"admin_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"network_profile": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -418,6 +435,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
+
+		windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
+		if err := d.Set("windows_profile", windowsProfile); err != nil {
+			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
@@ -665,6 +687,22 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	}
 
 	values["ssh_key"] = sshKeys
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.ManagedClusterWindowsProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	if profile := input; profile != nil {
+		if username := profile.AdminUsername; username != nil {
+			values["admin_username"] = *username
+		}
+
+		if password := profile.AdminPassword; password != nil {
+			values["admin_password"] = *password
+		}
+	}
 
 	return []interface{}{values}
 }
