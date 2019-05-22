@@ -19,7 +19,7 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"zones": singleZonesSchema(),
+			"zones": zonesSchemaComputed(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -38,34 +38,31 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 			"minimum_tls_version": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 
 			"shard_count": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Computed: true,
 			},
 
 			"enable_non_ssl_port": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 
 			"subnet_id": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"private_static_ip_address": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"redis_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
