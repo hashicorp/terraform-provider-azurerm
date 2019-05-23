@@ -6,7 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* dependencies: upgrading `github.com/hashicorp/terraform` to `v0.12.0` [GH-3417]
+* dependencies: upgrading to `v0.12.0` of `github.com/hashicorp/terraform` [GH-3417]
 * sdk: configuring the Correlation Request ID [GH-3253]
 * `azurerm_application_gateway` - support for rewrite rules [GH-3423]
 * `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
