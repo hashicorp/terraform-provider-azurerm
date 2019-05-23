@@ -157,6 +157,10 @@ The deprecated field `internal_fqdn` will be removed.
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
 
+### Data Source: `azurerm_virtual_network`
+
+The deprecated field `address_space` will be removed.
+
 ### Resource: `azurerm_app_service_plan`
 
 The fields in the `properties` block (`app_service_environment_id`, `reserved` and `per_site_scaling`) have been moved to the top level - as such the `properties` block will be removed.

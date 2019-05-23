@@ -240,7 +240,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 		Filter:                expandEventGridEventSubscriptionFilter(d),
 		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
 		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
-		Labels:                utils.ExpandStringArray(d.Get("labels").([]interface{})),
+		Labels:                utils.ExpandStringSlice(d.Get("labels").([]interface{})),
 		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
 	}
 
@@ -487,7 +487,7 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.E
 	filter := &eventgrid.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
-		filter.IncludedEventTypes = utils.ExpandStringArray(includedEvents.([]interface{}))
+		filter.IncludedEventTypes = utils.ExpandStringSlice(includedEvents.([]interface{}))
 	}
 
 	if subjectFilter, ok := d.GetOk("subject_filter"); ok {

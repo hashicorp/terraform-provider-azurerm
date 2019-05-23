@@ -587,7 +587,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
-	apiServerAuthorizedIPRanges := utils.ExpandStringArray(apiServerAuthorizedIPRangesRaw)
+	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -669,7 +669,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 
-		apiServerAuthorizedIPRanges := utils.FlattenStringArray(props.APIServerAuthorizedIPRanges)
+		apiServerAuthorizedIPRanges := utils.FlattenStringSlice(props.APIServerAuthorizedIPRanges)
 		if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 			return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
 		}
