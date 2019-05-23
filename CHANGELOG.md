@@ -14,12 +14,13 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - updating the casing on the `SubnetName` field to match a change in the AKS API [GH-3484]
 
 BUG FIXES:
+
 * Data Source `azurerm_virtual_network`: add `network_space` property to match resource while deprecating `network_spaces` [GH-3494]
 * `azurerm_automation_module` - now polls to wait until the module's finished provisioning [GH-3482]
 * `azurerm_api_management_api` - correct validation to allow empty and strings 400 characters long [GH-3475]
 * `azurerm_dev_test_virtual_network` - correctly manages `subnets` on the initial creation [GH-3501]
 * `azurerm_express_route_circuit` - no longer removes circuit subresources on update [GH-3496]
-
+* `azurerm_role_assignment` - making the `role_definition_name` field case-insensitive [GH-3499]
 
 ## 1.28.0 (May 17, 2019)
 
