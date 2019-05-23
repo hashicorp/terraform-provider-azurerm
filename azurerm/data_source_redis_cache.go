@@ -85,7 +85,6 @@ func dataSourceArmRedisCache() *schema.Resource {
 						"maxmemory_policy": {
 							Type:     schema.TypeString,
 							Computed: true,
-							Default:  "volatile-lru",
 						},
 
 						"maxfragmentationmemory_reserved": {
@@ -138,7 +137,6 @@ func dataSourceArmRedisCache() *schema.Resource {
 						"enable_authentication": {
 							Type:     schema.TypeBool,
 							Computed: true,
-							Default:  true,
 						},
 					},
 				},
@@ -238,6 +236,7 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
+
 	if err != nil {
 		return fmt.Errorf("Error flattening `redis_configuration`: %+v", err)
 	}
