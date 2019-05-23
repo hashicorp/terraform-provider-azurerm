@@ -92,7 +92,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"agent_pool_profile": {
 				Type:     schema.TypeList,
 				Required: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -905,34 +904,39 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 
 func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containerservice.ManagedClusterAgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
-	config := configs[0].(map[string]interface{})
 
-	name := config["name"].(string)
-	poolType := config["type"].(string)
-	count := int32(config["count"].(int))
-	vmSize := config["vm_size"].(string)
-	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-	osType := config["os_type"].(string)
+	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
+	for config_id := range configs {
+		config := configs[config_id].(map[string]interface{})
 
-	profile := containerservice.ManagedClusterAgentPoolProfile{
-		Name:         utils.String(name),
-		Type:         containerservice.AgentPoolType(poolType),
-		Count:        utils.Int32(count),
-		VMSize:       containerservice.VMSizeTypes(vmSize),
-		OsDiskSizeGB: utils.Int32(osDiskSizeGB),
-		OsType:       containerservice.OSType(osType),
+		name := config["name"].(string)
+		poolType := config["type"].(string)
+		count := int32(config["count"].(int))
+		vmSize := config["vm_size"].(string)
+		osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
+		osType := config["os_type"].(string)
+
+		profile := containerservice.ManagedClusterAgentPoolProfile{
+			Name:         utils.String(name),
+			Type:         containerservice.AgentPoolType(poolType),
+			Count:        utils.Int32(count),
+			VMSize:       containerservice.VMSizeTypes(vmSize),
+			OsDiskSizeGB: utils.Int32(osDiskSizeGB),
+			OsType:       containerservice.OSType(osType),
+		}
+
+		if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
+			profile.MaxPods = utils.Int32(maxPods)
+		}
+
+		vnetSubnetID := config["vnet_subnet_id"].(string)
+		if vnetSubnetID != "" {
+			profile.VnetSubnetID = utils.String(vnetSubnetID)
+		}
+		profiles = append(profiles, profile)
 	}
 
-	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
-		profile.MaxPods = utils.Int32(maxPods)
-	}
-
-	vnetSubnetID := config["vnet_subnet_id"].(string)
-	if vnetSubnetID != "" {
-		profile.VnetSubnetID = utils.String(vnetSubnetID)
-	}
-
-	return []containerservice.ManagedClusterAgentPoolProfile{profile}
+	return profiles
 }
 
 func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
