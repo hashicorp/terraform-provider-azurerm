@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `linux_profile` - (Optional) A `linux_profile` block.
 
+* `windows_profile` - (Optional) A `windows_profile` block.
+
 * `network_profile` - (Optional) A `network_profile` block.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -167,6 +169,14 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed.  Changing this forces a new resource to be created.
+
+---
+
+A `windows_profile` block supports the following:
+
+* `admin_username` - (Required) The Admin Username for Windows VMs.
+
+* `admin_password` - (Required) The Admin Password for Windows VMs.
 
 ---
 

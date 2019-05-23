@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `linux_profile` - A `linux_profile` block as documented below.
 
+* `windows_profile` - A `windows_profile` block as documented below.
+
 * `network_profile` - A `network_profile` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
@@ -162,6 +164,14 @@ A `linux_profile` block exports the following:
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
 * `ssh_key` - An `ssh_key` block as defined below.
+
+---
+
+A `windows_profile` block exports the following:
+
+* `admin_username` - The username associated with the administrator account of the Windows VMs.
+
+* `admin_password` - The password associated with the administrator account of the Windows VMs.
 
 ---
 
