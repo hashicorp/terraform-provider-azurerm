@@ -20744,14 +20744,14 @@ func (svn *SwiftVirtualNetwork) UnmarshalJSON(body []byte) error {
 				}
 				svn.Name = &name
 			}
-		case "kind":
+		case "location":
 			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
+				var location string
+				err = json.Unmarshal(*v, &location)
 				if err != nil {
 					return err
 				}
-				svn.Kind = &kind
+				svn.Location = &location
 			}
 		case "type":
 			if v != nil {
