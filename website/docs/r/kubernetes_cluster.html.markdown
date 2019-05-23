@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) An `agent_pool_profile` block.  Currently only one agent pool can exist.
+* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as defined below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
