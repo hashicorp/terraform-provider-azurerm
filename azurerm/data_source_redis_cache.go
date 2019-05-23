@@ -74,73 +74,70 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 						"maxmemory_delta": {
 							Type:     schema.TypeInt,
-							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_reserved": {
 							Type:     schema.TypeInt,
-							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_policy": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 							Default:  "volatile-lru",
 						},
 
 						"maxfragmentationmemory_reserved": {
 							Type:     schema.TypeInt,
-							Optional: true,
 							Computed: true,
 						},
 
 						"rdb_backup_enabled": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 
 						"rdb_backup_frequency": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
 						},
 
 						"rdb_backup_max_snapshot_count": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
 						},
 
 						"rdb_storage_connection_string": {
 							Type:      schema.TypeString,
-							Optional:  true,
+							Computed:  true,
 							Sensitive: true,
 						},
 
 						"notify_keyspace_events": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 
 						"aof_backup_enabled": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 
 						"aof_storage_connection_string_0": {
 							Type:      schema.TypeString,
-							Optional:  true,
+							Computed:  true,
 							Sensitive: true,
 						},
 
 						"aof_storage_connection_string_1": {
 							Type:      schema.TypeString,
-							Optional:  true,
+							Computed:  true,
 							Sensitive: true,
 						},
 						"enable_authentication": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 							Default:  true,
 						},
 					},
@@ -149,16 +146,16 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 			"patch_schedule": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day_of_week": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 						"start_hour_utc": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -246,6 +243,16 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	}
 	if err := d.Set("redis_configuration", redisConfiguration); err != nil {
 		return fmt.Errorf("Error setting `redis_configuration`: %+v", err)
+	}
+
+	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+
+	schedule, err := patchSchedulesClient.Get(ctx, resourceGroup, name)
+	if err == nil {
+		patchSchedule := flattenRedisPatchSchedules(schedule)
+		if err = d.Set("patch_schedule", patchSchedule); err != nil {
+			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
+		}
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
