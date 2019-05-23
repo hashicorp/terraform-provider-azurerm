@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
 * `azurerm_app_service` - support for configuring authentication settings [GH-2831]
 * `azurerm_kubernetes_cluster` - updating the casing on the `SubnetName` field to match a change in the AKS API [GH-3484]
+* `azurerm_kubernetes_cluster` - support for multiple agent pools [GH-3491]
 
 BUG FIXES:
 
