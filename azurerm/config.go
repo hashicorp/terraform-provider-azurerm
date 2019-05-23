@@ -306,6 +306,7 @@ type ArmClient struct {
 	secGroupClient                  network.SecurityGroupsClient
 	secRuleClient                   network.SecurityRulesClient
 	subnetClient                    network.SubnetsClient
+	virtualWanClient                network.VirtualWansClient
 	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
 	vnetGatewayClient               network.VirtualNetworkGatewaysClient
 	vnetClient                      network.VirtualNetworksClient
@@ -1201,6 +1202,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	userAssignedIdentitiesClient := msi.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
 	c.userAssignedIdentitiesClient = userAssignedIdentitiesClient
+
+	virtualWansClient := network.NewVirtualWansClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&virtualWansClient.Client, auth)
+	c.virtualWanClient = virtualWansClient
 
 	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&watchersClient.Client, auth)
