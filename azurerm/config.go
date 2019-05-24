@@ -538,6 +538,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerAnalysisServicesClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -1444,6 +1445,12 @@ func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autores
 	managementGroupsSubscriptionClient := managementgroups.NewSubscriptionsClientWithBaseURI(endpoint)
 	c.configureClient(&managementGroupsSubscriptionClient.Client, auth)
 	c.managementGroupsSubscriptionClient = managementGroupsSubscriptionClient
+}
+
+func (c *ArmClient) registerAnalysisServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	analysisServicesServersClient := analysisservices.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analysisServicesServersClient.Client, auth)
+	c.analysisServicesServerClient = analysisServicesServersClient
 }
 
 var (
