@@ -64,7 +64,6 @@ func dataSourceArmRedisCache() *schema.Resource {
 			"redis_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"maxclients": {
