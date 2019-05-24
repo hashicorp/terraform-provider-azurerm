@@ -273,6 +273,27 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "EP1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -367,9 +388,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, rInt, location, rInt)
 }
@@ -390,9 +409,7 @@ resource "azurerm_app_service_plan" "import" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, template)
 }
@@ -499,10 +516,8 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    per_site_scaling = true
-    reserved         = false
-  }
+  per_site_scaling = true
+  reserved         = false
 
   tags = {
     environment = "Test"
@@ -555,6 +570,27 @@ resource "azurerm_app_service_plan" "test" {
   sku {
     tier = "Dynamic"
     size = "Y1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_premiumConsumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
   }
 }
 `, rInt, location, rInt)

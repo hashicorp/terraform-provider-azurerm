@@ -87,6 +87,7 @@ func (client P2sVpnServerConfigurationsClient) CreateOrUpdatePreparer(ctx contex
 		"api-version": APIVersion,
 	}
 
+	p2SVpnServerConfigurationParameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

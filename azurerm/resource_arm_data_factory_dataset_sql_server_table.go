@@ -42,7 +42,9 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"linked_service_name": {
 				Type:         schema.TypeString,
@@ -312,58 +314,4 @@ func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, m
 	}
 
 	return nil
-}
-
-// DatasetColumn describes the attributes needed to specify a structure column for a dataset
-type DatasetColumn struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Type        string `json:"type,omitempty"`
-}
-
-func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
-	columns := make([]DatasetColumn, 0)
-	for _, column := range input {
-		attrs := column.(map[string]interface{})
-
-		datasetColumn := DatasetColumn{
-			Name: attrs["name"].(string),
-		}
-		if attrs["description"] != nil {
-			datasetColumn.Description = attrs["description"].(string)
-		}
-		if attrs["type"] != nil {
-			datasetColumn.Type = attrs["type"].(string)
-		}
-		columns = append(columns, datasetColumn)
-	}
-	return columns
-}
-
-func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
-	output := make([]interface{}, 0)
-
-	columns, ok := input.([]interface{})
-	if !ok {
-		return columns
-	}
-
-	for _, v := range columns {
-		column, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		result := make(map[string]interface{})
-		if column["name"] != nil {
-			result["name"] = column["name"]
-		}
-		if column["type"] != nil {
-			result["type"] = column["type"]
-		}
-		if column["description"] != nil {
-			result["description"] = column["description"]
-		}
-		output = append(output, result)
-	}
-	return output
 }

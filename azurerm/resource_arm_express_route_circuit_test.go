@@ -25,6 +25,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,

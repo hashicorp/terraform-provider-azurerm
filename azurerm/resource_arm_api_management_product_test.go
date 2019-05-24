@@ -148,7 +148,6 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "approval_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),

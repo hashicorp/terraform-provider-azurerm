@@ -210,7 +210,7 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

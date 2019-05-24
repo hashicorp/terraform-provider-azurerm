@@ -12,7 +12,7 @@ resource "azurerm_app_service" "test" {
   # ...
   site_config = {
     # ...
-    linux_fx_version = "KUBE|${base64encode(file("kubernetes.yml"))}"
+    linux_fx_version = "KUBE|${filebase64("kubernetes.yml")}"
   }
 
   lifecycle {

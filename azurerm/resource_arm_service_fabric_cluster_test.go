@@ -1248,7 +1248,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 		http_endpoint_port   = 80
   }
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)
@@ -1279,7 +1279,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 	}
 	
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

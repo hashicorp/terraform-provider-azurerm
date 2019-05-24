@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -37,7 +37,11 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameSchema(),
+
+			// TODO: make this case sensitive once this API bug has been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5574
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -105,6 +109,20 @@ func resourceArmBatchPool() *schema.Resource {
 							DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
 								return strings.TrimSpace(old) == strings.TrimSpace(new)
 							},
+						},
+					},
+				},
+			},
+			"container_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -275,6 +293,39 @@ func resourceArmBatchPool() *schema.Resource {
 								},
 							},
 						},
+
+						"resource_file": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auto_storage_container_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"blob_prefix": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"file_mode": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"file_path": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"http_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"storage_container_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -348,10 +399,17 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
+	containerConfigurationSet := d.Get("container_configuration").([]interface{})
+	containerConfiguration, err := azure.ExpandBatchPoolContainerConfiguration(containerConfigurationSet)
+	if err != nil {
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+
 	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
 		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-			NodeAgentSkuID: &nodeAgentSkuID,
-			ImageReference: imageReference,
+			NodeAgentSkuID:         &nodeAgentSkuID,
+			ImageReference:         imageReference,
+			ContainerConfiguration: containerConfiguration,
 		},
 	}
 
@@ -361,6 +419,10 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
+
+	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
+		return err
+	}
 
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
@@ -461,6 +523,10 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
+	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
+		return err
+	}
+
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -520,6 +586,12 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if dcfg := props.DeploymentConfiguration; dcfg != nil {
+			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+			}
 		}
 
 		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
@@ -639,6 +711,46 @@ func validateUserIdentity(userIdentity *batch.UserIdentity) error {
 
 	if userIdentity.AutoUser != nil && userIdentity.UserName != nil {
 		return errors.New("auto_user and user_name cannot be specified in the user_identity at the same time")
+	}
+
+	return nil
+}
+
+func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
+	// Perform validation across multiple fields as per https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
+
+	if pool.StartTask != nil {
+		startTask := *pool.StartTask
+		if startTask.ResourceFiles != nil {
+			for _, referenceFile := range *startTask.ResourceFiles {
+				// Must specify exactly one of AutoStorageContainerName, StorageContainerUrl or HttpUrl
+				sourceCount := 0
+				if referenceFile.AutoStorageContainerName != nil {
+					sourceCount++
+				}
+				if referenceFile.StorageContainerURL != nil {
+					sourceCount++
+				}
+				if referenceFile.HTTPURL != nil {
+					sourceCount++
+				}
+				if sourceCount != 1 {
+					return fmt.Errorf("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
+				}
+
+				if referenceFile.BlobPrefix != nil {
+					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
+						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
+					}
+				}
+
+				if referenceFile.HTTPURL != nil {
+					if referenceFile.FilePath == nil {
+						return fmt.Errorf("file_path must be specified when using http_url")
+					}
+				}
+			}
+		}
 	}
 
 	return nil

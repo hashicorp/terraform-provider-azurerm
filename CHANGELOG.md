@@ -1,46 +1,176 @@
-## 1.25.0 (Unreleased)
+## 1.29.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_batch_certificate` [GH-3097]
-* **New Data Source:** `azurerm_firewall` [GH-3235]
-* **New Data Source:** `azurerm_hdinsight_cluster` [GH-3196]
-* **New Resource:** `azurerm_batch_certificate` [GH-3097]
-* **New Resource:** `azurerm_data_factory` [GH-3159]
-* **New Resource:** `azurerm_data_factory_dataset_sql_server_table` [GH-3236]
-* **New Resource:** `azurerm_data_factory_linked_service_sql_server` [GH-3205]
-* **New Resource:** `azurerm_hdinsight_kafka_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_kbase_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_hadoop_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_interactive_query_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_ml_services_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_rserver_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_spark_cluster` [GH-3196]
-* **New Resource:** `azurerm_hdinsight_storm_cluster` [GH-3196]
-* **New Resource:** `azurerm_public_ip_prefix` [GH-3139]
-* **New Resource:** `azurerm_iothub_shared_access_policy` [GH-3009]
+* **New Resource:** `azurerm_application_insights_web_test` [GH-3331]
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 [GH-3126]
-* dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 [GH-3126]
-* dependencies: upgrading `github.com/hashicorp/terraform` to `44702fa6c163` [GH-3181]
-* Data Source: `azurerm_subnet` - exposing the `service_endpoint` field [GH-3184]
-* `azurerm_container_group` - support for specifying `liveness_probe` and `readiness_probe` blocks [GH-3118]
-* `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` [GH-3155]
-* `azurerm_key_vault_access_policy` - support for setting `storage_permissions` [GH-3153]
-* `azurerm_kubernetes_cluster` - `network_policy` now supports `azure` [GH-3213]
-* `azurerm_iothub` - support for configuring `ip_filter_rule` [GH-3173]
-* `azurerm_public_ip` - support for attaching a `azurerm_public_ip_prefix` [GH-3139]
-* `azurerm_storage_blob` - support for the `metadata` property [GH-3206]
-* `azurerm_traffic_manager_profile` - support the `MultiValue` and `Weighted` values for the `traffic_routing_method` property [GH-3207]
-* `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's [GH-3171]
+* sdk: configuring the Correlation Request ID [GH-3253]
+* `azurerm_application_gateway` - support for rewrite rules [GH-3423]
+* `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
+* `azurerm_app_service` - support for configuring authentication settings [GH-2831]
+* `azurerm_kubernetes_cluster` - updating the casing on the `SubnetName` field to match a change in the AKS API [GH-3484]
 
 BUG FIXES:
 
-* `azurerm_function_app` - ensuring deleted App Services are detected correctly [GH-3198]
-* `azurerm_function_app` - ensuring deleted Function Apps are detected correctly [GH-3198]
-* `azurerm_virtual_machine` - adding validation for the `identity_ids` field [GH-3183]
+* `azurerm_automation_module` - now polls to wait until the module's finished provisioning [GH-3482]
+* `azurerm_api_management_api` - correct validation to allow empty and strings 400 characters long [GH-3475]
+
+
+## 1.28.0 (May 17, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_automation_variable_bool` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Data Source:** `azurerm_automation_variable_datetime` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Data Source:** `azurerm_automation_variable_int` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Data Source:** `azurerm_automation_variable_string` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Data Source:** `zurerm_kubernetes_service_versions` ([#3382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3382))
+* **New Data Source:** `azurerm_user_assigned_identity` ([#3343](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3343))
+* **New Resource:** `azurerm_automation_variable_bool` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Resource:** `azurerm_automation_variable_datetime` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Resource:** `azurerm_automation_variable_int` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Resource:** `azurerm_automation_variable_string` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
+* **New Resource:** `azurerm_api_management_api_operation_policy` ([#3374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3374))
+* **New Resource:** `azurerm_api_management_api_policy` ([#3367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3367))
+* **New Resource:** `azurerm_api_management_product_policy` ([#3325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3325))
+* **New Resource:** `azurerm_api_management_schema` ([#3357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3357))
+* **New Resource:** `azurerm_cosmosdb_table` ([#3442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3442))
+* **New Resource:** `azurerm_cosmosdb_cassandra_keyspace` ([#3442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3442))
+* **New Resource:** `azurerm_cosmosdb_mongo_collection` ([#3459](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3459))
+* **New Resource:** `azurerm_cosmosdb_mongo_database` ([#3442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3442))
+* **New Resource:** `azurerm_cosmosdb_sql_database` ([#3442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3442))
+* **New Resource:** `azurerm_firewall_nat_rule_collection` ([#3218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3218))
+* **New Resource:** `azurerm_data_factory_linked_service_data_lake_storage_gen2` ([#3425](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3425))
+* **New Resource:** `azurerm_network_profile` ([#2636](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2636))
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v29.0.0 ([#3335](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3335))
+* Data Source `azurerm_kubernetes_cluster` - exposing the `type` field within the `agent_pool_profile ` block ([#3424](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3424))
+* `azurerm_application_gateway` - support for the `autoscale_configuration` property ([#3353](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3353))
+* `azurerm_application_gateway` added validation to ensure `redirect_configuration_name` must not be set if either `backend_address_pool_name` or `backend_http_settings_name` is set ([#3340](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3340))
+* `azurerm_application_gateway` - support for `affinity_cookie_name` ([#3434](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3434))
+* `azurerm_application_gateway` - support for `disabled_rule_groups` ([#3394](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3394))
+* `azurerm_app_service_slot` - exporting the `site_credential` block ([#3444](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3444))
+* `azurerm_batch_pool` support for the `container_configuration` property ([#3311](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3311))
+* `azurerm_kubernetes_cluster` - support for the `api_server_authorized_ip_ranges` property ([#3262](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3262))
+* `azurerm_kubernetes_cluster` - support for setting `type` within the `agent_pool_profile` block (Agent Pools via Virtual Machine Scale Sets) ([#3424](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3424))
+* `azurerm_redis_cache` - support for disabling authentication ([#3389](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3389))
+* `azurerm_redis_cache` - make the `redis_configuration` block optional ([#3397](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3397))
+* `azurerm_sql_database` - support for the `read_scale` property ([#3377](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3377))
+* `azurerm_stream_analytics_job` - `tags` can now be set on the property ([#3329](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3329))
+* `azurerm_virtual_network_peering` - retrying provisioning the peering of the virtual network ([#3392](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3392))
+* `azurerm_virtual_machine_scale_set` - support for the `provision_after_extensions` property to chain multiple extensions togeather ([#2937](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2937))
+
+BUG FIXES:
+
+* Data Source: `azurerm_api_management` - correctly returning the hostname `portal` and `proxy` values ([#3385](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3385))
+* `azurerm_application_gateway` - will no longer prevent `default_backend_address_pool_name` and `redirect_configuration_name` from being set at the same time ([#3286](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3286))
+* `azurerm_application_gateway` prevent a potential panic in backend and probe validation ([#3438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3438))
+* `azurerm_eventhub` - decrease minimum `partition_count` to correct value of `1` ([#3439](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3439))
+* `azurerm_eventhub_namespace` - decrease maximum `maximum_throughput_units` to correct value of `20` ([#3440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3440))
+* `azurerm_firewall` - ensuring that the value for `subnet_id` within the `ip_configuration` block has the name `AzureFirewallSubnet` ([#3406](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3406))
+* `azurerm_managed_disk` - can now actually create `UltraSSD_LRS` disks ([#3453](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3453))
+* `azurerm_redis_configuration` - correctly display http errors encoutered during creation ([#3397](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3397))
+* `azurerm_sql_database` - making the `collation` field case insensitive to work around a bug in the API ([#3137](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3137))
+* `azurerm_stream_analytics_output_eventhub` will now correctly set `format` for JSON output ([#3318](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3318))
+* `azurerm_app_service_plan` - supports `elastic` for the sku tier ([#3402](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3402))
+* `azurerm_application_gateway` - supports `disabled_rule_group` for waf configurations ([#3394](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3394))
+* `azurerm_application_gateway` - supports `exclusion` for waf configurations ([#3407](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3407))
+* `azurerm_application_gateway` - supports updating a `gateway_ip_configuration.x.subnet_id` ([#3437](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3437))
+
+## 1.27.1 (April 26, 2019)
+
+BUG FIXES:
+
+* provider will now only register available resource providers ([#3313](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3313))
+
+## 1.27.0 (April 26, 2019)
+
+NOTES:
+
+* This release includes a Terraform SDK upgrade with compatibility for Terraform v0.12. The provider remains backwards compatible with Terraform v0.11 and there should not be any significant behavioural changes. ([#2968](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2968))
+
+## 1.26.0 (April 25, 2019)
+
+IMPROVEMENTS:
+
+* `azurerm_app_service` - support for Java 11 ([#3270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3270))
+* `azurerm_app_service_slot` - support for Java 11 ([#3270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3270))
+* `azurerm_container_group` - support for the `identity` block ([#3243](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3243))
+
+BUG FIXES:
+
+* provider will work through proxies again ([#3301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3301))
+
+## 1.25.0 (April 17, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_batch_certificate` ([#3097](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3097))
+* **New Data Source:** `azurerm_express_route_circuit` ([#3158](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3158))
+* **New Data Source:** `azurerm_firewall` ([#3235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3235))
+* **New Data Source:** `azurerm_hdinsight_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Data Source:** `azurerm_stream_analytics_job` ([#3227](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3227))
+* **New Resource:** `azurerm_batch_certificate` ([#3097](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3097))
+* **New Resource:** `azurerm_data_factory` ([#3159](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3159))
+* **New Resource:** `azurerm_data_factory_dataset_mysql` ([#3267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3267))
+* **New Resource:** `azurerm_data_factory_dataset_postgresql` ([#3267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3267))
+* **New Resource:** `azurerm_data_factory_dataset_sql_server_table` ([#3236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3236))
+* **New Resource:** `azurerm_data_factory_linked_service_sql_server` ([#3205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3205))
+* **New Resource:** `azurerm_data_factory_linked_service_mysql` ([#3265](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3265))
+* **New Resource:** `azurerm_data_factory_linked_service_postgresql` ([#3266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3266))
+* **New Resource:** `azurerm_data_factory_pipeline` ([#3244](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3244))
+* **New Resource:** `azurerm_hdinsight_kafka_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_kbase_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_hadoop_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_interactive_query_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_ml_services_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_rserver_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_spark_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_hdinsight_storm_cluster` ([#3196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3196))
+* **New Resource:** `azurerm_iothub_shared_access_policy` ([#3009](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3009))
+* **New Resource:** `azurerm_public_ip_prefix` ([#3139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3139))
+* **New Resource:** `azurerm_stream_analytics_job` ([#3227](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3227))
+* **New Resource:** `azurerm_stream_analytics_function_javascript_udf` ([#3249](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3249))
+* **New Resource:** `azurerm_stream_analytics_stream_input_blob` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+* **New Resource:** `azurerm_stream_analytics_stream_input_eventhub` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+* **New Resource:** `azurerm_stream_analytics_stream_input_iothub` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+* **New Resource:** `azurerm_stream_analytics_output_blob` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+* **New Resource:** `azurerm_stream_analytics_output_eventhub` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+* **New Resource:** `azurerm_stream_analytics_output_servicebus_queue` ([#3250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3250))
+
+IMPROVEMENTS:
+
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to v26.7.0 ([#3126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3126))
+* dependencies: updating `github.com/Azure/go-autorest` to v11.7.0 ([#3126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3126))
+* dependencies: updating `github.com/hashicorp/terraform` to `44702fa6c163` ([#3181](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3181))
+* Data Source: `azurerm_batch_pool` - adding the `resource_file` block to the `start_task` block ([#3192](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3192))
+* Data Source: `azurerm_subnet` - exposing the `service_endpoint` field ([#3184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3184))
+* `azurerm_batch_pool` - adding the `resource_file` block to the `start_task` block ([#3192](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3192))
+* `azurerm_container_group` - support for specifying `liveness_probe` and `readiness_probe` blocks ([#3118](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3118))
+* `azurerm_key_vault_access_policy` - support for setting `storage_permissions` ([#3153](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3153))
+* `azurerm_kubernetes_cluster` - `network_policy` now supports `azure` ([#3213](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3213))
+* `azurerm_iothub` - support for configuring `ip_filter_rule` ([#3173](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3173))
+* `azurerm_public_ip` - support for attaching a `azurerm_public_ip_prefix` ([#3139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3139))
+* `azurerm_redis_cache` - support for setting `aof_backup_enabled`, `aof_storage_connection_string_0` and `aof_storage_connection_string_1` ([#3155](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3155))
+* `azurerm_storage_blob` - support for the `metadata` property ([#3206](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3206))
+* `azurerm_traffic_manager_profile` - support the `MultiValue` and `Weighted` values for the `traffic_routing_method` property ([#3207](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3207))
+* `azurerm_virtual_network_gateway` - support for the `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ` SKU's ([#3171](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3171))
+
+BUG FIXES:
+
+* dependencies: downgrading the Security API to `2017-08-01-preview` to work around a breaking API change ([#3269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3269))
+* `azurerm_app_service` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block ([#3219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3219))
+* `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block ([#3219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3219))
+* `azurerm_batch_account` - temporarily treating the Resource Group Name as case insensitive to work around an API bug ([#3260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3260))
+* `azurerm_batch_pool` - temporarily treating the Resource Group Name as case insensitive to work around an API bug ([#3260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3260))
+* `azurerm_app_service` - ensuring deleted App Services are detected correctly ([#3198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3198))
+* `azurerm_function_app` - ensuring deleted Function Apps are detected correctly ([#3198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3198))
+* `azurerm_virtual_machine` - adding validation for the `identity_ids` field ([#3183](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3183))
 
 ## 1.24.0 (April 03, 2019)
 
@@ -78,9 +208,9 @@ IMPROVEMENTS:
 * `azurerm_batch_account` - now exports the `primary_access_key`, `secondary_access_key`, and `account_endpoint` properties ([#3071](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3071))
 * `azurerm_container_group` - support for attaching GPU's ([#3053](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3053))
 * `azurerm_eventhub` - support for the `skip_empty_archives` property ([#3074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3074))
-* `azurerm_eventhub_namespace` - increase maximum `capacity` to 100 ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
+* `azurerm_eventhub_namespace` - increase maximum `maximum_throughput_units` to 100 ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
 * `azurerm_function_app` - exporting `possible_outbound_ip_addresses` ([#3043](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3043))
-* `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type ([#3049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3049))
+* `azurerm_iothub` - properties `batch_frequency_in_seconds`, `max_chunk_size_in_bytes`, `encoding`, `container_name`, `file_name_format` are now correctly diff'd depending on the type ([#2951](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2951))
 * `azurerm_image` - support for the `zone_resilient` property ([#3100](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3100))
 * `azurerm_kubernetes_cluster` - support for the `network_profile` property ([#2987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2987))
 * `azurerm_key_vault` - support for the `storage_permissions` property ([#3081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3081))

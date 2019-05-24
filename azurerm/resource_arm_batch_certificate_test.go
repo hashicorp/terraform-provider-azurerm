@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
+func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -42,7 +42,7 @@ func TestAccAzureRMBatchCertificatePfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificatePfxWithoutPassword(t *testing.T) {
+func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -62,7 +62,7 @@ func TestAccAzureRMBatchCertificatePfxWithoutPassword(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificateCer(t *testing.T) {
+func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -92,7 +92,7 @@ func TestAccAzureRMBatchCertificateCer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchCertificateCerWithPassword(t *testing.T) {
+func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -129,7 +129,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
 	format               = "Pfx"
 	password             = "terraform"
 	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
@@ -155,7 +155,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.pfx"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
 	format               = "Pfx"
 	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
 	thumbprint_algorithm = "SHA1"
@@ -179,7 +179,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.cer")}"
 	format               = "Cer"
 	thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
 	thumbprint_algorithm = "SHA1"
@@ -203,7 +203,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${base64encode(file("testdata/batch_certificate.cer"))}"
+	certificate          = "${filebase64("testdata/batch_certificate.cer")}"
 	format               = "Cer"
 	password             = "should not have a password for Cer"
 	thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"

@@ -325,7 +325,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:5])
+`, rInt, location, strconv.Itoa(rInt)[12:17])
 }
 
 func testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(rInt int, location string) string {

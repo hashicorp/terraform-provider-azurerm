@@ -10,29 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
-// Plan per region.
-func TestAccAzureRMDDoSProtectionPlan(t *testing.T) {
-	testCases := map[string]map[string]func(t *testing.T){
-		"normal": {
-			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
-			"requiresImport": testAccAzureRMDDoSProtectionPlan_requiresImport,
-			"withTags":       testAccAzureRMDDoSProtectionPlan_withTags,
-			"disappears":     testAccAzureRMDDoSProtectionPlan_disappears,
-		},
-	}
-
-	for group, steps := range testCases {
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range steps {
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
 func testAccAzureRMDDoSProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()

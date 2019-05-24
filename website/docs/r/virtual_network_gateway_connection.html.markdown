@@ -247,6 +247,8 @@ The following arguments are supported:
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
 
+* `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
+
 * `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic
     selectors requires an `ipsec_policy` block. Defaults to `false`.

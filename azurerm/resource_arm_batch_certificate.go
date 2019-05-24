@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -28,19 +28,25 @@ func resourceArmBatchCertificate() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameSchema(),
+
+			// TODO: make this case sensitive once this API bug has been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/5574
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"certificate": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringLenBetween(1, 10000),
 			},
+
 			"format": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -49,23 +55,27 @@ func resourceArmBatchCertificate() *schema.Resource {
 					string(batch.Pfx),
 				}, false),
 			},
+
 			"password": {
 				Type:      schema.TypeString,
 				Optional:  true, // Required if `format` is "Pfx"
 				Sensitive: true,
 			},
+
 			"thumbprint": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"thumbprint_algorithm": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"SHA1"}, false),
 			},
+
 			"public_data": {
 				Type:     schema.TypeString,
 				Computed: true,
