@@ -874,7 +874,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		commands := probeConfig["exec"].([]interface{})
 		if len(commands) > 0 {
 			exec := containerinstance.ContainerExec{
-				Command: utils.ExpandStringArray(commands),
+				Command: utils.ExpandStringSlice(commands),
 			}
 			probe.Exec = &exec
 		}

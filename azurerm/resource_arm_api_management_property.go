@@ -88,7 +88,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.PropertyContractProperties.Tags = utils.ExpandStringArray(tags.([]interface{}))
+		parameters.PropertyContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {

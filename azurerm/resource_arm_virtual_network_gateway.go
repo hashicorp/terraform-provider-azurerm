@@ -368,13 +368,11 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
-		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+		if err := d.Set("vpn_client_configuration", flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+		if err := d.Set("bgp_settings", flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 	}
@@ -640,18 +638,13 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	if cfg == nil {
 		return []interface{}{}
 	}
-
 	flat := make(map[string]interface{})
 
-	addressSpace := make([]interface{}, 0)
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		if prefixes := pool.AddressPrefixes; prefixes != nil {
-			for _, addr := range *prefixes {
-				addressSpace = append(addressSpace, addr)
-			}
-		}
+		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+	} else {
+		flat["address_space"] = []interface{}{}
 	}
-	flat["address_space"] = addressSpace
 
 	rootCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRootCertificates; certs != nil {
