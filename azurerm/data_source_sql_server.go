@@ -28,6 +28,16 @@ func dataSourceSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"administrator_login": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -49,15 +59,21 @@ func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error retrieving Sql Server %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	if id := resp.ID; id != nil {
+		d.SetId(*resp.ID)
+	}
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if serverFqdn := resp.FullyQualifiedDomainName; serverFqdn != nil {
-		d.Set("fqdn", serverFqdn)
+	if props := resp.ServerProperties; props != nil {
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("version", props.Version)
+		d.Set("administrator_login", props.AdministratorLogin)
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

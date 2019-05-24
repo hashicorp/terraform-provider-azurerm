@@ -13,7 +13,7 @@ Use this data source to access information about an existing SQL Azure Database 
 ## Example Usage
 
 ```hcl
-data "azurerm_sql_server" "test" {
+data "azurerm_sql_server" "example" {
   name                = "examplesqlservername"
   resource_group_name = "example-resources"
 }
@@ -34,5 +34,9 @@ output "sql_server_id" {
 * `location` - The location of the Resource Group in which the SQL Server exists.
 
 * `fqdn` - The fully qualified domain name of the SQL Server.
+
+* `version` - The version of the SQL Server.
+
+* `administrator_login` - The administrator username of the SQL Server.
 
 * `tags` - A mapping of tags assigned to the resource.
