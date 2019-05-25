@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,8 +22,9 @@ func SchemaAppServiceScheduleBackup() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"frequency_interval": {
-					Type:     schema.TypeInt,
-					Required: true,
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validateFrequencyInterval,
 				},
 
 				"frequency_unit": {
@@ -52,6 +54,15 @@ func SchemaAppServiceScheduleBackup() *schema.Schema {
 			},
 		},
 	}
+}
+
+func validateFrequencyInterval(val interface{}, key string) (warns []string, errs []error) {
+	v := val.(int)
+
+	if v < 0 || v > 1000 {
+		errs = append(errs, fmt.Errorf("%q must be between 0 and 1000 inclusive, got: %d", key, v))
+	}
+	return
 }
 
 func ExpandAppServiceScheduleBackup(input interface{}) web.BackupSchedule {
