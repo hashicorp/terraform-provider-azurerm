@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,15 +52,16 @@ func resourceArmAppService() *schema.Resource {
 			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
 
 			"storage_account_url": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
-				ValidateFunc:  validate.URLIsHTTPS,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"backup_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"client_affinity_enabled": {
