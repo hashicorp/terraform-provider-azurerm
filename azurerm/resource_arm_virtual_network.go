@@ -62,6 +62,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
+
 						"enable": {
 							Type:     schema.TypeBool,
 							Required: true,
@@ -90,15 +91,18 @@ func resourceArmVirtualNetwork() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"address_prefix": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"security_group": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -137,6 +141,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
+
 	vnetProperties, vnetPropsErr := expandVirtualNetworkProperties(ctx, d, meta)
 	if vnetPropsErr != nil {
 		return vnetPropsErr
@@ -216,23 +221,20 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if space := props.AddressSpace; space != nil {
-			d.Set("address_space", space.AddressPrefixes)
+			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
 		}
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
 			return fmt.Errorf("Error setting `ddos_protection_plan`: %+v", err)
 		}
 
-		subnets := flattenVirtualNetworkSubnets(props.Subnets)
-		if err := d.Set("subnet", subnets); err != nil {
+		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
 			return fmt.Errorf("Error setting `subnets`: %+v", err)
 		}
 
-		dnsServers := flattenVirtualNetworkDNSServers(props.DhcpOptions)
-		if err := d.Set("dns_servers", dnsServers); err != nil {
+		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
-
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -314,10 +316,10 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: utils.ExpandStringArray(d.Get("address_space").([]interface{})),
+			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
+			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
 	}

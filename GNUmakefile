@@ -39,7 +39,7 @@ fmt:
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
-goimport:
+goimports:
 	@echo "==> Fixing imports code with goimports..."
 	goimports -w $(PKG_NAME)/
 

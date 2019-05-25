@@ -114,6 +114,9 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	circuitName := d.Get("express_route_circuit_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
@@ -155,9 +158,6 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.MicrosoftPeeringConfig = peeringConfig
 	}
-
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
 	if err != nil {

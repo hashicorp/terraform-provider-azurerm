@@ -147,7 +147,10 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
+
+* `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -166,6 +169,8 @@ The following arguments are supported:
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
+
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
 
 ---
 
@@ -306,6 +311,8 @@ A `path_rule` block supports the following:
 
 * `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
 
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
+
 ---
 
 A `probe` block support the following:
@@ -346,6 +353,8 @@ A `request_routing_rule` block supports the following:
 
 * `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 ---
@@ -380,8 +389,34 @@ A `url_path_map` block supports the following:
 
 * `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
+* `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
+
+---
+
+A `ssl_policy` block supports the following:
+
+* `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+
+~> **NOTE:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
+
+* `policy_type` - (Optional) The Type of the Policy. Possible values are `Predefined` and `Custom`.
+
+~> **NOTE:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
+
+When using a `policy_type` of `Predefined` the following fields are supported:
+
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
+
+When using a `policy_type` of `Custom` the following fields are supported:
+
+* `cipher_suites` - (Required) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
+
+* `min_protocol_version` - (Required) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+
+
 
 ---
 
@@ -454,6 +489,56 @@ A `autoscale_configuration` block supports the following:
 * `min_capacity` - (Required) Minimum capacity for autoscaling.
 
 * `max_capacity` - (Optional) Maximum capacity for autoscaling.
+
+---
+
+A `rewrite_rule_set` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule set block
+
+* `rewrite_rule` - (Required) One or more `rewrite_rule` blocks as defined above.
+
+---
+
+A `rewrite_rule` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule block
+
+* `rule_sequence` - (Required) Rule sequence of the rewrite rule that determines the order of execution in a set.
+
+* `condition` - (Optional) One or more `condition` blocks as defined above.
+
+* `request_header_configuration` - (Optional) One or more `request_header_configuration` blocks as defined above.
+
+* `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
+
+---
+
+A `condition` block supports the following:
+
+* `variable` - (Required) The [variable](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
+
+* `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
+
+* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`
+
+* `negate` - (Optional) Negate the result of the condition evaluation. Defaults to `false`
+
+---
+
+A `request_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
+
+---
+
+A `response_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration.
 
 ## Attributes Reference
 
@@ -557,6 +642,8 @@ A `path_rule` block exports the following:
 
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
+* `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
 ---
 
 A `probe` block exports the following:
@@ -576,6 +663,8 @@ A `request_routing_rule` block exports the following:
 * `backend_http_settings_id` - The ID of the associated Backend HTTP Settings Configuration.
 
 * `redirect_configuration_id` - The ID of the associated Redirect Configuration.
+
+* `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
 
@@ -612,6 +701,12 @@ A `custom_error_configuration` block exports the following:
 A `redirect_configuration` block exports the following:
 
 * `id` - The ID of the Redirect Configuration.
+
+---
+
+A `rewrite_rule_set` block exports the following:
+
+* `id` - The ID of the Rewrite Rule Set
 
 ## Import
 

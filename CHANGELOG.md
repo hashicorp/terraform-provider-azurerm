@@ -1,6 +1,32 @@
+## 1.29.0 (May 25, 2019)
+
+FEATURES:
+
+* **New Resource:** `azurerm_application_insights_web_test` ([#3331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3331))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v0.12.0` of `github.com/hashicorp/terraform` ([#3417](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3417))
+* sdk: configuring the Correlation Request ID ([#3253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3253))
+* `azurerm_application_gateway` - support for rewrite rules ([#3423](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3423))
+* `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` ([#3360](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3360))
+* `azurerm_app_service` - support for configuring authentication settings ([#2831](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2831))
+* `azurerm_kubernetes_cluster` - updating the casing on the `SubnetName` field to match a change in the AKS API ([#3484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3484))
+* `azurerm_kubernetes_cluster` - support for multiple agent pools ([#3491](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3491))
+
+BUG FIXES:
+
+* Data Source `azurerm_virtual_network`: add `network_space` property to match resource while deprecating `network_spaces` ([#3494](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3494))
+* `azurerm_automation_module` - now polls to wait until the module's finished provisioning ([#3482](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3482))
+* `azurerm_api_management_api` - correct validation to allow empty and strings 400 characters long ([#3475](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3475))
+* `azurerm_dev_test_virtual_network` - correctly manages `subnets` on the initial creation ([#3501](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3501))
+* `azurerm_express_route_circuit` - no longer removes circuit subresources on update ([#3496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3496))
+* `azurerm_role_assignment` - making the `role_definition_name` field case-insensitive ([#3499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3499))
+
 ## 1.28.0 (May 17, 2019)
 
 FEATURES:
+
 * **New Data Source:** `azurerm_automation_variable_bool` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
 * **New Data Source:** `azurerm_automation_variable_datetime` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))
 * **New Data Source:** `azurerm_automation_variable_int` ([#3310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3310))

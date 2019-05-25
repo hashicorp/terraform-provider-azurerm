@@ -75,7 +75,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -156,8 +155,9 @@ type ArmClient struct {
 	apiManagementUsersClient                apimanagement.UserClient
 
 	// Application Insights
-	appInsightsClient       appinsights.ComponentsClient
-	appInsightsAPIKeyClient appinsights.APIKeysClient
+	appInsightsClient         appinsights.ComponentsClient
+	appInsightsAPIKeyClient   appinsights.APIKeysClient
+	appInsightsWebTestsClient appinsights.WebTestsClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -383,30 +383,10 @@ type ArmClient struct {
 	policySetDefinitionsClient policy.SetDefinitionsClient
 }
 
-var (
-	msClientRequestIDOnce sync.Once
-	msClientRequestID     string
-)
-
-// clientRequestID generates a UUID to pass through `x-ms-client-request-id` header.
-func clientRequestID() string {
-	msClientRequestIDOnce.Do(func() {
-		var err error
-		msClientRequestID, err = uuid.GenerateUUID()
-
-		if err != nil {
-			log.Printf("[WARN] Fail to generate uuid for msClientRequestID: %+v", err)
-		}
-	})
-
-	log.Printf("[DEBUG] AzureRM Client Request Id: %s", msClientRequestID)
-	return msClientRequestID
-}
-
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client, c.partnerId)
 	client.Authorizer = auth
-	//client.RequestInspector = azure.WithClientID(clientRequestID())
+	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
 	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
@@ -639,6 +619,10 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 	aiak := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&aiak.Client, auth)
 	c.appInsightsAPIKeyClient = aiak
+
+	aiwt := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&aiwt.Client, auth)
+	c.appInsightsWebTestsClient = aiwt
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

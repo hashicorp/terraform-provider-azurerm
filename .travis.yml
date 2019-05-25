@@ -16,7 +16,7 @@ install:
 
 script:
 - make test
-- make lint
+- GOGC=30 make lint
 - make website-test
 
 branches:
