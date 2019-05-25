@@ -54,6 +54,7 @@ func resourceArmAppService() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+				ValidateFunc:  validate.URLIsHTTPS,
 			},
 
 			"backup_name": {
