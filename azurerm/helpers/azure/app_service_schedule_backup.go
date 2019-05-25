@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
@@ -31,6 +32,10 @@ func SchemaAppServiceScheduleBackup() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					Default:  "Day",
+					ValidateFunc: validation.StringInSlice([]string{
+						"Day",
+						"Hour",
+					}, false),
 				},
 
 				"keep_at_least_one_backup": {
