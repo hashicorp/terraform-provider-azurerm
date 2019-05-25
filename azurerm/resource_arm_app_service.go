@@ -81,6 +81,7 @@ func resourceArmAppService() *schema.Resource {
 			"backup_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"client_affinity_enabled": {
