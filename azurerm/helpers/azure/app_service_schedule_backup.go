@@ -40,9 +40,10 @@ func SchemaAppServiceScheduleBackup() *schema.Schema {
 				},
 
 				"retention_period_in_days": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  30,
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validateRetentionPeriod,
 				},
 
 				"start_time": {
@@ -61,6 +62,15 @@ func validateFrequencyInterval(val interface{}, key string) (warns []string, err
 
 	if v < 0 || v > 1000 {
 		errs = append(errs, fmt.Errorf("%q must be between 0 and 1000 inclusive, got: %d", key, v))
+	}
+	return
+}
+
+func validateRetentionPeriod(val interface{}, key string) (warns []string, errs []error) {
+	v := val.(int)
+
+	if v < 0 || v > 9999999 {
+		errs = append(errs, fmt.Errorf("%q must be between 0 and 9999999 inclusive, got: %d", key, v))
 	}
 	return
 }
