@@ -1,4 +1,9 @@
 ## 1.30.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_sql_server` [GH-3513]
+
 ## 1.29.0 (May 25, 2019)
 
 FEATURES:
