@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMSqlServer(t *testing.T) {
+func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_sql_server.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
