@@ -13,6 +13,9 @@ Use this data source to access information about an existing Resource.
 ## Example Usage
 
 ```hcl
+// Get all Resources in a Subscription
+data "azurerm_resource" {}
+
 // Get Resource by Resource ID
 data "azurerm_resource" "test" {
   resource_id = "/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Storage/storageAccounts/myStorageAcc"
@@ -33,6 +36,8 @@ data "azurerm_resource" "test" {
 ```
 
 ## Argument Reference
+
+~> **NOTE:** All Arguments except `resource_id` can be used together to refine the result.
 
 * `resource_id` - (Optional) The fully qualified ID of the resource. `resource_id` can't be used with the other Arguments.
 
