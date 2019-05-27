@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
@@ -95,6 +96,41 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 	})
 }
 
+// Currently unsure how to test it as the email addresses need to exist in the AD
+//func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
+//	resourceName := "azurerm_analysis_services_server.test"
+//	ri := tf.AccRandTimeInt()
+//	preAdminUsers := []string{"admin@domain.tld"}
+//	postAdminUsers := []string{"admin@domain.tld", "admin2@domain.tld"}
+//	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), preAdminUsers)
+//	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), postAdminUsers)
+//
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:     func() { testAccPreCheck(t) },
+//		Providers:    testAccProviders,
+//		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+//		Steps: []resource.TestStep{
+//			{
+//				Config: preConfig,
+//				Check: resource.ComposeTestCheckFunc(
+//					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+//					resource.TestCheckResourceAttr(resourceName, "admin_users.%", "1"),
+//					resource.TestCheckResourceAttr(resourceName, "admin_users.0", preAdminUsers[0]),
+//				),
+//			},
+//			{
+//				Config: postConfig,
+//				Check: resource.ComposeTestCheckFunc(
+//					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+//					resource.TestCheckResourceAttr(resourceName, "admin_users.%", "2"),
+//					resource.TestCheckResourceAttr(resourceName, "admin_users.0", postAdminUsers[0]),
+//					resource.TestCheckResourceAttr(resourceName, "admin_users.1", postAdminUsers[1]),
+//				),
+//			},
+//		},
+//	})
+//}
+
 func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -167,6 +203,23 @@ resource "azurerm_analysis_services_server" "test" {
   querypool_connection_mode = "%s"
 }
 `, rInt, location, rInt, connectionMode)
+}
+
+func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                		= "acctestass%d"
+  location            		= "${azurerm_resource_group.test.location}"
+  resource_group_name 		= "${azurerm_resource_group.test.name}"
+  sku 				  		= "B1"
+  admin_users 				= ["%s"]
+}
+`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
