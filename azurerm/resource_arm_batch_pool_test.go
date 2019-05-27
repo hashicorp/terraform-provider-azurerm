@@ -368,6 +368,36 @@ func TestAccAzureRMBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testi
 	})
 }
 
+func TestAccAzureRMBatchPool_customImage(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPoolCustomImageConfiguration(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "max_tasks_per_node", "2"),
+					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
+					resource.TestCheckResourceAttr(resourceName, "auto_scale.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_dedicated_nodes", "2"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.resize_timeout", "PT15M"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -984,5 +1014,57 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 
+`, rInt, location, rString, rString, rString)
+}
+
+func testaccAzureRMBatchPoolCustomImageConfiguration(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchpool"
+  location = "%s"
+}
+
+data "azurerm_image" "test" {
+  name                = "ubuntu1604base-img"
+  resource_group_name = "batch-custom-img-rg"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
+
+  tags = {
+    env = "test"
+  }
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool"
+  vm_size             = "Standard_A1"
+  max_tasks_per_node  = 2
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  
+  fixed_scale {
+    target_dedicated_nodes = 2
+  }
+  
+  storage_image_reference {
+    id = "${data.azurerm_image.test.id}"
+  }
+}
 `, rInt, location, rString, rString, rString)
 }
