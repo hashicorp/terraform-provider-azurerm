@@ -34,6 +34,67 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+	preConfig := testAccAzureRMAnalysisServicesServer_withTags(ri, testLocation())
+	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.label", "test"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.label", "test1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "prod"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, testLocation(), "All")
+	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, testLocation(), "ReadOnly")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "querypool_connection_mode", "All"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "querypool_connection_mode", "ReadOnly"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -48,6 +109,64 @@ resource "azurerm_analysis_services_server" "test" {
   sku 				  = "B1"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAnalysisServicesServer_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku 				  = "B1"
+
+  tags = {
+	label = "test"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAnalysisServicesServer_withTagsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku 				  = "B1"
+
+  tags = {
+	label = "test1"
+	env   = "prod"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(rInt int, location, connectionMode string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                		= "acctestass%d"
+  location            		= "${azurerm_resource_group.test.location}"
+  resource_group_name 		= "${azurerm_resource_group.test.name}"
+  sku 				  		= "B1"
+  querypool_connection_mode = "%s"
+}
+`, rInt, location, rInt, connectionMode)
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
