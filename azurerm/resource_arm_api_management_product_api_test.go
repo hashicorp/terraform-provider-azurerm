@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementProductApisClient
+	client := testAccProvider.Meta().(*ArmClient).apimgmt.ProductApisClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_api" {
 			continue
@@ -101,14 +101,14 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementProductApisClient
+		client := testAccProvider.Meta().(*ArmClient).apimgmt.ProductApisClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: API %q / Product %q (API Management Service %q / Resource Group %q) does not exist", apiName, productId, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementProductApisClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apimgmt.ProductApisClient: %+v", err)
 		}
 
 		return nil

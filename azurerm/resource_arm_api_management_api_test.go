@@ -246,7 +246,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
+	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -288,7 +288,7 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
+		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
