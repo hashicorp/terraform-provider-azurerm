@@ -33,7 +33,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
@@ -76,6 +76,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -110,6 +111,7 @@ type ArmClient struct {
 	dns          *dns.Client
 	hdinsight    *hdinsight.Client
 	logAnalytics *loganalytics.Client
+	media        *media.Client
 	redis        *redis.Client
 
 	// TODO: refactor
@@ -224,9 +226,6 @@ type ArmClient struct {
 	// Management Groups
 	managementGroupsClient             managementgroups.Client
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
-
-	// Media
-	mediaServicesClient media.MediaservicesClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -686,9 +685,12 @@ func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId strin
 }
 
 func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	mediaServicesClient := media.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
+	mediaServicesClient := mediaSvc.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mediaServicesClient.Client, auth)
-	c.mediaServicesClient = mediaServicesClient
+
+	c.media = &media.Client{
+		ServicesClient: mediaServicesClient,
+	}
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

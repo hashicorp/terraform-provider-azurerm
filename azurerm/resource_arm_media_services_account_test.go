@@ -99,7 +99,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Media Services Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).mediaServicesClient
+		conn := testAccProvider.Meta().(*ArmClient).media.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -116,7 +116,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).mediaServicesClient
+	conn := testAccProvider.Meta().(*ArmClient).media.ServicesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
