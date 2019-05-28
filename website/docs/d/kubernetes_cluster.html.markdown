@@ -171,8 +171,6 @@ A `windows_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the Windows VMs.
 
-* `admin_password` - The password associated with the administrator account of the Windows VMs.
-
 ---
 
 A `network_profile` block exports the following:

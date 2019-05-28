@@ -238,11 +238,6 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"admin_password": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
 					},
 				},
 			},
@@ -698,10 +693,6 @@ func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.Ma
 	if profile := input; profile != nil {
 		if username := profile.AdminUsername; username != nil {
 			values["admin_username"] = *username
-		}
-
-		if password := profile.AdminPassword; password != nil {
-			values["admin_password"] = *password
 		}
 	}
 
