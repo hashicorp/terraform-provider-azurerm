@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* dependencies: upgrading to Go 1.12 [GH-3525]
 * **New Data Source:** `azurerm_sql_server` [GH-3513]
 
 ## 1.29.0 (May 25, 2019)
