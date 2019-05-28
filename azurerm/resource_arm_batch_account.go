@@ -5,6 +5,8 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -51,6 +53,25 @@ func resourceArmBatchAccount() *schema.Resource {
 					string(batch.BatchService),
 					string(batch.UserSubscription),
 				}, false),
+			},
+			"key_vault_reference": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"url": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.URLIsHTTPS,
+						},
+					},
+				},
 			},
 			"primary_access_key": {
 				Type:      schema.TypeString,
@@ -103,6 +124,21 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
 		Tags: expandTags(tags),
+	}
+
+	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
+	if poolAllocationMode == string(batch.UserSubscription) {
+		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
+		keyVaultReference, err := azure.ExpandBatchAccountKeyVaultReference(keyVaultReferenceSet)
+		if err != nil {
+			return fmt.Errorf("Error creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if keyVaultReference == nil {
+			return fmt.Errorf("Error creating Batch account %q (Resource Group %q): When setting pool allocation mode to UserSubscription, a Key Vault reference needs to be set", name, resourceGroup)
+		}
+
+		parameters.KeyVaultReference = keyVaultReference
 	}
 
 	if storageAccountId != "" {
