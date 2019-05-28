@@ -238,6 +238,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"admin_password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
 					},
 				},
 			},

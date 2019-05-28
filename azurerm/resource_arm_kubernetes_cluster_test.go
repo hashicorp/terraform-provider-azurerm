@@ -229,9 +229,10 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"windows_profile.0.admin_password"},
 			},
 		},
 	})
