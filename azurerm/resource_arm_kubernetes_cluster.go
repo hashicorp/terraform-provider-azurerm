@@ -347,9 +347,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 						},
 						"admin_password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -732,7 +732,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
 		}
 
-		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile)
+		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
 		if err := d.Set("windows_profile", windowsProfile); err != nil {
 			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
@@ -1172,7 +1172,7 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile) []interface{} {
+func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *schema.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1183,8 +1183,10 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		values["admin_username"] = *username
 	}
 
-	if password := profile.AdminPassword; password != nil {
-		values["admin_password"] = *password
+	// admin password isn't returned, so let's look it up
+	if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
+		password := v.(string)
+		values["admin_password"] = password
 	}
 
 	return []interface{}{values}
