@@ -135,7 +135,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
+		return fmt.Errorf("Error Expanding Load Balancer Rule: %+v", err)
 	}
 
 	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
