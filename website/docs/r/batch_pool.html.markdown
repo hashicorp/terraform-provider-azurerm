@@ -120,6 +120,21 @@ The following arguments are supported:
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
+~> **NOTE:** It's possible to reference a custom VM image for the pool by specifying it's `id` in the `id` property of the `storage_image_reference`. This property is mutually exclusive with other properties. The VM image should be in the same region that the batch pool you are about to create. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
+
+```
+data "azurerm_image" "test" {
+  name                = "ubuntu1604base-img"
+  resource_group_name = "batch-custom-img-rg"
+}
+
+...
+
+storage_image_reference {
+  id = "${data.azurerm_image.test.id}"
+}
+```
+
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.

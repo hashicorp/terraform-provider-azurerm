@@ -83,3 +83,26 @@ EOF
     version   = "latest"
   }
 }
+
+data "azurerm_image" "image" {
+  name                = "ubuntu1604base-img"
+  resource_group_name = "batch-custom-img-rg"
+}
+
+resource "azurerm_batch_pool" "customimg" {
+  name                = "${var.prefix}-custom-img-pool"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = "${azurerm_batch_account.example.name}"
+  display_name        = "Custom Img Pool"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 2
+    resize_timeout         = "PT15M"
+  }
+
+  storage_image_reference {
+    id = "${data.azurerm_image.image.id}"
+  }
+}
