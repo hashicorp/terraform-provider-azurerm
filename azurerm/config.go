@@ -12,7 +12,7 @@ import (
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
@@ -42,7 +42,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
@@ -70,6 +70,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -96,21 +97,22 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	devSpace *devspace.Client
+	devSpace  *devspace.Client
+	hdinsight *hdinsight.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient               automation.AccountClient
-	automationAgentRegistrationInfoClient automation.AgentRegistrationInformationClient
-	automationCredentialClient            automation.CredentialClient
-	automationDscConfigurationClient      automation.DscConfigurationClient
-	automationDscNodeConfigurationClient  automation.DscNodeConfigurationClient
-	automationModuleClient                automation.ModuleClient
-	automationRunbookClient               automation.RunbookClient
-	automationRunbookDraftClient          automation.RunbookDraftClient
-	automationScheduleClient              automation.ScheduleClient
-	automationVariableClient              automation.VariableClient
+	automationAccountClient               automationSvc.AccountClient
+	automationAgentRegistrationInfoClient automationSvc.AgentRegistrationInformationClient
+	automationCredentialClient            automationSvc.CredentialClient
+	automationDscConfigurationClient      automationSvc.DscConfigurationClient
+	automationDscNodeConfigurationClient  automationSvc.DscNodeConfigurationClient
+	automationModuleClient                automationSvc.ModuleClient
+	automationRunbookClient               automationSvc.RunbookClient
+	automationRunbookDraftClient          automationSvc.RunbookDraftClient
+	automationScheduleClient              automationSvc.ScheduleClient
+	automationVariableClient              automationSvc.VariableClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -250,11 +252,6 @@ type ArmClient struct {
 
 	// Databricks
 	databricksWorkspacesClient databricks.WorkspacesClient
-
-	// HDInsight
-	hdinsightApplicationsClient   hdinsight.ApplicationsClient
-	hdinsightClustersClient       hdinsight.ClustersClient
-	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -628,45 +625,35 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
+	accountClient := automationSvc.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountClient.Client, auth)
-	c.automationAccountClient = accountClient
 
-	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(endpoint, subscriptionId)
+	agentRegistrationInfoClient := automationSvc.NewAgentRegistrationInformationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&agentRegistrationInfoClient.Client, auth)
-	c.automationAgentRegistrationInfoClient = agentRegistrationInfoClient
 
-	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
+	credentialClient := automationSvc.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&credentialClient.Client, auth)
-	c.automationCredentialClient = credentialClient
 
-	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	dscConfigurationClient := automationSvc.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dscConfigurationClient.Client, auth)
-	c.automationDscConfigurationClient = dscConfigurationClient
 
-	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	dscNodeConfigurationClient := automationSvc.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dscNodeConfigurationClient.Client, auth)
-	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
 
-	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	moduleClient := automationSvc.NewModuleClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&moduleClient.Client, auth)
-	c.automationModuleClient = moduleClient
 
-	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
+	runbookClient := automationSvc.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookClient.Client, auth)
-	c.automationRunbookClient = runbookClient
 
-	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
+	scheduleClient := automationSvc.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&scheduleClient.Client, auth)
-	c.automationScheduleClient = scheduleClient
 
-	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
+	runbookDraftClient := automationSvc.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookDraftClient.Client, auth)
-	c.automationRunbookDraftClient = runbookDraftClient
 
-	variableClient := automation.NewVariableClientWithBaseURI(endpoint, subscriptionId)
+	variableClient := automationSvc.NewVariableClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&variableClient.Client, auth)
-	c.automationVariableClient = variableClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
@@ -1021,17 +1008,20 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	applicationsClient := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
+	applicationsClient := hdinsightSvc.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&applicationsClient.Client, auth)
-	c.hdinsightApplicationsClient = applicationsClient
 
-	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	clustersClient := hdinsightSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&clustersClient.Client, auth)
-	c.hdinsightClustersClient = clustersClient
 
-	configurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	configurationsClient := hdinsightSvc.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&configurationsClient.Client, auth)
-	c.hdinsightConfigurationsClient = configurationsClient
+
+	c.hdinsight = &hdinsight.Client{
+		ApplicationsClient:   applicationsClient,
+		ClustersClient:       clustersClient,
+		ConfigurationsClient: configurationsClient,
+	}
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
