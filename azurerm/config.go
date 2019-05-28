@@ -40,7 +40,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
@@ -72,6 +72,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -102,13 +103,11 @@ type ArmClient struct {
 	automation *automation.Client
 	containers *containers.Client
 	devSpace   *devspace.Client
+	dns        *dns.Client
 	hdinsight  *hdinsight.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
-
-	dnsClient   dns.RecordSetsClient
-	zonesClient dns.ZonesClient
 
 	eventGridDomainsClient            eventgrid.DomainsClient
 	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
@@ -966,13 +965,16 @@ func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dn.Client, auth)
-	c.dnsClient = dn
+	recordSetsClient := dnsSvc.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&recordSetsClient.Client, auth)
 
-	zo := dns.NewZonesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&zo.Client, auth)
-	c.zonesClient = zo
+	zonesClient := dnsSvc.NewZonesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&zonesClient.Client, auth)
+
+	c.dns = &dns.Client{
+		RecordSetsClient: recordSetsClient,
+		ZonesClient:      zonesClient,
+	}
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
