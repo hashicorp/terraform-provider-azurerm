@@ -251,6 +251,8 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 		if err = d.Set("patch_schedule", patchSchedule); err != nil {
 			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
 		}
+	} else {
+		d.Set("patch_schedule", []interface{}{})
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
