@@ -55,7 +55,7 @@ import (
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
@@ -75,6 +75,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -107,6 +108,7 @@ type ArmClient struct {
 	dns          *dns.Client
 	hdinsight    *hdinsight.Client
 	logAnalytics *loganalytics.Client
+	redis        *redis.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -117,10 +119,6 @@ type ArmClient struct {
 	eventHubClient                    eventhub.EventHubsClient
 	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient          eventhub.NamespacesClient
-
-	redisClient               redis.Client
-	redisFirewallClient       redis.FirewallRulesClient
-	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// API Management
 	apiManagementApiClient                  apimanagement.APIClient
@@ -1216,17 +1214,20 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	redisClient := redis.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&redisClient.Client, auth)
-	c.redisClient = redisClient
+	cacheClient := redisSvc.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&cacheClient.Client, auth)
 
-	firewallRuleClient := redis.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	firewallRuleClient := redisSvc.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&firewallRuleClient.Client, auth)
-	c.redisFirewallClient = firewallRuleClient
 
-	patchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
+	patchSchedulesClient := redisSvc.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&patchSchedulesClient.Client, auth)
-	c.redisPatchSchedulesClient = patchSchedulesClient
+
+	c.redis = &redis.Client{
+		Client:               cacheClient,
+		FirewallRulesClient:  firewallRuleClient,
+		PatchSchedulesClient: patchSchedulesClient,
+	}
 }
 
 func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

@@ -53,7 +53,7 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 }
 
 func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
+	client := meta.(*ArmClient).redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Redis Firewall Rule creation.")
 
@@ -101,7 +101,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
+	client := meta.(*ArmClient).redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -136,7 +136,7 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
+	client := meta.(*ArmClient).redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
