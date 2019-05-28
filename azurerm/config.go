@@ -70,6 +70,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 
@@ -99,6 +100,7 @@ type ArmClient struct {
 
 	// Services
 	automation *automation.Client
+	containers *containers.Client
 	devSpace   *devspace.Client
 	hdinsight  *hdinsight.Client
 
@@ -107,12 +109,6 @@ type ArmClient struct {
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
-
-	containerRegistryClient             containerregistry.RegistriesClient
-	containerRegistryReplicationsClient containerregistry.ReplicationsClient
-	containerServicesClient             containerservice.ContainerServicesClient
-	kubernetesClustersClient            containerservice.ManagedClustersClient
-	containerGroupsClient               containerinstance.ContainerGroupsClient
 
 	eventGridDomainsClient            eventgrid.DomainsClient
 	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
@@ -465,9 +461,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth)
 	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
-	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth)
-	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth)
-	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
+	client.registerContainerClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
@@ -778,33 +772,31 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	c.galleryImageVersionsClient = galleryImageVersionsClient
 }
 
-func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&cgc.Client, auth)
-	c.containerGroupsClient = cgc
-}
+func (c *ArmClient) registerContainerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&registriesClient.Client, auth)
 
-func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&crc.Client, auth)
-	c.containerRegistryClient = crc
+	replicationsClient := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&replicationsClient.Client, auth)
 
-	// container registry replicalication client
-	crrc := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&crrc.Client, auth)
-	c.containerRegistryReplicationsClient = crrc
-}
+	groupsClient := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
 
-func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	// ACS
 	containerServicesClient := containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&containerServicesClient.Client, auth)
-	c.containerServicesClient = containerServicesClient
 
 	// AKS
 	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&kubernetesClustersClient.Client, auth)
-	c.kubernetesClustersClient = kubernetesClustersClient
+
+	c.containers = &containers.Client{
+		KubernetesClustersClient:   kubernetesClustersClient,
+		GroupsClient:               groupsClient,
+		RegistryClient:             registriesClient,
+		RegistryReplicationsClient: replicationsClient,
+		ServicesClient:             containerServicesClient,
+	}
 }
 
 func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
