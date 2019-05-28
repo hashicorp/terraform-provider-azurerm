@@ -69,6 +69,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -94,6 +95,10 @@ type ArmClient struct {
 
 	StopContext context.Context
 
+	// Services
+	devSpace *devspace.Client
+
+	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
 
 	automationAccountClient               automation.AccountClient
@@ -204,9 +209,6 @@ type ArmClient struct {
 	devTestPoliciesClient        dtl.PoliciesClient
 	devTestVirtualMachinesClient dtl.VirtualMachinesClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
-
-	// DevSpace
-	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
 	mariadbDatabasesClient                   mariadb.DatabasesClient
@@ -975,7 +977,9 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&controllersClient.Client, auth)
-	c.devSpaceControllerClient = controllersClient
+	c.devSpace = &devspace.Client{
+		ControllersClient: controllersClient,
+	}
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
