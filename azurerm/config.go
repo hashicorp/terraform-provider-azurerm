@@ -69,6 +69,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 
@@ -97,22 +98,12 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	devSpace  *devspace.Client
-	hdinsight *hdinsight.Client
+	automation *automation.Client
+	devSpace   *devspace.Client
+	hdinsight  *hdinsight.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
-
-	automationAccountClient               automationSvc.AccountClient
-	automationAgentRegistrationInfoClient automationSvc.AgentRegistrationInformationClient
-	automationCredentialClient            automationSvc.CredentialClient
-	automationDscConfigurationClient      automationSvc.DscConfigurationClient
-	automationDscNodeConfigurationClient  automationSvc.DscNodeConfigurationClient
-	automationModuleClient                automationSvc.ModuleClient
-	automationRunbookClient               automationSvc.RunbookClient
-	automationRunbookDraftClient          automationSvc.RunbookDraftClient
-	automationScheduleClient              automationSvc.ScheduleClient
-	automationVariableClient              automationSvc.VariableClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -654,6 +645,19 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 
 	variableClient := automationSvc.NewVariableClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&variableClient.Client, auth)
+
+	c.automation = &automation.Client{
+		AccountClient:               accountClient,
+		AgentRegistrationInfoClient: agentRegistrationInfoClient,
+		CredentialClient:            credentialClient,
+		DscConfigurationClient:      dscConfigurationClient,
+		DscNodeConfigurationClient:  dscNodeConfigurationClient,
+		ModuleClient:                moduleClient,
+		RunbookClient:               runbookClient,
+		RunbookDraftClient:          runbookDraftClient,
+		ScheduleClient:              scheduleClient,
+		VariableClient:              variableClient,
+	}
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
