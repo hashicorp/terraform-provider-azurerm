@@ -130,6 +130,30 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
+	resourceName := "azurerm_batch_account.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "UserSubscription"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -269,4 +293,31 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, rInt, location, rString, rString)
+}
+
+func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
+}
+
+data "azurerm_key_vault" "test" {
+  name                = "azurebatchkv"
+  resource_group_name = "batch-custom-img-rg"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  
+  pool_allocation_mode = "UserSubscription"
+  
+  key_vault_reference {
+	id  = "${data.azurerm_key_vault.test.id}"
+    url = "${data.azurerm_key_vault.test.vault_uri}"
+  }
+}
+`, rInt, location, batchAccountSuffix)
 }
