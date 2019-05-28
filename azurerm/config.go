@@ -74,6 +74,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -100,11 +101,12 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	automation *automation.Client
-	containers *containers.Client
-	devSpace   *devspace.Client
-	dns        *dns.Client
-	hdinsight  *hdinsight.Client
+	automation   *automation.Client
+	containers   *containers.Client
+	devSpace     *devspace.Client
+	dns          *dns.Client
+	hdinsight    *hdinsight.Client
+	logAnalytics *loganalytics.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -115,8 +117,6 @@ type ArmClient struct {
 	eventHubClient                    eventhub.EventHubsClient
 	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient          eventhub.NamespacesClient
-
-	solutionsClient operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRulesClient
@@ -242,10 +242,6 @@ type ArmClient struct {
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
-
-	// Log Analytics
-	linkedServicesClient operationalinsights.LinkedServicesClient
-	workspacesClient     operationalinsights.WorkspacesClient
 
 	// Logic
 	logicWorkflowsClient logic.WorkflowsClient
@@ -1189,17 +1185,20 @@ func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId stri
 }
 
 func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	opwc := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&opwc.Client, auth)
-	c.workspacesClient = opwc
+	workspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&workspacesClient.Client, auth)
 
 	solutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(endpoint, subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	c.configureClient(&solutionsClient.Client, auth)
-	c.solutionsClient = solutionsClient
 
-	lsClient := operationalinsights.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&lsClient.Client, auth)
-	c.linkedServicesClient = lsClient
+	linkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&linkedServicesClient.Client, auth)
+
+	c.logAnalytics = &loganalytics.Client{
+		LinkedServicesClient: linkedServicesClient,
+		SolutionsClient:      solutionsClient,
+		WorkspacesClient:     workspacesClient,
+	}
 }
 
 func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
