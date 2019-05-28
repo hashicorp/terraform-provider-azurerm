@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"testing"
