@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_redis_cache` [GH-3481]
 * **New Data Source:** `azurerm_sql_server` [GH-3513]
 
 IMPROVEMENTS:
