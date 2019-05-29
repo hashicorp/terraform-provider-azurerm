@@ -102,6 +102,35 @@ EOF
 }
 ```
 
+## Example Usage with a Custom VM Image
+
+It is also possible to use a custom VM image for an Azure Batch pool. The following assume that you have an image `ubuntu1604base-img` defined in a resource group `batch-custom-img-rg` in the same region than the Azure Batch account you are creating/updating.
+
+```hcl
+data "azurerm_image" "image" {
+  name                = "ubuntu1604base-img"
+  resource_group_name = "batch-custom-img-rg"
+}
+
+resource "azurerm_batch_pool" "pool" {
+  name                = "testaccpool"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool Auto"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 2
+    resize_timeout         = "PT15M"
+  }
+
+  storage_image_reference {
+    id = "${data.azurerm_image.image.id}"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -121,19 +150,6 @@ The following arguments are supported:
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
 ~> **NOTE:** It's possible to reference a custom VM image for the pool by specifying it's `id` in the `id` property of the `storage_image_reference`. This property is mutually exclusive with other properties. The VM image should be in the same region that the batch pool you are about to create. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
-
-```
-data "azurerm_image" "test" {
-  name                = "ubuntu1604base-img"
-  resource_group_name = "batch-custom-img-rg"
-}
-
-...
-
-storage_image_reference {
-  id = "${data.azurerm_image.test.id}"
-}
-```
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
