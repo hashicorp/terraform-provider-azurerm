@@ -22,7 +22,7 @@ var apimBackendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Sec
 var apimFrontendProtocolSsl3 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-var apimTripleDesChipers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+var apimTripleDesciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
 
 func resourceArmApiManagementService() *schema.Resource {
 	return &schema.Resource{
@@ -193,7 +193,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						"disable_triple_des_chipers": {
+						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -891,7 +891,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	frontendProtocolSsl3 := false
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
-	tripleDesChipers := false
+	tripleDesciphers := false
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -901,7 +901,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolSsl3 = v["disable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["disable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["disable_frontend_tls11"].(bool)
-		tripleDesChipers = v["disable_triple_des_chipers"].(bool)
+		tripleDesciphers = v["disable_triple_des_ciphers"].(bool)
 	}
 
 	return map[string]*string{
@@ -911,7 +911,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
 		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesChipers:      utils.String(strconv.FormatBool(tripleDesChipers)),
+		apimTripleDesciphers:      utils.String(strconv.FormatBool(tripleDesciphers)),
 	}
 }
 
@@ -924,7 +924,7 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesChipers)
+	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesciphers)
 
 	return []interface{}{output}
 }
