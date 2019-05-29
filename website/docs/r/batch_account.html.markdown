@@ -40,6 +40,49 @@ resource "azurerm_batch_account" "test" {
 }
 ```
 
+## Example Usage with User Subscription mode
+
+It's possible to deploy Azure Batch Account in User Subscription mode. In this mode, all the machines that will be created by batch pools will be created in the user Azure subscription. In this mode, you need to specify a reference to an Azure Key Vault that will be used by Azure Batch to store and retrieve sensitive information. You can read more about User Subscription mode in Azure Batch on [this page](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#account).
+
+The example below assume that you have an Azure KeyVault named `azurebatchkv` already exising in a resource group named `batch-keyvault-rg`
+
+```hcl
+data "azurerm_key_vault" "test" {
+  name                = "azurebatchkv"
+  resource_group_name = "batch-keyvault-rg"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testbatch"
+  location = "westeurope"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "teststorage"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testbatchaccount"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
+  pool_allocation_mode = "UserSubscription"
+  
+  key_vault_reference {
+    id  = "${data.azurerm_key_vault.test.id}"
+    url = "${data.azurerm_key_vault.test.vault_uri}"
+  }
+
+  tags = {
+    env = "test"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -54,9 +97,23 @@ The following arguments are supported:
 
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
+~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
+
+* `key_vault_reference` - (Optional) A `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode. 
+
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `key_vault_reference` block supports the following:
+
+* `id` - (Required) The Azure identifier of the Azure KeyVault to use.
+
+* `url` - (Required) The HTTPS URL of the Azure KeyVault to use.
+
+---
 
 ## Attributes Reference
 
