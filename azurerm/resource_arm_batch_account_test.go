@@ -315,7 +315,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "UserSubscription"
   
   key_vault_reference {
-	id  = "${data.azurerm_key_vault.test.id}"
+	  id  = "${data.azurerm_key_vault.test.id}"
     url = "${data.azurerm_key_vault.test.vault_uri}"
   }
 }
