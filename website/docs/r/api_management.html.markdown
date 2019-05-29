@@ -155,27 +155,27 @@ A `proxy` block supports the following:
 
 A `security` block supports the following:
 
-* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? Defaults to `false`.
+* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
 
-* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? Defaults to `false`.
+* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
 
-* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? Defaults to `false`.
+* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
 
-* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? Defaults to `false`.
+* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
 
-* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? Defaults to `false`.
+* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
 
-* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? Defaults to `false`.
+* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? Defaults to `true`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
 
