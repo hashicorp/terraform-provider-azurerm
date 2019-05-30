@@ -12,66 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputSql_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_sql.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_avro(ri, rs, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"password",
-				},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStreamAnalyticsOutputSql_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_sql.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_csv(ri, rs, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"password",
-				},
-			},
-		},
-	})
-}
-
 func TestAccAzureRMStreamAnalyticsOutputSql_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_sql.test"
 	ri := tf.AccRandTimeInt()
@@ -220,61 +160,13 @@ func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsOutputSql_avro(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_template(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_sql" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-
-  server 						= "${azurerm_sql_server.test.fully_qualified_domain_name}"
-  user 							= "${azurerm_sql_server.test.administrator_login}"
-  password 					= "${azurerm_sql_server.test.administrator_login_password}"
-  database 					= "${azurerm_sql_database.test.name}"
-  table			 				= "AccTestTable"
-  
-  serialization {
-    type = "Avro"
-  }
-}
-`, template, rInt)
-}
-
-func testAccAzureRMStreamAnalyticsOutputSql_csv(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_template(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_sql" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-
-  server 						= "${azurerm_sql_server.test.fully_qualified_domain_name}"
-  user 							= "${azurerm_sql_server.test.administrator_login}"
-  password 					= "${azurerm_sql_server.test.administrator_login_password}"
-  database 					= "${azurerm_sql_database.test.name}"
-  table			 				= "AccTestTable"
-
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
-}
-`, template, rInt)
-}
-
 func testAccAzureRMStreamAnalyticsOutputSql_json(rInt int, rString string, location string) string {
 	template := testAccAzureRMStreamAnalyticsOutputSql_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_stream_analytics_output_sql" "test" {
-  name                      = "acctestinput-%d"
+  name                      = "acctestoutput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
 
@@ -284,11 +176,6 @@ resource "azurerm_stream_analytics_output_sql" "test" {
   database 					= "${azurerm_sql_database.test.name}"
   table			 				= "AccTestTable"
 
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-    format   = "LineSeparated"
-  }
 }
 `, template, rInt)
 }
@@ -299,7 +186,7 @@ func testAccAzureRMStreamAnalyticsOutputSql_updated(rInt int, rString string, lo
 %s
 
 resource "azurerm_stream_analytics_output_sql" "test" {
-  name                      = "acctestinput-%d"
+  name                      = "acctestoutput-updated-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
 
@@ -308,10 +195,6 @@ resource "azurerm_stream_analytics_output_sql" "test" {
   password 					= "${azurerm_sql_server.test.administrator_login_password}"
   database 					= "${azurerm_sql_database.test.name}"
   table			 				= "AccTestTable"
-
-  serialization {
-    type = "Avro"
-  }
 }
 `, template, rInt)
 }
@@ -332,7 +215,6 @@ resource "azurerm_stream_analytics_output_sql" "import" {
   database 									= "${azurerm_sql_database.test.name}"
   table			 								= "AccTestTable"
 
-  serialization             = "${azurerm_stream_analytics_output_sql.test.serialization}"
 }
 `, template)
 }

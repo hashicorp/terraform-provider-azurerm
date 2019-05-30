@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -76,11 +75,9 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 			"password": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
+				Sensitive:    true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
-
-			"serialization": azure.SchemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
@@ -111,12 +108,6 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 	sqlUser := d.Get("user").(string)
 	sqlUserPassword := d.Get("password").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
-	if err != nil {
-		return fmt.Errorf("Error expanding `serialization`: %+v", err)
-	}
-
 	props := streamanalytics.Output{
 		Name: utils.String(name),
 		OutputProperties: &streamanalytics.OutputProperties{
@@ -130,7 +121,6 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 					Table:    utils.String(tableName),
 				},
 			},
-			Serialization: serialization,
 		},
 	}
 
@@ -172,7 +162,7 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Output Blob %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Output SQL %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -194,13 +184,7 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
-		d.Set("password", v.Password)
 
-		fmt.Println(props.Serialization)
-
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-			return fmt.Errorf("Error setting `serialization`: %+v", err)
-		}
 	}
 
 	return nil
