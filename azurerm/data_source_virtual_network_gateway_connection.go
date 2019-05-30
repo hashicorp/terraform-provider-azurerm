@@ -60,11 +60,6 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
-			"connection_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"connection_protocol": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -75,22 +70,22 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
-			"virtual_network_gateway1_id": {
+			"virtual_network_gateway_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"virtual_network_gateway2_id": {
+			"peer_virtual_network_gateway_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"local_network_gateway2_id": {
+			"local_network_gateway_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"peer_id": {
+			"express_route_circuit_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -100,7 +95,7 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
-			"ipsec_policies": {
+			"ipsec_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -202,7 +197,7 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 		}
 
 		if string(gwc.ConnectionType) != "" {
-			d.Set("connection_type", string(gwc.ConnectionType))
+			d.Set("type", string(gwc.ConnectionType))
 		}
 
 		if string(gwc.ConnectionProtocol) != "" {
@@ -214,19 +209,19 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 		}
 
 		if gwc.VirtualNetworkGateway1 != nil {
-			d.Set("virtual_network_gateway1_id", gwc.VirtualNetworkGateway1.ID)
+			d.Set("virtual_network_gateway_id", gwc.VirtualNetworkGateway1.ID)
 		}
 
 		if gwc.VirtualNetworkGateway2 != nil {
-			d.Set("virtual_network_gateway2_id", gwc.VirtualNetworkGateway2.ID)
+			d.Set("peer_virtual_network_gateway_id", gwc.VirtualNetworkGateway2.ID)
 		}
 
 		if gwc.LocalNetworkGateway2 != nil {
-			d.Set("local_network_gateway2_id", gwc.LocalNetworkGateway2.ID)
+			d.Set("local_network_gateway_id", gwc.LocalNetworkGateway2.ID)
 		}
 
 		if gwc.Peer != nil {
-			d.Set("peer_id", gwc.Peer.ID)
+			d.Set("express_route_circuit_id", gwc.Peer.ID)
 		}
 
 		if gwc.ResourceGUID != nil {
@@ -234,8 +229,8 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 		}
 
 		ipsecPoliciesSettingsFlat := flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
-		if err := d.Set("ipsec_policies", ipsecPoliciesSettingsFlat); err != nil {
-			return fmt.Errorf("Error setting `ipsec_policies`: %+v", err)
+		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
+			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
 	}
 

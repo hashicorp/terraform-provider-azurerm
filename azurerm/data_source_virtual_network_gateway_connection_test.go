@@ -26,7 +26,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_site2site(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(resourceName, "connection_type", string(network.IPsec)),
+					resource.TestCheckResourceAttr(resourceName, "type", string(network.IPsec)),
 				),
 			},
 		},
@@ -54,8 +54,8 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(secondResourceName),
 					resource.TestCheckResourceAttr(firstResourceName, "shared_key", sharedKey),
 					resource.TestCheckResourceAttr(secondResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(firstResourceName, "connection_type", string(network.Vnet2Vnet)),
-					resource.TestCheckResourceAttr(secondResourceName, "connection_type", string(network.Vnet2Vnet)),
+					resource.TestCheckResourceAttr(firstResourceName, "type", string(network.Vnet2Vnet)),
+					resource.TestCheckResourceAttr(secondResourceName, "type", string(network.Vnet2Vnet)),
 				),
 			},
 		},
@@ -78,7 +78,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *test
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(resourceName, "connection_type", string(network.IPsec)),
+					resource.TestCheckResourceAttr(resourceName, "type", string(network.IPsec)),
 					resource.TestCheckResourceAttr(resourceName, "routing_weight", "20"),
 					resource.TestCheckResourceAttr(resourceName, "ipsec_policy.0.dh_group", string(network.DHGroup14)),
 					resource.TestCheckResourceAttr(resourceName, "ipsec_policy.0.ike_encryption", string(network.AES256)),
