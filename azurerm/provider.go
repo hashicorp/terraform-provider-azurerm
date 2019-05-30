@@ -258,6 +258,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_databricks_workspace":                               resourceArmDatabricksWorkspace(),
 			"azurerm_ddos_protection_plan":                               resourceArmDDoSProtectionPlan(),
 			"azurerm_dev_test_lab":                                       resourceArmDevTestLab(),
+			"azurerm_dev_test_lab_schedule":                              resourceArmDevTestLabSchedules(),
 			"azurerm_dev_test_linux_virtual_machine":                     resourceArmDevTestLinuxVirtualMachine(),
 			"azurerm_dev_test_policy":                                    resourceArmDevTestPolicy(),
 			"azurerm_dev_test_virtual_network":                           resourceArmDevTestVirtualNetwork(),
