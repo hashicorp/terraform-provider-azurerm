@@ -129,7 +129,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 }
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistryClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
@@ -215,7 +215,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistryClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
@@ -300,7 +300,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
-	replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
+	replicationClient := meta.(*ArmClient).containers.RegistryReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
@@ -369,8 +369,8 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 }
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
-	replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
+	client := meta.(*ArmClient).containers.RegistryClient
+	replicationClient := meta.(*ArmClient).containers.RegistryReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -454,7 +454,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistryClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

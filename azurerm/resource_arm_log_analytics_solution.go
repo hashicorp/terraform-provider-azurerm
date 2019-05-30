@@ -84,7 +84,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
@@ -146,7 +146,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -200,7 +200,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
