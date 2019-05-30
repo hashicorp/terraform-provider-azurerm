@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -29,6 +31,22 @@ func dataSourceArmBatchAccount() *schema.Resource {
 			"pool_allocation_mode": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"key_vault_reference": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"primary_access_key": {
 				Type:      schema.TypeString,
@@ -79,17 +97,24 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("storage_account_id", autoStorage.StorageAccountID)
 		}
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
-	}
+		poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
-		keys, err := client.GetKeys(ctx, resourceGroup, name)
+		if poolAllocationMode == string(batch.BatchService) {
+			keys, err := client.GetKeys(ctx, resourceGroup, name)
 
-		if err != nil {
-			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+			if err != nil {
+				return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+			}
+
+			d.Set("primary_access_key", keys.Primary)
+			d.Set("secondary_access_key", keys.Secondary)
+		} else if poolAllocationMode == string(batch.UserSubscription) {
+			if keyVaultReference := props.KeyVaultReference; keyVaultReference != nil {
+				if err := d.Set("key_vault_reference", azure.FlattenBatchAccountKeyvaultReference(keyVaultReference)); err != nil {
+					return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
+				}
+			}
 		}
-
-		d.Set("primary_access_key", keys.Primary)
-		d.Set("secondary_access_key", keys.Secondary)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
