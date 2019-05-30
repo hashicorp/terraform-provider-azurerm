@@ -193,7 +193,7 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -244,7 +244,7 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `redis_configuration`: %+v", err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resourceGroup, name)
 	if err == nil {
