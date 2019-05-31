@@ -503,7 +503,6 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&loggerClient.Client, auth)
-	c.apimgmt.LoggerClient = loggerClient
 
 	policyClient := apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyClient.Client, auth)
@@ -552,6 +551,7 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 		CertificatesClient:         certificatesClient,
 		GroupClient:                groupsClient,
 		GroupUsersClient:           groupUsersClient,
+		LoggerClient:               loggerClient,
 		PolicyClient:               policyClient,
 		ServiceClient:              serviceClient,
 		SignInClient:               signInClient,
