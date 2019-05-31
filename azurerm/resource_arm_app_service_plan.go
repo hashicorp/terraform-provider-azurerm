@@ -144,6 +144,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -177,6 +182,13 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
+
+	isXenon := d.Get("is_xenon").(bool)
+	properties.IsXenon = &isXenon
+
+	if kind == "xenon" && !isXenon {
+		return fmt.Errorf("Creating or updating App Service Plan %q (Resource Group %q): when kind is set to xenon, is_xenon property should be set to true", name, resGroup)
+	}
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
