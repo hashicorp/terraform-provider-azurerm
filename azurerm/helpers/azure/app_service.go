@@ -398,7 +398,14 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.FtpsOnly),
 					}, false),
 				},
+
 				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
@@ -560,6 +567,11 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1051,6 +1063,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["windows_fx_version"]; ok {
+		siteConfig.WindowsFxVersion = utils.String(v.(string))
+	}
+
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
@@ -1237,6 +1253,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.WindowsFxVersion != nil {
+		result["windows_fx_version"] = *input.WindowsFxVersion
 	}
 
 	if input.VnetName != nil {
