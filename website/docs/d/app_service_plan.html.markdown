@@ -44,6 +44,8 @@ output "app_service_plan_id" {
 
 * `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
 
+* `is_xenon` - A flag that indicates if it's a xenon plan (support for Windows Container)
+
 ---
 
 A `sku` block supports the following:
