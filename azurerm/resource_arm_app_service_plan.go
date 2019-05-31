@@ -272,6 +272,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
+	d.Set("is_xenon", resp.IsXenon)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
