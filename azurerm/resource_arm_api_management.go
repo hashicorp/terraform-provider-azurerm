@@ -30,6 +30,7 @@ func resourceArmApiManagementService() *schema.Resource {
 		Read:   resourceArmApiManagementServiceRead,
 		Update: resourceArmApiManagementServiceCreateUpdate,
 		Delete: resourceArmApiManagementServiceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -123,7 +124,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -174,7 +175,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // todo remove in 2.0 ?
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -193,10 +194,19 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"disable_triple_des_chipers": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true, // todo remove in 2.0
+							Deprecated:    "This field has been deprecated in favour of the `disable_triple_des_ciphers` property to correct the spelling. it will be removed in version 2.0 of the provider",
+							ConflictsWith: []string{"security.0.disable_triple_des_ciphers"},
+						},
 						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							// Default:       false, // todo remove in 2.0
+							Computed:      true, // todo remove in 2.0
+							ConflictsWith: []string{"security.0.disable_triple_des_chipers"},
 						},
 						"disable_frontend_ssl30": {
 							Type:     schema.TypeBool,
@@ -901,7 +911,15 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolSsl3 = v["disable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["disable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["disable_frontend_tls11"].(bool)
-		tripleDesCiphers = v["disable_triple_des_ciphers"].(bool)
+		//tripleDesCiphers = v["disable_triple_des_ciphers"].(bool) //restore in 2.0
+	}
+
+	if c, ok := d.GetOkExists("security.0.disable_triple_des_ciphers"); ok {
+		tripleDesCiphers = c.(bool)
+	} else if c, ok := d.GetOkExists("security.0.disable_triple_des_chipers"); ok {
+		tripleDesCiphers = c.(bool)
+	} else {
+		tripleDesCiphers = false
 	}
 
 	return map[string]*string{
@@ -924,6 +942,7 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // todo remove in 2.0
 	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 
 	return []interface{}{output}
