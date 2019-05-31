@@ -30,7 +30,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": locationSchema(),
 

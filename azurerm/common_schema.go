@@ -33,10 +33,6 @@ func azureRMSuppressLocationDiff(k, old, new string, d *schema.ResourceData) boo
 	return azure.SuppressLocationDiff(k, old, new, d)
 }
 
-func resourceGroupNameSchema() *schema.Schema {
-	return azure.SchemaResourceGroupName()
-}
-
 func resourceGroupNameDiffSuppressSchema() *schema.Schema {
 	return azure.SchemaResourceGroupNameDiffSuppress()
 }

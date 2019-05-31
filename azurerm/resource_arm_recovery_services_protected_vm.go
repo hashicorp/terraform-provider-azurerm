@@ -32,7 +32,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:     schema.TypeString,

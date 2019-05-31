@@ -36,7 +36,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account": {
 				Type:     schema.TypeSet,

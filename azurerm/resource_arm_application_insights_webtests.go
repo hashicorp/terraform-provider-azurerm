@@ -35,7 +35,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_insights_id": {
 				Type:         schema.TypeString,

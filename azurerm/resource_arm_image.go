@@ -33,7 +33,7 @@ func resourceArmImage() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_resilient": {
 				Type:     schema.TypeBool,

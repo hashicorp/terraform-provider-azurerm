@@ -36,7 +36,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,

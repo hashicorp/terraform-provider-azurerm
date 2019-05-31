@@ -73,7 +73,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"dns_prefix": {
 				Type:         schema.TypeString,

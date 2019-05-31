@@ -38,7 +38,7 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": deprecatedLocationSchema(),
 		}),

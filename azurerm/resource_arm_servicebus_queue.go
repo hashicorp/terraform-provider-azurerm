@@ -39,7 +39,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
 				Type:         schema.TypeString,

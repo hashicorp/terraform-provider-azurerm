@@ -41,7 +41,7 @@ As such the existing 'azurerm_connection_monitor' resource is deprecated and wil
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:         schema.TypeString,

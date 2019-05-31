@@ -24,7 +24,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 
 			"product_id": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 		},

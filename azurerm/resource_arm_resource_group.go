@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
@@ -24,7 +25,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": resourceGroupNameSchema(),
+			"name": azure.SchemaResourceGroupName(),
 
 			"location": locationSchema(),
 

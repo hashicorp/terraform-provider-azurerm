@@ -42,7 +42,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": locationSchema(),
 

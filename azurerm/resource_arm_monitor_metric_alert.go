@@ -35,7 +35,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
