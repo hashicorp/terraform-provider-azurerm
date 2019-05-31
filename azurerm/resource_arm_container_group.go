@@ -419,7 +419,7 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerGroupsClient
+	client := meta.(*ArmClient).containers.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -496,7 +496,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containerGroupsClient
+	client := meta.(*ArmClient).containers.GroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -559,7 +559,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containerGroupsClient
+	client := meta.(*ArmClient).containers.GroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

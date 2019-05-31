@@ -139,7 +139,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 }
 
 func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementGroupClient
+	client := testAccProvider.Meta().(*ArmClient).apimgmt.GroupClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group" {
 			continue
@@ -174,14 +174,14 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementGroupClient
+		client := testAccProvider.Meta().(*ArmClient).apimgmt.GroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: API Management Group %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementGroupClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apimgmt.GroupClient: %+v", err)
 		}
 
 		return nil

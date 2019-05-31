@@ -65,7 +65,7 @@ func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
 }
 
 func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementOpenIdConnectClient
+	client := meta.(*ArmClient).apimgmt.OpenIdConnectClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -112,7 +112,7 @@ func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementOpenIdConnectClient
+	client := meta.(*ArmClient).apimgmt.OpenIdConnectClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, m
 }
 
 func resourceArmApiManagementOpenIDConnectProviderDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementOpenIdConnectClient
+	client := meta.(*ArmClient).apimgmt.OpenIdConnectClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

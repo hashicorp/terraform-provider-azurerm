@@ -59,7 +59,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 }
 
 func dataSourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistryClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

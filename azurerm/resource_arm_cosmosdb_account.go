@@ -774,7 +774,11 @@ func resourceArmCosmosDbAccountApiUpsert(client documentdb.DatabaseAccountsClien
 }
 
 func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *documentdb.ConsistencyPolicy {
-	input := d.Get("consistency_policy").([]interface{})[0].(map[string]interface{})
+	i := d.Get("consistency_policy").([]interface{})
+	if len(i) <= 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
 
 	consistencyLevel := input["consistency_level"].(string)
 	policy := documentdb.ConsistencyPolicy{

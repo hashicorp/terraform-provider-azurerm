@@ -58,7 +58,7 @@ func dataSourceApiManagementProduct() *schema.Resource {
 	}
 }
 func dataSourceApiManagementProductRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductsClient
+	client := meta.(*ArmClient).apimgmt.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
