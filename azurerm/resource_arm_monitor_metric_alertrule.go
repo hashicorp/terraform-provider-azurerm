@@ -32,7 +32,7 @@ func resourceArmMonitorMetricAlertRule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"description": {
 				Type:     schema.TypeString,

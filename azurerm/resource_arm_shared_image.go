@@ -39,7 +39,7 @@ func resourceArmSharedImage() *schema.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

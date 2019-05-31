@@ -33,7 +33,7 @@ func resourceArmFirewall() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

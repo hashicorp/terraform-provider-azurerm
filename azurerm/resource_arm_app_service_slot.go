@@ -32,7 +32,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"identity": {
 				Type:     schema.TypeList,

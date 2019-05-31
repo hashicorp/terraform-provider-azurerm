@@ -33,7 +33,7 @@ func resourceArmSignalRService() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

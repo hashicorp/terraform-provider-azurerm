@@ -9,10 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func locationSchema() *schema.Schema {
-	return azure.SchemaLocation()
-}
-
 func locationSchemaOptional() *schema.Schema {
 	return azure.SchemaLocationOptional()
 }

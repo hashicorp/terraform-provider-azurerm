@@ -42,7 +42,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

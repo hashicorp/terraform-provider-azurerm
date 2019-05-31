@@ -32,7 +32,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"platform_update_domain_count": {
 				Type:         schema.TypeInt,

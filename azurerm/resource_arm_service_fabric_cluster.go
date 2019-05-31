@@ -33,7 +33,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"reliability_level": {
 				Type:     schema.TypeString,

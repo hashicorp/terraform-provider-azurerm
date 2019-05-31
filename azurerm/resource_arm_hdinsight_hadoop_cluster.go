@@ -53,7 +53,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"cluster_version": azure.SchemaHDInsightClusterVersion(),
 

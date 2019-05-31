@@ -61,7 +61,7 @@ func resourceArmIotHub() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

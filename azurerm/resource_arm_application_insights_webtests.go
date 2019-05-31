@@ -44,7 +44,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"kind": {
 				Type:     schema.TypeString,

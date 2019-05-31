@@ -38,7 +38,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

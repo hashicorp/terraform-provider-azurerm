@@ -48,7 +48,7 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validateKeyVaultName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

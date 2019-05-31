@@ -40,7 +40,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"zones": zonesSchema(),
 

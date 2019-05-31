@@ -66,7 +66,7 @@ func resourceArmNotificationHub() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"apns_credential": {
 				Type:     schema.TypeList,

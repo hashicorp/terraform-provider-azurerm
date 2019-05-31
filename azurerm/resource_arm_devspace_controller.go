@@ -31,7 +31,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 				ValidateFunc: validate.DevSpaceName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

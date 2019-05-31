@@ -37,7 +37,7 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

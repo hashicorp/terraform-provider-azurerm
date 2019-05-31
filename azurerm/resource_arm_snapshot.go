@@ -31,7 +31,7 @@ func resourceArmSnapshot() *schema.Resource {
 				ValidateFunc: validateSnapshotName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

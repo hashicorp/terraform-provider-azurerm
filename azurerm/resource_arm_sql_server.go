@@ -32,7 +32,7 @@ func resourceArmSqlServer() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

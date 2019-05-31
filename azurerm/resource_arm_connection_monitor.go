@@ -50,7 +50,7 @@ As such the existing 'azurerm_connection_monitor' resource is deprecated and wil
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"auto_start": {
 				Type:     schema.TypeBool,

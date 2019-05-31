@@ -36,7 +36,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(6, 50),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

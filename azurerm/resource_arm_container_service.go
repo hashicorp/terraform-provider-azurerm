@@ -40,7 +40,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

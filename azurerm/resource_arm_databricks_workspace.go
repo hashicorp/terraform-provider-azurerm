@@ -33,7 +33,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				ValidateFunc: validateDatabricksWorkspaceName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

@@ -30,7 +30,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"tags": tagsSchema(),
 		},

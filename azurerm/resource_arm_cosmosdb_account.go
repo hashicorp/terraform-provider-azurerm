@@ -43,7 +43,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -176,7 +176,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,

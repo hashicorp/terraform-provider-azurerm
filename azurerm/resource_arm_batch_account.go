@@ -36,7 +36,7 @@ func resourceArmBatchAccount() *schema.Resource {
 			// https://github.com/Azure/azure-rest-api-specs/issues/5574
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,

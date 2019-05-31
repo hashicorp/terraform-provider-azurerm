@@ -39,7 +39,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"description": {
 				Type:     schema.TypeString,

@@ -33,7 +33,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				ValidateFunc: validate.CognitiveServicesAccountName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

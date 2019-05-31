@@ -27,7 +27,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"tags": tagsSchema(),
 		},

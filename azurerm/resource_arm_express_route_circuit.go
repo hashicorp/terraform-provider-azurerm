@@ -33,7 +33,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"service_provider_name": {
 				Type:             schema.TypeString,

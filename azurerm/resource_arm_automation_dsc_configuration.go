@@ -52,7 +52,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"log_verbose": {
 				Type:     schema.TypeBool,

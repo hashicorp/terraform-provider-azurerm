@@ -42,7 +42,7 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"size": {
 				Type:     schema.TypeString,

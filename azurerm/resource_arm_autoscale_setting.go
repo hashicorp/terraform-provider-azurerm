@@ -44,7 +44,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"target_resource_id": {
 				Type:         schema.TypeString,

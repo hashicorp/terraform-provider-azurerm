@@ -60,7 +60,7 @@ func resourceArmAppService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"app_service_plan_id": {
 				Type:     schema.TypeString,

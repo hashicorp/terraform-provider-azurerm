@@ -35,7 +35,7 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

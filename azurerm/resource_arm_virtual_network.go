@@ -39,7 +39,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"address_space": {
 				Type:     schema.TypeList,

@@ -39,7 +39,7 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"public_ip_addresses": {
 				Type:     schema.TypeList,
@@ -123,7 +123,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,

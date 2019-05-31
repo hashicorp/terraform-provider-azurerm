@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -11,7 +12,7 @@ func dataSourceArmPlatformImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPlatformImageRead,
 		Schema: map[string]*schema.Schema{
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"publisher": {
 				Type:     schema.TypeString,

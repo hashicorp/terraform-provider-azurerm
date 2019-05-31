@@ -33,7 +33,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

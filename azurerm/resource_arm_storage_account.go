@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -40,7 +41,7 @@ func resourceArmStorageAccount() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
