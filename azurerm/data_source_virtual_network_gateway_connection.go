@@ -100,11 +100,11 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"sa_life_time_seconds": {
+						"sa_lifetime": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"sa_data_size_kilobytes": {
+						"sa_datasize": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
