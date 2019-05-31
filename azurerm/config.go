@@ -501,6 +501,9 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&groupUsersClient.Client, auth)
 
+	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&loggerClient.Client, auth)
+
 	policyClient := apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyClient.Client, auth)
 
@@ -548,6 +551,7 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 		CertificatesClient:         certificatesClient,
 		GroupClient:                groupsClient,
 		GroupUsersClient:           groupUsersClient,
+		LoggerClient:               loggerClient,
 		PolicyClient:               policyClient,
 		ServiceClient:              serviceClient,
 		SignInClient:               signInClient,
@@ -561,10 +565,6 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 		SubscriptionsClient:        subscriptionsClient,
 		UsersClient:                usersClient,
 	}
-
-	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&loggerClient.Client, auth)
-	c.apimgmt.LoggerClient = loggerClient
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
