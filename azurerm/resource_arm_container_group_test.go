@@ -1043,7 +1043,7 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+		conn := testAccProvider.Meta().(*ArmClient).containers.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -1058,7 +1058,7 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+	conn := testAccProvider.Meta().(*ArmClient).containers.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

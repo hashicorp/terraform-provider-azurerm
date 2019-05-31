@@ -69,7 +69,7 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationDscConfigurationClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.DscConfigurationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -119,7 +119,7 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Configuration: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationDscConfigurationClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.DscConfigurationClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

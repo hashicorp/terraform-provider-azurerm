@@ -75,7 +75,7 @@ func resourceArmDnsZone() *schema.Resource {
 }
 
 func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).zonesClient
+	client := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -133,7 +133,7 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	zonesClient := meta.(*ArmClient).zonesClient
+	zonesClient := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -183,7 +183,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).zonesClient
+	client := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

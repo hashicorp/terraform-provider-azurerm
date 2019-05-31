@@ -216,7 +216,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
@@ -309,7 +309,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -369,7 +369,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -142,14 +142,14 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 		cacheName := rs.Primary.Attributes["redis_cache_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).redisFirewallClient
+		client := testAccProvider.Meta().(*ArmClient).redis.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Firewall Rule %q (cache %q resource group: %q) does not exist", name, cacheName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on redisFirewallClient: %+v", err)
+			return fmt.Errorf("Bad: Get on redis.FirewallRulesClient: %+v", err)
 		}
 
 		return nil

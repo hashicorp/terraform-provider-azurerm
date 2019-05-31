@@ -37,7 +37,7 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 }
 
 func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerServicesClient
+	client := meta.(*ArmClient).containers.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))

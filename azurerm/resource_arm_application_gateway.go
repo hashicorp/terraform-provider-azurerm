@@ -1168,6 +1168,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 											"crs_41_xss_attacks",
 											"crs_42_tight_security",
 											"crs_45_trojans",
+											"General",
 											"REQUEST-911-METHOD-ENFORCEMENT",
 											"REQUEST-913-SCANNER-DETECTION",
 											"REQUEST-920-PROTOCOL-ENFORCEMENT",
