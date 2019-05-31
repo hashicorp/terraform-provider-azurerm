@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_site2site(t *testing.T) {
+func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
