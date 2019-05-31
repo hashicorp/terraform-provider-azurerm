@@ -918,8 +918,6 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		tripleDesCiphers = c.(bool)
 	} else if c, ok := d.GetOkExists("security.0.disable_triple_des_chipers"); ok {
 		tripleDesCiphers = c.(bool)
-	} else {
-		tripleDesCiphers = false
 	}
 
 	return map[string]*string{
