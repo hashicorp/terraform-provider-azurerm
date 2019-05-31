@@ -490,7 +490,7 @@ resource "azurerm_api_management" "test" {
     }
 
     proxy {
-      host_name            azurerm/resource_arm_api_management.go:904        = "api2.terraform.io"
+      host_name                    = "api2.terraform.io"
       certificate                  = "${filebase64("testdata/api_management_api2_test.pfx")}"
       certificate_password         = "terraform"
       negotiate_client_certificate = true
