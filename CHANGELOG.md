@@ -8,7 +8,11 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to Go 1.12 [GH-3525]
+* Data Source `azurerm_app_service` - support windows containers [GH-3566]
+* Data Source `azurerm_service_plan` - support windows containers [GH-3566]
 * `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block [GH-3533]
+* `azurerm_app_service` - support windows containers [GH-3566]
+* `azurerm_service_plan` - support windows containers [GH-3566]
 
 ## 1.29.0 (May 25, 2019)
 
