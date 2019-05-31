@@ -30,9 +30,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_json(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					// not returned from the API
 					"password",
@@ -66,9 +66,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					// not returned from the API
 					"password",
