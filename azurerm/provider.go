@@ -416,6 +416,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
 		"azurerm_storage_container":                                                      resourceArmStorageContainer(),
 		"azurerm_storage_data_lake_gen2_filesystem":                                      resourceArmStorageDataLakeGen2FileSystem(),
+		"azurerm_storage_management_policy":                                              resourceArmStorageManagementPolicy(),
 		"azurerm_storage_queue":                                                          resourceArmStorageQueue(),
 		"azurerm_storage_share":                                                          resourceArmStorageShare(),
 		"azurerm_storage_share_directory":                                                resourceArmStorageShareDirectory(),
