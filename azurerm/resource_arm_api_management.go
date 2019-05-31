@@ -333,6 +333,33 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"virtual_network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							// ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.VirtualNetworkTypeExternal),
+								string(apimanagement.VirtualNetworkTypeInternal),
+								string(apimanagement.VirtualNetworkTypeNone),
+							}, false),
+						},
+
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							// ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 
 			"gateway_url": {
@@ -397,15 +424,18 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	customProperties := expandApiManagementCustomProperties(d)
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
+	vnetConfig, vnetType := expandAzureRmApiManagementVirtualNetworkConfiguration(d)
 
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:          utils.String(publisherName),
-			PublisherEmail:         utils.String(publisherEmail),
-			CustomProperties:       customProperties,
-			Certificates:           certificates,
-			HostnameConfigurations: hostnameConfigurations,
+			PublisherName:               utils.String(publisherName),
+			PublisherEmail:              utils.String(publisherEmail),
+			CustomProperties:            customProperties,
+			Certificates:                certificates,
+			HostnameConfigurations:      hostnameConfigurations,
+			VirtualNetworkConfiguration: vnetConfig,
+			VirtualNetworkType:          apimanagement.VirtualNetworkType(*vnetType),
 		},
 		Tags: expandTags(tags),
 		Sku:  sku,
@@ -558,6 +588,11 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
 		}
 
+		vnetConfig := flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkType, props.VirtualNetworkConfiguration, d)
+		if err := d.Set("virtual_network_configuration", vnetConfig); err != nil {
+			return fmt.Errorf("Error setting `virtual_network_configuration`: %+v", err)
+		}
+
 		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
 		}
@@ -667,6 +702,39 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	}
 
 	return output
+}
+
+func expandAzureRmApiManagementVirtualNetworkConfiguration(d *schema.ResourceData) (*apimanagement.VirtualNetworkConfiguration, *string) {
+	vnetRawConfigs := d.Get("virtual_network_configuration").([]interface{})
+
+	if len(vnetRawConfigs) != 1 {
+		return nil, nil
+	}
+
+	vnetRawConfig := vnetRawConfigs[0].(map[string]interface{})
+	vnetType := vnetRawConfig["type"].(string)
+	vnetSubnetID := vnetRawConfig["subnet_id"].(string)
+	vnetConfig := apimanagement.VirtualNetworkConfiguration{
+		SubnetResourceID: &vnetSubnetID,
+	}
+
+	return &vnetConfig, &vnetType
+}
+
+func flattenApiManagementVirtualNetworkConfiguration(vnetType apimanagement.VirtualNetworkType, vnetConfig *apimanagement.VirtualNetworkConfiguration, d *schema.ResourceData) []interface{} {
+	if vnetConfig == nil {
+		return []interface{}{}
+	}
+
+	vnet := make(map[string]interface{})
+	vnet["type"] = string(vnetType)
+	if vnetConfig != nil {
+		vnet["subnet_id"] = vnetConfig.Vnetid
+	}
+
+	return []interface{}{
+		vnet,
+	}
 }
 
 func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
