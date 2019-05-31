@@ -1721,6 +1721,33 @@ func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_basicWindowsContainer(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.windows_fx_version", "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
+					resource.TestCheckResourceAttr(resourceName, "app_settings.DOCKER_REGISTRY_SERVER_URL", "https://mcr.microsoft.com"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -3625,4 +3652,43 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt, tenantID, web.AzureActiveDirectory)
+}
+
+func testAccAzureRMAppService_basicWindowsContainer(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	is_xenon            = true
+	kind                = "xenon"
+
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+	
+	site_config {
+    windows_fx_version = "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"
+	}
+	
+	app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL" = "https://mcr.microsoft.com",
+    "DOCKER_REGISTRY_SERVER_USERNAME" = "",
+    "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
+  }
+}
+`, rInt, location, rInt, rInt)
 }
