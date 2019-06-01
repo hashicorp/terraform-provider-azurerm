@@ -106,8 +106,8 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Optional: true,
 				Default:  "LicenseIncluded",
 				ValidateFunc: validation.StringInSlice([]string{
-					"LicenseIncluded",
-					"BasePrice",
+					string(sql.BasePrice),
+					string(sql.LicenseIncluded),
 				}, true),
 			},
 
@@ -140,7 +140,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		Location: utils.String(location),
 		Tags:     metadata,
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			LicenseType:        utils.String(licenseType),
+			LicenseType:        sql.ManagedInstanceLicenseType(licenseType),
 			AdministratorLogin: utils.String(adminUsername),
 			SubnetID:           utils.String(subnetId),
 		},
@@ -205,7 +205,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
-		d.Set("license_type", miServerProperties.LicenseType)
+		d.Set("license_type", string(miServerProperties.LicenseType))
 		d.Set("administrator_login", miServerProperties.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", miServerProperties.FullyQualifiedDomainName)
 	}
