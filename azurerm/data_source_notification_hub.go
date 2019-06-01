@@ -108,7 +108,7 @@ func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := credentials.PnsCredentialsProperties; props != nil {

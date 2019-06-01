@@ -97,7 +97,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	}
 
 	contentEmbedded := d.Get("content_embedded").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
@@ -158,7 +158,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("automation_account_name", accName)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.DscConfigurationProperties; props != nil {

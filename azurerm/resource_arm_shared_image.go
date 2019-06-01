@@ -108,7 +108,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 
 	eula := d.Get("eula").(string)
@@ -198,7 +198,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryImageProperties; props != nil {

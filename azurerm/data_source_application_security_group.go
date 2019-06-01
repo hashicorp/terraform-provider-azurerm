@@ -48,7 +48,7 @@ func dataSourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta inte
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	flattenAndSetTags(d, resp.Tags)

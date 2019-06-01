@@ -139,7 +139,7 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	outputErrorPolicy := d.Get("output_error_policy").(string)
 	streamingUnits := d.Get("streaming_units").(int)
 	transformationQuery := d.Get("transformation_query").(string)
@@ -243,7 +243,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Location != nil {
-		d.Set("location", azureRMNormalizeLocation(*resp.Location))
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {

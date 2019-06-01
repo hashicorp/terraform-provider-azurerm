@@ -147,7 +147,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if v := d.Get("location").(string); v != "" {
-		assignment.Location = utils.String(azureRMNormalizeLocation(v))
+		assignment.Location = utils.String(azure.NormalizeLocation(v))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -217,7 +217,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AssignmentProperties; props != nil {

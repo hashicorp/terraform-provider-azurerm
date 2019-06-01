@@ -385,7 +385,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmApiManagementSku(d)
@@ -530,7 +530,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
@@ -775,7 +775,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-		location := azureRMNormalizeLocation(config["location"].(string))
+		location := azure.NormalizeLocation(config["location"].(string))
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
@@ -798,7 +798,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {

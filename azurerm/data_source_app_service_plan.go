@@ -108,7 +108,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("is_xenon", resp.IsXenon)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AppServicePlanProperties; props != nil {

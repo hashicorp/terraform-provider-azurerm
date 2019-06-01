@@ -137,7 +137,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
@@ -220,7 +220,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {

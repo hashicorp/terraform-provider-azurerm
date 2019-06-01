@@ -174,7 +174,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ServiceProperties; props != nil {
@@ -272,7 +272,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {

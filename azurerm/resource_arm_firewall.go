@@ -104,7 +104,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
 	if err != nil {
@@ -193,7 +193,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", read.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {

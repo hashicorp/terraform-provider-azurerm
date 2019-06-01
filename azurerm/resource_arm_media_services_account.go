@@ -70,7 +70,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 	ctx := meta.(*ArmClient).StopContext
 
 	accountName := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
@@ -125,7 +125,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ServiceProperties; props != nil {

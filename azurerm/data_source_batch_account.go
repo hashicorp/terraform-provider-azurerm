@@ -71,7 +71,7 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_endpoint", resp.AccountEndpoint)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AccountProperties; props != nil {

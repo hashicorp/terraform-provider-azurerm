@@ -48,7 +48,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					StateFunc:        azureRMNormalizeLocation,
+					StateFunc:        azure.NormalizeLocation,
 					DiffSuppressFunc: azure.SuppressLocationDiff,
 				},
 				Set: schema.HashString,
@@ -217,7 +217,7 @@ func expandLogProfileLocations(d *schema.ResourceData) []string {
 	locations := make([]string, 0)
 
 	for _, location := range logProfileLocations {
-		locations = append(locations, azureRMNormalizeLocation(location.(string)))
+		locations = append(locations, azure.NormalizeLocation(location.(string)))
 	}
 
 	return locations
@@ -241,7 +241,7 @@ func flattenAzureRmLogProfileLocations(input *[]string) []string {
 	result := make([]string, 0)
 	if input != nil {
 		for _, location := range *input {
-			result = append(result, azureRMNormalizeLocation(location))
+			result = append(result, azure.NormalizeLocation(location))
 		}
 	}
 

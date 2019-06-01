@@ -63,7 +63,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
+							StateFunc:        azure.NormalizeLocation,
 							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
@@ -94,7 +94,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	imageName := d.Get("image_name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
 
@@ -181,7 +181,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
@@ -265,7 +265,7 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			output := make(map[string]interface{})
 
 			if v.Name != nil {
-				output["name"] = azureRMNormalizeLocation(*v.Name)
+				output["name"] = azure.NormalizeLocation(*v.Name)
 			}
 
 			if v.RegionalReplicaCount != nil {

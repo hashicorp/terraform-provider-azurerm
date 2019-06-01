@@ -198,7 +198,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", string(resp.Kind))
 	flattenAndSetTags(d, resp.Tags)
@@ -219,7 +219,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		for _, l := range *props.FailoverPolicies {
 			locations[*l.FailoverPriority] = map[string]interface{}{
 				"id":                *l.ID,
-				"location":          azureRMNormalizeLocation(*l.LocationName),
+				"location":          azure.NormalizeLocation(*l.LocationName),
 				"failover_priority": int(*l.FailoverPriority),
 			}
 		}

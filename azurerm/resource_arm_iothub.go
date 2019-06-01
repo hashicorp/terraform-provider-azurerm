@@ -397,7 +397,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 	fallbackRoute := expandIoTHubFallbackRoute(d)
@@ -522,7 +522,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := hub.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	sku := flattenIoTHubSku(hub.Sku)
 	if err := d.Set("sku", sku); err != nil {

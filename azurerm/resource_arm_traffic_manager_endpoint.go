@@ -91,7 +91,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				StateFunc:        azureRMNormalizeLocation,
+				StateFunc:        azure.NormalizeLocation,
 				DiffSuppressFunc: azure.SuppressLocationDiff,
 			},
 

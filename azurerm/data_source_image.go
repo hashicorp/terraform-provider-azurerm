@@ -182,7 +182,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := img.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if profile := img.StorageProfile; profile != nil {

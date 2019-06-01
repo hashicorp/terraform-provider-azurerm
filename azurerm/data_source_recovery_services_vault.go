@@ -54,7 +54,7 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*vault.ID)
 	d.Set("name", vault.Name)
-	d.Set("location", azureRMNormalizeLocation(*vault.Location))
+	d.Set("location", azure.NormalizeLocation(*vault.Location))
 	d.Set("resource_group_name", resourceGroup)
 
 	if sku := vault.Sku; sku != nil {

@@ -59,7 +59,7 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 	// TODO: support for Timeouts/Requiring Import
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -133,7 +133,7 @@ func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryProperties; props != nil {

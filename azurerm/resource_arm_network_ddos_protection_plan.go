@@ -70,7 +70,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
@@ -137,7 +137,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	d.Set("name", plan.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := plan.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {

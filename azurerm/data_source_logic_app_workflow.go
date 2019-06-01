@@ -68,7 +68,7 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WorkflowProperties; props != nil {

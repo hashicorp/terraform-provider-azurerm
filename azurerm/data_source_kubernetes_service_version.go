@@ -41,7 +41,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).containers.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	listResp, err := client.ListOrchestrators(ctx, location, "managedClusters")
 	if err != nil {

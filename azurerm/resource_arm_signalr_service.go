@@ -115,7 +115,7 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	sku := d.Get("sku").([]interface{})
@@ -190,7 +190,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err = d.Set("sku", flattenSignalRServiceSku(resp.Sku)); err != nil {

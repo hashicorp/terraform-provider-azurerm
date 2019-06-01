@@ -102,7 +102,7 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("idle_timeout_in_minutes", 0)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {

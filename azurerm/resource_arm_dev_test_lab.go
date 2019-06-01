@@ -104,7 +104,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageType := d.Get("storage_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -164,7 +164,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", read.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.LabProperties; props != nil {

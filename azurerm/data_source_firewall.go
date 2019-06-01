@@ -83,7 +83,7 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {

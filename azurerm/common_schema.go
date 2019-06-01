@@ -9,10 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func azureRMNormalizeLocation(location interface{}) string {
-	return azure.NormalizeLocation(location)
-}
-
 func resourceGroupNameDiffSuppressSchema() *schema.Schema {
 	return azure.SchemaResourceGroupNameDiffSuppress()
 }

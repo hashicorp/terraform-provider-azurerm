@@ -128,7 +128,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -207,7 +207,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	d.Set("name", collection.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	flattenAndSetTags(d, collection.Tags)
 

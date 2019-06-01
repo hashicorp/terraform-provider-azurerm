@@ -143,7 +143,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:   utils.String(shortName),
 			Enabled:          utils.Bool(enabled),

@@ -173,7 +173,7 @@ func resourceArmMonitorMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMonitorMetricThresholdAlertRule(d)
@@ -230,7 +230,7 @@ func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interfac
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if alertRule := resp.AlertRule; alertRule != nil {

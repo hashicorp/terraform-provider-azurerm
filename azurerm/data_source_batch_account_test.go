@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -24,7 +25,7 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("testaccbatch%s", rs)),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "pool_allocation_mode", "BatchService"),
 				),
 			},
@@ -47,7 +48,7 @@ func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("testaccbatch%s", rs)),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "pool_allocation_mode", "BatchService"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),

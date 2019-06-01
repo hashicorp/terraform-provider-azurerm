@@ -181,7 +181,7 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
@@ -246,7 +246,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {

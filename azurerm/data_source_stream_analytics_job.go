@@ -103,7 +103,7 @@ func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Location != nil {
-		d.Set("location", azureRMNormalizeLocation(*resp.Location))
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {

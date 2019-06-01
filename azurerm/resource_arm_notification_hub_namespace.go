@@ -93,7 +93,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	namespaceType := d.Get("namespace_type").(string)
 	enabled := d.Get("enabled").(bool)
 
@@ -174,7 +174,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	sku := flattenNotificationHubNamespacesSku(resp.Sku)
