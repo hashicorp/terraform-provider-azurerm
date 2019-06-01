@@ -188,7 +188,7 @@ resource "azurerm_sql_managed_instance" "test" {
   license_type				   = "BasePrice"
   subnet_id					   = "${azurerm_subnet.test.id}"
 
-  tags {
+  tags = {
 	environment = "staging"
 	database    = "test"
   }
