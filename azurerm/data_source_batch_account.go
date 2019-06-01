@@ -20,7 +20,7 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"location":            azure.SchemaLocationForDataSource(),
 			"storage_account_id": {
 				Type:     schema.TypeString,

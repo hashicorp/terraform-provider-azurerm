@@ -36,7 +36,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"type": {
 				Type:     schema.TypeString,

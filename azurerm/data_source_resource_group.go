@@ -13,7 +13,7 @@ func dataSourceArmResourceGroup() *schema.Resource {
 		Read: dataSourceArmResourceGroupRead,
 
 		Schema: map[string]*schema.Schema{
-			"name":     resourceGroupNameForDataSourceSchema(),
+			"name":     azure.SchemaResourceGroupNameForDataSource(),
 			"location": azure.SchemaLocationForDataSource(),
 			"tags":     tagsForDataSourceSchema(),
 		},

@@ -34,7 +34,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"sku": {
 				Type:     schema.TypeString,

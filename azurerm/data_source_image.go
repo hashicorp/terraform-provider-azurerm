@@ -37,7 +37,7 @@ func dataSourceArmImage() *schema.Resource {
 				ConflictsWith: []string{"name_regex"},
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 

@@ -21,7 +21,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,

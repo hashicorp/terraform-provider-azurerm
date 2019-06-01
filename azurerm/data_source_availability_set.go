@@ -15,7 +15,7 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAvailabilitySetRead,
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name": {
 				Type:         schema.TypeString,

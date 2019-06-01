@@ -12,7 +12,7 @@ func dataSourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmVirtualMachineRead,
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name": {
 				Type:         schema.TypeString,

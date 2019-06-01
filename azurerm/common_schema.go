@@ -9,14 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceGroupNameDiffSuppressSchema() *schema.Schema {
-	return azure.SchemaResourceGroupNameDiffSuppress()
-}
-
-func resourceGroupNameForDataSourceSchema() *schema.Schema {
-	return azure.SchemaResourceGroupNameForDataSource()
-}
-
 func zonesSchema() *schema.Schema {
 	return azure.SchemaZones()
 }

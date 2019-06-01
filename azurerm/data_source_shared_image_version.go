@@ -36,7 +36,7 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
 				Type:     schema.TypeString,

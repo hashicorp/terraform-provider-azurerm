@@ -22,7 +22,7 @@ func dataSourceArmDevTestLab() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"storage_type": {
 				Type:     schema.TypeString,

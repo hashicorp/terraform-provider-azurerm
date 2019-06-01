@@ -31,7 +31,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"profile_status": {
 				Type:     schema.TypeString,

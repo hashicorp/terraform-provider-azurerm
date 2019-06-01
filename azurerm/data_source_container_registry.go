@@ -20,7 +20,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 				ValidateFunc: validateAzureRMContainerRegistryName,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 

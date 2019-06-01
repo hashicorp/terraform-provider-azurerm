@@ -16,7 +16,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			// Computed
 			"os_type": {

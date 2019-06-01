@@ -34,7 +34,7 @@ func resourceArmBatchAccount() *schema.Resource {
 
 			// TODO: make this case sensitive once this API bug has been fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
 			"storage_account_id": {

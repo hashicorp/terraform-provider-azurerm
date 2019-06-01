@@ -16,7 +16,7 @@ func dataSourceArmPublicIPs() *schema.Resource {
 		Read: dataSourceArmPublicIPsRead,
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name_prefix": {
 				Type:     schema.TypeString,

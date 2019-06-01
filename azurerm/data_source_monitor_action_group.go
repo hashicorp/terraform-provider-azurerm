@@ -18,7 +18,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"short_name": {
 				Type:     schema.TypeString,

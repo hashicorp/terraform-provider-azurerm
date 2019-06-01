@@ -29,7 +29,7 @@ func dataSourceArmSharedImage() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"os_type": {
 				Type:     schema.TypeString,
