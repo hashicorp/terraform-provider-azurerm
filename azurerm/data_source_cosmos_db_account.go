@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,7 +23,7 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"tags": tagsForDataSourceSchema(),
 

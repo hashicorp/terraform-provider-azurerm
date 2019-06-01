@@ -9,10 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func locationForDataSourceSchema() *schema.Schema {
-	return azure.SchemaLocationForDataSource()
-}
-
 func azureRMNormalizeLocation(location interface{}) string {
 	return azure.NormalizeLocation(location)
 }

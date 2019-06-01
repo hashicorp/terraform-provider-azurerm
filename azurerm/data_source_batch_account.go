@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,7 +21,7 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
-			"location":            locationForDataSourceSchema(),
+			"location":            azure.SchemaLocationForDataSource(),
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Computed: true,

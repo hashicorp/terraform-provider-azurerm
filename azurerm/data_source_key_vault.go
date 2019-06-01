@@ -24,7 +24,7 @@ func dataSourceArmKeyVault() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"sku": {
 				Type:     schema.TypeList,

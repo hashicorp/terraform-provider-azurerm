@@ -21,7 +21,7 @@ func dataSourceArmAppService() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"app_service_plan_id": {
 				Type:     schema.TypeString,

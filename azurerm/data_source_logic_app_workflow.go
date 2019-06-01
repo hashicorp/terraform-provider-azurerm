@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,7 +22,7 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {

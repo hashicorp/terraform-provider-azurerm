@@ -19,7 +19,7 @@ func dataSourceApiManagementService() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"public_ip_addresses": {
 				Type:     schema.TypeList,
@@ -91,7 +91,7 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"location": locationForDataSourceSchema(),
+						"location": azure.SchemaLocationForDataSource(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,

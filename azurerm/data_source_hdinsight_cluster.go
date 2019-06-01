@@ -19,7 +19,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"cluster_version": {
 				Type:     schema.TypeString,

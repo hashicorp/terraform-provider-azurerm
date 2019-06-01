@@ -22,7 +22,7 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"principal_id": {
 				Type:     schema.TypeString,
