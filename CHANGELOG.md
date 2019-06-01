@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * Data Source `azurerm_app_service` - support windows containers [GH-3566]
 * Data Source `azurerm_service_plan` - support windows containers [GH-3566]
 * `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block [GH-3533]
+* `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` [GH-3539]
 * `azurerm_app_service` - support windows containers [GH-3566]
 * `azurerm_service_plan` - support windows containers [GH-3566]
 
