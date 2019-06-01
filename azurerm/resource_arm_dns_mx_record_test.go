@@ -145,7 +145,7 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for DNS MX record: %s", mxName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
 		if err != nil {
@@ -161,7 +161,7 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -308,7 +308,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -344,7 +344,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

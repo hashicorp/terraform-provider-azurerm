@@ -44,7 +44,6 @@ func NewProtectableContainersClientWithBaseURI(baseURI string, subscriptionID st
 // Parameters:
 // vaultName - the name of the recovery services vault.
 // resourceGroupName - the name of the resource group where the recovery services vault is present.
-// fabricName - fabric name associated with the container.
 // filter - oData filter options.
 func (client ProtectableContainersClient) List(ctx context.Context, vaultName string, resourceGroupName string, fabricName string, filter string) (result ProtectableContainerResourceListPage, err error) {
 	if tracing.IsEnabled() {

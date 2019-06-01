@@ -3,11 +3,12 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -139,6 +140,10 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
-	client.resourceGroupsClient.Delete(ctx, resourceGroupName)
+	if _, err := client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
+		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)
+	}
+	if _, err := client.resourceGroupsClient.Delete(ctx, resourceGroupName); err != nil {
+		log.Printf("[DEBUG] Error deleting Resource Group %q): %v", resourceGroupName, err)
+	}
 }

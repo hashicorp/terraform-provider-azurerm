@@ -152,6 +152,67 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testin
 		},
 	})
 }
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
@@ -173,6 +234,68 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t
 					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
@@ -354,8 +477,56 @@ data "azurerm_kubernetes_cluster" "test" {
 `, r)
 }
 
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(rInt, clientId, clientSecret, location, "azure", "calico")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(rInt, clientId, clientSecret, location, "azure", "azure")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(rInt int, clientId string, clientSecret string, location string) string {
 	r := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "azure")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(rInt, clientId, clientSecret, location, "azure", "calico")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(rInt, clientId, clientSecret, location, "azure", "azure")
 	return fmt.Sprintf(`
 %s
 

@@ -23,7 +23,7 @@ resource "azurerm_data_lake_store" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
   encryption_state    = "Enabled"
-  encryption_type     = "SystemManaged"
+  encryption_type     = "ServiceManaged"
 }
 ```
 
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `encryption_state` - (Optional) Is Encryption enabled on this Data Lake Store Account? Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Currently can be set to `SystemManaged` when `encryption_state` is `Enabled` - and must be a blank string when it's Disabled.
+* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Currently can be set to `ServiceManaged` when `encryption_state` is `Enabled` - and must be a blank string when it's Disabled.
 
 -> **NOTE:** Support for User Managed encryption will be supported in the future once a bug in the API is fixed.
 

@@ -146,6 +146,39 @@ type CertificateRequest struct {
 	Properties *RawCertificateData `json:"properties,omitempty"`
 }
 
+// CheckNameAvailabilityParameters resource Name availability input parameters - Resource type and resource
+// name
+type CheckNameAvailabilityParameters struct {
+	// Type - Describes the Resource type: Microsoft.RecoveryServices/Vaults
+	Type *string `json:"type,omitempty"`
+	// Name - Resource name for which availability needs to be checked
+	Name *string `json:"name,omitempty"`
+}
+
+// CheckNameAvailabilityResult response for check name availability API. Resource provider will set
+// availability as true | false.
+type CheckNameAvailabilityResult struct {
+	NameAvailable *bool   `json:"nameAvailable,omitempty"`
+	Reason        *string `json:"reason,omitempty"`
+	Message       *string `json:"message,omitempty"`
+}
+
+// CheckNameAvailabilityResultResource response for check name availability API. Resource provider will set
+// availability as true | false.
+type CheckNameAvailabilityResultResource struct {
+	autorest.Response `json:"-"`
+	// Properties - CheckNameAvailabilityResultResource properties
+	Properties *CheckNameAvailabilityResult `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name associated with the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	Type *string `json:"type,omitempty"`
+	// ETag - Optional ETag.
+	ETag *string `json:"eTag,omitempty"`
+}
+
 // ClientDiscoveryDisplay localized display information of an operation.
 type ClientDiscoveryDisplay struct {
 	// Provider - Name of the provider for display purposes
@@ -381,11 +414,11 @@ type PatchTrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -399,15 +432,6 @@ func (ptr PatchTrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if ptr.Tags != nil {
 		objectMap["tags"] = ptr.Tags
-	}
-	if ptr.ID != nil {
-		objectMap["id"] = ptr.ID
-	}
-	if ptr.Name != nil {
-		objectMap["name"] = ptr.Name
-	}
-	if ptr.Type != nil {
-		objectMap["type"] = ptr.Type
 	}
 	if ptr.ETag != nil {
 		objectMap["eTag"] = ptr.ETag
@@ -423,11 +447,11 @@ type PatchVault struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -447,15 +471,6 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 	}
 	if pv.Tags != nil {
 		objectMap["tags"] = pv.Tags
-	}
-	if pv.ID != nil {
-		objectMap["id"] = pv.ID
-	}
-	if pv.Name != nil {
-		objectMap["name"] = pv.Name
-	}
-	if pv.Type != nil {
-		objectMap["type"] = pv.Type
 	}
 	if pv.ETag != nil {
 		objectMap["eTag"] = pv.ETag
@@ -496,11 +511,11 @@ type ReplicationUsageList struct {
 
 // Resource ARM Resource.
 type Resource struct {
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -834,11 +849,11 @@ type TrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -853,15 +868,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
 	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
-	}
 	if tr.ETag != nil {
 		objectMap["eTag"] = tr.ETag
 	}
@@ -870,23 +876,23 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 
 // UpgradeDetails details for upgrading vault.
 type UpgradeDetails struct {
-	// OperationID - ID of the vault upgrade operation.
+	// OperationID - READ-ONLY; ID of the vault upgrade operation.
 	OperationID *string `json:"operationId,omitempty"`
-	// StartTimeUtc - UTC time at which the upgrade operation has started.
+	// StartTimeUtc - READ-ONLY; UTC time at which the upgrade operation has started.
 	StartTimeUtc *date.Time `json:"startTimeUtc,omitempty"`
-	// LastUpdatedTimeUtc - UTC time at which the upgrade operation status was last updated.
+	// LastUpdatedTimeUtc - READ-ONLY; UTC time at which the upgrade operation status was last updated.
 	LastUpdatedTimeUtc *date.Time `json:"lastUpdatedTimeUtc,omitempty"`
-	// EndTimeUtc - UTC time at which the upgrade operation has ended.
+	// EndTimeUtc - READ-ONLY; UTC time at which the upgrade operation has ended.
 	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
-	// Status - Status of the vault upgrade operation. Possible values include: 'Unknown', 'InProgress', 'Upgraded', 'Failed'
+	// Status - READ-ONLY; Status of the vault upgrade operation. Possible values include: 'Unknown', 'InProgress', 'Upgraded', 'Failed'
 	Status VaultUpgradeState `json:"status,omitempty"`
-	// Message - Message to the user containing information about the upgrade operation.
+	// Message - READ-ONLY; Message to the user containing information about the upgrade operation.
 	Message *string `json:"message,omitempty"`
-	// TriggerType - The way the vault upgrade was triggered. Possible values include: 'UserTriggered', 'ForcedUpgrade'
+	// TriggerType - READ-ONLY; The way the vault upgrade was triggered. Possible values include: 'UserTriggered', 'ForcedUpgrade'
 	TriggerType TriggerType `json:"triggerType,omitempty"`
-	// UpgradedResourceID - Resource ID of the upgraded vault.
+	// UpgradedResourceID - READ-ONLY; Resource ID of the upgraded vault.
 	UpgradedResourceID *string `json:"upgradedResourceId,omitempty"`
-	// PreviousResourceID - Resource ID of the vault before the upgrade.
+	// PreviousResourceID - READ-ONLY; Resource ID of the vault before the upgrade.
 	PreviousResourceID *string `json:"previousResourceId,omitempty"`
 }
 
@@ -899,11 +905,11 @@ type Vault struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -924,15 +930,6 @@ func (vVar Vault) MarshalJSON() ([]byte, error) {
 	if vVar.Tags != nil {
 		objectMap["tags"] = vVar.Tags
 	}
-	if vVar.ID != nil {
-		objectMap["id"] = vVar.ID
-	}
-	if vVar.Name != nil {
-		objectMap["name"] = vVar.Name
-	}
-	if vVar.Type != nil {
-		objectMap["type"] = vVar.Type
-	}
 	if vVar.ETag != nil {
 		objectMap["eTag"] = vVar.ETag
 	}
@@ -943,11 +940,11 @@ func (vVar Vault) MarshalJSON() ([]byte, error) {
 // themselves with the vault.
 type VaultCertificateResponse struct {
 	autorest.Response `json:"-"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID         *string                         `json:"id,omitempty"`
 	Properties BasicResourceCertificateDetails `json:"properties,omitempty"`
 }
@@ -1018,11 +1015,11 @@ type VaultExtendedInfo struct {
 type VaultExtendedInfoResource struct {
 	autorest.Response  `json:"-"`
 	*VaultExtendedInfo `json:"properties,omitempty"`
-	// ID - Resource Id represents the complete path to the resource.
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name associated with the resource.
+	// Name - READ-ONLY; Resource name associated with the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
@@ -1033,15 +1030,6 @@ func (veir VaultExtendedInfoResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if veir.VaultExtendedInfo != nil {
 		objectMap["properties"] = veir.VaultExtendedInfo
-	}
-	if veir.ID != nil {
-		objectMap["id"] = veir.ID
-	}
-	if veir.Name != nil {
-		objectMap["name"] = veir.Name
-	}
-	if veir.Type != nil {
-		objectMap["type"] = veir.Type
 	}
 	if veir.ETag != nil {
 		objectMap["eTag"] = veir.ETag
@@ -1113,7 +1101,8 @@ func (veir *VaultExtendedInfoResource) UnmarshalJSON(body []byte) error {
 type VaultList struct {
 	autorest.Response `json:"-"`
 	Value             *[]Vault `json:"value,omitempty"`
-	NextLink          *string  `json:"nextLink,omitempty"`
+	// NextLink - READ-ONLY
+	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // VaultListIterator provides access to a complete listing of Vault values.
@@ -1255,7 +1244,7 @@ func NewVaultListPage(getNextPage func(context.Context, VaultList) (VaultList, e
 
 // VaultProperties properties of the vault.
 type VaultProperties struct {
-	// ProvisioningState - Provisioning State.
+	// ProvisioningState - READ-ONLY; Provisioning State.
 	ProvisioningState *string         `json:"provisioningState,omitempty"`
 	UpgradeDetails    *UpgradeDetails `json:"upgradeDetails,omitempty"`
 }

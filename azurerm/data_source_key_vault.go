@@ -87,6 +87,13 @@ func dataSourceArmKeyVault() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"storage_permissions": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},

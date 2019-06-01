@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -25,10 +25,12 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
 		},
 		"PrivatePeering": {
-			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
-			"requiresImport":      testAccAzureRMExpressRouteCircuitPeering_requiresImport,
+			"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
+			"azurePrivatePeeringWithUpdate": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
+			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
 			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
@@ -58,7 +60,7 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -90,7 +92,7 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -114,7 +116,7 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -139,7 +141,7 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -167,7 +169,7 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -195,7 +197,7 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -222,7 +224,7 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -249,7 +251,7 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -351,7 +353,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -379,7 +381,7 @@ resource "azurerm_express_route_circuit" "import" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -409,7 +411,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -439,7 +441,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = false
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }
@@ -469,7 +471,7 @@ resource "azurerm_express_route_circuit" "test" {
 
   allow_classic_operations = %s
 
-  tags {
+  tags = {
     Environment = "production"
     Purpose     = "AcceptanceTests"
   }

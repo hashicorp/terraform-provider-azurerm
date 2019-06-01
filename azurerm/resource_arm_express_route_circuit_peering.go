@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -114,6 +114,9 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	circuitName := d.Get("express_route_circuit_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
@@ -155,9 +158,6 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.MicrosoftPeeringConfig = peeringConfig
 	}
-
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
 	if err != nil {

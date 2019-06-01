@@ -281,12 +281,12 @@ resource "azurerm_monitor_metric_alert" "import" {
 func testAccAzureRMMonitorMetricAlert_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa1%s"
+  name                     = "acctestsa1%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -294,19 +294,19 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
+  name                = "acctestActionGroup1-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag1"
 }
 
 resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
+  name                = "acctestActionGroup2-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag2"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
-  name                = "acctestMetricAlert-%d"
+  name                = "acctestMetricAlert-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   scopes              = ["${azurerm_storage_account.test.id}"]
   enabled             = true
@@ -324,15 +324,15 @@ resource "azurerm_monitor_metric_alert" "test" {
     threshold        = 99
 
     dimension {
-      "name"     = "GeoType"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "GeoType"
+      operator = "Include"
+      values   = ["*"]
     }
 
     dimension {
-      "name"     = "ApiName"
-      "operator" = "Include"
-      "values"   = ["*"]
+      name     = "ApiName"
+      operator = "Include"
+      values   = ["*"]
     }
   }
 
@@ -352,7 +352,7 @@ resource "azurerm_monitor_metric_alert" "test" {
     action_group_id = "${azurerm_monitor_action_group.test2.id}"
   }
 }
-`, rInt, location, rString, rInt, rInt, rInt)
+`, rInt, location, rString)
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {

@@ -191,7 +191,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
-`, template, strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_requiresImport(rInt int, location string) string {
@@ -222,7 +222,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
-`, template, strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_withTags(rInt int, location string) string {
@@ -237,12 +237,12 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
 }
-`, template, strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_withTagsUpdate(rInt int, location string) string {
@@ -257,9 +257,9 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
-`, template, strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[2:17])
 }

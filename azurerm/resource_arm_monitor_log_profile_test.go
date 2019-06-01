@@ -51,7 +51,7 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -82,7 +82,7 @@ func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
 	rs := acctest.RandString(10)
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -106,7 +106,7 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -126,7 +126,7 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -147,7 +147,7 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 	rs := acctest.RandString(10)
 	config := testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, testLocation())
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -234,7 +234,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -289,7 +289,7 @@ resource "azurerm_monitor_log_profile" "import" {
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -333,7 +333,7 @@ resource "azurerm_monitor_log_profile" "test" {
 func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

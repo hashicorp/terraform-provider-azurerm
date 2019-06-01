@@ -379,7 +379,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -400,7 +400,7 @@ resource "azurerm_managed_disk" "import" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -424,7 +424,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "1"
   zones                = ["1"]
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -446,7 +446,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -467,7 +467,7 @@ resource "azurerm_managed_disk" "test" {
   source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
   disk_size_gb         = "45"
 
-  tags {
+  tags = {
     environment = "acctest"
   }
 }
@@ -489,7 +489,7 @@ resource "azurerm_managed_disk" "source" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -504,7 +504,7 @@ resource "azurerm_managed_disk" "test" {
   source_resource_id   = "${azurerm_managed_disk.source.id}"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -527,7 +527,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "2"
 
-  tags {
+  tags = {
     environment = "acctest"
   }
 }
@@ -549,7 +549,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -648,7 +648,7 @@ resource "azurerm_key_vault" "test" {
 
   enabled_for_disk_encryption = true
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -693,7 +693,7 @@ resource "azurerm_managed_disk" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }

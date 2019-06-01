@@ -106,9 +106,9 @@ func resourceArmManagedDisk() *schema.Resource {
 
 func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
-	if value < 0 || value > 4095 {
+	if value < 0 || value > 32767 {
 		errors = append(errors, fmt.Errorf(
-			"The `disk_size_gb` can only be between 0 and 4095"))
+			"The `disk_size_gb` can only be between 0 and 32767"))
 	}
 	return warnings, errors
 }
@@ -149,6 +149,8 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		skuName = compute.StandardLRS
 	} else if strings.EqualFold(storageAccountType, string(compute.StandardSSDLRS)) {
 		skuName = compute.StandardSSDLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+		skuName = compute.UltraSSDLRS
 	}
 
 	createDisk := compute.Disk{

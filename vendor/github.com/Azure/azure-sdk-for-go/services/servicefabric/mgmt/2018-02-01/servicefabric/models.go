@@ -18,12 +18,14 @@ package servicefabric
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
-	"net/http"
 )
 
 // ClusterState enumerates the values for cluster state.
@@ -840,7 +842,7 @@ type ApplicationsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationsCreateFuture) Result(client ApplicationsClient) (ar ApplicationResource, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -868,7 +870,7 @@ type ApplicationsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -890,7 +892,7 @@ type ApplicationsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationsUpdateFuture) Result(client ApplicationsClient) (aru ApplicationResourceUpdate, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1027,7 +1029,7 @@ type ApplicationTypesDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationTypesDeleteFuture) Result(client ApplicationTypesClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1179,7 +1181,7 @@ type ApplicationTypeVersionsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationTypeVersionsCreateFuture) Result(client ApplicationTypeVersionsClient) (atvr ApplicationTypeVersionResource, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1208,7 +1210,7 @@ type ApplicationTypeVersionsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationTypeVersionsDeleteFuture) Result(client ApplicationTypeVersionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1639,7 +1641,7 @@ type ClustersCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ClustersCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1667,7 +1669,7 @@ type ClustersUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3003,7 +3005,7 @@ type ServicesCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ServicesCreateFuture) Result(client ServicesClient) (sr ServiceResource, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ServicesCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3031,7 +3033,7 @@ type ServicesDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ServicesDeleteFuture) Result(client ServicesClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ServicesDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3053,7 +3055,7 @@ type ServicesUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ServicesUpdateFuture) Result(client ServicesClient) (sru ServiceResourceUpdate, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ServicesUpdateFuture", "Result", future.Response(), "Polling failure")
 		return

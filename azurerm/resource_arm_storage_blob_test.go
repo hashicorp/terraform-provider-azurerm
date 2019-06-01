@@ -20,7 +20,7 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -28,9 +28,12 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.test", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.test2", "value2"),
 				),
 			},
 			{
@@ -38,6 +41,35 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageBlob_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_blob"),
 			},
 		},
 	})
@@ -441,7 +473,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -462,8 +494,29 @@ resource "azurerm_storage_blob" "test" {
 
   type = "page"
   size = 5120
+  
+  metadata = {
+    test = "value1"
+    test2 = "value2"
+  }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageBlob_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "import" {
+  name                   = "${azurerm_storage_blob.test.name}"
+  resource_group_name    = "${azurerm_storage_blob.test.resource_group_name}"
+  storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
+  storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
+  type                   = "${azurerm_storage_blob.test.type}"
+  size                   = "${azurerm_storage_blob.test.size}"
+}
+`, template)
 }
 
 func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, sourceBlobName string, location string) string {
@@ -480,7 +533,7 @@ resource "azurerm_storage_account" "source" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -521,7 +574,7 @@ resource "azurerm_storage_account" "source" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -562,7 +615,7 @@ resource "azurerm_storage_account" "source" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -612,7 +665,7 @@ resource "azurerm_storage_account" "source" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

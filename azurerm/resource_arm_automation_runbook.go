@@ -120,7 +120,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
@@ -172,7 +172,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
-		draftClient := meta.(*ArmClient).automationRunbookDraftClient
+		draftClient := meta.(*ArmClient).automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -198,7 +198,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -257,7 +257,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

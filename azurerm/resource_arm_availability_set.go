@@ -136,17 +136,18 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on Azure Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	availSet := *resp.AvailabilitySetProperties
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
-	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
-
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
+	}
+
+	if props := resp.AvailabilitySetProperties; props != nil {
+		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

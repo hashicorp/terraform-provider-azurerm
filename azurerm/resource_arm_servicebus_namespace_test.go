@@ -35,6 +35,32 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespace_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_servicebus_namespace"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
@@ -120,6 +146,40 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMServiceBusNamespace_basicCapacity(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMServiceBusNamespace_premiumCapacity(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2 or 4"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -192,6 +252,19 @@ resource "azurerm_servicebus_namespace" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMServiceBusNamespace_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_namespace" "import" {
+  name                = "${azurerm_servicebus_namespace.test.name}"
+  location            = "${azurerm_servicebus_namespace.test.location}"
+  resource_group_name = "${azurerm_servicebus_namespace.test.resource_group_name}"
+  sku                 = "${azurerm_servicebus_namespace.test.sku}"
+}
+`, testAccAzureRMServiceBusNamespace_basic(rInt, location))
+}
+
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -221,6 +294,40 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Premium"
   capacity            = 1
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_basicCapacity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
+  capacity            = 1
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_premiumCapacity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 0
 }
 `, rInt, location, rInt)
 }

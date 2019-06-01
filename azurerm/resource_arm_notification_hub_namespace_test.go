@@ -12,9 +12,7 @@ import (
 
 func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	resourceName := "azurerm_notification_hub_namespace.test"
-
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +20,7 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, location),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -31,6 +29,34 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_notification_hub_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNotificationHubNamespace_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_notification_hub_namespace"),
 			},
 		},
 	})
@@ -105,4 +131,21 @@ resource "azurerm_notification_hub_namespace" "test" {
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHubNamespace_requiresImport(ri int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub_namespace" "import" {
+  name                = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
+  location            = "${azurerm_notification_hub_namespace.test.location}"
+  namespace_type      = "${azurerm_notification_hub_namespace.test.namespace_type}"
+
+  sku {
+    name = "Free"
+  }
+}
+`, testAccAzureRMNotificationHubNamespace_free(ri, location))
 }

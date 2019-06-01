@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with `role_definition_id`.
 
-* `principal_id` - (Required) The ID of the Principal (User or Application) to assign the Role Definition to. Changing this forces a new resource to be created.
+* `principal_id` - (Required) The ID of the Principal (User or Application) to assign the Role Definition to. Changing this forces a new resource to be created. For an application, make sure to use the "object ID" (and not the "Application ID").
 
 
 ## Attributes Reference

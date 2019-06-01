@@ -94,7 +94,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -136,7 +136,7 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Automation Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.AccountClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -205,7 +205,7 @@ resource "azurerm_automation_account" "test" {
     name = "Basic"
   }
 
-  tags {
+  tags = {
     "hello" = "world"
   }
 }

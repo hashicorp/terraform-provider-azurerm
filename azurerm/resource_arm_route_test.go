@@ -13,7 +13,6 @@ import (
 
 func TestAccAzureRMRoute_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoute_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
@@ -30,6 +29,34 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 				ResourceName:      "azurerm_route.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRoute_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoute_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists("azurerm_route.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRoute_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_route"),
 			},
 		},
 	})
@@ -231,6 +258,20 @@ resource "azurerm_route" "test" {
   next_hop_type  = "vnetlocal"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRoute_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_route" "import" {
+  name                = "${azurerm_route.test.name}"
+  resource_group_name = "${azurerm_route.test.resource_group_name}"
+  route_table_name    = "${azurerm_route.test.route_table_name}"
+
+  address_prefix = "${azurerm_route.test.address_prefix}"
+  next_hop_type  = "${azurerm_route.test.next_hop_type}"
+}
+`, testAccAzureRMRoute_basic(rInt, location))
 }
 
 func testAccAzureRMRoute_basicAppliance(rInt int, location string) string {

@@ -40,6 +40,37 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	firstResourceName := "azurerm_virtual_network_peering.test1"
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetworkPeering_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkPeeringExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualNetworkPeering_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_network_peering"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
@@ -234,6 +265,21 @@ resource "azurerm_virtual_network_peering" "test2" {
   allow_virtual_network_access = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualNetworkPeering_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualNetworkPeering_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network_peering" "import" {
+  name                         = "${azurerm_virtual_network_peering.test1.name}"
+  resource_group_name          = "${azurerm_virtual_network_peering.test1.resource_group_name}"
+  virtual_network_name         = "${azurerm_virtual_network_peering.test1.virtual_network_name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network_peering.test1.remote_virtual_network_id}"
+  allow_virtual_network_access = "${azurerm_virtual_network_peering.test1.allow_virtual_network_access}"
+}
+`, template)
 }
 
 func testAccAzureRMVirtualNetworkPeering_basicUpdate(rInt int, location string) string {

@@ -29,8 +29,8 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 

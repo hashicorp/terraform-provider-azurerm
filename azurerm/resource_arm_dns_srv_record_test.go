@@ -59,7 +59,7 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsSrvRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("v"),
+				ExpectError: testRequiresImportError("azurerm_dns_srv_record"),
 			},
 		},
 	})
@@ -145,7 +145,7 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS SRV record: %s", srvName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, srvName, dns.SRV)
 		if err != nil {
@@ -161,7 +161,7 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsSrvRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -326,7 +326,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -366,7 +366,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target2.contoso.com"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

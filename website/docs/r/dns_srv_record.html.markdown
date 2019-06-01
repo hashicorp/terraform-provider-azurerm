@@ -36,7 +36,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target1.contoso.com"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

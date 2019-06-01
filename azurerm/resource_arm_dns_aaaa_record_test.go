@@ -145,7 +145,7 @@ func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for DNS AAAA record: %s", aaaaName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, aaaaName, dns.AAAA)
 		if err != nil {
@@ -161,7 +161,7 @@ func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMDnsAaaaRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -267,7 +267,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -294,7 +294,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -100,6 +100,18 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -192,6 +204,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["accounts"]
 
 	resp, err := client.GetProperties(ctx, resourceGroup, name)
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -209,13 +222,28 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if err := d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
+	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
 	}
+
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
+	}
+
+	d.Set("primary_access_key", keys.Key1)
+
+	d.Set("secondary_access_key", keys.Key2)
 
 	flattenAndSetTags(d, resp.Tags)
 

@@ -31,7 +31,7 @@ resource "azurerm_dns_ns_record" "test" {
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

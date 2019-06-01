@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -77,6 +77,20 @@ func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network
 	for i, lbr := range *lb.LoadBalancerPropertiesFormat.LoadBalancingRules {
 		if lbr.Name != nil && *lbr.Name == name {
 			return &lbr, i, true
+		}
+	}
+
+	return nil, -1, false
+}
+
+func findLoadBalancerOutboundRuleByName(lb *network.LoadBalancer, name string) (*network.OutboundRule, int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.OutboundRules == nil {
+		return nil, -1, false
+	}
+
+	for i, or := range *lb.LoadBalancerPropertiesFormat.OutboundRules {
+		if or.Name != nil && *or.Name == name {
+			return &or, i, true
 		}
 	}
 

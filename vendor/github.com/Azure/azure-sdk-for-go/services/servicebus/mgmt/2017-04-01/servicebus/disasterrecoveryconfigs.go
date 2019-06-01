@@ -411,7 +411,7 @@ func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response)
 	return
 }
 
-// FailOver envokes GEO DR failover and reconfigure the alias to point to the secondary namespace
+// FailOver invokes GEO DR failover and reconfigure the alias to point to the secondary namespace
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
@@ -599,7 +599,7 @@ func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (r
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // alias - the Disaster Recovery configuration name
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result SBAuthorizationRule, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisasterRecoveryConfigsClient.GetAuthorizationRule")
@@ -951,7 +951,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesComplete(ctx c
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // alias - the Disaster Recovery configuration name
-// authorizationRuleName - the authorizationrule name.
+// authorizationRuleName - the authorization rule name.
 func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result AccessKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisasterRecoveryConfigsClient.ListKeys")

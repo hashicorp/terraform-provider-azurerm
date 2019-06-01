@@ -35,6 +35,35 @@ func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_subnet_route_table_association.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional since this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnetRouteTableAssociation_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetRouteTableAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSubnetRouteTableAssociation_requiresImport(ri, location),
+				ExpectError: testRequiresImportError(""),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_route_table_association.test"
@@ -225,4 +254,16 @@ resource "azurerm_subnet_route_table_association" "test" {
   route_table_id = "${azurerm_route_table.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnetRouteTableAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSubnetRouteTableAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet_route_table_association" "import" {
+  subnet_id      = "${azurerm_subnet_route_table_association.test.subnet_id}"
+  route_table_id = "${azurerm_subnet_route_table_association.test.route_table_id}"
+}
+`, template)
 }

@@ -26,7 +26,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -48,7 +48,7 @@ resource "azurerm_managed_disk" "source" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -62,7 +62,7 @@ resource "azurerm_managed_disk" "copy" {
   source_resource_id   = "${azurerm_managed_disk.source.id}"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

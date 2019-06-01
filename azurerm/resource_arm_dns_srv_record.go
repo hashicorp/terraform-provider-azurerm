@@ -76,7 +76,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 }
 
 func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -99,24 +99,18 @@ func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	records, err := expandAzureRmDnsSrvRecords(d)
-	if err != nil {
-		return err
-	}
-
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:   expandTags(tags),
 			TTL:        &ttl,
-			SrvRecords: &records,
+			SrvRecords: expandAzureRmDnsSrvRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -135,7 +129,7 @@ func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -170,7 +164,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -207,7 +201,7 @@ func flattenAzureRmDnsSrvRecords(records *[]dns.SrvRecord) []map[string]interfac
 	return results
 }
 
-func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error) {
+func expandAzureRmDnsSrvRecords(d *schema.ResourceData) *[]dns.SrvRecord {
 	recordStrings := d.Get("record").(*schema.Set).List()
 	records := make([]dns.SrvRecord, len(recordStrings))
 
@@ -228,7 +222,7 @@ func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error)
 		records[i] = srvRecord
 	}
 
-	return records, nil
+	return &records
 }
 
 func resourceArmDnsSrvRecordHash(v interface{}) int {

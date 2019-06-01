@@ -35,6 +35,13 @@ func resourceArmImage() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zone_resilient": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"source_virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -166,6 +173,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	zoneResilient := d.Get("zone_resilient").(bool)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
@@ -196,8 +204,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	storageProfile := compute.ImageStorageProfile{
-		OsDisk:    osDisk,
-		DataDisks: &dataDisks,
+		OsDisk:        osDisk,
+		DataDisks:     &dataDisks,
+		ZoneResilient: utils.Bool(zoneResilient),
 	}
 
 	sourceVM := compute.SubResource{}
@@ -295,6 +304,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
+		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

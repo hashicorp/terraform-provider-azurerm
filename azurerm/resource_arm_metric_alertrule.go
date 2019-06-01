@@ -18,9 +18,16 @@ func resourceArmMetricAlertRule() *schema.Resource {
 		Read:   resourceArmMetricAlertRuleRead,
 		Update: resourceArmMetricAlertRuleCreateUpdate,
 		Delete: resourceArmMetricAlertRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_metric_alertrule' resource is deprecated in favour of the renamed version 'azurerm_monitor_metric_alertrule'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_metric_alertrule' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -423,17 +430,6 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 	return &alertRule, nil
 }
 
-func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
-	if err != nil {
-		return "", "", err
-	}
-	name := id.Path["alertrules"]
-	resourceGroup := id.ResourceGroup
-
-	return resourceGroup, name, nil
-}
-
 func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
 	warnings, errors = validateAzureRMTags(v, f)
@@ -447,4 +443,15 @@ func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, er
 	}
 
 	return warnings, errors
+}
+
+func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
+	id, err := parseAzureResourceID(alertRuleId)
+	if err != nil {
+		return "", "", err
+	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
+
+	return resourceGroup, name, nil
 }

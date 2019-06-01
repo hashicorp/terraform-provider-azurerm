@@ -60,7 +60,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 }
 
 func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
+	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

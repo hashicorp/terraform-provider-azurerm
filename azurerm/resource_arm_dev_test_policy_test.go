@@ -214,7 +214,7 @@ resource "azurerm_dev_test_policy" "test" {
   evaluator_type      = "MaxValuePolicy"
   description         = "Aloha this is the max number of VM's'"
 
-  tags {
+  tags = {
     "Acceptance" = "Test"
   }
 }

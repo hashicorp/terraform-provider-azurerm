@@ -67,19 +67,14 @@ resource "azurerm_firewall_application_rule_collection" "test" {
       "10.0.0.0/16",
     ]
 
-    destination_ports = [
-      "53",
+    target_fqdns = [
+      "*.google.com",
     ]
 
-    destination_addresses = [
-      "8.8.8.8",
-      "8.8.4.4",
-    ]
-
-    protocols = [
-      "TCP",
-      "UDP",
-    ]
+    protocol {
+        port = "443"
+        type = "Https"
+    }
   }
 }
 ```

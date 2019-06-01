@@ -23,13 +23,42 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test"),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_virtual_network_gateway_connection.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_network_gateway_connection"),
 			},
 		},
 	})
@@ -242,6 +271,23 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network_gateway_connection" "import" {
+  name                       = "${azurerm_virtual_network_gateway_connection.test.name}"
+  location                   = "${azurerm_virtual_network_gateway_connection.test.location}"
+  resource_group_name        = "${azurerm_virtual_network_gateway_connection.test.resource_group_name}"
+  type                       = "${azurerm_virtual_network_gateway_connection.test.type}"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway_connection.test.virtual_network_gateway_id}"
+  local_network_gateway_id   = "${azurerm_virtual_network_gateway_connection.test.local_network_gateway_id}"
+  shared_key                 = "${azurerm_virtual_network_gateway_connection.test.shared_key}"
+}
+`, template)
 }
 
 func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt, rInt2 int, sharedKey, location, altLocation string) string {

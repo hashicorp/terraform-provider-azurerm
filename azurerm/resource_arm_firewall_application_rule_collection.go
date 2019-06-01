@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
@@ -375,9 +375,9 @@ func expandArmFirewallApplicationRules(inputs []interface{}) ([]network.AzureFir
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
 			Description:     utils.String(ruleDescription),
-			SourceAddresses: utils.ExpandStringArray(ruleSourceAddresses),
-			FqdnTags:        utils.ExpandStringArray(ruleFqdnTags),
-			TargetFqdns:     utils.ExpandStringArray(ruleTargetFqdns),
+			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
+			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)

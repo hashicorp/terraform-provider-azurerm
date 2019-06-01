@@ -349,7 +349,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     you = "me"
   }
 }
@@ -410,7 +410,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Container Service Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+		conn := testAccProvider.Meta().(*ArmClient).containers.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -427,7 +427,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+	conn := testAccProvider.Meta().(*ArmClient).containers.ServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_service" {

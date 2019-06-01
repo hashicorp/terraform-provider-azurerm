@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -45,10 +46,14 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
 					// thus we need to support it to be able to import resources without recreating them.
+					// @jcorioland: new SKU and kind 'xenon' have been added for Windows Containers support
+					// https://azure.microsoft.com/en-us/blog/announcing-the-public-preview-of-windows-container-support-in-azure-app-service/
 					"App",
+					"elastic",
 					"FunctionApp",
 					"Linux",
 					"Windows",
+					"xenon",
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -139,6 +144,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -173,6 +183,13 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
 
+	isXenon := d.Get("is_xenon").(bool)
+	properties.IsXenon = &isXenon
+
+	if kind == "xenon" && !isXenon {
+		return fmt.Errorf("Creating or updating App Service Plan %q (Resource Group %q): when kind is set to xenon, is_xenon property should be set to true", name, resGroup)
+	}
+
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		Kind:                     &kind,
@@ -191,8 +208,15 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v.(bool))
 	}
 
-	if v, exists := d.GetOkExists("reserved"); exists {
-		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(v.(bool))
+	reserved, reservedExists := d.GetOkExists("reserved")
+	if strings.EqualFold(kind, "Linux") {
+		if !reserved.(bool) || !reservedExists {
+			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
+		}
+	}
+
+	if reservedExists {
+		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
@@ -248,6 +272,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
+	d.Set("is_xenon", resp.IsXenon)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {

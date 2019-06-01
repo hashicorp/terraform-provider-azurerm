@@ -57,7 +57,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }

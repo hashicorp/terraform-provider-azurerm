@@ -31,6 +31,34 @@ func TestAccAzureRMMySqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySqlVirtualNetworkRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_mysql_virtual_network_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySqlVirtualNetworkRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySqlVirtualNetworkRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_mysql_virtual_network_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_mysql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
@@ -257,6 +285,19 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
   subnet_id           = "${azurerm_subnet.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMMySqlVirtualNetworkRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_virtual_network_rule" "import" {
+  name                = "${azurerm_mysql_virtual_network_rule.test.name}"
+  resource_group_name = "${azurerm_mysql_virtual_network_rule.test.resource_group_name}"
+  server_name         = "${azurerm_mysql_virtual_network_rule.test.server_name}"
+  subnet_id           = "${azurerm_mysql_virtual_network_rule.test.subnet_id}"
+}
+`, testAccAzureRMMySqlVirtualNetworkRule_basic(rInt, location))
 }
 
 func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {

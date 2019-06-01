@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -56,6 +56,9 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 	resourceGroup := d.Get("resource_group_name").(string)
 	circuitName := d.Get("express_route_circuit_name").(string)
 
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, name)
 		if err != nil {
@@ -72,9 +75,6 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 	properties := network.ExpressRouteCircuitAuthorization{
 		AuthorizationPropertiesFormat: &network.AuthorizationPropertiesFormat{},
 	}
-
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, name, properties)
 	if err != nil {

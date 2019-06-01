@@ -85,7 +85,7 @@ resource "azurerm_data_lake_store" "test" {
   tier                = "Commitment_1TB"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     hello = "world"
   }
 }

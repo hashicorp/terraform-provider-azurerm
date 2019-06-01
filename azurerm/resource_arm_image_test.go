@@ -22,8 +22,48 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
 	location := testLocation()
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +115,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				//need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location),
+				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -83,7 +123,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location),
+				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
@@ -242,6 +282,7 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	log.Printf("[INFO] Connecting to %s:%v remote server...", hostName, port)
 
@@ -396,7 +437,7 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -443,9 +484,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -462,7 +503,7 @@ resource "azurerm_virtual_machine" "testsource" {
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
-  vm_size               = "Standard_D1_v2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -489,15 +530,15 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password)
 }
 
-func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -544,9 +585,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -568,7 +609,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -590,7 +631,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -600,6 +641,7 @@ resource "azurerm_image" "test" {
   name                = "accteste"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_resilient      = %t
 
   os_disk {
     os_type  = "Linux"
@@ -609,16 +651,16 @@ resource "azurerm_image" "test" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password, storageType == "ZRS")
 }
 
 func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName string, password string, hostName string, location string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location)
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
 	return fmt.Sprintf(`
 %s
 
@@ -636,7 +678,7 @@ resource "azurerm_image" "import" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -693,7 +735,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -715,7 +757,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -737,7 +779,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -794,7 +836,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -816,7 +858,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -838,7 +880,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -857,7 +899,7 @@ resource "azurerm_image" "testdestination" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -902,7 +944,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -962,7 +1004,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -982,7 +1024,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1042,7 +1084,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1062,7 +1104,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1074,7 +1116,7 @@ resource "azurerm_image" "testdestination" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   source_virtual_machine_id = "${azurerm_virtual_machine.testsource.id}"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -1119,7 +1161,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1176,7 +1218,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -1198,7 +1240,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1220,7 +1262,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1277,7 +1319,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -1299,7 +1341,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1321,7 +1363,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1340,7 +1382,7 @@ resource "azurerm_image" "testdestination" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }

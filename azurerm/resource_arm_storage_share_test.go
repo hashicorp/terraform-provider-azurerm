@@ -41,6 +41,38 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	var sS storage.Share
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(resourceName, &sS),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageShare_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_share"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	var sS storage.Share
 
@@ -177,10 +209,6 @@ func testAccARMStorageShareDisappears(resourceName string, sS *storage.Share) re
 
 		reference := fileClient.GetShareReference(sS.Name)
 		options := &storage.FileRequestOptions{}
-		err = reference.Create(options)
-		if err != nil {
-			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", sS.Name, storageAccountName, err)
-		}
 
 		if _, err = reference.DeleteIfExists(options); err != nil {
 			return fmt.Errorf("Error deleting storage Share %q: %s", sS.Name, err)
@@ -241,51 +269,64 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare"
+  name                 = "testshare%[3]s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, rInt, location, rString)
 }
 
+func testAccAzureRMStorageShare_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "import" {
+  name                 = "${azurerm_storage_share.test.name}"
+  resource_group_name  = "${azurerm_storage_share.test.resource_group_name}"
+  storage_account_name = "${azurerm_storage_share.test.storage_account_name}"
+}
+`, template)
+}
+
 func testAccAzureRMStorageShare_updateQuota(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare"
+  name                 = "testshare%[3]s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
   quota                = 5

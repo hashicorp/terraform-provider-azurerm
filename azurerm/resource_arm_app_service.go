@@ -65,10 +65,11 @@ func resourceArmAppService() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),
+
+			"auth_settings": azure.SchemaAppServiceAuthSettings(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -80,6 +81,11 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"enabled": {
@@ -250,6 +256,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
+	}
+
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
@@ -269,6 +280,17 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(*read.ID)
+
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+
+	auth := web.SiteAuthSettings{
+		ID:                         read.ID,
+		SiteAuthSettingsProperties: &authSettings}
+
+	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
+		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+	}
 
 	return resourceArmAppServiceUpdate(d, meta)
 }
@@ -303,6 +325,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
@@ -321,6 +348,20 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("auth_settings") {
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		id := d.Id()
+		authSettings := web.SiteAuthSettings{
+			ID:                         &id,
+			SiteAuthSettingsProperties: &authSettingsProperties,
+		}
+
+		if _, err := client.UpdateAuthSettings(ctx, resGroup, name, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -411,11 +452,26 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	configResp, err := client.GetConfiguration(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(configResp.Response) {
+			log.Printf("[DEBUG] Configuration of App Service %q (resource group %q) was not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", name, err)
+	}
+
+	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of App Service %q (resource group %q) were not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
 	}
 
@@ -453,6 +509,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
@@ -469,6 +526,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
+	}
+
+	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	if err := d.Set("auth_settings", authSettings); err != nil {
+		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)

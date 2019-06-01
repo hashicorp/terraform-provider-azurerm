@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -56,7 +58,7 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validateRedisFamily,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"sku_name": {
@@ -67,7 +69,18 @@ func resourceArmRedisCache() *schema.Resource {
 					string(redis.Standard),
 					string(redis.Premium),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  redis.OneFullStopZero,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redis.OneFullStopZero),
+					string(redis.OneFullStopOne),
+					string(redis.OneFullStopTwo),
+				}, false),
 			},
 
 			"shard_count": {
@@ -96,7 +109,8 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"redis_configuration": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -123,27 +137,60 @@ func resourceArmRedisCache() *schema.Resource {
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
 						},
+
+						"maxfragmentationmemory_reserved": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+
 						"rdb_backup_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"rdb_backup_frequency": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validateRedisBackupFrequency,
 						},
+
 						"rdb_backup_max_snapshot_count": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+
 						"rdb_storage_connection_string": {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
+
 						"notify_keyspace_events": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+
+						"aof_backup_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"aof_storage_connection_string_0": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"aof_storage_connection_string_1": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+						"enable_authentication": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 					},
 				},
@@ -202,7 +249,7 @@ func resourceArmRedisCache() *schema.Resource {
 }
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
@@ -219,9 +266,27 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Redis Instance %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_redis_cache", *existing.ID)
+		}
+	}
+
 	patchSchedule, err := expandRedisPatchSchedule(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
+	}
+
+	redisConfiguration, err := expandRedisConfiguration(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
 	}
 
 	parameters := redis.CreateParameters{
@@ -233,7 +298,8 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
-			RedisConfiguration: expandRedisConfiguration(d),
+			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
+			RedisConfiguration: redisConfiguration,
 		},
 		Tags: expandedTags,
 	}
@@ -248,6 +314,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
+		parsed, parseErr := parseAzureResourceID(v.(string))
+		if parseErr != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
+		}
+		subnetName := parsed.Path["subnets"]
+		virtualNetworkName := parsed.Path["virtualNetworks"]
+		azureRMLockByName(subnetName, subnetResourceName)
+		defer azureRMUnlockByName(subnetName, subnetResourceName)
+		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
+		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -257,22 +333,22 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create request for Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for the create of Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading Redis Cache %s (resource group %s): %v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
+	log.Printf("[DEBUG] Waiting for Redis Cache (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -281,13 +357,13 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("Error waiting for Redis Cache (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	d.SetId(*read.ID)
 
 	if schedule := patchSchedule; schedule != nil {
-		patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+		patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *schedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
@@ -298,7 +374,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
@@ -316,7 +392,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
-			EnableNonSslPort: utils.Bool(enableNonSSLPort),
+			MinimumTLSVersion: redis.TLSVersion(d.Get("minimum_tls_version").(string)),
+			EnableNonSslPort:  utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
 				Capacity: utils.Int32(capacity),
 				Family:   family,
@@ -334,7 +411,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("redis_configuration") {
-		redisConfiguration := expandRedisConfiguration(d)
+		redisConfiguration, err := expandRedisConfiguration(d)
+		if err != nil {
+			return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
+		}
 		parameters.RedisConfiguration = redisConfiguration
 	}
 
@@ -369,7 +449,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
-	patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
 		_, err = patchClient.Delete(ctx, resGroup, name)
 		if err != nil {
@@ -386,7 +466,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -413,7 +493,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
@@ -441,6 +521,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.Properties; props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
 		if props.ShardCount != nil {
@@ -467,7 +548,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	redisClient := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -477,7 +558,27 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["Redis"]
 
-	future, err := redisClient.Delete(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Redis Cache %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+	if read.Properties == nil {
+		return fmt.Errorf("Error retrieving Redis Cache properties %q (Resource Group %q): `props` was nil", name, resGroup)
+	}
+	props := *read.Properties
+	if subnetID := props.SubnetID; subnetID != nil {
+		parsed, parseErr := parseAzureResourceID(*subnetID)
+		if parseErr != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
+		}
+		subnetName := parsed.Path["subnets"]
+		virtualNetworkName := parsed.Path["virtualNetworks"]
+		azureRMLockByName(subnetName, subnetResourceName)
+		defer azureRMUnlockByName(subnetName, subnetResourceName)
+		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
+		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	}
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -486,7 +587,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if err = future.WaitForCompletionRef(ctx, redisClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -508,7 +609,7 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 	}
 }
 
-func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
+func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error) {
 	output := make(map[string]*string)
 
 	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
@@ -530,7 +631,12 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["maxmemory-policy"] = utils.String(v.(string))
 	}
 
-	// Backup
+	if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["maxfragmentationmemory-reserved"] = utils.String(delta)
+	}
+
+	// RDB Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
 		output["rdb-backup-enabled"] = utils.String(delta)
@@ -554,7 +660,35 @@ func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 		output["notify-keyspace-events"] = utils.String(v.(string))
 	}
 
-	return output
+	// AOF Backup
+	if v, ok := d.GetOk("redis_configuration.0.aof_backup_enabled"); ok {
+		delta := strconv.FormatBool(v.(bool))
+		output["aof-backup-enabled"] = utils.String(delta)
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_0"); ok {
+		output["aof-storage-connection-string-0"] = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_1"); ok {
+		output["aof-storage-connection-string-1"] = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
+		authEnabled := v.(bool)
+		_, isPrivate := d.GetOk("subnet_id")
+
+		// Redis authentication can only be disabled if it is launched inside a VNET.
+		if !isPrivate {
+			if !authEnabled {
+				return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
+			}
+		} else {
+			value := isAuthNotRequiredAsString(authEnabled)
+			output["authnotrequired"] = utils.String(value)
+		}
+	}
+	return output, nil
 }
 
 func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
@@ -613,6 +747,14 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		outputs["maxmemory_policy"] = *v
 	}
 
+	if v := input["maxfragmentationmemory-reserved"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+		}
+		outputs["maxfragmentationmemory_reserved"] = i
+	}
+
 	// delta, reserved, enabled, frequency,, count,
 	if v := input["rdb-backup-enabled"]; v != nil {
 		b, err := strconv.ParseBool(*v)
@@ -642,7 +784,44 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		outputs["notify_keyspace_events"] = *v
 	}
 
+	if v := input["aof-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `aof-backup-enabled` %q: %+v", *v, err)
+		}
+		outputs["aof_backup_enabled"] = b
+	}
+	if v := input["aof-storage-connection-string-0"]; v != nil {
+		outputs["aof_storage_connection_string_0"] = *v
+	}
+	if v := input["aof-storage-connection-string-1"]; v != nil {
+		outputs["aof_storage_connection_string_1"] = *v
+	}
+
+	// `authnotrequired` is not set for instances launched outside a VNET
+	outputs["enable_authentication"] = true
+	if v := input["authnotrequired"]; v != nil {
+		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+	}
+
 	return []interface{}{outputs}, nil
+}
+
+func isAuthRequiredAsBool(not_required string) bool {
+	value := strings.ToLower(not_required)
+	output := map[string]bool{
+		"yes": false,
+		"no":  true,
+	}
+	return output[value]
+}
+
+func isAuthNotRequiredAsString(auth_required bool) string {
+	output := map[bool]string{
+		true:  "no",
+		false: "yes",
+	}
+	return output[auth_required]
 }
 
 func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {

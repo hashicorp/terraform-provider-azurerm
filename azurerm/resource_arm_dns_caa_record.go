@@ -78,7 +78,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 }
 
 func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -101,24 +101,18 @@ func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	records, err := expandAzureRmDnsCaaRecords(d)
-	if err != nil {
-		return err
-	}
-
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:   expandTags(tags),
 			TTL:        &ttl,
-			CaaRecords: &records,
+			CaaRecords: expandAzureRmDnsCaaRecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CAA, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CAA, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -137,7 +131,7 @@ func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -172,7 +166,7 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -208,7 +202,7 @@ func flattenAzureRmDnsCaaRecords(records *[]dns.CaaRecord) []map[string]interfac
 	return results
 }
 
-func expandAzureRmDnsCaaRecords(d *schema.ResourceData) ([]dns.CaaRecord, error) {
+func expandAzureRmDnsCaaRecords(d *schema.ResourceData) *[]dns.CaaRecord {
 	recordStrings := d.Get("record").(*schema.Set).List()
 	records := make([]dns.CaaRecord, len(recordStrings))
 
@@ -227,7 +221,7 @@ func expandAzureRmDnsCaaRecords(d *schema.ResourceData) ([]dns.CaaRecord, error)
 		records[i] = caaRecord
 	}
 
-	return records, nil
+	return &records
 }
 
 func resourceArmDnsCaaRecordHash(v interface{}) int {

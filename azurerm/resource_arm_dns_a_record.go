@@ -52,7 +52,7 @@ func resourceArmDnsARecord() *schema.Resource {
 }
 
 func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -75,24 +75,18 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	records, err := expandAzureRmDnsARecords(d)
-	if err != nil {
-		return err
-	}
-
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata: expandTags(tags),
 			TTL:      &ttl,
-			ARecords: &records,
+			ARecords: expandAzureRmDnsARecords(d),
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.A, parameters, eTag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.A, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -111,7 +105,7 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -146,7 +140,7 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -178,7 +172,7 @@ func flattenAzureRmDnsARecords(records *[]dns.ARecord) []string {
 	return results
 }
 
-func expandAzureRmDnsARecords(d *schema.ResourceData) ([]dns.ARecord, error) {
+func expandAzureRmDnsARecords(d *schema.ResourceData) *[]dns.ARecord {
 	recordStrings := d.Get("records").(*schema.Set).List()
 	records := make([]dns.ARecord, len(recordStrings))
 
@@ -189,5 +183,5 @@ func expandAzureRmDnsARecords(d *schema.ResourceData) ([]dns.ARecord, error) {
 		}
 	}
 
-	return records, nil
+	return &records
 }

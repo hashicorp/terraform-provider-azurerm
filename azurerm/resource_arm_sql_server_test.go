@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 				),
@@ -31,6 +30,32 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+			},
+		},
+	})
+}
+func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlServer_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_server"),
 			},
 		},
 	})
@@ -192,6 +217,21 @@ resource "azurerm_sql_server" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMSqlServer_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_server" "import" {
+  name                         = "${azurerm_sql_server.test.name}"
+  resource_group_name          = "${azurerm_sql_server.test.resource_group_name}"
+  location                     = "${azurerm_sql_server.test.location}"
+  version                      = "${azurerm_sql_server.test.version}"
+  administrator_login          = "${azurerm_sql_server.test.administrator_login}"
+  administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+}
+`, testAccAzureRMSqlServer_basic(rInt, location))
+}
+
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -207,7 +247,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -230,7 +270,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

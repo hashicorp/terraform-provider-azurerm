@@ -65,8 +65,35 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
+	resourceName := "azurerm_automation_module.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationModule_multipleModules(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationModuleExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Module link is not returned by api in Get operation
+				ImportStateVerifyIgnore: []string{"module_link"},
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationModuleClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -116,7 +143,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Automation Module: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationModuleClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
@@ -155,9 +182,50 @@ resource "azurerm_automation_module" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
 
-  module_link = {
+  module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
   }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationModule_multipleModules(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
+
+resource "azurerm_automation_module" "test" {
+  name                    = "AzureRM.Profile"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+
+  module_link {
+    uri = "https://psg-prod-eastus.azureedge.net/packages/azurerm.profile.5.8.2.nupkg"
+  }
+}
+
+resource "azurerm_automation_module" "second" {
+  name                    = "AzureRM.OperationalInsights"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+
+  module_link {
+    uri = "https://psg-prod-eastus.azureedge.net/packages/azurerm.operationalinsights.5.0.6.nupkg"
+  }
+
+  depends_on = ["azurerm_automation_module.test"]
 }
 `, rInt, location, rInt)
 }
@@ -172,7 +240,7 @@ resource "azurerm_automation_module" "import" {
   resource_group_name     = "${azurerm_automation_module.test.resource_group_name}"
   automation_account_name = "${azurerm_automation_module.test.automation_account_name}"
 
-  module_link = {
+  module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
   }
 }

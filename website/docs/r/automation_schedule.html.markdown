@@ -37,10 +37,7 @@ resource "azurerm_automation_schedule" "example" {
   timezone                = "Central Europe Standard Time"
   start_time              = "2014-04-15T18:00:15+02:00"
   description             = "This is an example schedule"
-
-  advanced_schedule {
-    week_days = ["Friday"]
-  }
+  week_days               = ["Friday"]
 }
 ```
 

@@ -112,12 +112,12 @@ func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
-		if d.Set("apns_credential", apns); err != nil {
+		if setErr := d.Set("apns_credential", apns); setErr != nil {
 			return fmt.Errorf("Error setting `apns_credential`: %+v", err)
 		}
 
 		gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
-		if d.Set("gcm_credential", gcm); err != nil {
+		if setErr := d.Set("gcm_credential", gcm); setErr != nil {
 			return fmt.Errorf("Error setting `gcm_credential`: %+v", err)
 		}
 	}

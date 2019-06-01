@@ -61,6 +61,29 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+	dataSourceName := "data.azurerm_app_service_plan.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppServicePlan_basicWindowsContainer(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "kind", "xenon"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku.0.tier", "PremiumContainer"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku.0.size", "PC2"),
+					resource.TestCheckResourceAttr(dataSourceName, "is_xenon", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAppServicePlan_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -108,7 +131,7 @@ resource "azurerm_app_service_plan" "test" {
     per_site_scaling = true
   }
 
-  tags {
+  tags = {
     environment = "Test"
   }
 }
@@ -116,6 +139,33 @@ resource "azurerm_app_service_plan" "test" {
 data "azurerm_app_service_plan" "test" {
   name                = "${azurerm_app_service_plan.test.name}"
   resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+}
+`, rInt, location, rInt)
+}
+
+func testAccDataSourceAppServicePlan_basicWindowsContainer(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	is_xenon            = true
+	kind                = "xenon"
+
+	sku {
+		tier = "PremiumContainer"
+		size = "PC2"
+	}
+}
+
+data "azurerm_app_service_plan" "test" {
+	name                = "${azurerm_app_service_plan.test.name}"
+	resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
 }
 `, rInt, location, rInt)
 }

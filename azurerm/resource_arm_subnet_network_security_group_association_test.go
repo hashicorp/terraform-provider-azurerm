@@ -36,6 +36,36 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_subnet_network_security_group_association.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_subnet_network_security_group_association"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_network_security_group_association.test"
 	ri := tf.AccRandTimeInt()
@@ -230,4 +260,12 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+`, template)
 }

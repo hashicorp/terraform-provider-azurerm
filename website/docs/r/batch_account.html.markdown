@@ -34,7 +34,7 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
+  tags = {
     env = "test"
   }
 }
@@ -47,6 +47,8 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Batch account. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch account. Changing this forces a new resource to be created.
+
+~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -61,3 +63,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch account ID.
+
+* `primary_access_key` - The Batch account primary access key.
+
+* `secondary_access_key` - The Batch account secondary access key.
+
+* `account_endpoint` - The account endpoint used to interact with the Batch service.
+
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.

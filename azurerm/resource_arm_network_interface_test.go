@@ -30,6 +30,34 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_interface.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterface_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
@@ -503,6 +531,25 @@ resource "azurerm_network_interface" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMNetworkInterface_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterface_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "import" {
+  name                = "${azurerm_network_interface.test.name}"
+  location            = "${azurerm_network_interface.test.location}"
+  resource_group_name = "${azurerm_network_interface.test.resource_group_name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, template)
+}
+
 func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -734,7 +781,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -774,7 +821,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -1139,7 +1186,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "backend-http-1"
   }
 
-  tags {
+  tags = {
     environment = "tf01"
   }
 }
@@ -1175,7 +1222,7 @@ resource "azurerm_network_security_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -1214,7 +1261,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -1244,7 +1291,7 @@ resource "azurerm_network_interface" "test1" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -1260,7 +1307,7 @@ resource "azurerm_network_interface" "test2" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

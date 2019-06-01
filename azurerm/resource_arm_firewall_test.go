@@ -426,7 +426,7 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -474,7 +474,7 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -82,7 +82,7 @@ resource "azurerm_public_ip" "test" {
   domain_name_label       = "acctest-%d"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }
@@ -109,7 +109,7 @@ resource "azurerm_public_ip" "test" {
 
   ip_version = "%s"
 
-  tags {
+  tags = {
     environment = "test"
   }
 }

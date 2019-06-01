@@ -17,7 +17,7 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
@@ -42,13 +42,48 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_security_center_workspace.test"
+	ri := tf.AccRandTimeInt()
+
+	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "scope", scope),
+				),
+			},
+			{
+				Config:      testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(ri, testLocation(), scope),
+				ExpectError: testRequiresImportError("azurerm_security_center_workspace"),
+			},
+			{
+				//reset pricing to free
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 	resourceName := "azurerm_security_center_workspace.test"
 	ri := tf.AccRandTimeInt()
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -139,7 +174,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_log_analytics_workspace" "test1" {
+resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%[1]d-1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -148,9 +183,20 @@ resource "azurerm_log_analytics_workspace" "test1" {
 
 resource "azurerm_security_center_workspace" "test" {
   scope        = "%[3]s"
-  workspace_id = "${azurerm_log_analytics_workspace.test1.id}"
+  workspace_id = "${azurerm_log_analytics_workspace.test.id}"
 }
 `, rInt, location, scope)
+}
+
+func testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(rInt int, location, scope string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_security_center_workspace" "import" {
+  scope        = "${azurerm_security_center_workspace.test.scope}"
+  workspace_id = "${azurerm_security_center_workspace.test.workspace_id}"
+}
+`, testAccAzureRMSecurityCenterWorkspace_basicCfg(rInt, location, scope))
 }
 
 func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(rInt int, location, scope string) string {

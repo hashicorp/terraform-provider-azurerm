@@ -76,6 +76,11 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"is_hns_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -91,7 +96,17 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -101,7 +116,17 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -111,13 +136,77 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"secondary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -201,6 +290,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
@@ -234,40 +324,25 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			d.Set("primary_blob_endpoint", endpoints.Blob)
-			d.Set("primary_queue_endpoint", endpoints.Queue)
-			d.Set("primary_table_endpoint", endpoints.Table)
-			d.Set("primary_file_endpoint", endpoints.File)
-
-			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
-			d.Set("primary_blob_connection_string", pscs)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
+			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if endpoints := props.SecondaryEndpoints; endpoints != nil {
-			if blob := endpoints.Blob; blob != nil {
-				d.Set("secondary_blob_endpoint", blob)
-				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-					*blob, *resp.Name, *accessKeys[1].Value)
-				d.Set("secondary_blob_connection_string", sscs)
-			} else {
-				d.Set("secondary_blob_endpoint", "")
-				d.Set("secondary_blob_connection_string", "")
-			}
-
-			if endpoints.Queue != nil {
-				d.Set("secondary_queue_endpoint", endpoints.Queue)
-			} else {
-				d.Set("secondary_queue_endpoint", "")
-			}
-
-			if endpoints.Table != nil {
-				d.Set("secondary_table_endpoint", endpoints.Table)
-			} else {
-				d.Set("secondary_table_endpoint", "")
-			}
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
 		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
+			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		}
+
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 	}
 
 	d.Set("primary_access_key", accessKeys[0].Value)

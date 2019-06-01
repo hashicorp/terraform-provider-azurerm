@@ -21,8 +21,6 @@ import (
 func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
-	postConfig := testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,7 +28,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
@@ -42,11 +40,39 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_virtual_network_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlVirtualNetworkRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_virtual_network_rule"),
 			},
 		},
 	})
@@ -464,6 +490,19 @@ resource "azurerm_sql_virtual_network_rule" "test" {
   ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+func testAccAzureRMSqlVirtualNetworkRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_virtual_network_rule" "import" {
+  name                                 = "${azurerm_sql_virtual_network_rule.test.name}"
+  resource_group_name                  = "${azurerm_sql_virtual_network_rule.test.resource_group_name}"
+  server_name                          = "${azurerm_sql_virtual_network_rule.test.server_name}"
+  subnet_id                            = "${azurerm_sql_virtual_network_rule.test.subnet_id}"
+  ignore_missing_vnet_service_endpoint = "${azurerm_sql_virtual_network_rule.test.ignore_missing_vnet_service_endpoint}"
+}
+`, testAccAzureRMSqlVirtualNetworkRule_basic(rInt, location))
 }
 
 /*

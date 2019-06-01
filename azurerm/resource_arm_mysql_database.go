@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,6 +63,19 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mysql_database", *existing.ID)
+		}
+	}
+
 	properties := mysql.Database{
 		DatabaseProperties: &mysql.DatabaseProperties{
 			Charset:   utils.String(charset),
@@ -71,16 +85,16 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting on create/update future for MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read MySQL Database %q (resource group %q) ID", name, resourceGroup)

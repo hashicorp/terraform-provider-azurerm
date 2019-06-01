@@ -12,6 +12,35 @@ import (
 
 func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_policy_definition.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_policy_definition.test"
 
 	ri := tf.AccRandTimeInt()
 
@@ -22,6 +51,29 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
+				ExpectError: testRequiresImportError("azurerm_policy_definition"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
+	resourceName := "azurerm_policy_definition.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_computedMetadata(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExists(resourceName),
 				),
@@ -173,6 +225,56 @@ POLICY_RULE
 PARAMETERS
 }
 `, ri, ri)
+}
+
+func testAzureRMPolicyDefinition_requiresImport(ri int) string {
+	template := testAzureRMPolicyDefinition_basic(ri)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_definition" "import" {
+  name         = "${azurerm_policy_definition.test.name}"
+  policy_type  = "${azurerm_policy_definition.test.policy_type}"
+  mode         = "${azurerm_policy_definition.test.mode}"
+  display_name = "${azurerm_policy_definition.test.display_name}"
+  policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
+  parameters   = "${azurerm_policy_definition.test.parameters}"
+}
+`, template)
+}
+
+func testAzureRMPolicyDefinition_computedMetadata(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_policy_definition" "test" {
+  name         = "acctest-%d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "DefaultTags"
+
+  policy_rule = <<POLICY_RULE
+    {
+  "if": {
+    "field": "tags",
+    "exists": "false"
+  },
+  "then": {
+    "effect": "append",
+    "details": [
+      {
+        "field": "tags",
+        "value": {
+          "environment": "D-137",
+          "owner": "Rick",
+          "application": "Portal",
+          "implementor": "Morty"
+        }
+      }
+    ]
+  }
+  }
+POLICY_RULE
+}
+`, rInt)
 }
 
 func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {

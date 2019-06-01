@@ -117,7 +117,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }
@@ -168,7 +168,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }
@@ -181,7 +181,7 @@ resource "azurerm_public_ip" "test2" {
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }
@@ -215,7 +215,7 @@ resource "azurerm_public_ip" "dynamic" {
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }
@@ -228,7 +228,7 @@ resource "azurerm_public_ip" "static" {
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
-  tags {
+  tags = {
     environment = "test"
   }
 }

@@ -153,7 +153,7 @@ resource "azurerm_logic_app_action_http" "test" {
   method       = "GET"
   uri          = "http://example.com/hello"
 
-  headers {
+  headers = {
     "Hello"     = "World"
     "Something" = "New"
   }

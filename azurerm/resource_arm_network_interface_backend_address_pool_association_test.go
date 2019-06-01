@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -25,6 +25,35 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface_backend_address_pool_association"),
 			},
 		},
 	})
@@ -222,4 +251,17 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
   backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface_backend_address_pool_association" "import" {
+  network_interface_id    = "${azurerm_network_interface_backend_address_pool_association.test.network_interface_id}"
+  ip_configuration_name   = "${azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name}"
+  backend_address_pool_id = "${azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id}"
+}
+`, template)
 }

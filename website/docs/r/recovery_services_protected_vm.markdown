@@ -30,7 +30,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
-  backup = {
+  backup {
     frequency = "Daily"
     time      = "23:00"
   }

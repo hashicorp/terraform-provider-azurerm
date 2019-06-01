@@ -14,7 +14,6 @@ import (
 func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusQueue_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusQueue_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
@@ -33,6 +32,34 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_queue.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusQueue_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_service_fabric_cluster"),
 			},
 		},
 	})
@@ -406,6 +433,18 @@ resource "azurerm_servicebus_queue" "test" {
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_queue" "import" {
+  name                = "${azurerm_servicebus_queue.test.name}"
+  resource_group_name = "${azurerm_servicebus_queue.test.resource_group_name}"
+  namespace_name      = "${azurerm_servicebus_queue.test.namespace_name}"
+}
+`, testAccAzureRMServiceBusQueue_basic(rInt, location))
 }
 
 func testAccAzureRMServiceBusQueue_Premium(rInt int, location string) string {

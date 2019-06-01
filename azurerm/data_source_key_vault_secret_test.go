@@ -59,8 +59,8 @@ func testAccDataSourceKeyVaultSecret_basic(rString string, location string) stri
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name      = "${azurerm_key_vault_secret.test.name}"
-  vault_uri = "${azurerm_key_vault_secret.test.vault_uri}"
+  name         = "${azurerm_key_vault_secret.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
 `, r)
 }
@@ -71,8 +71,8 @@ func testAccDataSourceKeyVaultSecret_complete(rString string, location string) s
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name      = "${azurerm_key_vault_secret.test.name}"
-  vault_uri = "${azurerm_key_vault_secret.test.vault_uri}"
+  name         = "${azurerm_key_vault_secret.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
 `, r)
 }

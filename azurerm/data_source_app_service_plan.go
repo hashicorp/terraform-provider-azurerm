@@ -73,6 +73,11 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -99,6 +104,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("kind", resp.Kind)
+	d.Set("is_xenon", resp.IsXenon)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))

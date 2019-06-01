@@ -53,7 +53,7 @@ resource "azurerm_dns_caa_record" "test" {
     value = "mailto:terraform@nonexisting.tld"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }

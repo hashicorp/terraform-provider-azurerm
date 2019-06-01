@@ -78,7 +78,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 }
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
+	client := meta.(*ArmClient).automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
@@ -130,8 +130,8 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
-	registrationClient := meta.(*ArmClient).automationAgentRegistrationInfoClient
+	client := meta.(*ArmClient).automation.AccountClient
+	registrationClient := meta.(*ArmClient).automation.AgentRegistrationInfoClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -187,7 +187,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
+	client := meta.(*ArmClient).automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

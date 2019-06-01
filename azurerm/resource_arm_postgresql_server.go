@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -127,8 +129,9 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
-					// TODO: Swap for the azure go api enum once supported.
-					"10.0",
+					string(postgresql.OneZero),
+					string(postgresql.OneZeroFullStopZero),
+					string(postgresql.OneZeroFullStopTwo),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -212,6 +215,19 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	version := d.Get("version").(string)
 	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+		}
+	}
 
 	sku := expandAzureRmPostgreSQLServerSku(d)
 	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)

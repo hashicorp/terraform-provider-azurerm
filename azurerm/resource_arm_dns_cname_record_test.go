@@ -169,7 +169,7 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
@@ -185,7 +185,7 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -313,7 +313,7 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.com"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -340,7 +340,7 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.com"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

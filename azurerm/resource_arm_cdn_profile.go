@@ -41,8 +41,7 @@ func resourceArmCdnProfile() *schema.Resource {
 					string(cdn.StandardAkamai),
 					string(cdn.StandardChinaCdn),
 					string(cdn.StandardVerizon),
-					// TODO: replace this with an SDK constant once available
-					"Standard_Microsoft",
+					string(cdn.StandardMicrosoft),
 					string(cdn.PremiumVerizon),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
