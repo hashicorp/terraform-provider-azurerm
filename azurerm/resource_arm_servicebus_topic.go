@@ -38,7 +38,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

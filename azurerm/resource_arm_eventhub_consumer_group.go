@@ -46,7 +46,7 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"user_metadata": {
 				Type:         schema.TypeString,

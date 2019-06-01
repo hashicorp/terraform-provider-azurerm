@@ -64,7 +64,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
 						"regional_replica_count": {

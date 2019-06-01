@@ -68,7 +68,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
-				Set: azureRMHashLocation,
+				Set: azure.HashAzureLocation,
 			},
 
 			"storage_account_id": {

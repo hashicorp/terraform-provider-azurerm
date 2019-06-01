@@ -141,7 +141,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
 						"priority": {

@@ -91,7 +91,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 					Type:             schema.TypeString,
 					ValidateFunc:     validate.NoEmptyStrings,
 					StateFunc:        azureRMNormalizeLocation,
-					DiffSuppressFunc: azureRMSuppressLocationDiff,
+					DiffSuppressFunc: azure.SuppressLocationDiff,
 				},
 			},
 

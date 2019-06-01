@@ -43,7 +43,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

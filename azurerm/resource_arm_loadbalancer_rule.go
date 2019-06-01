@@ -34,7 +34,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				ValidateFunc: validateArmLoadBalancerRuleName,
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

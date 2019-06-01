@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"time"
@@ -58,7 +59,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				Optional: true,
 			},
 
-			"location": locationSchemaOptional(),
+			"location": azure.SchemaLocationOptional(),
 
 			"identity": {
 				Type:     schema.TypeList,
