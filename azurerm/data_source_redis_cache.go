@@ -21,7 +21,7 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"zones": zonesSchemaComputed(),
+			"zones": azure.SchemaZonesComputed(),
 
 			"capacity": {
 				Type:     schema.TypeInt,

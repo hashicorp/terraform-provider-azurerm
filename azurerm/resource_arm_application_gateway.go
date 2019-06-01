@@ -42,7 +42,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -1308,7 +1308,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {

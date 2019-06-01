@@ -61,7 +61,7 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 						},
 
-						"zones": zonesSchemaComputed(),
+						"zones": azure.SchemaZonesComputed(),
 					},
 				},
 			},

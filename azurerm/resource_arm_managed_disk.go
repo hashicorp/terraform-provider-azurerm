@@ -37,7 +37,7 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
@@ -141,7 +141,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	osType := d.Get("os_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.DiskStorageAccountTypes
 	if strings.EqualFold(storageAccountType, string(compute.PremiumLRS)) {

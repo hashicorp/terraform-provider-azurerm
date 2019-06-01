@@ -63,7 +63,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 				Computed: true,
 			},
 
-			"zones": zonesSchemaComputed(),
+			"zones": azure.SchemaZonesComputed(),
 
 			"tags": tagsSchema(),
 		},

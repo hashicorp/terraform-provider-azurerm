@@ -44,7 +44,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -776,7 +776,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {

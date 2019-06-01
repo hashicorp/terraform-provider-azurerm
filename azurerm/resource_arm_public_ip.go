@@ -133,7 +133,7 @@ func resourceArmPublicIp() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"tags": tagsSchema(),
 		},
@@ -151,7 +151,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
 

@@ -123,7 +123,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"zones": singleZonesSchema(),
+						"zones": azure.SchemaSingleZone(),
 					},
 				},
 			},
@@ -318,7 +318,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
-		zones := expandZones(data["zones"].([]interface{}))
+		zones := azure.ExpandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,

@@ -42,7 +42,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"plan": {
 				Type:     schema.TypeList,
@@ -582,7 +582,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {

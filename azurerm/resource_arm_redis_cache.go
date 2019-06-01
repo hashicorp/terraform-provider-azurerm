@@ -48,7 +48,7 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -329,7 +329,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = expandZones(v.([]interface{}))
+		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
