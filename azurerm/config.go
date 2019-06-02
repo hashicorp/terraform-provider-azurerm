@@ -61,7 +61,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	policySvc "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
+	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
@@ -84,6 +84,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
@@ -128,6 +129,7 @@ type ArmClient struct {
 	policy           *policy.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	scheduler        *scheduler.Client
 	search           *search.Client
 	servicebus       *servicebus.Client
 	signalr          *signalr.Client
@@ -284,10 +286,6 @@ type ArmClient struct {
 	resourcesClient       resources.GroupClient
 	resourceGroupsClient  resources.GroupsGroupClient
 	subscriptionsClient   subscriptions.GroupClient
-
-	// Scheduler
-	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
-	schedulerJobsClient           scheduler.JobsClient           //nolint: megacheck
 
 	// Security Centre
 	securityCenterPricingClient   security.PricingsClient
@@ -1241,13 +1239,16 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
+	jobCollectionsClient := schedulerSvc.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobCollectionsClient.Client, auth)
-	c.schedulerJobCollectionsClient = jobCollectionsClient
 
-	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
+	jobsClient := schedulerSvc.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobsClient.Client, auth)
-	c.schedulerJobsClient = jobsClient
+
+	c.scheduler = &scheduler.Client{
+		JobCollectionsClient: jobCollectionsClient,
+		JobsClient:           jobsClient,
+	}
 }
 
 func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
