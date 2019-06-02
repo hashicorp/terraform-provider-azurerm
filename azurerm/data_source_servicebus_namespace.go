@@ -66,7 +66,7 @@ func dataSourceArmServiceBusNamespace() *schema.Resource {
 }
 
 func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

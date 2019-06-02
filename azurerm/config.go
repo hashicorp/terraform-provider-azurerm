@@ -63,7 +63,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
@@ -84,6 +84,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -126,6 +127,7 @@ type ArmClient struct {
 	redis            *redis.Client
 	relay            *relay.Client
 	search           *search.Client
+	servicebus       *servicebus.Client
 	signalr          *signalr.Client
 
 	// TODO: refactor
@@ -289,13 +291,6 @@ type ArmClient struct {
 	securityCenterPricingClient   security.PricingsClient
 	securityCenterContactsClient  security.ContactsClient
 	securityCenterWorkspaceClient security.WorkspaceSettingsClient
-
-	// ServiceBus
-	serviceBusQueuesClient            servicebus.QueuesClient
-	serviceBusNamespacesClient        servicebus.NamespacesClient
-	serviceBusTopicsClient            servicebus.TopicsClient
-	serviceBusSubscriptionsClient     servicebus.SubscriptionsClient
-	serviceBusSubscriptionRulesClient servicebus.RulesClient
 
 	// Service Fabric
 	serviceFabricClustersClient servicefabric.ClustersClient
@@ -1288,25 +1283,28 @@ func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId strin
 }
 
 func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	queuesClient := servicebus.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
+	queuesClient := servicebusSvc.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&queuesClient.Client, auth)
-	c.serviceBusQueuesClient = queuesClient
 
-	namespacesClient := servicebus.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	namespacesClient := servicebusSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&namespacesClient.Client, auth)
-	c.serviceBusNamespacesClient = namespacesClient
 
-	topicsClient := servicebus.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
+	topicsClient := servicebusSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&topicsClient.Client, auth)
-	c.serviceBusTopicsClient = topicsClient
 
-	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	subscriptionsClient := servicebusSvc.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subscriptionsClient.Client, auth)
-	c.serviceBusSubscriptionsClient = subscriptionsClient
 
-	subscriptionRulesClient := servicebus.NewRulesClientWithBaseURI(endpoint, subscriptionId)
+	subscriptionRulesClient := servicebusSvc.NewRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subscriptionRulesClient.Client, auth)
-	c.serviceBusSubscriptionRulesClient = subscriptionRulesClient
+
+	c.servicebus = &servicebus.Client{
+		QueuesClient:            queuesClient,
+		NamespacesClient:        namespacesClient,
+		TopicsClient:            topicsClient,
+		SubscriptionsClient:     subscriptionsClient,
+		SubscriptionRulesClient: subscriptionRulesClient,
+	}
 }
 
 func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
