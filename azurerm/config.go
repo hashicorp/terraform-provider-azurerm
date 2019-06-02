@@ -41,7 +41,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
@@ -74,6 +74,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
@@ -109,6 +110,7 @@ type ArmClient struct {
 	containers   *containers.Client
 	devSpace     *devspace.Client
 	dns          *dns.Client
+	eventGrid    *eventgrid.Client
 	hdinsight    *hdinsight.Client
 	logAnalytics *loganalytics.Client
 	media        *media.Client
@@ -117,12 +119,9 @@ type ArmClient struct {
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
 
-	eventGridDomainsClient            eventgrid.DomainsClient
-	eventGridEventSubscriptionsClient eventgrid.EventSubscriptionsClient
-	eventGridTopicsClient             eventgrid.TopicsClient
-	eventHubClient                    eventhub.EventHubsClient
-	eventHubConsumerGroupClient       eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient          eventhub.NamespacesClient
+	eventHubClient              eventhub.EventHubsClient
+	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
+	eventHubNamespacesClient    eventhub.NamespacesClient
 
 	// Application Insights
 	appInsightsClient         appinsights.ComponentsClient
@@ -954,17 +953,20 @@ func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&egtc.Client, auth)
-	c.eventGridTopicsClient = egtc
+	domainsClient := eventGridSvc.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&domainsClient.Client, auth)
 
-	egdc := eventgrid.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&egdc.Client, auth)
-	c.eventGridDomainsClient = egdc
+	eventSubscriptionsClient := eventGridSvc.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&eventSubscriptionsClient.Client, auth)
 
-	egesc := eventgrid.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&egesc.Client, auth)
-	c.eventGridEventSubscriptionsClient = egesc
+	topicsClient := eventGridSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&topicsClient.Client, auth)
+
+	c.eventGrid = &eventgrid.Client{
+		DomainsClient:            domainsClient,
+		EventSubscriptionsClient: eventSubscriptionsClient,
+		TopicsClient:             topicsClient,
+	}
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
