@@ -25,7 +25,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"workspace_name": {
 				Type:             schema.TypeString,

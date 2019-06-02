@@ -18,7 +18,7 @@ func dataSourceApiManagementProduct() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"display_name": {
 				Type:     schema.TypeString,

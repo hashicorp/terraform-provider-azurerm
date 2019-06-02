@@ -35,7 +35,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_insights_id": {
 				Type:         schema.TypeString,
@@ -44,7 +44,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -90,8 +90,8 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateFunc:     validate.NoEmptyStrings,
-					StateFunc:        azureRMNormalizeLocation,
-					DiffSuppressFunc: azureRMSuppressLocationDiff,
+					StateFunc:        azure.NormalizeLocation,
+					DiffSuppressFunc: azure.SuppressLocationDiff,
 				},
 			},
 
@@ -146,7 +146,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	description := d.Get("description").(string)
 	frequency := int32(d.Get("frequency").(int))
@@ -229,7 +229,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WebTestProperties; props != nil {
@@ -300,7 +300,7 @@ func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeol
 
 	for _, prop := range *input {
 		if prop.Location != nil {
-			results = append(results, azureRMNormalizeLocation(*prop.Location))
+			results = append(results, azure.NormalizeLocation(*prop.Location))
 		}
 
 	}

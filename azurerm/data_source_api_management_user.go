@@ -17,7 +17,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"first_name": {
 				Type:     schema.TypeString,

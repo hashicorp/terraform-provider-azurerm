@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -25,7 +26,7 @@ func testAccDataSourceAzureRMNetworkWatcher_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),
 				),
