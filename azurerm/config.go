@@ -45,7 +45,7 @@ import (
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
+	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
@@ -80,6 +80,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -125,6 +126,7 @@ type ArmClient struct {
 	hdinsight        *hdinsight.Client
 	logAnalytics     *loganalytics.Client
 	media            *media.Client
+	msi              *msi.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	redis            *redis.Client
@@ -243,9 +245,6 @@ type ArmClient struct {
 	monitorDiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
 	monitorLogProfilesClient                insights.LogProfilesClient
 	monitorMetricAlertsClient               insights.MetricAlertsClient
-
-	// MSI
-	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
 
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
@@ -425,6 +424,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
 	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
+	client.registerMSIClient(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth)
@@ -1035,6 +1035,16 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
 }
 
+func (c *ArmClient) registerMSIClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	userAssignedIdentitiesClient := msiSvc.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
+	c.userAssignedIdentitiesClient = userAssignedIdentitiesClient
+
+	c.msi = &msi.Client{
+		UserAssignedIdentitiesClient: userAssignedIdentitiesClient,
+	}
+}
+
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	applicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&applicationGatewaysClient.Client, auth)
@@ -1131,10 +1141,6 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	subnetsClient := network.NewSubnetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subnetsClient.Client, auth)
 	c.subnetClient = subnetsClient
-
-	userAssignedIdentitiesClient := msi.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
-	c.userAssignedIdentitiesClient = userAssignedIdentitiesClient
 
 	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&watchersClient.Client, auth)
