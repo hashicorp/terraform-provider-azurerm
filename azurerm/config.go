@@ -14,7 +14,7 @@ import (
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
+	cdnSvc "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
@@ -71,6 +71,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimgmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -108,6 +109,7 @@ type ArmClient struct {
 	// Services
 	apimgmt      *apimgmt.Client
 	automation   *automation.Client
+	cdn          *cdn.Client
 	containers   *containers.Client
 	devSpace     *devspace.Client
 	dns          *dns.Client
@@ -139,11 +141,6 @@ type ArmClient struct {
 	batchAccountClient     batch.AccountClient
 	batchCertificateClient batch.CertificateClient
 	batchPoolClient        batch.PoolClient
-
-	// CDN
-	cdnCustomDomainsClient cdn.CustomDomainsClient
-	cdnEndpointsClient     cdn.EndpointsClient
-	cdnProfilesClient      cdn.ProfilesClient
 
 	// Cognitive Services
 	cognitiveAccountsClient cognitiveservices.AccountsClient
@@ -656,17 +653,20 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
+	customDomainsClient := cdnSvc.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&customDomainsClient.Client, auth)
-	c.cdnCustomDomainsClient = customDomainsClient
 
-	endpointsClient := cdn.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
+	endpointsClient := cdnSvc.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&endpointsClient.Client, auth)
-	c.cdnEndpointsClient = endpointsClient
 
-	profilesClient := cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	profilesClient := cdnSvc.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)
-	c.cdnProfilesClient = profilesClient
+
+	c.cdn = &cdn.Client{
+		CustomDomainsClient: customDomainsClient,
+		EndpointsClient:     endpointsClient,
+		ProfilesClient:      profilesClient,
+	}
 }
 
 func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
