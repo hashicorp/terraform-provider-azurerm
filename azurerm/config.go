@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	databricksSvc "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	datafactorySvc "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
@@ -75,6 +75,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
@@ -124,6 +125,7 @@ type ArmClient struct {
 	cognitive        *cognitive.Client
 	containers       *containers.Client
 	databricks       *databricks.Client
+	dataFactory      *datafactory.Client
 	devSpace         *devspace.Client
 	dns              *dns.Client
 	eventGrid        *eventgrid.Client
@@ -208,12 +210,6 @@ type ArmClient struct {
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
-	// Data Factory
-	dataFactoryPipelineClient      datafactory.PipelinesClient
-	dataFactoryClient              datafactory.FactoriesClient
-	dataFactoryDatasetClient       datafactory.DatasetsClient
-	dataFactoryLinkedServiceClient datafactory.LinkedServicesClient
-
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
 	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
@@ -222,9 +218,6 @@ type ArmClient struct {
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
-
-	// Databricks
-	databricksWorkspacesClient databricksSvc.WorkspacesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -856,21 +849,24 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 }
 
 func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	dataFactoryClient := datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dataFactoryClient.Client, auth)
-	c.dataFactoryClient = dataFactoryClient
+	factoriesClient := datafactorySvc.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&factoriesClient.Client, auth)
 
-	dataFactoryDatasetClient := datafactory.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dataFactoryDatasetClient.Client, auth)
-	c.dataFactoryDatasetClient = dataFactoryDatasetClient
+	datasetsClient := datafactorySvc.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&datasetsClient.Client, auth)
 
-	dataFactoryLinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dataFactoryLinkedServiceClient.Client, auth)
-	c.dataFactoryLinkedServiceClient = dataFactoryLinkedServiceClient
+	linkedServicesClient := datafactorySvc.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&linkedServicesClient.Client, auth)
 
-	dataFactoryPipelineClient := datafactory.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dataFactoryPipelineClient.Client, auth)
-	c.dataFactoryPipelineClient = dataFactoryPipelineClient
+	pipelinesClient := datafactorySvc.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&pipelinesClient.Client, auth)
+
+	c.dataFactory = &datafactory.Client{
+		FactoriesClient:     factoriesClient,
+		DatasetClient:       datasetsClient,
+		LinkedServiceClient: linkedServicesClient,
+		PipelinesClient:     pipelinesClient,
+	}
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
