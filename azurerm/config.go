@@ -15,7 +15,7 @@ import (
 	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	cdnSvc "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
+	cognitiveSvc "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
@@ -72,6 +72,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimgmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -118,6 +119,7 @@ type ArmClient struct {
 	apimgmt          *apimgmt.Client
 	automation       *automation.Client
 	cdn              *cdn.Client
+	cognitive        *cognitive.Client
 	containers       *containers.Client
 	devSpace         *devspace.Client
 	dns              *dns.Client
@@ -157,9 +159,6 @@ type ArmClient struct {
 	batchAccountClient     batch.AccountClient
 	batchCertificateClient batch.CertificateClient
 	batchPoolClient        batch.PoolClient
-
-	// Cognitive Services
-	cognitiveAccountsClient cognitiveservices.AccountsClient
 
 	// Compute
 	availSetClient             compute.AvailabilitySetsClient
@@ -654,9 +653,12 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	accountsClient := cognitiveservices.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	accountsClient := cognitiveSvc.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
-	c.cognitiveAccountsClient = accountsClient
+
+	c.cognitive = &cognitive.Client{
+		AccountsClient: accountsClient,
+	}
 }
 
 func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1037,8 +1039,6 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 
 func (c *ArmClient) registerMSIClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	userAssignedIdentitiesClient := msiSvc.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
-	c.userAssignedIdentitiesClient = userAssignedIdentitiesClient
 
 	c.msi = &msi.Client{
 		UserAssignedIdentitiesClient: userAssignedIdentitiesClient,
