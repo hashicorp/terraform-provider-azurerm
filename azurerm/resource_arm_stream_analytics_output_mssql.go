@@ -98,7 +98,7 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_sql", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_mssql", *existing.ID)
 		}
 	}
 

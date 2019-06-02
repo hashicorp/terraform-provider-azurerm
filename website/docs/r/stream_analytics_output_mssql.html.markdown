@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_stream_analytics_output_sql"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-sql"
+page_title: "Azure Resource Manager: azurerm_stream_analytics_output_mssql"
+sidebar_current: "docs-azurerm-resource-stream-analytics-output-mssql"
 description: |-
-  Manages a Stream Analytics Output to SQL Database.
+  Manages a Stream Analytics Output to Microsoft SQL Server Database.
 ---
 
-# azurerm_stream_analytics_output_sql
+# azurerm_stream_analytics_output_mssql
 
-Manages a Stream Analytics Output to SQL Database.
+Manages a Stream Analytics Output to Microsoft SQL Server Database.
 
 ## Example Usage
 
@@ -42,7 +42,7 @@ resource "azurerm_sql_database" "example" {
   create_mode                      = "Default"
 }
 
-resource "azurerm_stream_analytics_output_blob" "example" {
+resource "azurerm_stream_analytics_output_mssql" "example" {
   name                      = "example-output-sql"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.example.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.example.resource_group_name}"
@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `server` - (Required) The SQL server url. Changing this forces a new resource to be created.
 
-* `user` - (Required) Username used to login to the SQL server. Changing this forces a new resource to be created.
+* `user` - (Required) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
 
-* `password` - (Required) Password used together with username, to login to the SQL Server. Changing this forces a new resource to be created.
+* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
 
@@ -77,12 +77,12 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Stream Analytics Output SQL Database.
+* `id` - The ID of the Stream Analytics Output Microsoft SQL Server Database.
 
 ## Import
 
-Stream Analytics Outputs to SQL Database can be imported using the `resource id`, e.g.
+Stream Analytics Outputs to Microsoft SQL Server Database can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_sql.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_mssql.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```

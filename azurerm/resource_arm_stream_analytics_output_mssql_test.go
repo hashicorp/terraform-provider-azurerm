@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputSql_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_sql.test"
+func TestAccAzureRMStreamAnalyticsOutputSql_basic(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
@@ -24,7 +24,7 @@ func TestAccAzureRMStreamAnalyticsOutputSql_json(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName),
 				),
@@ -43,7 +43,7 @@ func TestAccAzureRMStreamAnalyticsOutputSql_json(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_sql.test"
+	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
@@ -54,7 +54,7 @@ func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName),
 				),
@@ -84,7 +84,7 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_output_sql.test"
+	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
@@ -95,14 +95,14 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName),
 				),
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputSql_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_sql"),
+				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_mssql"),
 			},
 		},
 	})
@@ -139,7 +139,7 @@ func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsOutputsClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_output_sql" {
+		if rs.Type != "azurerm_stream_analytics_output_mssql" {
 			continue
 		}
 
@@ -160,12 +160,12 @@ func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsOutputSql_json(rInt int, rString string, location string) string {
+func testAccAzureRMStreamAnalyticsOutputSql_basic(rInt int, rString string, location string) string {
 	template := testAccAzureRMStreamAnalyticsOutputSql_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_sql" "test" {
+resource "azurerm_stream_analytics_output_mssql" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
@@ -185,7 +185,7 @@ func testAccAzureRMStreamAnalyticsOutputSql_updated(rInt int, rString string, lo
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_sql" "test" {
+resource "azurerm_stream_analytics_output_mssql" "test" {
   name                      = "acctestoutput-updated-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
@@ -200,14 +200,14 @@ resource "azurerm_stream_analytics_output_sql" "test" {
 }
 
 func testAccAzureRMStreamAnalyticsOutputSql_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_json(rInt, rString, location)
+	template := testAccAzureRMStreamAnalyticsOutputSql_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_sql" "import" {
-  name                      = "${azurerm_stream_analytics_output_sql.test.name}"
-  stream_analytics_job_name = "${azurerm_stream_analytics_output_sql.test.stream_analytics_job_name}"
-  resource_group_name       = "${azurerm_stream_analytics_output_sql.test.resource_group_name}"
+resource "azurerm_stream_analytics_output_mssql" "import" {
+  name                      = "${azurerm_stream_analytics_output_mssql.test.name}"
+  stream_analytics_job_name = "${azurerm_stream_analytics_output_mssql.test.stream_analytics_job_name}"
+  resource_group_name       = "${azurerm_stream_analytics_output_mssql.test.resource_group_name}"
 
   server 										= "${azurerm_sql_server.test.fully_qualified_domain_name}"
   user 											= "${azurerm_sql_server.test.administrator_login}"
