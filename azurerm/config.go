@@ -50,7 +50,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
+	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
@@ -83,6 +83,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -123,6 +124,7 @@ type ArmClient struct {
 	notificationHubs *notificationhub.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	signalr          *signalr.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -299,9 +301,6 @@ type ArmClient struct {
 
 	// Service Fabric
 	serviceFabricClustersClient servicefabric.ClustersClient
-
-	// SignalR
-	signalRClient signalr.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -1316,9 +1315,12 @@ func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string
 }
 
 func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	sc := signalr.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sc.Client, auth)
-	c.signalRClient = sc
+	client := signalrSvc.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&client.Client, auth)
+
+	c.signalr = &signalr.Client{
+		Client: client,
+	}
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
