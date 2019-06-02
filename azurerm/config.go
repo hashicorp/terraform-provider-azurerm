@@ -21,7 +21,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	databricksSvc "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
@@ -74,6 +74,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
@@ -122,6 +123,7 @@ type ArmClient struct {
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	containers       *containers.Client
+	databricks       *databricks.Client
 	devSpace         *devspace.Client
 	dns              *dns.Client
 	eventGrid        *eventgrid.Client
@@ -222,7 +224,7 @@ type ArmClient struct {
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
 
 	// Databricks
-	databricksWorkspacesClient databricks.WorkspacesClient
+	databricksWorkspacesClient databricksSvc.WorkspacesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -757,9 +759,12 @@ func (c *ArmClient) registerContainerClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	databricksWorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&databricksWorkspacesClient.Client, auth)
-	c.databricksWorkspacesClient = databricksWorkspacesClient
+	workspacesClient := databricksSvc.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&workspacesClient.Client, auth)
+
+	c.databricks = &databricks.Client{
+		WorkspacesClient: workspacesClient,
+	}
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
