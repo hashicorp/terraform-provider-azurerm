@@ -59,7 +59,7 @@ import (
 	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	policySvc "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
@@ -81,6 +81,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
@@ -124,6 +125,7 @@ type ArmClient struct {
 	logAnalytics     *loganalytics.Client
 	media            *media.Client
 	notificationHubs *notificationhub.Client
+	policy           *policy.Client
 	redis            *redis.Client
 	relay            *relay.Client
 	search           *search.Client
@@ -314,11 +316,6 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
-
-	// Policy
-	policyAssignmentsClient    policy.AssignmentsClient
-	policyDefinitionsClient    policy.DefinitionsClient
-	policySetDefinitionsClient policy.SetDefinitionsClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -1379,17 +1376,20 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	policyAssignmentsClient := policy.NewAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&policyAssignmentsClient.Client, auth)
-	c.policyAssignmentsClient = policyAssignmentsClient
+	assignmentsClient := policySvc.NewAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&assignmentsClient.Client, auth)
 
-	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&policyDefinitionsClient.Client, auth)
-	c.policyDefinitionsClient = policyDefinitionsClient
+	definitionsClient := policySvc.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&definitionsClient.Client, auth)
 
-	policySetDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&policySetDefinitionsClient.Client, auth)
-	c.policySetDefinitionsClient = policySetDefinitionsClient
+	setDefinitionsClient := policySvc.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&setDefinitionsClient.Client, auth)
+
+	c.policy = &policy.Client{
+		AssignmentsClient:    assignmentsClient,
+		DefinitionsClient:    definitionsClient,
+		SetDefinitionsClient: setDefinitionsClient,
+	}
 }
 
 func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
