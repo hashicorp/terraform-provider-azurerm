@@ -76,7 +76,7 @@ func resourceArmSearchService() *schema.Resource {
 }
 
 func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).searchServicesClient
+	client := meta.(*ArmClient).search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -132,7 +132,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).searchServicesClient
+	client := meta.(*ArmClient).search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -173,7 +173,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	adminKeysClient := meta.(*ArmClient).searchAdminKeysClient
+	adminKeysClient := meta.(*ArmClient).search.AdminKeysClient
 	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("primary_key", adminKeysResp.PrimaryKey)
@@ -186,7 +186,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).searchServicesClient
+	client := meta.(*ArmClient).search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

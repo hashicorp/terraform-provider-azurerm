@@ -62,7 +62,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
+	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
@@ -83,6 +83,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -124,6 +125,7 @@ type ArmClient struct {
 	notificationHubs *notificationhub.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	search           *search.Client
 	signalr          *signalr.Client
 
 	// TODO: refactor
@@ -282,10 +284,6 @@ type ArmClient struct {
 	// Scheduler
 	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
 	schedulerJobsClient           scheduler.JobsClient           //nolint: megacheck
-
-	// Search
-	searchServicesClient  search.ServicesClient
-	searchAdminKeysClient search.AdminKeysClient
 
 	// Security Centre
 	securityCenterPricingClient   security.PricingsClient
@@ -1261,13 +1259,16 @@ func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&searchClient.Client, auth)
-	c.searchServicesClient = searchClient
-
-	searchAdminKeysClient := search.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
+	searchAdminKeysClient := searchSvc.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&searchAdminKeysClient.Client, auth)
-	c.searchAdminKeysClient = searchAdminKeysClient
+
+	servicesClient := searchSvc.NewServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&servicesClient.Client, auth)
+
+	c.search = &search.Client{
+		AdminKeysClient: searchAdminKeysClient,
+		ServicesClient:  servicesClient,
+	}
 }
 
 func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
