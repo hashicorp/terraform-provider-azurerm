@@ -43,7 +43,7 @@ import (
 	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
+	iotHubSvc "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
@@ -79,6 +79,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
@@ -126,6 +127,7 @@ type ArmClient struct {
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
 	hdinsight        *hdinsight.Client
+	iothub           *iothub.Client
 	logAnalytics     *loganalytics.Client
 	media            *media.Client
 	msi              *msi.Client
@@ -174,9 +176,6 @@ type ArmClient struct {
 	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
 	vmImageClient              compute.VirtualMachineImagesClient
 	vmClient                   compute.VirtualMachinesClient
-
-	// Devices
-	iothubResourceClient devices.IotHubResourceClient
 
 	// DevTestLabs
 	devTestLabsClient            dtl.LabsClient
@@ -412,13 +411,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerDeviceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
+	client.registerIoTHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
 	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
@@ -891,12 +890,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
 }
 
-func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotClient.Client, auth)
-	c.iothubResourceClient = iotClient
-}
-
 func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&labsClient.Client, auth)
@@ -984,6 +977,14 @@ func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, a
 		ApplicationsClient:   applicationsClient,
 		ClustersClient:       clustersClient,
 		ConfigurationsClient: configurationsClient,
+	}
+}
+func (c *ArmClient) registerIoTHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	iotClient := iotHubSvc.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotClient.Client, auth)
+
+	c.iothub = &iothub.Client{
+		ResourceClient: iotClient,
 	}
 }
 
