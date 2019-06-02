@@ -27,7 +27,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
@@ -75,6 +75,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
@@ -111,6 +112,7 @@ type ArmClient struct {
 	devSpace     *devspace.Client
 	dns          *dns.Client
 	eventGrid    *eventgrid.Client
+	eventhub     *eventhub.Client
 	hdinsight    *hdinsight.Client
 	logAnalytics *loganalytics.Client
 	media        *media.Client
@@ -118,10 +120,6 @@ type ArmClient struct {
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
-
-	eventHubClient              eventhub.EventHubsClient
-	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
-	eventHubNamespacesClient    eventhub.NamespacesClient
 
 	// Application Insights
 	appInsightsClient         appinsights.ComponentsClient
@@ -970,17 +968,20 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ehc.Client, auth)
-	c.eventHubClient = ehc
+	eventHubsClient := eventHubSvc.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&eventHubsClient.Client, auth)
 
-	chcgc := eventhub.NewConsumerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&chcgc.Client, auth)
-	c.eventHubConsumerGroupClient = chcgc
+	groupsClient := eventHubSvc.NewConsumerGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&groupsClient.Client, auth)
 
-	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ehnc.Client, auth)
-	c.eventHubNamespacesClient = ehnc
+	namespacesClient := eventHubSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&namespacesClient.Client, auth)
+
+	c.eventhub = &eventhub.Client{
+		ConsumerGroupClient: groupsClient,
+		EventHubsClient:     eventHubsClient,
+		NamespacesClient:    namespacesClient,
+	}
 }
 
 func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

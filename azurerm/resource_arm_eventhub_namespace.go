@@ -110,7 +110,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 }
 
 func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
@@ -179,7 +179,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -229,7 +229,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
