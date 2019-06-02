@@ -36,7 +36,7 @@ import (
 	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
@@ -80,6 +80,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -107,18 +108,19 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	apimgmt      *apimgmt.Client
-	automation   *automation.Client
-	cdn          *cdn.Client
-	containers   *containers.Client
-	devSpace     *devspace.Client
-	dns          *dns.Client
-	eventGrid    *eventgrid.Client
-	eventhub     *eventhub.Client
-	hdinsight    *hdinsight.Client
-	logAnalytics *loganalytics.Client
-	media        *media.Client
-	redis        *redis.Client
+	apimgmt          *apimgmt.Client
+	automation       *automation.Client
+	cdn              *cdn.Client
+	containers       *containers.Client
+	devSpace         *devspace.Client
+	dns              *dns.Client
+	eventGrid        *eventgrid.Client
+	eventhub         *eventhub.Client
+	hdinsight        *hdinsight.Client
+	logAnalytics     *loganalytics.Client
+	media            *media.Client
+	notificationHubs *notificationhub.Client
+	redis            *redis.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -259,10 +261,6 @@ type ArmClient struct {
 	vnetClient                      network.VirtualNetworksClient
 	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
 	watcherClient                   network.WatchersClient
-
-	// Notification Hubs
-	notificationHubsClient       notificationhubs.Client
-	notificationNamespacesClient notificationhubs.NamespacesClient
 
 	// Recovery Services
 	recoveryServicesVaultsClient             recoveryservices.VaultsClient
@@ -1158,13 +1156,16 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	namespacesClient := notificationHubsSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&namespacesClient.Client, auth)
-	c.notificationNamespacesClient = namespacesClient
 
-	notificationHubsClient := notificationhubs.NewClientWithBaseURI(endpoint, subscriptionId)
+	notificationHubsClient := notificationHubsSvc.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&notificationHubsClient.Client, auth)
-	c.notificationHubsClient = notificationHubsClient
+
+	c.notificationHubs = &notificationhub.Client{
+		HubsClient:       notificationHubsClient,
+		NamespacesClient: namespacesClient,
+	}
 }
 
 func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
