@@ -56,7 +56,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
@@ -82,6 +82,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -121,6 +122,7 @@ type ArmClient struct {
 	media            *media.Client
 	notificationHubs *notificationhub.Client
 	redis            *redis.Client
+	relay            *relay.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -266,9 +268,6 @@ type ArmClient struct {
 	recoveryServicesVaultsClient             recoveryservices.VaultsClient
 	recoveryServicesProtectedItemsClient     backup.ProtectedItemsGroupClient
 	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
-
-	// Relay
-	relayNamespacesClient relay.NamespacesClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
@@ -1217,9 +1216,12 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	relayNamespacesClient := relay.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&relayNamespacesClient.Client, auth)
-	c.relayNamespacesClient = relayNamespacesClient
+	namespacesClient := relaySvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&namespacesClient.Client, auth)
+
+	c.relay = &relay.Client{
+		NamespacesClient: namespacesClient,
+	}
 }
 
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

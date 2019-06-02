@@ -93,7 +93,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 }
 
 func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Relay Namespace creation.")
 
@@ -148,7 +148,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -201,7 +201,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
