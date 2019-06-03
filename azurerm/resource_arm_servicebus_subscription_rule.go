@@ -31,7 +31,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 50),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"namespace_name": {
 				Type:         schema.TypeString,

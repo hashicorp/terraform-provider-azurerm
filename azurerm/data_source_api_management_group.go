@@ -16,7 +16,7 @@ func dataSourceApiManagementGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 

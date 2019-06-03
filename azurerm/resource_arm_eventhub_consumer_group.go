@@ -44,9 +44,9 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"user_metadata": {
 				Type:         schema.TypeString,

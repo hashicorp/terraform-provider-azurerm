@@ -28,7 +28,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"authorization_endpoint": {
 				Type:         schema.TypeString,

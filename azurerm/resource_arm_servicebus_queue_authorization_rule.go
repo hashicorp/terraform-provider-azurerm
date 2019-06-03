@@ -44,7 +44,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
 		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,

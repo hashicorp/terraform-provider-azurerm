@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -27,7 +28,7 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
@@ -158,7 +159,7 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
