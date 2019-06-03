@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.
+
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
@@ -215,6 +217,13 @@ A `terms_of_service` block supports the following:
 
 * `text` - (Required) The Terms of Service which users are required to agree to in order to sign up.
 
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `type` - (Required) The type of VPN in which API Management service needs to be configured in. Possible values include: `None`, `External`, `Internal`.
+
+* `subnet_id` - (Required) The resource ID of a subnet in a virtual network to deploy the API Management service in.
 
 ## Attributes Reference
 
