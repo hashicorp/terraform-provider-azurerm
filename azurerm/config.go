@@ -49,7 +49,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -92,6 +92,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 
@@ -143,6 +144,7 @@ type ArmClient struct {
 	relay            *relay.Client
 	scheduler        *scheduler.Client
 	search           *search.Client
+	securityCenter   *securitycenter.Client
 	servicebus       *servicebus.Client
 	signalr          *signalr.Client
 
@@ -275,11 +277,6 @@ type ArmClient struct {
 	resourcesClient       resources.GroupClient
 	resourceGroupsClient  resources.GroupsGroupClient
 	subscriptionsClient   subscriptions.GroupClient
-
-	// Security Centre
-	securityCenterPricingClient   security.PricingsClient
-	securityCenterContactsClient  security.ContactsClient
-	securityCenterWorkspaceClient security.WorkspaceSettingsClient
 
 	// Service Fabric
 	serviceFabricClustersClient servicefabric.ClustersClient
@@ -1275,17 +1272,20 @@ func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth 
 func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ascLocation := "Global"
 
-	securityCenterPricingClient := security.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&securityCenterPricingClient.Client, auth)
-	c.securityCenterPricingClient = securityCenterPricingClient
+	contactsClient := securitySvc.NewContactsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&contactsClient.Client, auth)
 
-	securityCenterContactsClient := security.NewContactsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&securityCenterContactsClient.Client, auth)
-	c.securityCenterContactsClient = securityCenterContactsClient
+	pricingsClient := securitySvc.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&pricingsClient.Client, auth)
 
-	securityCenterWorkspaceClient := security.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&securityCenterWorkspaceClient.Client, auth)
-	c.securityCenterWorkspaceClient = securityCenterWorkspaceClient
+	workspaceSettingsClient := securitySvc.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&workspaceSettingsClient.Client, auth)
+
+	c.securityCenter = &securitycenter.Client{
+		ContactsClient:  contactsClient,
+		PricingClient:   pricingsClient,
+		WorkspaceClient: workspaceSettingsClient,
+	}
 }
 
 func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
