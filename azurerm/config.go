@@ -31,7 +31,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	logicSvc "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
@@ -84,6 +84,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
@@ -139,6 +140,7 @@ type ArmClient struct {
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	logAnalytics     *loganalytics.Client
+	logic            *logic.Client
 	managementGroups *managementgroup.Client
 	media            *media.Client
 	msi              *msi.Client
@@ -227,9 +229,6 @@ type ArmClient struct {
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
-
-	// Logic
-	logicWorkflowsClient logic.WorkflowsClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -992,9 +991,12 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workflowsClient := logic.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
+	workflowsClient := logicSvc.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&workflowsClient.Client, auth)
-	c.logicWorkflowsClient = workflowsClient
+
+	c.logic = &logic.Client{
+		WorkflowsClient: workflowsClient,
+	}
 }
 
 func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {

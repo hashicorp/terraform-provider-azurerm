@@ -117,7 +117,7 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
+		client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
@@ -134,7 +134,7 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
+	client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -26,7 +26,7 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
+		client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
@@ -74,7 +74,7 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
+		client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
