@@ -11,7 +11,7 @@ import (
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	appinsightsSvc "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	cdnSvc "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
@@ -70,6 +70,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimgmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
@@ -122,6 +123,7 @@ type ArmClient struct {
 
 	// Services
 	apimgmt          *apimgmt.Client
+	appInsights      *applicationinsights.Client
 	automation       *automation.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
@@ -150,11 +152,6 @@ type ArmClient struct {
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
-
-	// Application Insights
-	appInsightsClient         appinsights.ComponentsClient
-	appInsightsAPIKeyClient   appinsights.APIKeysClient
-	appInsightsWebTestsClient appinsights.WebTestsClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -533,17 +530,20 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ai.Client, auth)
-	c.appInsightsClient = ai
+	apiKeysClient := appinsightsSvc.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiKeysClient.Client, auth)
 
-	aiak := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&aiak.Client, auth)
-	c.appInsightsAPIKeyClient = aiak
+	componentsClient := appinsightsSvc.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&componentsClient.Client, auth)
 
-	aiwt := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&aiwt.Client, auth)
-	c.appInsightsWebTestsClient = aiwt
+	webTestsClient := appinsightsSvc.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&webTestsClient.Client, auth)
+
+	c.appInsights = &applicationinsights.Client{
+		APIKeyClient:     apiKeysClient,
+		ComponentsClient: componentsClient,
+		WebTestsClient:   webTestsClient,
+	}
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
