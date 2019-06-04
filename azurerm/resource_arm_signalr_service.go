@@ -111,7 +111,7 @@ func resourceArmSignalRService() *schema.Resource {
 }
 
 func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -162,7 +162,7 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -215,7 +215,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

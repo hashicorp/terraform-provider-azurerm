@@ -33,7 +33,7 @@ func dataSourceArmCdnProfile() *schema.Resource {
 }
 
 func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

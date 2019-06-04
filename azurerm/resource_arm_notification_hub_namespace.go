@@ -88,7 +88,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -150,7 +150,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -192,7 +192,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

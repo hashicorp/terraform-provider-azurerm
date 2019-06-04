@@ -75,7 +75,7 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -124,7 +124,7 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -171,7 +171,7 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

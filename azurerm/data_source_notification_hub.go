@@ -81,7 +81,7 @@ func dataSourceNotificationHub() *schema.Resource {
 }
 
 func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

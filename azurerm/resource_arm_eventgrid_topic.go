@@ -56,7 +56,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 }
 
 func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -109,7 +109,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -154,7 +154,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

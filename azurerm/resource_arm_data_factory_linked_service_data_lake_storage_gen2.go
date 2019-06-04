@@ -104,7 +104,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 }
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -182,7 +182,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate(d *sch
 }
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -250,7 +250,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 }
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
