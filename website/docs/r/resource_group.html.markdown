@@ -41,6 +41,7 @@ The following attributes are exported:
 
 * `id` - The resource group ID.
 
+* `name` - The name of the resource group.
 
 ## Import
 
