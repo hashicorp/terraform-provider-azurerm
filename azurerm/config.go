@@ -67,7 +67,7 @@ import (
 	servicefabricSvc "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
+	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
@@ -99,6 +99,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -155,6 +156,7 @@ type ArmClient struct {
 	servicebus       *servicebus.Client
 	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
+	trafficManager   *trafficmanager.Client
 
 	// TODO: refactor
 	cosmosAccountsClient documentdb.DatabaseAccountsClient
@@ -284,11 +286,6 @@ type ArmClient struct {
 	streamAnalyticsInputsClient          streamanalytics.InputsClient
 	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
 	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
-
-	// Traffic Manager
-	trafficManagerGeographialHierarchiesClient trafficmanager.GeographicHierarchiesClient
-	trafficManagerProfilesClient               trafficmanager.ProfilesClient
-	trafficManagerEndpointsClient              trafficmanager.EndpointsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
@@ -1377,17 +1374,20 @@ func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId stri
 }
 
 func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
+	endpointsClient := trafficmanagerSvc.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
 	c.configureClient(&endpointsClient.Client, auth)
-	c.trafficManagerEndpointsClient = endpointsClient
 
-	geographicalHierarchiesClient := trafficmanager.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
+	geographicalHierarchiesClient := trafficmanagerSvc.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&geographicalHierarchiesClient.Client, auth)
-	c.trafficManagerGeographialHierarchiesClient = geographicalHierarchiesClient
 
-	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	profilesClient := trafficmanagerSvc.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)
-	c.trafficManagerProfilesClient = profilesClient
+
+	c.trafficManager = &trafficmanager.Client{
+		EndpointsClient:              endpointsClient,
+		GeographialHierarchiesClient: geographicalHierarchiesClient,
+		ProfilesClient:               profilesClient,
+	}
 }
 
 func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
