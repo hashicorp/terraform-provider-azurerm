@@ -24,6 +24,8 @@ var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Se
 var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
 var apimTripleDesCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
 
+const apiManagementResourceName = "azurerm_api_management"
+
 func resourceArmApiManagementService() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmApiManagementServiceCreateUpdate,
@@ -436,6 +438,20 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
 	vnetConfig, vnetType := expandAzureRmApiManagementVirtualNetworkConfiguration(d)
 
+	subnetsToLock, vnetsToLock, err := expandApiManagementVirtualNetworkSubnetNames(d)
+	if err != nil {
+		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
+	}
+
+	azureRMLockByName(name, apiManagementResourceName)
+	defer azureRMUnlockByName(name, apiManagementResourceName)
+
+	azureRMLockMultipleByName(subnetsToLock, subnetResourceName)
+	defer azureRMUnlockMultipleByName(subnetsToLock, subnetResourceName)
+
+	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
@@ -640,6 +656,20 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	resourceGroup := id.ResourceGroup
 	name := id.Path["service"]
 
+	subnetsToLock, vnetsToLock, err := expandApiManagementVirtualNetworkSubnetNames(d)
+	if err != nil {
+		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
+	}
+
+	azureRMLockByName(name, apiManagementResourceName)
+	defer azureRMUnlockByName(name, apiManagementResourceName)
+
+	azureRMLockMultipleByName(subnetsToLock, subnetResourceName)
+	defer azureRMUnlockMultipleByName(subnetsToLock, subnetResourceName)
+
+	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
 	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -717,7 +747,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 func expandAzureRmApiManagementVirtualNetworkConfiguration(d *schema.ResourceData) (*apimanagement.VirtualNetworkConfiguration, *string) {
 	vnetRawConfigs := d.Get("virtual_network_configuration").([]interface{})
 
-	if len(vnetRawConfigs) != 1 {
+	if len(vnetRawConfigs) < 1 {
 		return nil, nil
 	}
 
@@ -745,6 +775,37 @@ func flattenApiManagementVirtualNetworkConfiguration(vnetType apimanagement.Virt
 	return []interface{}{
 		vnet,
 	}
+}
+
+func expandApiManagementVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {
+	vnetRawConfigs := d.Get("virtual_network_configuration").([]interface{})
+
+	if len(vnetRawConfigs) < 1 {
+		return nil, nil, nil
+	}
+
+	vnetRawConfig := vnetRawConfigs[0].(map[string]interface{})
+	subnetID := vnetRawConfig["subnet_id"].(string)
+	subnetNames := make([]string, 0)
+	vnetNames := make([]string, 0)
+
+	subnetResourceID, err := parseAzureResourceID(subnetID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	subnetName := subnetResourceID.Path["subnets"]
+	vnetName := subnetResourceID.Path["virtualNetworks"]
+
+	if !sliceContainsValue(subnetNames, subnetName) {
+		subnetNames = append(subnetNames, subnetName)
+	}
+
+	if !sliceContainsValue(vnetNames, vnetName) {
+		vnetNames = append(vnetNames, vnetName)
+	}
+
+	return &subnetNames, &vnetNames, nil
 }
 
 func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
