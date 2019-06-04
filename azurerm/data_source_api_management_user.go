@@ -48,7 +48,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 }
 
 func dataSourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.UsersClient
+	client := meta.(*ArmClient).apiManagement.UsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
