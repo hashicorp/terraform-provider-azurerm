@@ -9,17 +9,22 @@ import (
 
 // This file is generated from scan_tokens.rl. DO NOT EDIT.
 %%{
-  # (except you are actually in scan_tokens.rl here, so edit away!)
+  # (except when you are actually in scan_tokens.rl here, so edit away!)
 
   machine hcltok;
   write data;
 }%%
 
 func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []Token {
+    stripData := stripUTF8BOM(data)
+    start.Byte += len(data) - len(stripData)
+    data = stripData
+
     f := &tokenAccum{
-        Filename: filename,
-        Bytes:    data,
-        Pos:      start,
+        Filename:  filename,
+        Bytes:     data,
+        Pos:       start,
+        StartByte: start.Byte,
     }
 
     %%{
@@ -36,10 +41,10 @@ func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []To
 
         NumberLitContinue = (digit|'.'|('e'|'E') ('+'|'-')? digit);
         NumberLit = digit ("" | (NumberLitContinue - '.') | (NumberLitContinue* (NumberLitContinue - '.')));
-        Ident = ID_Start (ID_Continue | '-')*;
+        Ident = (ID_Start | '_') (ID_Continue | '-')*;
 
         # Symbols that just represent themselves are handled as a single rule.
-        SelfToken = "[" | "]" | "(" | ")" | "." | "," | "*" | "/" | "+" | "-" | "=" | "<" | ">" | "!" | "?" | ":" | "\n" | "&" | "|" | "~" | "^" | ";" | "`";
+        SelfToken = "[" | "]" | "(" | ")" | "." | "," | "*" | "/" | "%" | "+" | "-" | "=" | "<" | ">" | "!" | "?" | ":" | "\n" | "&" | "|" | "~" | "^" | ";" | "`" | "'";
 
         EqualOp = "==";
         NotEqual = "!=";
@@ -58,9 +63,17 @@ func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []To
         BeginHeredocTmpl = '<<' ('-')? Ident Newline;
 
         Comment = (
-            ("#" (any - EndOfLine)* EndOfLine) |
-            ("//" (any - EndOfLine)* EndOfLine) |
-            ("/*" any* "*/")
+            # The :>> operator in these is a "finish-guarded concatenation",
+            # which terminates the sequence on its left when it completes
+            # the sequence on its right.
+            # In the single-line comment cases this is allowing us to make
+            # the trailing EndOfLine optional while still having the overall
+            # pattern terminate. In the multi-line case it ensures that
+            # the first comment in the file ends at the first */, rather than
+            # gobbling up all of the "any*" until the _final_ */ in the file.
+            ("#" (any - EndOfLine)* :>> EndOfLine?) |
+            ("//" (any - EndOfLine)* :>> EndOfLine?) |
+            ("/*" any* :>> "*/")
         );
 
         # Note: hclwrite assumes that only ASCII spaces appear between tokens,
@@ -112,7 +125,25 @@ func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []To
             if topdoc.StartOfLine {
                 maybeMarker := bytes.TrimSpace(data[ts:te])
                 if bytes.Equal(maybeMarker, topdoc.Marker) {
+                    // We actually emit two tokens here: the end-of-heredoc
+                    // marker first, and then separately the newline that
+                    // follows it. This then avoids issues with the closing
+                    // marker consuming a newline that would normally be used
+                    // to mark the end of an attribute definition.
+                    // We might have either a \n sequence or an \r\n sequence
+                    // here, so we must handle both.
+                    nls := te-1
+                    nle := te
+                    te--
+                    if data[te-1] == '\r' {
+                        // back up one more byte
+                        nls--
+                        te--
+                    }
                     token(TokenCHeredoc);
+                    ts = nls
+                    te = nle
+                    token(TokenNewline);
                     heredocs = heredocs[:len(heredocs)-1]
                     fret;
                 }
@@ -195,29 +226,35 @@ func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []To
         TemplateInterp = "${" ("~")?;
         TemplateControl = "%{" ("~")?;
         EndStringTmpl = '"';
-        StringLiteralChars = (AnyUTF8 - ("\r"|"\n"));
+        NewlineChars = ("\r"|"\n");
+        NewlineCharsSeq = NewlineChars+;
+        StringLiteralChars = (AnyUTF8 - NewlineChars);
+        TemplateIgnoredNonBrace = (^'{' %{ fhold; });
+        TemplateNotInterp = '$' (TemplateIgnoredNonBrace | TemplateInterp);
+        TemplateNotControl = '%' (TemplateIgnoredNonBrace | TemplateControl);
+        QuotedStringLiteralWithEsc = ('\\' StringLiteralChars) | (StringLiteralChars - ("$" | '%' | '"' | "\\"));
         TemplateStringLiteral = (
-            ('$' ^'{') |
-            ('%' ^'{') |
-            ('\\' StringLiteralChars) |
-            (StringLiteralChars - ("$" | '%' | '"'))
-        )+;
+            (TemplateNotInterp) |
+            (TemplateNotControl) |
+            (QuotedStringLiteralWithEsc)+
+        );
         HeredocStringLiteral = (
-            ('$' ^'{') |
-            ('%' ^'{') |
-            (StringLiteralChars - ("$" | '%'))
-        )*;
+            (TemplateNotInterp) |
+            (TemplateNotControl) |
+            (StringLiteralChars - ("$" | '%'))*
+        );
         BareStringLiteral = (
-            ('$' ^'{') |
-            ('%' ^'{') |
-            (StringLiteralChars - ("$" | '%'))
-        )* Newline?;
+            (TemplateNotInterp) |
+            (TemplateNotControl) |
+            (StringLiteralChars - ("$" | '%'))*
+        ) Newline?;
 
         stringTemplate := |*
             TemplateInterp        => beginTemplateInterp;
             TemplateControl       => beginTemplateControl;
             EndStringTmpl         => endStringTemplate;
             TemplateStringLiteral => { token(TokenQuotedLit); };
+            NewlineCharsSeq       => { token(TokenQuotedNewline); };
             AnyUTF8               => { token(TokenInvalid); };
             BrokenUTF8            => { token(TokenBadUTF8); };
         *|;
@@ -337,7 +374,17 @@ func scanTokens(data []byte, filename string, start hcl.Pos, mode scanMode) []To
     // encountered something that the scanner can't match, which we'll
     // deal with as an invalid.
     if cs < hcltok_first_final {
-        f.emitToken(TokenInvalid, p, len(data))
+        if mode == scanTemplate && len(stack) == 0 {
+            // If we're scanning a bare template then any straggling
+            // top-level stuff is actually literal string, rather than
+            // invalid. This handles the case where the template ends
+            // with a single "$" or "%", which trips us up because we
+            // want to see another character to decide if it's a sequence
+            // or an escape.
+            f.emitToken(TokenStringLit, ts, len(data))
+        } else {
+            f.emitToken(TokenInvalid, ts, len(data))
+        }
     }
 
     // We always emit a synthetic EOF token at the end, since it gives the

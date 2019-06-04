@@ -127,6 +127,19 @@ func TestParseAzureResourceID(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/service1/subscriptions/22222222-2222-2222-2222-222222222222",
+			&ResourceID{
+				SubscriptionID: "11111111-1111-1111-1111-111111111111",
+				ResourceGroup:  "example-resources",
+				Provider:       "Microsoft.ApiManagement",
+				Path: map[string]string{
+					"service":       "service1",
+					"subscriptions": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+			false,
+		},
 	}
 
 	for _, test := range testCases {

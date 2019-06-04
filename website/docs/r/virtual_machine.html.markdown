@@ -48,7 +48,7 @@ resource "azurerm_network_interface" "main" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -86,7 +86,7 @@ resource "azurerm_virtual_machine" "main" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -250,7 +250,7 @@ A `ssh_keys` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
 
--> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` interpolation function](https://www.terraform.io/docs/configuration/interpolation.html#file_path_) - for example `key_data = "${file("~/.ssh/id_rsa.pub")}"`.
+-> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
 
 * `path` - (Required) The path of the destination file on the virtual machine
 
@@ -373,6 +373,6 @@ The following attributes are exported:
 
 Virtual Machines can be imported using the `resource id`, e.g.
 
-```hcl
+```shell
 terraform import azurerm_virtual_machine.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1
 ```

@@ -3,10 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,17 +30,17 @@ func resourceArmAutomationModule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"module_link": {
 				Type:     schema.TypeList,
@@ -74,7 +78,7 @@ func resourceArmAutomationModule() *schema.Resource {
 }
 
 func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
@@ -82,6 +86,20 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("automation_account_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, accName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Automation Module %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_automation_module", *existing.ID)
+		}
+	}
+
 	contentLink := expandModuleLink(d)
 
 	parameters := automation.ModuleCreateOrUpdateParameters{
@@ -90,9 +108,50 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
 		return err
+	}
+
+	// the API returns 'done' but it's not actually finished provisioning yet
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			string(automation.ModuleProvisioningStateActivitiesStored),
+			string(automation.ModuleProvisioningStateConnectionTypeImported),
+			string(automation.ModuleProvisioningStateContentDownloaded),
+			string(automation.ModuleProvisioningStateContentRetrieved),
+			string(automation.ModuleProvisioningStateContentStored),
+			string(automation.ModuleProvisioningStateContentValidated),
+			string(automation.ModuleProvisioningStateCreated),
+			string(automation.ModuleProvisioningStateCreating),
+			string(automation.ModuleProvisioningStateModuleDataStored),
+			string(automation.ModuleProvisioningStateModuleImportRunbookComplete),
+			string(automation.ModuleProvisioningStateRunningImportModuleRunbook),
+			string(automation.ModuleProvisioningStateStartingImportModuleRunbook),
+			string(automation.ModuleProvisioningStateUpdating),
+		},
+		Target: []string{
+			string(automation.ModuleProvisioningStateSucceeded),
+		},
+		Timeout:    30 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+
+			resp, err2 := client.Get(ctx, resGroup, accName, name)
+			if err2 != nil {
+				return resp, "Error", fmt.Errorf("Error retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)
+			}
+
+			if properties := resp.ModuleProperties; properties != nil {
+				return resp, string(properties.ProvisioningState), nil
+			}
+
+			return resp, "Unknown", nil
+		},
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
@@ -110,7 +169,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -139,7 +198,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

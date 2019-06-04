@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -76,6 +77,15 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
+		if requireResourcesToBeImported {
+			if rt := props.RouteTable; rt != nil {
+				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
+				if rt.ID != nil && subnet.ID != nil {
+					return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *subnet.ID)
+				}
+			}
+		}
+
 		props.RouteTable = &network.RouteTable{
 			ID: utils.String(routeTableId),
 		}
@@ -86,8 +96,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error updating Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Route Table Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 

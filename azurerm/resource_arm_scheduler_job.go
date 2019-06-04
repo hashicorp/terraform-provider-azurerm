@@ -10,6 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/go-autorest/autorest/date"
 
@@ -49,13 +52,13 @@ func resourceArmSchedulerJob() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"job_collection_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			//actions
@@ -106,7 +109,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"count": {
@@ -286,7 +289,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"headers": {
@@ -308,14 +311,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -335,14 +338,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true, //sensitive & shortens diff
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"thumbprint": {
@@ -376,19 +379,19 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"secret": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"audience": {
@@ -424,13 +427,13 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 			"sas_token": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"message": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -460,12 +463,25 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface
 }
 
 func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	jobCollection := d.Get("job_collection_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, jobCollection, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Scheduler Job %q (resource group %q)", name, resourceGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_scheduler_job", *existing.ID)
+		}
+	}
 
 	job := scheduler.JobDefinition{
 		Properties: &scheduler.JobProperties{
@@ -504,7 +520,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -598,7 +614,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

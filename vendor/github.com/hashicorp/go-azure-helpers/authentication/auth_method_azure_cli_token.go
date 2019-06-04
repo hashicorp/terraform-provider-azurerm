@@ -40,7 +40,7 @@ func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 
 	err = auth.profile.populateFields()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error retrieving the Profile from the Azure CLI: %s Please re-authenticate using `az login`.", err)
 	}
 
 	err = auth.profile.populateClientId()
@@ -55,7 +55,7 @@ func (a azureCliTokenAuth) isApplicable(b Builder) bool {
 	return b.SupportsAzureCliToken
 }
 
-func (a azureCliTokenAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	// the Azure CLI appears to cache these, so to maintain compatibility with the interface this method is intentionally not on the pointer
 	token, err := obtainAuthorizationToken(endpoint, a.profile.subscriptionId)
 	if err != nil {

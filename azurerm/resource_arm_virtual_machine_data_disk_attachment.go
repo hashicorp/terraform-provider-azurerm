@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -112,6 +113,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	name := *managedDisk.Name
+	resourceId := fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, name)
 	lun := int32(d.Get("lun").(int))
 	caching := d.Get("caching").(string)
 	createOption := compute.DiskCreateOptionTypes(d.Get("create_option").(string))
@@ -130,18 +132,24 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks
+
+	existingIndex := -1
+	for i, disk := range disks {
+		if *disk.Name == name {
+			existingIndex = i
+			break
+		}
+	}
+
 	if d.IsNewResource() {
-		disks = append(disks, expandedDisk)
-	} else {
-		// iterate over the disks and swap it out in-place
-		existingIndex := -1
-		for i, disk := range disks {
-			if *disk.Name == name {
-				existingIndex = i
-				break
+		if requireResourcesToBeImported {
+			if existingIndex != -1 {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
 			}
 		}
 
+		disks = append(disks, expandedDisk)
+	} else {
 		if existingIndex == -1 {
 			return fmt.Errorf("Unable to find Disk %q attached to Virtual Machine %q (Resource Group %q)", name, virtualMachineName, resourceGroup)
 		}
@@ -162,13 +170,11 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, name))
-
+	d.SetId(resourceId)
 	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
@@ -272,8 +278,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 		return fmt.Errorf("Error removing Disk %q from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for Disk %q to be removed from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
 

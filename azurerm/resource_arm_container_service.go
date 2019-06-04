@@ -8,19 +8,30 @@ import (
 
 	"bytes"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmContainerService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerServiceCreate,
+		Create: resourceArmContainerServiceCreateUpdate,
 		Read:   resourceArmContainerServiceRead,
-		Update: resourceArmContainerServiceCreate,
+		Update: resourceArmContainerServiceCreateUpdate,
 		Delete: resourceArmContainerServiceDelete,
+
+		DeprecationMessage: `Azure Container Service (ACS) has been deprecated in favour of Azure (Managed) Kubernetes Service (AKS).
+
+Azure will remove support for ACS Clusters on January 31, 2020. In preparation for this, the AzureRM Provider will remove support for the 'azurerm_container_service' resource in the next major version of the AzureRM Provider, which is targeted for Early 2019.
+
+If you're using ACS with Kubernetes, we'd recommend migrating to AKS / the 'azurerm_kubernetes_cluster' resource.
+
+More information can be found here: https://azure.microsoft.com/en-us/updates/azure-container-service-will-retire-on-january-31-2020/
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -29,9 +40,9 @@ func resourceArmContainerService() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"orchestration_platform": {
 				Type:         schema.TypeString,
@@ -181,15 +192,30 @@ func resourceArmContainerService() *schema.Resource {
 	}
 }
 
-func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containerServiceClient := client.containerServicesClient
+	ctx := meta.(*ArmClient).StopContext
+	containerServiceClient := client.containers.ServicesClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Container Service creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := containerServiceClient.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Container Service %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_container_service", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	orchestrationPlatform := d.Get("orchestration_platform").(string)
 
@@ -220,9 +246,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
-	ctx := meta.(*ArmClient).StopContext
-	_, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return err
 	}
 
@@ -253,7 +277,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).containerServicesClient
+	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -276,7 +300,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
@@ -307,7 +331,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containerServiceClient := client.containerServicesClient
+	containerServiceClient := client.containers.ServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -525,7 +549,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ctx := client.StopContext
-		res, err := client.containerServicesClient.Get(ctx, resourceGroupName, containerServiceName)
+		res, err := client.containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}

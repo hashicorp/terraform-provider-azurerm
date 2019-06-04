@@ -28,8 +28,7 @@ func migrateAzureRMKeyVaultStateV0toV1(is *terraform.InstanceState) (*terraform.
 
 	log.Printf("[DEBUG] ARM Key Vault Attributes before Migration: %#v", is.Attributes)
 
-	err := migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is)
-	if err != nil {
+	if err := migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is); err != nil {
 		return nil, err
 	}
 

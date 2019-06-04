@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -30,7 +32,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:     schema.TypeString,
@@ -87,12 +89,25 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		if err2 != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_protected_vm", *existing.ID)
+		}
+	}
+
 	item := backup.ProtectedItemResource{
 		Tags: expandTags(tags),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:          &policyId,
 			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
-			WorkloadType:      backup.VM,
+			WorkloadType:      backup.DataSourceTypeVM,
 			SourceResourceID:  utils.String(vmId),
 			FriendlyName:      utils.String(vmName),
 			VirtualMachineID:  utils.String(vmId),
@@ -187,7 +202,7 @@ func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string) (backup.ProtectedItemResource, error) {
+func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsGroupClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
@@ -217,7 +232,8 @@ func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedI
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectedItemResource), fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be %t (Resource Group %q) to provision: %+v", protectedItemName, found, resourceGroup, err)
+		i, _ := resp.(backup.ProtectedItemResource)
+		return i, fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be %t (Resource Group %q) to provision: %+v", protectedItemName, found, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil

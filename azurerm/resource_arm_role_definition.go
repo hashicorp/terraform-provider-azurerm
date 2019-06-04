@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -116,6 +118,19 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	permissions := expandRoleDefinitionPermissions(d)
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, scope, roleDefinitionId)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Role Definition ID for %q (Scope %q)", name, scope)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_role_definition", *existing.ID)
+		}
+	}
+
 	properties := authorization.RoleDefinition{
 		RoleDefinitionProperties: &authorization.RoleDefinitionProperties{
 			RoleName:         utils.String(name),
@@ -126,8 +141,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties); err != nil {
 		return err
 	}
 

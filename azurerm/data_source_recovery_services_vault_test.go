@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_recovery_services_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -34,11 +34,11 @@ func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 
 func testAccDataSourceRecoveryServicesVault_basic(rInt int, location string) string {
 	return fmt.Sprintf(` 
-%s 
- 
-data "azurerm_recovery_services_vault" "test" { 
-  name                = "${azurerm_recovery_services_vault.test.name}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-} 
+%s
+
+data "azurerm_recovery_services_vault" "test" {
+  name                = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
 `, testAccAzureRMRecoveryServicesVault_basic(rInt, location))
 }

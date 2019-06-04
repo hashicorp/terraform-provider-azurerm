@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,7 +18,7 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": {
 				Type:     schema.TypeString,
@@ -59,6 +60,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						//TODO: should this be renamed to private_ip_address_allocation_method or private_ip_allocation_method ?
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -84,6 +91,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"application_security_group_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -234,7 +248,7 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("applied_dns_servers", appliedDNSServers)

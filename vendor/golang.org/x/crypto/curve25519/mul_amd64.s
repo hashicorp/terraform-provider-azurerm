@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // This code was translated into a form compatible with 6a from the public
-// domain sources in SUPERCOP: http://bench.cr.yp.to/supercop.html
+// domain sources in SUPERCOP: https://bench.cr.yp.to/supercop.html
 
 // +build amd64,!gccgo,!appengine
 
@@ -124,18 +124,18 @@ TEXT ·mul(SB),0,$16-24
 	ADDQ AX,R14
 	ADCQ DX,R15
 	MOVQ $REDMASK51,SI
-	SHLQ $13,R9:R8
+	SHLQ $13,R8,R9
 	ANDQ SI,R8
-	SHLQ $13,R11:R10
+	SHLQ $13,R10,R11
 	ANDQ SI,R10
 	ADDQ R9,R10
-	SHLQ $13,R13:R12
+	SHLQ $13,R12,R13
 	ANDQ SI,R12
 	ADDQ R11,R12
-	SHLQ $13,R15:R14
+	SHLQ $13,R14,R15
 	ANDQ SI,R14
 	ADDQ R13,R14
-	SHLQ $13,BP:BX
+	SHLQ $13,BX,BP
 	ANDQ SI,BX
 	ADDQ R15,BX
 	IMUL3Q $19,BP,DX

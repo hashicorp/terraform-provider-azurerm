@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 // These tests are actually run as part of the resoure ones due to
@@ -14,7 +15,7 @@ import (
 
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +42,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 
 func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +70,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -109,7 +110,7 @@ data "azurerm_monitor_log_profile" "test" {
 func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

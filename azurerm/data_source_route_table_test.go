@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMRouteTable_basic(ri, location)
 
@@ -32,7 +32,7 @@ func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 	dataSourceName := "data.azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMRouteTable_singleRoute(ri, location)
 
@@ -57,7 +57,7 @@ func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 
 func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	dataSourceName := "data.azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMRouteTable_multipleRoutes(ri, location)
 

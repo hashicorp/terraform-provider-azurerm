@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -52,7 +52,7 @@ func TestAzureRMAppServicePlanName_validation(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,6 +63,8 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 				Config: testAccAzureRMAppServicePlan_basicWindows(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
+					resource.TestCheckResourceAttr(resourceName, "reserved", "false"),
 				),
 			},
 			{
@@ -76,7 +78,7 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -90,6 +92,14 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMAppServicePlan_basicLinuxNew(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
+					resource.TestCheckResourceAttr(resourceName, "reserved", "true"),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -98,9 +108,38 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicLinux(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServicePlan_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_plan"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -124,7 +163,7 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -148,10 +187,8 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	config := testAccAzureRMAppServicePlan_premiumWindows(ri, location)
-	updatedConfig := testAccAzureRMAppServicePlan_premiumWindowsUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -159,18 +196,23 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServicePlan_premiumWindows(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServicePlan_premiumWindowsUpdated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -178,8 +220,7 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_completeWindows(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -187,11 +228,19 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServicePlan_completeWindows(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.per_site_scaling", "true"),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.reserved", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppServicePlan_completeWindowsNew(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "true"),
+					resource.TestCheckResourceAttr(resourceName, "reserved", "false"),
 				),
 			},
 			{
@@ -205,8 +254,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -214,12 +262,61 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Dynamic"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "Y1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "EP1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "xenon"),
+					resource.TestCheckResourceAttr(resourceName, "is_xenon", "true"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "PremiumContainer"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "PC2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -252,12 +349,12 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		appServicePlanName := rs.Primary.Attributes["name"]
@@ -319,9 +416,51 @@ resource "azurerm_app_service_plan" "test" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
+  reserved = true
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServicePlan_basicLinux(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_plan" "import" {
+  name                = "${azurerm_app_service_plan.test.name}"
+  location            = "${azurerm_app_service_plan.test.location}"
+  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  kind                = "${azurerm_app_service_plan.test.kind}"
+
+  sku {
+    tier = "Basic"
+    size = "B1"
   }
+
+  reserved = true
+}
+`, template)
+}
+
+func testAccAzureRMAppServicePlan_basicLinuxNew(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "Linux"
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
+
+  reserved = true
 }
 `, rInt, location, rInt)
 }
@@ -405,12 +544,38 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    per_site_scaling = true
-    reserved         = false
+  per_site_scaling = true
+  reserved         = false
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_completeWindowsNew(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "Windows"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
   }
 
-  tags {
+  per_site_scaling = true
+  reserved         = false
+
+  tags = {
     environment = "Test"
   }
 }
@@ -434,6 +599,49 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Dynamic"
     size = "Y1"
   }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_premiumConsumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_basicWindowsContainer(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	kind                = "xenon"
+	is_xenon            = true
+
+	sku {
+		tier = "PremiumContainer"
+		size = "PC2"
+	}
 }
 `, rInt, location, rInt)
 }

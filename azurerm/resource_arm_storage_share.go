@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -31,7 +33,7 @@ func resourceArmStorageShare() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateArmStorageShareName,
 			},
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -71,6 +73,19 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	reference := fileClient.GetShareReference(name)
+
+	id := fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
+	if requireResourcesToBeImported {
+		exists, e := reference.Exists()
+		if e != nil {
+			return fmt.Errorf("Error checking if Share %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, e)
+		}
+
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_share", id)
+		}
+	}
+
 	err = reference.Create(options)
 	if err != nil {
 		return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
@@ -90,7 +105,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting properties on Storage Share %q: %+v", name, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName))
+	d.SetId(id)
 	return resourceArmStorageShareRead(d, meta)
 }
 

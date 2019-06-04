@@ -8,7 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,9 +36,9 @@ func resourceArmAutomationAccount() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -77,14 +79,28 @@ func resourceArmAutomationAccount() *schema.Resource {
 }
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
+	client := meta.(*ArmClient).automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_automation_account", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	sku := expandAutomationAccountSku(d)
 
@@ -96,8 +112,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Automation Account %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
@@ -116,8 +131,8 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
-	registrationClient := meta.(*ArmClient).automationAgentRegistrationInfoClient
+	client := meta.(*ArmClient).automation.AccountClient
+	registrationClient := meta.(*ArmClient).automation.AgentRegistrationInfoClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -152,7 +167,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
@@ -173,7 +188,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationAccountClient
+	client := meta.(*ArmClient).automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

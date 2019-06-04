@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -33,9 +36,9 @@ func resourceArmRelayNamespace() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(6, 50),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -90,17 +93,30 @@ func resourceArmRelayNamespace() *schema.Resource {
 }
 
 func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Relay Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	sku := expandRelayNamespaceSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_relay_namespace", *existing.ID)
+		}
+	}
 
 	parameters := relay.Namespace{
 		Location:            utils.String(location),
@@ -111,17 +127,16 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on future for Relay Namespace %q (Resource Group %q) creation: %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Relay Namespace %q (resource group %s) ID", name, resourceGroup)
@@ -133,7 +148,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -156,7 +171,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -186,7 +201,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relayNamespacesClient
+	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

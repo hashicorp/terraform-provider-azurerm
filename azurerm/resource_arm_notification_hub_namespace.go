@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,9 +35,9 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -86,30 +88,52 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-
-	sku := expandNotificationHubNamespacesSku(d.Get("sku").([]interface{}))
-
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	namespaceType := d.Get("namespace_type").(string)
 	enabled := d.Get("enabled").(bool)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", *existing.ID)
+		}
+	}
+
 	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
 		Location: utils.String(location),
-		Sku:      sku,
+		Sku:      expandNotificationHubNamespacesSku(d.Get("sku").([]interface{})),
 		NamespaceProperties: &notificationhubs.NamespaceProperties{
 			Region:        utils.String(location),
 			NamespaceType: notificationhubs.NamespaceType(namespaceType),
 			Enabled:       utils.Bool(enabled),
 		},
 	}
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be created", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout:                   10 * time.Minute,
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 10,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to finish replicating: %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -126,7 +150,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -150,7 +174,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	sku := flattenNotificationHubNamespacesSku(resp.Sku)
@@ -168,7 +192,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -191,7 +215,7 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
-		Refresh: notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, resourceGroup, name),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -225,6 +249,21 @@ func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interfac
 }
 
 func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "404", nil
+			}
+
+			return nil, "", fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
+}
+
+func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

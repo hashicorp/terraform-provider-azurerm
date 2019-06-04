@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_firewall_rule"
-sidebar_current: "docs-azurerm-resource-redis-firewall-rule"
+sidebar_current: "docs-azurerm-redis-firewall-rule"
 description: |-
   Manages a Firewall Rule associated with a Redis Cache.
 

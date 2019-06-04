@@ -12,8 +12,9 @@ func TestAccAzureRMSecurityCenter_pricingAndWorkspace(t *testing.T) {
 			"update": testAccAzureRMSecurityCenterSubscriptionPricing_update,
 		},
 		"workspace": {
-			"basic":  testAccAzureRMSecurityCenterWorkspace_basic,
-			"update": testAccAzureRMSecurityCenterWorkspace_update,
+			"basic":          testAccAzureRMSecurityCenterWorkspace_basic,
+			"update":         testAccAzureRMSecurityCenterWorkspace_update,
+			"requiresImport": testAccAzureRMSecurityCenterWorkspace_requiresImport,
 		},
 	}
 

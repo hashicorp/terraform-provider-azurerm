@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -76,6 +77,15 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
+		if requireResourcesToBeImported {
+			if nsg := props.NetworkSecurityGroup; nsg != nil {
+				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
+				if nsg.ID != nil && subnet.ID != nil {
+					return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
+				}
+			}
+		}
+
 		props.NetworkSecurityGroup = &network.SecurityGroup{
 			ID: utils.String(networkSecurityGroupId),
 		}
@@ -86,8 +96,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return fmt.Errorf("Error updating Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Route Table Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 

@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Dev Test Lab.
 ---
 
-# Data Source: azurerm_app_service
+# Data Source: azurerm_dev_test_lab
 
 Use this data source to access information about an existing Dev Test Lab.
 

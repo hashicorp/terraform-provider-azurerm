@@ -11,14 +11,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Create: resourceArmMonitorMetricAlertCreateUpdate,
 		Read:   resourceArmMonitorMetricAlertRead,
-		Update: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Update: resourceArmMonitorMetricAlertCreateUpdate,
 		Delete: resourceArmMonitorMetricAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -30,10 +32,10 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
@@ -59,18 +61,19 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"metric_namespace": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"metric_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"aggregation": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Average",
+								"Count",
 								"Minimum",
 								"Maximum",
 								"Total",
@@ -100,7 +103,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -205,12 +208,25 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorMetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", *existing.ID)
+		}
+	}
 
 	enabled := d.Get("enabled").(bool)
 	autoMitigate := d.Get("auto_mitigate").(bool)
@@ -226,7 +242,7 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 	expandedTags := expandTags(tags)
 
 	parameters := insights.MetricAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
 			Enabled:             utils.Bool(enabled),
 			AutoMitigate:        utils.Bool(autoMitigate),
@@ -234,7 +250,7 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 			Severity:            utils.Int32(int32(severity)),
 			EvaluationFrequency: utils.String(frequency),
 			WindowSize:          utils.String(windowSize),
-			Scopes:              utils.ExpandStringArray(scopesRaw),
+			Scopes:              utils.ExpandStringSlice(scopesRaw),
 			Criteria:            expandMonitorMetricAlertCriteria(criteriaRaw),
 			Actions:             expandMonitorMetricAlertAction(actionRaw),
 		},
@@ -287,7 +303,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		d.Set("severity", alert.Severity)
 		d.Set("frequency", alert.EvaluationFrequency)
 		d.Set("window_size", alert.WindowSize)
-		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
@@ -333,7 +349,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			dimensions = append(dimensions, insights.MetricDimension{
 				Name:     utils.String(dVal["name"].(string)),
 				Operator: utils.String(dVal["operator"].(string)),
-				Values:   utils.ExpandStringArray(dVal["values"].([]interface{})),
+				Values:   utils.ExpandStringSlice(dVal["values"].([]interface{})),
 			})
 		}
 
@@ -411,7 +427,7 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 				if dimension.Operator != nil {
 					dVal["operator"] = *dimension.Operator
 				}
-				dVal["values"] = utils.FlattenStringArray(dimension.Values)
+				dVal["values"] = utils.FlattenStringSlice(dimension.Values)
 				dimResult = append(dimResult, dVal)
 			}
 			v["dimension"] = dimResult

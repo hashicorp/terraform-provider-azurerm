@@ -37,11 +37,13 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.DocumentDB":           {},
 		"Microsoft.EventGrid":            {},
 		"Microsoft.EventHub":             {},
+		"Microsoft.HDInsight":            {},
 		"Microsoft.KeyVault":             {},
 		"microsoft.insights":             {},
 		"Microsoft.Logic":                {},
 		"Microsoft.ManagedIdentity":      {},
 		"Microsoft.Management":           {},
+		"Microsoft.Media":                {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},
 		"Microsoft.OperationalInsights":  {},
@@ -56,6 +58,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.ServiceFabric":        {},
 		"Microsoft.Sql":                  {},
 		"Microsoft.Storage":              {},
+		"Microsoft.StreamAnalytics":      {},
 		"Microsoft.Web":                  {},
 	}
 }
@@ -66,8 +69,7 @@ func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.
 
 	if len(providersToRegister) > 0 {
 		log.Printf("[DEBUG] Registering %d Resource Providers", len(providersToRegister))
-		err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister)
-		if err != nil {
+		if err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister); err != nil {
 			return err
 		}
 	} else {

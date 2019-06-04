@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,9 +34,37 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_log_analytics_solution.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_solution"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +87,7 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 }
 
 func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).solutionsClient
+	conn := testAccProvider.Meta().(*ArmClient).logAnalytics.SolutionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -84,12 +112,12 @@ func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -98,7 +126,7 @@ func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).solutionsClient
+		conn := testAccProvider.Meta().(*ArmClient).logAnalytics.SolutionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -122,7 +150,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-dep-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -143,6 +171,26 @@ resource "azurerm_log_analytics_solution" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMLogAnalyticsSolution_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_solution" "import" {
+  solution_name         = "${azurerm_log_analytics_solution.test.solution_name}"
+  location              = "${azurerm_log_analytics_solution.test.location}"
+  resource_group_name   = "${azurerm_log_analytics_solution.test.resource_group_name}"
+  workspace_resource_id = "${azurerm_log_analytics_solution.test.workspace_resource_id}"
+  workspace_name        = "${azurerm_log_analytics_solution.test.workspace_name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+`, template)
+}
+
 func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -151,7 +199,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-dep-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"

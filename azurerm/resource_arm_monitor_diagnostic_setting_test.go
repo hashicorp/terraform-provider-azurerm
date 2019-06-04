@@ -42,6 +42,35 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_diagnostic_setting.test"
+	ri := acctest.RandIntRange(10000, 99999)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorDiagnosticSetting_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_diagnostic_setting"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
@@ -223,6 +252,37 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMMonitorDiagnosticSetting_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorDiagnosticSetting_eventhub(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_diagnostic_setting" "import" {
+  name                           = "${azurerm_monitor_diagnostic_setting.test.name}"
+  target_resource_id             = "${azurerm_monitor_diagnostic_setting.test.target_resource_id}"
+  eventhub_authorization_rule_id = "${azurerm_monitor_diagnostic_setting.test.eventhub_authorization_rule_id}"
+  eventhub_name                  = "${azurerm_monitor_diagnostic_setting.test.eventhub_name}"
+
+  log {
+    category = "AuditEvent"
+    enabled  = false
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+`, template)
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(rInt int, location string) string {

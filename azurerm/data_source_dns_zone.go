@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,12 +27,12 @@ func dataSourceArmDnsZone() *schema.Resource {
 			},
 
 			"number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -66,7 +66,7 @@ func dataSourceArmDnsZone() *schema.Resource {
 }
 
 func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).zonesClient
+	client := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -140,7 +140,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func findZone(client dns.ZonesClient, rgClient resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
+func findZone(client dns.ZonesClient, rgClient resources.GroupsGroupClient, ctx context.Context, name string) (dns.Zone, string, error) {
 	groups, err := rgClient.List(ctx, "", nil)
 	if err != nil {
 		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)

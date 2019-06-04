@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,9 +29,9 @@ func resourceArmEventGridTopic() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tagsSchema(),
 
@@ -54,12 +56,26 @@ func resourceArmEventGridTopic() *schema.Resource {
 }
 
 func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventGrid Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventgrid_topic", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := eventgrid.Topic{
@@ -75,8 +91,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -94,7 +109,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -123,7 +138,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.TopicProperties; props != nil {
@@ -139,7 +154,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridTopicsClient
+	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -157,8 +172,7 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error deleting Event Grid Topic %q: %+v", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

@@ -5,13 +5,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func Base64String() schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		// Empty string is not allowed
-		if warnings, errors = validation.NoZeroValues(i, k); len(errors) > 0 {
+		if warnings, errors = NoEmptyStrings(i, k); len(errors) > 0 {
 			return
 		}
 

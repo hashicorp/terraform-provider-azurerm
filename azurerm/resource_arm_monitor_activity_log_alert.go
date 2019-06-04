@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Create: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Read:   resourceArmMonitorActivityLogAlertRead,
-		Update: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Update: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Delete: resourceArmMonitorActivityLogAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -31,10 +33,10 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
 				Type:     schema.TypeSet,
@@ -42,7 +44,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				Set: schema.HashString,
 			},
@@ -151,12 +153,25 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Activity Log Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_activity_log_alert", *existing.ID)
+		}
+	}
 
 	enabled := d.Get("enabled").(bool)
 	description := d.Get("description").(string)
@@ -168,11 +183,11 @@ func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, me
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActivityLogAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActivityLogAlert: &insights.ActivityLogAlert{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
-			Scopes:      utils.ExpandStringArray(scopesRaw),
+			Scopes:      utils.ExpandStringSlice(scopesRaw),
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
@@ -221,7 +236,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	if alert := resp.ActivityLogAlert; alert != nil {
 		d.Set("enabled", alert.Enabled)
 		d.Set("description", alert.Description)
-		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorActivityLogAlertCriteria(alert.Condition)); err != nil {

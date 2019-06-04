@@ -7,6 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,12 +55,12 @@ func resourceArmDevTestPolicy() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"threshold": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"evaluator_type": {
@@ -97,6 +99,19 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %s", name, policySetName, labName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dev_test_policy", *existing.ID)
+		}
+	}
+
 	factData := d.Get("fact_data").(string)
 	threshold := d.Get("threshold").(string)
 	evaluatorType := d.Get("evaluator_type").(string)
@@ -115,8 +130,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, labName, policySetName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, labName, policySetName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 

@@ -82,11 +82,11 @@ func TestExpandARMTags(t *testing.T) {
 
 	for k, v := range testData {
 		var strVal string
-		switch v.(type) {
+		switch v := v.(type) {
 		case string:
-			strVal = v.(string)
+			strVal = v
 		case int:
-			strVal = fmt.Sprintf("%d", v.(int))
+			strVal = fmt.Sprintf("%d", v)
 		}
 
 		if *expanded[k] != strVal {

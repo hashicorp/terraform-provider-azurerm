@@ -36,13 +36,13 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "${azurerm_resource_group.test.name}"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -65,7 +65,6 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  count                          = 3
   resource_group_name            = "${azurerm_resource_group.test.name}"
   name                           = "ssh"
   loadbalancer_id                = "${azurerm_lb.test.id}"
@@ -80,6 +79,7 @@ resource "azurerm_lb_probe" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "http-probe"
+  protocol            = "Http"
   request_path        = "/health"
   port                = 8080
 }
@@ -92,6 +92,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # automatic rolling upgrade
   automatic_os_upgrade = true
   upgrade_policy_mode  = "Rolling"
+
   rolling_upgrade_policy {
     max_batch_instance_percent              = 20
     max_unhealthy_instance_percent          = 20
@@ -101,7 +102,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   # required when using rolling upgrade policy
   health_probe_id = "${azurerm_lb_probe.test.id}"
-
 
   sku {
     name     = "Standard_F2"
@@ -133,7 +133,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -158,7 +157,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     }
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -193,7 +192,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -220,7 +219,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -413,7 +411,7 @@ output "principal_id" {
 
 `os_profile_linux_config` supports the following:
 
-* `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. Changing this forces a new resource to be created.
+* `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
 * `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
 ~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
@@ -446,7 +444,7 @@ output "principal_id" {
 `public_ip_address_configuration` supports the following:
 
 * `name` - (Required) The name of the public ip address configuration
-* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:
@@ -491,6 +489,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
+* `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 

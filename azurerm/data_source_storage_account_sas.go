@@ -194,7 +194,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
 
 	// Parse the connection string
-	kvp, err := storage.ParseStorageAccountConnectionString(connString)
+	kvp, err := storage.ParseAccountSASConnectionString(connString)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	signedIp := ""
 	signedVersion := sasSignedVersion
 
-	sasToken, err := storage.ComputeSASToken(accountName, accountKey, permissions, services, resourceTypes,
+	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
 		start, expiry, signedProtocol, signedIp, signedVersion)
 	if err != nil {
 		return err

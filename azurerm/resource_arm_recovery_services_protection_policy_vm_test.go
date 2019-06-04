@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,9 +33,35 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName, ri),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_protection_policy_vm"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,7 +83,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) 
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -79,7 +105,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -101,7 +127,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -127,7 +153,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) 
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -153,7 +179,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -178,7 +204,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *tes
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -203,7 +229,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *tes
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -266,13 +292,12 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName strin
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault Policy: %q", resourceName)
-		}
-
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		policyName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault %q Policy: %q", vaultName, policyName)
+		}
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {
@@ -300,7 +325,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:5])
+`, rInt, location, strconv.Itoa(rInt)[12:17])
 }
 
 func testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(rInt int, location string) string {
@@ -311,18 +336,38 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
+
+  backup {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
+}
+
+func testAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_protection_policy_vm" "import" {
+  name                = "${azurerm_recovery_services_protection_policy_vm.test.name}"
+  resource_group_name = "${azurerm_recovery_services_protection_policy_vm.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_recovery_services_protection_policy_vm.test.recovery_vault_name}"
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(rInt, location))
 }
 
 func checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
@@ -345,19 +390,18 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
+
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday"]
-  } 
+  }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
 }
 
@@ -382,28 +426,28 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
+
+  backup {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
-  retention_daily = {
+  retention_daily {
     count = 10
   }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
@@ -442,25 +486,25 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
+
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  } 
+  }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
     weeks    = ["First", "Last"]
@@ -499,25 +543,25 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
+
+  backup {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  } 
+  }
 
-  retention_weekly = {
+  retention_weekly {
     count    = 42
     weekdays = ["Sunday", "Wednesday", "Friday"]
   }
 
-  retention_monthly = {
+  retention_monthly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
     weeks    = ["First", "Last"]
   }
 
-  retention_yearly = {
+  retention_yearly {
     count    = 77
     weekdays = ["Sunday"]
     weeks    = ["Last"]

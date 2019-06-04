@@ -5,15 +5,44 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImage_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_shared_image.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,9 +58,8 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_shared_image"),
 			},
 		},
 	})
@@ -39,8 +67,7 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 
 func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	resourceName := "azurerm_shared_image.test"
-	ri := acctest.RandInt()
-	location := testLocation()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -48,7 +75,7 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_complete(ri, location),
+				Config: testAccAzureRMSharedImage_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
@@ -96,12 +123,12 @@ func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSharedImageExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		imageName := rs.Primary.Attributes["name"]
@@ -154,6 +181,26 @@ resource "azurerm_shared_image" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSharedImage_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image" "import" {
+  name                = "${azurerm_shared_image.test.name}"
+  gallery_name        = "${azurerm_shared_image.test.gallery_name}"
+  resource_group_name = "${azurerm_shared_image.test.resource_group_name}"
+  location            = "${azurerm_shared_image.test.location}"
+  os_type             = "${azurerm_shared_image.test.os_type}"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, testAccAzureRMSharedImage_basic(rInt, location), rInt, rInt, rInt)
 }
 
 func testAccAzureRMSharedImage_complete(rInt int, location string) string {

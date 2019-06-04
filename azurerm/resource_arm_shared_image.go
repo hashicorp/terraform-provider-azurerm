@@ -7,7 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -37,9 +39,9 @@ func resourceArmSharedImage() *schema.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"os_type": {
 				Type:     schema.TypeString,
@@ -103,11 +105,10 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 
-	// TODO: support for Timeouts/Requiring Import
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 
 	eula := d.Get("eula").(string)
@@ -116,6 +117,19 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	osType := d.Get("os_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_shared_image", *existing.ID)
+		}
+	}
 
 	identifier := expandGalleryImageIdentifier(d)
 
@@ -138,8 +152,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
@@ -185,7 +198,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryImageProperties; props != nil {
@@ -229,8 +242,7 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for the deletion of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 		}

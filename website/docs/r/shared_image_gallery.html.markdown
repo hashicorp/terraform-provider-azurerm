@@ -27,7 +27,7 @@ resource "azurerm_shared_image_gallery" "test" {
   location            = "${azurerm_resource_group.test.location}"
   description         = "Shared images and things."
 
-  tags {
+  tags = {
     Hello = "There"
     World = "Example"
   }
@@ -53,6 +53,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Shared Image Gallery.
+
+* `unique_name` - The Unique Name for this Shared Image Gallery.
 
 ## Import
 

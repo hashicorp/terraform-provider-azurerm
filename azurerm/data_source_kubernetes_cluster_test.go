@@ -5,13 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -26,13 +26,16 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "false"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_certificate"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.cluster_ca_certificate"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config_raw", ""),
 				),
 			},
 		},
@@ -41,26 +44,56 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	tenantId := os.Getenv("ARM_TENANT_ID")
-	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(ri, location, clientId, clientSecret, tenantId),
+				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(ri, location, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config_raw", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	tenantId := os.Getenv("ARM_TENANT_ID")
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(ri, location, clientId, clientSecret, tenantId),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "kube_admin_config_raw"),
 				),
 			},
 		},
@@ -69,7 +102,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing
 
 func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -93,7 +126,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -119,10 +152,71 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testin
 		},
 	})
 }
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -149,9 +243,71 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_policy"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -180,7 +336,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *test
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -209,7 +365,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 
 func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -236,7 +392,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -273,8 +429,20 @@ data "azurerm_kubernetes_cluster" "test" {
 `, r)
 }
 
-func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(rInt int, location, clientId, clientSecret, tenantId string) string {
-	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControl(rInt, location, clientId, clientSecret, tenantId)
+func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(rInt int, location, clientId, clientSecret string) string {
+	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControl(rInt, location, clientId, clientSecret)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(rInt int, location, clientId, clientSecret, tenantId string) string {
+	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(rInt, location, clientId, clientSecret, tenantId)
 	return fmt.Sprintf(`
 %s
 
@@ -309,8 +477,56 @@ data "azurerm_kubernetes_cluster" "test" {
 `, r)
 }
 
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(rInt, clientId, clientSecret, location, "azure", "calico")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(rInt, clientId, clientSecret, location, "azure", "azure")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(rInt int, clientId string, clientSecret string, location string) string {
 	r := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "azure")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(rInt, clientId, clientSecret, location, "azure", "calico")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(rInt, clientId, clientSecret, location, "azure", "azure")
 	return fmt.Sprintf(`
 %s
 

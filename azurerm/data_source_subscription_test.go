@@ -51,19 +51,19 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSubscriptionId(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		attributeName := "subscription_id"
 		subscriptionId := rs.Primary.Attributes[attributeName]
 		client := testAccProvider.Meta().(*ArmClient)
 		if subscriptionId != client.subscriptionId {
-			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", name, attributeName, client.subscriptionId, subscriptionId)
+			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.subscriptionId, subscriptionId)
 		}
 
 		return nil

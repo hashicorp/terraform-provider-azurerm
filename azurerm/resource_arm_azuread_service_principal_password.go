@@ -10,12 +10,19 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmActiveDirectoryServicePrincipalPassword() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Create: resourceArmActiveDirectoryServicePrincipalPasswordCreate,
 		Read:   resourceArmActiveDirectoryServicePrincipalPasswordRead,
 		Delete: resourceArmActiveDirectoryServicePrincipalPasswordDelete,
@@ -107,6 +114,16 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 
 	updatedCredentials := make([]graphrbac.PasswordCredential, 0)
 	if existingCredentials.Value != nil {
+		for _, v := range *existingCredentials.Value {
+			if v.KeyID == nil {
+				continue
+			}
+
+			if *v.KeyID == keyId {
+				return tf.ImportAsExistsError("azurerm_azuread_service_principal_password", fmt.Sprintf("%s/%s", objectId, keyId))
+			}
+		}
+
 		updatedCredentials = *existingCredentials.Value
 	}
 

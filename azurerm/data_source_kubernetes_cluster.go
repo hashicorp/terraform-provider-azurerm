@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,9 +21,9 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"addon_profile": {
 				Type:     schema.TypeList,
@@ -72,6 +73,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -129,6 +135,47 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"kube_admin_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"kube_admin_config_raw": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"kube_config": {
@@ -208,6 +255,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"network_policy": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"service_cidr": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -241,6 +293,10 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"azure_active_directory": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -286,14 +342,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 }
 
 func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	kubernetesClustersClient := meta.(*ArmClient).kubernetesClustersClient
-	client := meta.(*ArmClient)
+	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := client.StopContext
-	resp, err := kubernetesClustersClient.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Managed Kubernetes Cluster %q was not found in Resource Group %q", name, resourceGroup)
@@ -302,7 +357,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -312,7 +367,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ManagedClusterProperties; props != nil {
@@ -341,7 +396,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props.AadProfile)
+		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
 			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
 		}
@@ -349,6 +404,23 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		// adminProfile is only available for RBAC enabled clusters with AAD
+		if props.AadProfile != nil {
+			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
+			if err != nil {
+				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
+			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+				return fmt.Errorf("Error setting `kube_admin_config`: %+v", err)
+			}
+		} else {
+			d.Set("kube_admin_config_raw", "")
+			d.Set("kube_admin_config", []interface{}{})
 		}
 	}
 
@@ -363,30 +435,35 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterAADProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterProperties) []interface{} {
+	rbacEnabled := false
+	if input.EnableRBAC != nil {
+		rbacEnabled = *input.EnableRBAC
 	}
 
-	profile := make(map[string]interface{})
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		output := make(map[string]interface{})
 
-	if input.ClientAppID != nil {
-		profile["client_app_id"] = *input.ClientAppID
-	}
+		if profile.ClientAppID != nil {
+			output["client_app_id"] = *profile.ClientAppID
+		}
 
-	if input.ServerAppID != nil {
-		profile["server_app_id"] = *input.ServerAppID
-	}
+		if profile.ServerAppID != nil {
+			output["server_app_id"] = *profile.ServerAppID
+		}
 
-	if input.TenantID != nil {
-		profile["tenant_id"] = *input.TenantID
+		if profile.TenantID != nil {
+			output["tenant_id"] = *profile.TenantID
+		}
+
+		results = append(results, output)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"azure_active_directory": []interface{}{
-				profile,
-			},
+			"enabled":                rbacEnabled,
+			"azure_active_directory": results,
 		},
 	}
 }
@@ -480,6 +557,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	for _, profile := range *input {
 		agentPoolProfile := make(map[string]interface{})
 
+		if profile.Type != "" {
+			agentPoolProfile["type"] = string(profile.Type)
+		}
+
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
 		}
@@ -541,10 +622,14 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
+
+	if profile.NetworkPolicy != "" {
+		values["network_policy"] = string(profile.NetworkPolicy)
+	}
 
 	if profile.ServiceCidr != nil {
 		values["service_cidr"] = *profile.ServiceCidr

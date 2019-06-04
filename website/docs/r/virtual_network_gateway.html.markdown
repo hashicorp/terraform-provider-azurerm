@@ -39,7 +39,7 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2` and `VpnGw3`
+    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ`
     and depend on the `type` and `vpn_type` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.

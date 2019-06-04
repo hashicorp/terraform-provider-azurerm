@@ -8,22 +8,23 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"golang.org/x/crypto/ssh"
 )
 
 func TestAccAzureRMImage_standaloneImage(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
 	location := testLocation()
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -54,8 +55,90 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMImage_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS"),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				Config:      testAccAzureRMImage_standaloneImage_requiresImport(ri, userName, password, hostName, location),
+				ExpectError: testRequiresImportError("azurerm_image"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -90,7 +173,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 }
 
 func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -125,7 +208,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 }
 
 func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -165,12 +248,11 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 		vmClient := armClient.vmClient
 		ctx := armClient.StopContext
 
-		normalizedLocation := azureRMNormalizeLocation(location)
+		normalizedLocation := azure.NormalizeLocation(location)
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 
-		err := deprovisionVM(userName, password, dnsName, port)
-		if err != nil {
+		if err := deprovisionVM(userName, password, dnsName, port); err != nil {
 			return fmt.Errorf("Bad: Deprovisioning error %+v", err)
 		}
 
@@ -179,13 +261,11 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, vmClient.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		_, err = vmClient.Generalize(ctx, resourceGroup, vmName)
-		if err != nil {
+		if _, err = vmClient.Generalize(ctx, resourceGroup, vmName); err != nil {
 			return fmt.Errorf("Bad: Generalizing error %+v", err)
 		}
 
@@ -203,6 +283,7 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	log.Printf("[INFO] Connecting to %s:%v remote server...", hostName, port)
 
@@ -226,14 +307,14 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
-func testCheckAzureRMImageExists(name string, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]
@@ -357,7 +438,7 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_setup(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -379,11 +460,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -394,7 +475,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -404,9 +485,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -423,7 +504,7 @@ resource "azurerm_virtual_machine" "testsource" {
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
-  vm_size               = "Standard_D1_v2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -450,15 +531,15 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password)
 }
 
-func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string, storageType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -480,11 +561,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -495,7 +576,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -505,9 +586,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -529,7 +610,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -551,7 +632,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -561,6 +642,7 @@ resource "azurerm_image" "test" {
   name                = "accteste"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_resilient      = %t
 
   os_disk {
     os_type  = "Linux"
@@ -570,12 +652,39 @@ resource "azurerm_image" "test" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password, storageType == "ZRS")
+}
+
+func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName string, password string, hostName string, location string) string {
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
+	return fmt.Sprintf(`
+%s
+
+
+resource "azurerm_image" "import" {
+  name                = "${azurerm_image.test.name}"
+  location            = "${azurerm_image.test.location}"
+  resource_group_name = "${azurerm_image.test.resource_group_name}"
+
+  os_disk {
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMImage_customImage_fromVHD_setup(rInt int, userName string, password string, hostName string, location string) string {
@@ -600,11 +709,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -615,7 +724,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -627,7 +736,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -649,7 +758,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -671,7 +780,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -701,11 +810,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -716,7 +825,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -728,7 +837,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -750,7 +859,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -772,7 +881,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -791,7 +900,7 @@ resource "azurerm_image" "testdestination" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -805,7 +914,7 @@ resource "azurerm_network_interface" "testdestination" {
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -836,7 +945,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -866,11 +975,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -881,7 +990,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -896,7 +1005,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -916,7 +1025,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -946,11 +1055,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -961,7 +1070,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -976,7 +1085,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -996,7 +1105,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1008,7 +1117,7 @@ resource "azurerm_image" "testdestination" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   source_virtual_machine_id = "${azurerm_virtual_machine.testsource.id}"
 
-  tags {
+  tags = {
     environment = "acctest"
     cost-center = "ops"
   }
@@ -1022,7 +1131,7 @@ resource "azurerm_network_interface" "testdestination" {
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -1053,7 +1162,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1083,11 +1192,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -1098,7 +1207,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -1110,7 +1219,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -1132,7 +1241,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1154,7 +1263,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1184,11 +1293,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -1199,7 +1308,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -1211,7 +1320,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "Dev"
   }
 }
@@ -1233,7 +1342,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1255,7 +1364,7 @@ resource "azurerm_virtual_machine" "testsource" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
@@ -1274,7 +1383,7 @@ resource "azurerm_image" "testdestination" {
     caching  = "None"
   }
 
-  tags {
+  tags = {
     environment = "Dev"
     cost-center = "Ops"
   }

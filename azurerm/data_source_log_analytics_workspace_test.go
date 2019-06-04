@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_log_analytics_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, location string) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt, location)
+	config := testAccAzureRMLogAnalyticsWorkspace_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 

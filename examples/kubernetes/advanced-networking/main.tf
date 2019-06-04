@@ -1,12 +1,12 @@
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-anw-resources"
   location = "${var.location}"
 }
 
-resource "azurerm_route_table" "test" {
+resource "azurerm_route_table" "example" {
   name                = "${var.prefix}-routetable"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   route {
     name                   = "default"
@@ -16,33 +16,33 @@ resource "azurerm_route_table" "test" {
   }
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.1.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
   address_prefix       = "10.1.0.0/24"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
 
   # this field is deprecated and will be removed in 2.0 - but is required until then
-  route_table_id = "${azurerm_route_table.test.id}"
+  route_table_id = "${azurerm_route_table.example.id}"
 }
 
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+resource "azurerm_subnet_route_table_association" "example" {
+  subnet_id      = "${azurerm_subnet.example.id}"
+  route_table_id = "${azurerm_route_table.example.id}"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "example" {
   name                = "${var.prefix}-anw"
-  location            = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.example.location}"
   dns_prefix          = "${var.prefix}-anw"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   linux_profile {
     admin_username = "acctestuser1"
@@ -60,7 +60,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     os_disk_size_gb = 30
 
     # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = "${azurerm_subnet.example.id}"
   }
 
   service_principal {

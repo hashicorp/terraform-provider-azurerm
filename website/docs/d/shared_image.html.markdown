@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
 
-* `identity` - An `identity` block as defined below.
+* `identifier` - An `identifier` block as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.
 
@@ -57,7 +57,7 @@ The following attributes are exported:
 
 ---
 
-A `identity` block exports the following:
+A `identifier` block exports the following:
 
 * `offer` - The Offer Name for this Shared Image.
 

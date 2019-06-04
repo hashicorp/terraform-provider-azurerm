@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
-sidebar_current: "docs-azurerm-data-source-key-vault-key"
+sidebar_current: "docs-azurerm-datasource-key-vault-key"
 description: |-
   Gets information about an existing Key Vault Key.
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Key.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` Data Source / Resource.
+* `vault_uri` - (Required) Specifies the ID of the Key Vault Key Vault instance where the Key resides, available on the `azurerm_key_vault` Data Source / Resource.
 
 ## Attributes Reference
 

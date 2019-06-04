@@ -38,11 +38,15 @@ The following attributes are exported:
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
-* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below.
+* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 
@@ -76,6 +80,8 @@ A `addon_profile` block exports the following:
 
 A `agent_pool_profile` block exports the following:
 
+* `type` - The type of the Agent Pool.
+
 * `count` - The number of Agents (VM's) in the Pool.
 
 * `max_pods` - The maximum number of pods that can run on each agent.
@@ -90,7 +96,6 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-
 ---
 
 A `azure_active_directory` block exports the following:
@@ -100,6 +105,7 @@ A `azure_active_directory` block exports the following:
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
+
 ---
 
 A `http_application_routing` block exports the following:
@@ -110,7 +116,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-A `kube_config` block exports the following:
+The `kube_admin_config` and `kube_config` blocks exports the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -143,7 +149,7 @@ A `linux_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
-* `ssh_key` - One or more `ssh_key` blocks as defined below.
+* `ssh_key` - An `ssh_key` block as defined below.
 
 ---
 
@@ -154,6 +160,8 @@ A `network_profile` block exports the following:
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
+
+* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -172,6 +180,8 @@ A `oms_agent` block exports the following:
 A `role_based_access_control` block exports the following:
 
 * `azure_active_directory` - A `azure_active_directory` block as documented above.
+
+* `enabled` - Is Role Based Access Control enabled?
 
 ---
 
