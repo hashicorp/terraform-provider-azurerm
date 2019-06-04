@@ -64,7 +64,7 @@ import (
 	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
+	servicefabricSvc "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
@@ -95,6 +95,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -148,6 +149,7 @@ type ArmClient struct {
 	search           *search.Client
 	securityCenter   *securitycenter.Client
 	servicebus       *servicebus.Client
+	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
 
 	// TODO: refactor
@@ -274,9 +276,6 @@ type ArmClient struct {
 	resourcesClient       resources.GroupClient
 	resourceGroupsClient  resources.GroupsGroupClient
 	subscriptionsClient   subscriptions.GroupClient
-
-	// Service Fabric
-	serviceFabricClustersClient servicefabric.ClustersClient
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -1314,9 +1313,12 @@ func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	clustersClient := servicefabric.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	clustersClient := servicefabricSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&clustersClient.Client, auth)
-	c.serviceFabricClustersClient = clustersClient
+
+	c.serviceFabric = &servicefabric.Client{
+		ClustersClient: clustersClient,
+	}
 }
 
 func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
