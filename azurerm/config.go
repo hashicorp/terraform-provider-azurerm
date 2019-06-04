@@ -48,7 +48,7 @@ import (
 	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
+	managementgroupsSvc "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -84,6 +84,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -138,6 +139,7 @@ type ArmClient struct {
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	logAnalytics     *loganalytics.Client
+	managementGroups *managementgroup.Client
 	media            *media.Client
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
@@ -228,10 +230,6 @@ type ArmClient struct {
 
 	// Logic
 	logicWorkflowsClient logic.WorkflowsClient
-
-	// Management Groups
-	managementGroupsClient             managementgroups.Client
-	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -905,6 +903,7 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&controllersClient.Client, auth)
+
 	c.devSpace = &devspace.Client{
 		ControllersClient: controllersClient,
 	}
@@ -996,6 +995,19 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 	workflowsClient := logic.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&workflowsClient.Client, auth)
 	c.logicWorkflowsClient = workflowsClient
+}
+
+func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
+	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
+	c.configureClient(&groupsClient.Client, auth)
+
+	subscriptionClient := managementgroupsSvc.NewSubscriptionsClientWithBaseURI(endpoint)
+	c.configureClient(&subscriptionClient.Client, auth)
+
+	c.managementGroups = &managementgroup.Client{
+		GroupsClient:       groupsClient,
+		SubscriptionClient: subscriptionClient,
+	}
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1401,16 +1413,6 @@ func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth 
 		DefinitionsClient:    definitionsClient,
 		SetDefinitionsClient: setDefinitionsClient,
 	}
-}
-
-func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
-	managementGroupsClient := managementgroups.NewClientWithBaseURI(endpoint)
-	c.configureClient(&managementGroupsClient.Client, auth)
-	c.managementGroupsClient = managementGroupsClient
-
-	managementGroupsSubscriptionClient := managementgroups.NewSubscriptionsClientWithBaseURI(endpoint)
-	c.configureClient(&managementGroupsSubscriptionClient.Client, auth)
-	c.managementGroupsSubscriptionClient = managementGroupsSubscriptionClient
 }
 
 var (
