@@ -26,7 +26,7 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	devtestlabsSvc "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -78,6 +78,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
@@ -135,6 +136,7 @@ type ArmClient struct {
 	databricks       *databricks.Client
 	dataFactory      *datafactory.Client
 	devSpace         *devspace.Client
+	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
@@ -189,12 +191,6 @@ type ArmClient struct {
 	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
 	vmImageClient              compute.VirtualMachineImagesClient
 	vmClient                   compute.VirtualMachinesClient
-
-	// DevTestLabs
-	devTestLabsClient            dtl.LabsClient
-	devTestPoliciesClient        dtl.PoliciesClient
-	devTestVirtualMachinesClient dtl.VirtualMachinesClient
-	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
 	// Databases
 	mariadbDatabasesClient                   mariadb.DatabasesClient
@@ -879,21 +875,24 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 }
 
 func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
+	labsClient := devtestlabsSvc.NewLabsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&labsClient.Client, auth)
-	c.devTestLabsClient = labsClient
 
-	devTestPoliciesClient := dtl.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	devTestPoliciesClient := devtestlabsSvc.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestPoliciesClient.Client, auth)
-	c.devTestPoliciesClient = devTestPoliciesClient
 
-	devTestVirtualMachinesClient := dtl.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
+	devTestVirtualMachinesClient := devtestlabsSvc.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualMachinesClient.Client, auth)
-	c.devTestVirtualMachinesClient = devTestVirtualMachinesClient
 
-	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	devTestVirtualNetworksClient := devtestlabsSvc.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
-	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
+
+	c.devTestLabs = &devtestlabs.Client{
+		LabsClient:            labsClient,
+		PoliciesClient:        devTestPoliciesClient,
+		VirtualMachinesClient: devTestVirtualMachinesClient,
+		VirtualNetworksClient: devTestVirtualNetworksClient,
+	}
 }
 
 func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
