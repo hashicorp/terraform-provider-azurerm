@@ -53,8 +53,8 @@ import (
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
+	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
@@ -87,6 +87,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
@@ -137,6 +138,7 @@ type ArmClient struct {
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
+	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
 	scheduler        *scheduler.Client
@@ -265,11 +267,6 @@ type ArmClient struct {
 	vnetClient                      network.VirtualNetworksClient
 	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
 	watcherClient                   network.WatchersClient
-
-	// Recovery Services
-	recoveryServicesVaultsClient             recoveryservices.VaultsClient
-	recoveryServicesProtectedItemsClient     backup.ProtectedItemsGroupClient
-	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
@@ -1180,17 +1177,20 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 }
 
 func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
+	vaultsClient := recoveryservicesSvc.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
-	c.recoveryServicesVaultsClient = vaultsClient
 
-	protectedItemsClient := backup.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
+	protectedItemsClient := backupSvc.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&protectedItemsClient.Client, auth)
-	c.recoveryServicesProtectedItemsClient = protectedItemsClient
 
-	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	protectionPoliciesClient := backupSvc.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&protectionPoliciesClient.Client, auth)
-	c.recoveryServicesProtectionPoliciesClient = protectionPoliciesClient
+
+	c.recoveryServices = &recoveryservices.Client{
+		ProtectedItemsClient:     protectedItemsClient,
+		ProtectionPoliciesClient: protectionPoliciesClient,
+		VaultsClient:             vaultsClient,
+	}
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

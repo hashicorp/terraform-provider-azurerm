@@ -125,7 +125,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectedItemsClient
+		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
@@ -172,7 +172,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectedItemsClient
+		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
