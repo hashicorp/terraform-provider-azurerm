@@ -1,6 +1,6 @@
 package apimgmt
 
-import "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+import "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 
 type Client struct {
 	ApiClient                  apimanagement.APIClient

@@ -70,6 +70,34 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAPIManagementSubscription_deprecated(t *testing.T) {
+	resourceName := "azurerm_api_management_subscription.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAPIManagementSubscription_deprecated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAPIManagementSubscriptionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "subscription_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 	resourceName := "azurerm_api_management_subscription.test"
 	ri := tf.AccRandTimeInt()
@@ -201,7 +229,7 @@ resource "azurerm_api_management_subscription" "test" {
   resource_group_name = "${azurerm_api_management.test.resource_group_name}"
   api_management_name = "${azurerm_api_management.test.name}"
   user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  scope               = "${azurerm_api_management_product.test.id}"
   display_name        = "Butter Parser API Enterprise Edition"
 }
 `, template)
@@ -216,8 +244,23 @@ resource "azurerm_api_management_subscription" "import" {
   resource_group_name = "${azurerm_api_management_subscription.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_subscription.test.api_management_name}"
   user_id             = "${azurerm_api_management_subscription.test.user_id}"
-  product_id          = "${azurerm_api_management_subscription.test.product_id}"
+  scope               = "${azurerm_api_management_subscription.test.scope}"
   display_name        = "${azurerm_api_management_subscription.test.display_name}"
+}
+`, template)
+}
+
+func testAccAzureRMAPIManagementSubscription_deprecated(rInt int, location string) string {
+	template := testAccAzureRMAPIManagementSubscription_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_subscription" "test" {
+  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  user_id             = "${azurerm_api_management_user.test.id}"
+  product_id          = "${azurerm_api_management_product.test.id}"
+  display_name        = "Butter Parser API Enterprise Edition"
 }
 `, template)
 }
@@ -231,7 +274,7 @@ resource "azurerm_api_management_subscription" "test" {
   resource_group_name = "${azurerm_api_management.test.resource_group_name}"
   api_management_name = "${azurerm_api_management.test.name}"
   user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  scope               = "${azurerm_api_management_product.test.id}"
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "%s"
 }
@@ -247,7 +290,7 @@ resource "azurerm_api_management_subscription" "test" {
   resource_group_name = "${azurerm_api_management.test.resource_group_name}"
   api_management_name = "${azurerm_api_management.test.name}"
   user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  scope               = "${azurerm_api_management_product.test.id}"
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"
 }

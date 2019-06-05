@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -214,9 +214,9 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-				ContentFormat: apimanagement.ContentFormat(contentFormat),
-				ContentValue:  utils.String(contentValue),
-				Path:          utils.String(path),
+				Format: apimanagement.ContentFormat(contentFormat),
+				Value:  utils.String(contentValue),
+				Path:   utils.String(path),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
