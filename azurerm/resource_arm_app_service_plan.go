@@ -118,6 +118,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
+			/// AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -138,6 +139,13 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"properties.0.reserved"},
+			},
+
+			"maximum_elastic_worker_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"maximum_number_of_workers": {
@@ -216,6 +224,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if v, exists := d.GetOkExists("maximum_elastic_worker_count"); exists {
+		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v.(int)))
+	}
+
 	if reservedExists {
 		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
@@ -286,6 +298,10 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+		}
+
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
 		}
 
 		d.Set("per_site_scaling", props.PerSiteScaling)
