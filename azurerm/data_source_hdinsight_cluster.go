@@ -17,9 +17,9 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaHDInsightDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"cluster_version": {
 				Type:     schema.TypeString,
@@ -84,8 +84,8 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 }
 
 func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsightClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsightConfigurationsClient
+	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -112,7 +112,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.Properties; props != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,9 +30,9 @@ func resourceArmEventGridDomain() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tagsSchema(),
 
@@ -123,7 +124,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 }
 
 func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridDomainsClient
+	client := meta.(*ArmClient).eventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -142,7 +143,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
@@ -181,7 +182,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridDomainsClient
+	client := meta.(*ArmClient).eventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -205,7 +206,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.DomainProperties; props != nil {
@@ -236,7 +237,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridDomainsClient
+	client := meta.(*ArmClient).eventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

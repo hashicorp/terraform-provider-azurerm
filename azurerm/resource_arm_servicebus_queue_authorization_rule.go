@@ -44,7 +44,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
 		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,
@@ -52,7 +52,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue Authorization Rule creation.")
@@ -101,7 +101,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -150,7 +150,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

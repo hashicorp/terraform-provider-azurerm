@@ -112,7 +112,7 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).relayNamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).relay.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -129,7 +129,7 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).relayNamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).relay.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -12,7 +13,7 @@ func dataSourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmVirtualMachineRead,
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name": {
 				Type:         schema.TypeString,

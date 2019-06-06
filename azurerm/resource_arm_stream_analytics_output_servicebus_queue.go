@@ -38,7 +38,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"queue_name": {
 				Type:         schema.TypeString,

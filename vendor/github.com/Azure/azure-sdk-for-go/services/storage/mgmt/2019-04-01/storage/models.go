@@ -27,7 +27,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 
 // AccessTier enumerates the values for access tier.
 type AccessTier string
@@ -42,6 +42,19 @@ const (
 // PossibleAccessTierValues returns an array of possible values for the AccessTier const type.
 func PossibleAccessTierValues() []AccessTier {
 	return []AccessTier{Cool, Hot}
+}
+
+// AccountExpand enumerates the values for account expand.
+type AccountExpand string
+
+const (
+	// AccountExpandGeoReplicationStats ...
+	AccountExpandGeoReplicationStats AccountExpand = "geoReplicationStats"
+)
+
+// PossibleAccountExpandValues returns an array of possible values for the AccountExpand const type.
+func PossibleAccountExpandValues() []AccountExpand {
+	return []AccountExpand{AccountExpandGeoReplicationStats}
 }
 
 // AccountStatus enumerates the values for account status.
@@ -127,6 +140,23 @@ func PossibleDefaultActionValues() []DefaultAction {
 	return []DefaultAction{DefaultActionAllow, DefaultActionDeny}
 }
 
+// GeoReplicationStatus enumerates the values for geo replication status.
+type GeoReplicationStatus string
+
+const (
+	// GeoReplicationStatusBootstrap ...
+	GeoReplicationStatusBootstrap GeoReplicationStatus = "Bootstrap"
+	// GeoReplicationStatusLive ...
+	GeoReplicationStatusLive GeoReplicationStatus = "Live"
+	// GeoReplicationStatusUnavailable ...
+	GeoReplicationStatusUnavailable GeoReplicationStatus = "Unavailable"
+)
+
+// PossibleGeoReplicationStatusValues returns an array of possible values for the GeoReplicationStatus const type.
+func PossibleGeoReplicationStatusValues() []GeoReplicationStatus {
+	return []GeoReplicationStatus{GeoReplicationStatusBootstrap, GeoReplicationStatusLive, GeoReplicationStatusUnavailable}
+}
+
 // HTTPProtocol enumerates the values for http protocol.
 type HTTPProtocol string
 
@@ -210,6 +240,10 @@ type Kind string
 const (
 	// BlobStorage ...
 	BlobStorage Kind = "BlobStorage"
+	// BlockBlobStorage ...
+	BlockBlobStorage Kind = "BlockBlobStorage"
+	// FileStorage ...
+	FileStorage Kind = "FileStorage"
 	// Storage ...
 	Storage Kind = "Storage"
 	// StorageV2 ...
@@ -218,7 +252,7 @@ const (
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{BlobStorage, Storage, StorageV2}
+	return []Kind{BlobStorage, BlockBlobStorage, FileStorage, Storage, StorageV2}
 }
 
 // LeaseDuration enumerates the values for lease duration.
@@ -424,19 +458,25 @@ type SkuName string
 const (
 	// PremiumLRS ...
 	PremiumLRS SkuName = "Premium_LRS"
+	// PremiumZRS ...
+	PremiumZRS SkuName = "Premium_ZRS"
 	// StandardGRS ...
 	StandardGRS SkuName = "Standard_GRS"
+	// StandardGZRS ...
+	StandardGZRS SkuName = "Standard_GZRS"
 	// StandardLRS ...
 	StandardLRS SkuName = "Standard_LRS"
 	// StandardRAGRS ...
 	StandardRAGRS SkuName = "Standard_RAGRS"
+	// StandardRAGZRS ...
+	StandardRAGZRS SkuName = "Standard_RAGZRS"
 	// StandardZRS ...
 	StandardZRS SkuName = "Standard_ZRS"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{PremiumLRS, StandardGRS, StandardLRS, StandardRAGRS, StandardZRS}
+	return []SkuName{PremiumLRS, PremiumZRS, StandardGRS, StandardGZRS, StandardLRS, StandardRAGRS, StandardRAGZRS, StandardZRS}
 }
 
 // SkuTier enumerates the values for sku tier.
@@ -503,7 +543,7 @@ type Account struct {
 	autorest.Response `json:"-"`
 	// Sku - READ-ONLY; Gets the SKU.
 	Sku *Sku `json:"sku,omitempty"`
-	// Kind - READ-ONLY; Gets the Kind. Possible values include: 'Storage', 'StorageV2', 'BlobStorage'
+	// Kind - READ-ONLY; Gets the Kind. Possible values include: 'Storage', 'StorageV2', 'BlobStorage', 'FileStorage', 'BlockBlobStorage'
 	Kind Kind `json:"kind,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
@@ -646,9 +686,9 @@ type AccountCheckNameAvailabilityParameters struct {
 
 // AccountCreateParameters the parameters used when creating a storage account.
 type AccountCreateParameters struct {
-	// Sku - Required. Gets or sets the sku name.
+	// Sku - Required. Gets or sets the SKU name.
 	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Required. Indicates the type of storage account. Possible values include: 'Storage', 'StorageV2', 'BlobStorage'
+	// Kind - Required. Indicates the type of storage account. Possible values include: 'Storage', 'StorageV2', 'BlobStorage', 'FileStorage', 'BlockBlobStorage'
 	Kind Kind `json:"kind,omitempty"`
 	// Location - Required. Gets or sets the location of the resource. This will be one of the supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.). The geo region of a resource cannot be changed once it is created, but if an identical geo region is specified on update, the request will succeed.
 	Location *string `json:"location,omitempty"`
@@ -803,12 +843,18 @@ type AccountProperties struct {
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// AccessTier - READ-ONLY; Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'Hot', 'Cool'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
+	// EnableAzureFilesAadIntegration - Enables Azure Files AAD Integration for SMB if sets to true.
+	EnableAzureFilesAadIntegration *bool `json:"azureFilesAadIntegration,omitempty"`
 	// EnableHTTPSTrafficOnly - Allows https traffic only to storage service if sets to true.
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// NetworkRuleSet - READ-ONLY; Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
+	// GeoReplicationStats - READ-ONLY; Geo Replication Stats
+	GeoReplicationStats *GeoReplicationStats `json:"geoReplicationStats,omitempty"`
+	// FailoverInProgress - READ-ONLY; If the failover is in progress, the value will be true, otherwise, it will be null.
+	FailoverInProgress *bool `json:"failoverInProgress,omitempty"`
 }
 
 // AccountPropertiesCreateParameters the parameters used to create the storage account.
@@ -821,6 +867,8 @@ type AccountPropertiesCreateParameters struct {
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
 	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'Hot', 'Cool'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
+	// EnableAzureFilesAadIntegration - Enables Azure Files AAD Integration for SMB if sets to true.
+	EnableAzureFilesAadIntegration *bool `json:"azureFilesAadIntegration,omitempty"`
 	// EnableHTTPSTrafficOnly - Allows https traffic only to storage service if sets to true.
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
@@ -835,6 +883,8 @@ type AccountPropertiesUpdateParameters struct {
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'Hot', 'Cool'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
+	// EnableAzureFilesAadIntegration - Enables Azure Files AAD Integration for SMB if sets to true.
+	EnableAzureFilesAadIntegration *bool `json:"azureFilesAadIntegration,omitempty"`
 	// EnableHTTPSTrafficOnly - Allows https traffic only to storage service if sets to true.
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// NetworkRuleSet - Network rule set
@@ -896,10 +946,33 @@ func (future *AccountsCreateFuture) Result(client AccountsClient) (a Account, er
 	return
 }
 
+// AccountsFailoverFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type AccountsFailoverFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AccountsFailoverFuture) Result(client AccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.AccountsFailoverFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("storage.AccountsFailoverFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // AccountUpdateParameters the parameters that can be provided when updating the storage account
 // properties.
 type AccountUpdateParameters struct {
-	// Sku - Gets or sets the SKU name. Note that the SKU name cannot be updated to Standard_ZRS or Premium_LRS, nor can accounts of those sku names be updated to any other value.
+	// Sku - Gets or sets the SKU name. Note that the SKU name cannot be updated to Standard_ZRS, Premium_LRS or Premium_ZRS, nor can accounts of those SKU names be updated to any other value.
 	Sku *Sku `json:"sku,omitempty"`
 	// Tags - Gets or sets a list of key value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key no greater in length than 128 characters and a value no greater in length than 256 characters.
 	Tags map[string]*string `json:"tags"`
@@ -907,7 +980,7 @@ type AccountUpdateParameters struct {
 	Identity *Identity `json:"identity,omitempty"`
 	// AccountPropertiesUpdateParameters - The parameters used when updating a storage account.
 	*AccountPropertiesUpdateParameters `json:"properties,omitempty"`
-	// Kind - Optional. Indicates the type of storage account. Currently only StorageV2 value supported by server. Possible values include: 'Storage', 'StorageV2', 'BlobStorage'
+	// Kind - Optional. Indicates the type of storage account. Currently only StorageV2 value supported by server. Possible values include: 'Storage', 'StorageV2', 'BlobStorage', 'FileStorage', 'BlockBlobStorage'
 	Kind Kind `json:"kind,omitempty"`
 }
 
@@ -1088,6 +1161,91 @@ func (bc *BlobContainer) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// BlobServiceProperties the properties of a storage account’s Blob service.
+type BlobServiceProperties struct {
+	autorest.Response `json:"-"`
+	// BlobServicePropertiesProperties - The properties of a storage account’s Blob service.
+	*BlobServicePropertiesProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobServiceProperties.
+func (bsp BlobServiceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bsp.BlobServicePropertiesProperties != nil {
+		objectMap["properties"] = bsp.BlobServicePropertiesProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for BlobServiceProperties struct.
+func (bsp *BlobServiceProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var blobServiceProperties BlobServicePropertiesProperties
+				err = json.Unmarshal(*v, &blobServiceProperties)
+				if err != nil {
+					return err
+				}
+				bsp.BlobServicePropertiesProperties = &blobServiceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				bsp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				bsp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				bsp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// BlobServicePropertiesProperties the properties of a storage account’s Blob service.
+type BlobServicePropertiesProperties struct {
+	// Cors - Specifies CORS rules for the Blob service. You can include up to five CorsRule elements in the request. If no CorsRule elements are included in the request body, all CORS rules will be deleted, and CORS will be disabled for the Blob service.
+	Cors *CorsRules `json:"cors,omitempty"`
+	// DefaultServiceVersion - DefaultServiceVersion indicates the default version to use for requests to the Blob service if an incoming request’s version is not specified. Possible values include version 2008-10-27 and all more recent versions.
+	DefaultServiceVersion *string `json:"defaultServiceVersion,omitempty"`
+	// DeleteRetentionPolicy - The blob service properties for soft delete.
+	DeleteRetentionPolicy *DeleteRetentionPolicy `json:"deleteRetentionPolicy,omitempty"`
+	// AutomaticSnapshotPolicyEnabled - Automatic Snapshot is enabled if set to true.
+	AutomaticSnapshotPolicyEnabled *bool `json:"automaticSnapshotPolicyEnabled,omitempty"`
+}
+
 // CheckNameAvailabilityResult the CheckNameAvailability operation response.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
@@ -1135,12 +1293,52 @@ func (cp ContainerProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// CorsRule specifies a CORS rule for the Blob service.
+type CorsRule struct {
+	// AllowedOrigins - Required if CorsRule element is present. A list of origin domains that will be allowed via CORS, or "*" to allow all domains
+	AllowedOrigins *[]string `json:"allowedOrigins,omitempty"`
+	// AllowedMethods - Required if CorsRule element is present. A list of HTTP methods that are allowed to be executed by the origin.
+	AllowedMethods *[]string `json:"allowedMethods,omitempty"`
+	// MaxAgeInSeconds - Required if CorsRule element is present. The number of seconds that the client/browser should cache a preflight response.
+	MaxAgeInSeconds *int32 `json:"maxAgeInSeconds,omitempty"`
+	// ExposedHeaders - Required if CorsRule element is present. A list of response headers to expose to CORS clients.
+	ExposedHeaders *[]string `json:"exposedHeaders,omitempty"`
+	// AllowedHeaders - Required if CorsRule element is present. A list of headers allowed to be part of the cross-origin request.
+	AllowedHeaders *[]string `json:"allowedHeaders,omitempty"`
+}
+
+// CorsRules sets the CORS rules. You can include up to five CorsRule elements in the request.
+type CorsRules struct {
+	// CorsRules - The List of CORS rules. You can include up to five CorsRule elements in the request.
+	CorsRules *[]CorsRule `json:"corsRules,omitempty"`
+}
+
 // CustomDomain the custom domain assigned to this storage account. This can be set via Update.
 type CustomDomain struct {
 	// Name - Gets or sets the custom domain name assigned to the storage account. Name is the CNAME source.
 	Name *string `json:"name,omitempty"`
 	// UseSubDomainName - Indicates whether indirect CName validation is enabled. Default value is false. This should only be set on updates.
 	UseSubDomainName *bool `json:"useSubDomainName,omitempty"`
+}
+
+// DateAfterCreation object to define the number of days after creation.
+type DateAfterCreation struct {
+	// DaysAfterCreationGreaterThan - Integer value indicating the age in days after creation
+	DaysAfterCreationGreaterThan *int32 `json:"daysAfterCreationGreaterThan,omitempty"`
+}
+
+// DateAfterModification object to define the number of days after last modification.
+type DateAfterModification struct {
+	// DaysAfterModificationGreaterThan - Integer value indicating the age in days after last modification
+	DaysAfterModificationGreaterThan *int32 `json:"daysAfterModificationGreaterThan,omitempty"`
+}
+
+// DeleteRetentionPolicy the blob service properties for soft delete.
+type DeleteRetentionPolicy struct {
+	// Enabled - Indicates whether DeleteRetentionPolicy is enabled for the Blob service.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Days - Indicates the number of days that the deleted blob should be retained. The minimum specified value can be 1 and the maximum value can be 365.
+	Days *int32 `json:"days,omitempty"`
 }
 
 // Dimension dimension of blobs, possibly be blob type or access tier.
@@ -1196,6 +1394,17 @@ type Endpoints struct {
 	Web *string `json:"web,omitempty"`
 	// Dfs - READ-ONLY; Gets the dfs endpoint.
 	Dfs *string `json:"dfs,omitempty"`
+}
+
+// GeoReplicationStats statistics related to replication for storage account's Blob, Table, Queue and File
+// services. It is only available when geo-redundant replication is enabled for the storage account.
+type GeoReplicationStats struct {
+	// Status - READ-ONLY; The status of the secondary location. Possible values are: - Live: Indicates that the secondary location is active and operational. - Bootstrap: Indicates initial synchronization from the primary location to the secondary location is in progress.This typically occurs when replication is first enabled. - Unavailable: Indicates that the secondary location is temporarily unavailable. Possible values include: 'GeoReplicationStatusLive', 'GeoReplicationStatusBootstrap', 'GeoReplicationStatusUnavailable'
+	Status GeoReplicationStatus `json:"status,omitempty"`
+	// LastSyncTime - READ-ONLY; All primary writes preceding this UTC date/time value are guaranteed to be available for read operations. Primary writes following this point in time may or may not be available for reads. Element may be default value if value of LastSyncTime is not available, this can happen if secondary is offline or we are in bootstrap.
+	LastSyncTime *date.Time `json:"lastSyncTime,omitempty"`
+	// CanFailover - READ-ONLY; A boolean flag which indicates whether or not account failover is supported for the account.
+	CanFailover *bool `json:"canFailover,omitempty"`
 }
 
 // Identity identity for the resource.
@@ -1510,11 +1719,14 @@ func (lci *ListContainerItem) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ListContainerItems the list of blob containers.
+// ListContainerItems response schema. Contains list of blobs returned, and if paging is requested or
+// required, a URL to next page of containers.
 type ListContainerItems struct {
 	autorest.Response `json:"-"`
-	// Value - The list of blob containers.
+	// Value - READ-ONLY; List of blobs containers returned.
 	Value *[]ListContainerItem `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Request URL that can be used to query next page of containers. Returned when total number of requested containers exceed maximum page size.
+	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // ListServiceSasResponse the List service SAS credentials operation response.
@@ -1522,6 +1734,145 @@ type ListServiceSasResponse struct {
 	autorest.Response `json:"-"`
 	// ServiceSasToken - READ-ONLY; List service SAS credentials of specific resource.
 	ServiceSasToken *string `json:"serviceSasToken,omitempty"`
+}
+
+// ManagementPolicy the Get Storage Account ManagementPolicies operation response.
+type ManagementPolicy struct {
+	autorest.Response `json:"-"`
+	// ManagementPolicyProperties - READ-ONLY; Returns the Storage Account Data Policies Rules.
+	*ManagementPolicyProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagementPolicy.
+func (mp ManagementPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagementPolicy struct.
+func (mp *ManagementPolicy) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managementPolicyProperties ManagementPolicyProperties
+				err = json.Unmarshal(*v, &managementPolicyProperties)
+				if err != nil {
+					return err
+				}
+				mp.ManagementPolicyProperties = &managementPolicyProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagementPolicyAction actions are applied to the filtered blobs when the execution condition is met.
+type ManagementPolicyAction struct {
+	// BaseBlob - The management policy action for base blob
+	BaseBlob *ManagementPolicyBaseBlob `json:"baseBlob,omitempty"`
+	// Snapshot - The management policy action for snapshot
+	Snapshot *ManagementPolicySnapShot `json:"snapshot,omitempty"`
+}
+
+// ManagementPolicyBaseBlob management policy action for base blob.
+type ManagementPolicyBaseBlob struct {
+	// TierToCool - The function to tier blobs to cool storage. Support blobs currently at Hot tier
+	TierToCool *DateAfterModification `json:"tierToCool,omitempty"`
+	// TierToArchive - The function to tier blobs to archive storage. Support blobs currently at Hot or Cool tier
+	TierToArchive *DateAfterModification `json:"tierToArchive,omitempty"`
+	// Delete - The function to delete the blob
+	Delete *DateAfterModification `json:"delete,omitempty"`
+}
+
+// ManagementPolicyDefinition an object that defines the Lifecycle rule. Each definition is made up with a
+// filters set and an actions set.
+type ManagementPolicyDefinition struct {
+	// Actions - An object that defines the action set.
+	Actions *ManagementPolicyAction `json:"actions,omitempty"`
+	// Filters - An object that defines the filter set.
+	Filters *ManagementPolicyFilter `json:"filters,omitempty"`
+}
+
+// ManagementPolicyFilter filters limit rule actions to a subset of blobs within the storage account. If
+// multiple filters are defined, a logical AND is performed on all filters.
+type ManagementPolicyFilter struct {
+	// PrefixMatch - An array of strings for prefixes to be match.
+	PrefixMatch *[]string `json:"prefixMatch,omitempty"`
+	// BlobTypes - An array of predefined enum values. Only blockBlob is supported.
+	BlobTypes *[]string `json:"blobTypes,omitempty"`
+}
+
+// ManagementPolicyProperties the Storage Account ManagementPolicy properties.
+type ManagementPolicyProperties struct {
+	// LastModifiedTime - READ-ONLY; Returns the date and time the ManagementPolicies was last modified.
+	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
+	// Policy - The Storage Account ManagementPolicy, in JSON format. See more details in: https://docs.microsoft.com/en-us/azure/storage/common/storage-lifecycle-managment-concepts.
+	Policy *ManagementPolicySchema `json:"policy,omitempty"`
+}
+
+// ManagementPolicyRule an object that wraps the Lifecycle rule. Each rule is uniquely defined by name.
+type ManagementPolicyRule struct {
+	// Enabled - Rule is enabled if set to true.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Name - A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
+	Name *string `json:"name,omitempty"`
+	// Type - The valid value is Lifecycle
+	Type *string `json:"type,omitempty"`
+	// Definition - An object that defines the Lifecycle rule.
+	Definition *ManagementPolicyDefinition `json:"definition,omitempty"`
+}
+
+// ManagementPolicySchema the Storage Account ManagementPolicies Rules. See more details in:
+// https://docs.microsoft.com/en-us/azure/storage/common/storage-lifecycle-managment-concepts.
+type ManagementPolicySchema struct {
+	// Rules - The Storage Account ManagementPolicies Rules. See more details in: https://docs.microsoft.com/en-us/azure/storage/common/storage-lifecycle-managment-concepts.
+	Rules *[]ManagementPolicyRule `json:"rules,omitempty"`
+}
+
+// ManagementPolicySnapShot management policy action for snapshot.
+type ManagementPolicySnapShot struct {
+	// Delete - The function to delete the blob snapshot
+	Delete *DateAfterCreation `json:"delete,omitempty"`
 }
 
 // MetricSpecification metric specification of operation.
@@ -1744,26 +2095,26 @@ type ServiceSpecification struct {
 
 // Sku the SKU of the storage account.
 type Sku struct {
-	// Name - Gets or sets the sku name. Required for account creation; optional for update. Note that in older versions, sku name was called accountType. Possible values include: 'StandardLRS', 'StandardGRS', 'StandardRAGRS', 'StandardZRS', 'PremiumLRS'
+	// Name - Gets or sets the SKU name. Required for account creation; optional for update. Note that in older versions, SKU name was called accountType. Possible values include: 'StandardLRS', 'StandardGRS', 'StandardRAGRS', 'StandardZRS', 'PremiumLRS', 'PremiumZRS', 'StandardGZRS', 'StandardRAGZRS'
 	Name SkuName `json:"name,omitempty"`
-	// Tier - READ-ONLY; Gets the sku tier. This is based on the SKU name. Possible values include: 'Standard', 'Premium'
+	// Tier - READ-ONLY; Gets the SKU tier. This is based on the SKU name. Possible values include: 'Standard', 'Premium'
 	Tier SkuTier `json:"tier,omitempty"`
 	// ResourceType - READ-ONLY; The type of the resource, usually it is 'storageAccounts'.
 	ResourceType *string `json:"resourceType,omitempty"`
-	// Kind - READ-ONLY; Indicates the type of storage account. Possible values include: 'Storage', 'StorageV2', 'BlobStorage'
+	// Kind - READ-ONLY; Indicates the type of storage account. Possible values include: 'Storage', 'StorageV2', 'BlobStorage', 'FileStorage', 'BlockBlobStorage'
 	Kind Kind `json:"kind,omitempty"`
 	// Locations - READ-ONLY; The set of locations that the SKU is available. This will be supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.).
 	Locations *[]string `json:"locations,omitempty"`
-	// Capabilities - READ-ONLY; The capability information in the specified sku, including file encryption, network acls, change notification, etc.
+	// Capabilities - READ-ONLY; The capability information in the specified SKU, including file encryption, network ACLs, change notification, etc.
 	Capabilities *[]SKUCapability `json:"capabilities,omitempty"`
 	// Restrictions - The restrictions because of which SKU cannot be used. This is empty if there are no restrictions.
 	Restrictions *[]Restriction `json:"restrictions,omitempty"`
 }
 
-// SKUCapability the capability information in the specified sku, including file encryption, network acls,
+// SKUCapability the capability information in the specified SKU, including file encryption, network ACLs,
 // change notification, etc.
 type SKUCapability struct {
-	// Name - READ-ONLY; The name of capability, The capability information in the specified sku, including file encryption, network acls, change notification, etc.
+	// Name - READ-ONLY; The name of capability, The capability information in the specified SKU, including file encryption, network ACLs, change notification, etc.
 	Name *string `json:"name,omitempty"`
 	// Value - READ-ONLY; A string value to indicate states of given capability. Possibly 'true' or 'false'.
 	Value *string `json:"value,omitempty"`

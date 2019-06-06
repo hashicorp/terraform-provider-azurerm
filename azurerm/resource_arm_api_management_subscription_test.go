@@ -145,7 +145,7 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementSubscriptionsClient
+	client := testAccProvider.Meta().(*ArmClient).apimgmt.SubscriptionsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_subscription" {
 			continue
@@ -178,14 +178,14 @@ func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementSubscriptionsClient
+		client := testAccProvider.Meta().(*ArmClient).apimgmt.SubscriptionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Subscription %q (API Management Service %q / Resource Group %q) does not exist", subscriptionId, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementSubscriptionsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apimgmt.SubscriptionsClient: %+v", err)
 		}
 
 		return nil

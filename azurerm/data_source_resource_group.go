@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -12,8 +13,8 @@ func dataSourceArmResourceGroup() *schema.Resource {
 		Read: dataSourceArmResourceGroupRead,
 
 		Schema: map[string]*schema.Schema{
-			"name":     resourceGroupNameForDataSourceSchema(),
-			"location": locationForDataSourceSchema(),
+			"name":     azure.SchemaResourceGroupNameForDataSource(),
+			"location": azure.SchemaLocationForDataSource(),
 			"tags":     tagsForDataSourceSchema(),
 		},
 	}

@@ -36,7 +36,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
 				Type:     schema.TypeSet,
@@ -183,7 +183,7 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActivityLogAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActivityLogAlert: &insights.ActivityLogAlert{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),

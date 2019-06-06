@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
@@ -51,7 +52,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"job_collection_name": {
 				Type:         schema.TypeString,
@@ -462,7 +463,7 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface
 }
 
 func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -519,7 +520,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -613,7 +614,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
