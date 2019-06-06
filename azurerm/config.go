@@ -65,7 +65,7 @@ import (
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	servicefabricSvc "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
@@ -274,7 +274,7 @@ type ArmClient struct {
 
 	// Storage
 	storageServiceClient storage.AccountsClient
-	storageUsageClient   storage.UsageClient
+	storageUsageClient   storage.UsagesClient
 
 	// Stream Analytics
 	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
@@ -1345,7 +1345,7 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
 
-	usageClient := storage.NewUsageClientWithBaseURI(endpoint, subscriptionId)
+	usageClient := storage.NewUsagesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
 }

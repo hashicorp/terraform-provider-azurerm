@@ -288,6 +288,7 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "EP1"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_elastic_worker_count", "20"),
 				),
 			},
 		},
@@ -615,6 +616,8 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   kind                = "elastic"
+
+  maximum_elastic_worker_count = 20
 
   sku {
     tier = "ElasticPremium"
