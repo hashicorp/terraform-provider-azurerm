@@ -89,6 +89,11 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			
+			"express_route_gateway_bypass": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 
 			"resource_guid": {
 				Type:     schema.TypeString,
