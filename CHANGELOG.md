@@ -14,8 +14,10 @@ IMPROVEMENTS:
 * `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` [GH-3539]
 * `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block [GH-3533]
 * `azurerm_app_service` - support for windows containers [GH-3566]
+* `azurerm_app_service_plan` - support for the `maximum_elastic_worker_count` property [GH-3547]
 * `azurerm_managed_disk` - support for the `create_option` of `Restore` [GH-3598]
 * `azurerm_app_service_plan` - support for windows containers [GH-3566]
+
 
 ## 1.29.0 (May 25, 2019)
 
