@@ -45,9 +45,9 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 		}),
 
 		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
@@ -55,7 +55,7 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
@@ -104,7 +104,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -152,7 +152,7 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubClient
+	eventhubClient := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

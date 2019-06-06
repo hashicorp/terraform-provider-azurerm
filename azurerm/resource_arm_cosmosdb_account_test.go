@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -929,7 +930,7 @@ func checkAccAzureRMCosmosDBAccount_basic(resourceName string, location string, 
 		testCheckAzureRMCosmosDBAccountExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+		resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 		resource.TestCheckResourceAttr(resourceName, "offer_type", string(documentdb.Standard)),
 		resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.consistency_level", consistency),

@@ -41,7 +41,7 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"start_ip_address": {
 				Type:         schema.TypeString,
