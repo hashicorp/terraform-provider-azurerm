@@ -688,12 +688,13 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 }
 
 func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.ManagedClusterWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
 	values := make(map[string]interface{})
 
-	if profile := input; profile != nil {
-		if username := profile.AdminUsername; username != nil {
-			values["admin_username"] = *username
-		}
+	if username := input.AdminUsername; username != nil {
+		values["admin_username"] = *username
 	}
 
 	return []interface{}{values}

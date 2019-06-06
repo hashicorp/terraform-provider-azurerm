@@ -349,6 +349,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"admin_password": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
