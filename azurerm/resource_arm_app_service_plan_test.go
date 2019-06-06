@@ -294,6 +294,34 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "xenon"),
+					resource.TestCheckResourceAttr(resourceName, "is_xenon", "true"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "PremiumContainer"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "PC2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -592,6 +620,28 @@ resource "azurerm_app_service_plan" "test" {
     tier = "ElasticPremium"
     size = "EP1"
   }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_basicWindowsContainer(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	kind                = "xenon"
+	is_xenon            = true
+
+	sku {
+		tier = "PremiumContainer"
+		size = "PC2"
+	}
 }
 `, rInt, location, rInt)
 }

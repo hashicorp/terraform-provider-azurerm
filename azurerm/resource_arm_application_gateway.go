@@ -40,9 +40,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -1286,7 +1286,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	enablehttp2 := d.Get("enable_http2").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -1308,7 +1308,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1453,7 +1453,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", applicationGateway.Zones)
 

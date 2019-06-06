@@ -32,7 +32,7 @@ As such the existing 'azurerm_log_analytics_workspace_linked_service' resource i
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"workspace_name": {
 				Type:             schema.TypeString,

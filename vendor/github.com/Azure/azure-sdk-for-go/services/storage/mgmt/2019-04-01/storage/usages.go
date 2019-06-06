@@ -26,25 +26,27 @@ import (
 	"net/http"
 )
 
-// SkusClient is the the Azure Storage Management API.
-type SkusClient struct {
+// UsagesClient is the the Azure Storage Management API.
+type UsagesClient struct {
 	BaseClient
 }
 
-// NewSkusClient creates an instance of the SkusClient client.
-func NewSkusClient(subscriptionID string) SkusClient {
-	return NewSkusClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewUsagesClient creates an instance of the UsagesClient client.
+func NewUsagesClient(subscriptionID string) UsagesClient {
+	return NewUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSkusClientWithBaseURI creates an instance of the SkusClient client.
-func NewSkusClientWithBaseURI(baseURI string, subscriptionID string) SkusClient {
-	return SkusClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewUsagesClientWithBaseURI creates an instance of the UsagesClient client.
+func NewUsagesClientWithBaseURI(baseURI string, subscriptionID string) UsagesClient {
+	return UsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists the available SKUs supported by Microsoft.Storage for given subscription.
-func (client SkusClient) List(ctx context.Context) (result SkuListResult, err error) {
+// ListByLocation gets the current usage count and the limit for the resources of the location under the subscription.
+// Parameters:
+// location - the location of the Azure Storage resource.
+func (client UsagesClient) ListByLocation(ctx context.Context, location string) (result UsageListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SkusClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/UsagesClient.ListByLocation")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -56,37 +58,38 @@ func (client SkusClient) List(ctx context.Context) (result SkuListResult, err er
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.SkusClient", "List", err.Error())
+		return result, validation.NewError("storage.UsagesClient", "ListByLocation", err.Error())
 	}
 
-	req, err := client.ListPreparer(ctx)
+	req, err := client.ListByLocationPreparer(ctx, location)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.UsagesClient", "ListByLocation", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListSender(req)
+	resp, err := client.ListByLocationSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.UsagesClient", "ListByLocation", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListResponder(resp)
+	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.UsagesClient", "ListByLocation", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// ListPreparer prepares the List request.
-func (client SkusClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+// ListByLocationPreparer prepares the ListByLocation request.
+func (client UsagesClient) ListByLocationPreparer(ctx context.Context, location string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -94,21 +97,21 @@ func (client SkusClient) ListPreparer(ctx context.Context) (*http.Request, error
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Storage/skus", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Storage/locations/{location}/usages", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListSender sends the List request. The method will close the
+// ListByLocationSender sends the ListByLocation request. The method will close the
 // http.Response Body if it receives an error.
-func (client SkusClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client UsagesClient) ListByLocationSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListResponder handles the response to the List request. The method always
+// ListByLocationResponder handles the response to the ListByLocation request. The method always
 // closes the http.Response Body.
-func (client SkusClient) ListResponder(resp *http.Response) (result SkuListResult, err error) {
+func (client UsagesClient) ListByLocationResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

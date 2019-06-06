@@ -26,7 +26,7 @@ func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 

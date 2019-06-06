@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +20,9 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 				Required: true,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"tags": tagsForDataSourceSchema(),
 
@@ -73,7 +74,7 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobCollectionsClient
+	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -94,7 +95,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	d.Set("name", collection.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	flattenAndSetTags(d, collection.Tags)
