@@ -73,7 +73,7 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("testaccbatch%s", rs)),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "pool_allocation_mode", "UserSubscription"),
 					resource.TestCheckResourceAttr(dataSourceName, "key_vault_reference.#", "1"),
 				),
