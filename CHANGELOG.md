@@ -8,6 +8,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to Go 1.12 [GH-3525]
+* dependencies: upgrading the `storage` SDK to `2019-04-01` [GH-3578]
 * Data Source `azurerm_app_service` - support windows containers [GH-3566]
 * Data Source `azurerm_service_plan` - support windows containers [GH-3566]
 * `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` [GH-3539]
