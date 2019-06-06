@@ -131,7 +131,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 }
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+	conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -169,7 +169,7 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName strin
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {

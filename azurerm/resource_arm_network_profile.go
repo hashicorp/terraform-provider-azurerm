@@ -32,9 +32,9 @@ func resourceArmNetworkProfile() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"container_network_interface": {
 				Type:     schema.TypeList,
@@ -104,7 +104,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
@@ -177,7 +177,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", profile.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := profile.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := profile.ProfilePropertiesFormat; props != nil {

@@ -399,7 +399,7 @@ resource "azurerm_api_management" "test" {
 
   security {
     disable_frontend_tls10     = true
-    disable_triple_des_chipers = true
+    disable_triple_des_ciphers = true
   }
 }
 `, rInt, location, rInt)
@@ -476,7 +476,8 @@ resource "azurerm_api_management" "test" {
   }
 
   security {
-    disable_backend_tls11 = true
+    disable_backend_tls11      = true
+    disable_triple_des_ciphers = true
   }
 
   hostname_configuration {

@@ -102,7 +102,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -198,7 +198,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
@@ -246,7 +246,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())

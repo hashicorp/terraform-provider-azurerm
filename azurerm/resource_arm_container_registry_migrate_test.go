@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
@@ -31,7 +32,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
-	location := azureRMNormalizeLocation(testLocation())
+	location := azure.NormalizeLocation(testLocation())
 	ctx := client.StopContext
 
 	err = createResourceGroup(ctx, client, resourceGroupName, location)

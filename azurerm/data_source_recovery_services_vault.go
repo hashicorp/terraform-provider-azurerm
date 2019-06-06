@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +20,9 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"tags": tagsForDataSourceSchema(),
 
@@ -53,7 +54,7 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*vault.ID)
 	d.Set("name", vault.Name)
-	d.Set("location", azureRMNormalizeLocation(*vault.Location))
+	d.Set("location", azure.NormalizeLocation(*vault.Location))
 	d.Set("resource_group_name", resourceGroup)
 
 	if sku := vault.Sku; sku != nil {
