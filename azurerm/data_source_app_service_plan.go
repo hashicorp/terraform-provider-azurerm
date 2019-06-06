@@ -74,6 +74,11 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
+			"maximum_elastic_worker_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"is_xenon": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -118,6 +123,10 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+		}
+
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
 		}
 	}
 
