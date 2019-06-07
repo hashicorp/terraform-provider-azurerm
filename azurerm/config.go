@@ -1041,6 +1041,7 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 
 func (c *ArmClient) registerMSIClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	userAssignedIdentitiesClient := msiSvc.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
 
 	c.msi = &msi.Client{
 		UserAssignedIdentitiesClient: userAssignedIdentitiesClient,
