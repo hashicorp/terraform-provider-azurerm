@@ -1,8 +1,8 @@
-## 1.30.1 (Unreleased)
+## 1.30.1 (June 07, 2019)
 
 BUG FIXES:
 
-* Ensuring the authorization header is set for calls to the User Assigned Identity API's [GH-3613]
+* Ensuring the authorization header is set for calls to the User Assigned Identity API's ([#3613](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3613))
 
 ## 1.30.0 (June 07, 2019)
 
