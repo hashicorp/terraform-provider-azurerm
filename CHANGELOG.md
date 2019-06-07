@@ -1,23 +1,23 @@
-## 1.30.0 (Unreleased)
+## 1.30.0 (June 07, 2019)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_redis_cache` [GH-3481]
-* **New Data Source:** `azurerm_sql_server` [GH-3513]
-* **New Data Source:** `azurerm_virtual_network_gateway_connection` [GH-3571]
+* **New Data Source:** `azurerm_redis_cache` ([#3481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3481))
+* **New Data Source:** `azurerm_sql_server` ([#3513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3513))
+* **New Data Source:** `azurerm_virtual_network_gateway_connection` ([#3571](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3571))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to Go 1.12 [GH-3525]
-* dependencies: upgrading the `storage` SDK to `2019-04-01` [GH-3578]
-* Data Source `azurerm_app_service` - support windows containers [GH-3566]
-* Data Source `azurerm_service_plan` - support windows containers [GH-3566]
-* `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` [GH-3539]
-* `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block [GH-3533]
-* `azurerm_app_service` - support for windows containers [GH-3566]
-* `azurerm_app_service_plan` - support for the `maximum_elastic_worker_count` property [GH-3547]
-* `azurerm_managed_disk` - support for the `create_option` of `Restore` [GH-3598]
-* `azurerm_app_service_plan` - support for windows containers [GH-3566]
+* dependencies: upgrading to Go 1.12 ([#3525](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3525))
+* dependencies: upgrading the `storage` SDK to `2019-04-01` ([#3578](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3578))
+* Data Source `azurerm_app_service` - support windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* Data Source `azurerm_service_plan` - support windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` ([#3539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3539))
+* `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block ([#3533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3533))
+* `azurerm_app_service` - support for windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* `azurerm_app_service_plan` - support for the `maximum_elastic_worker_count` property ([#3547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3547))
+* `azurerm_managed_disk` - support for the `create_option` of `Restore` ([#3598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3598))
+* `azurerm_app_service_plan` - support for windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
 
 
 ## 1.29.0 (May 25, 2019)
