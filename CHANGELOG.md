@@ -1,4 +1,9 @@
 ## 1.30.1 (Unreleased)
+
+BUG FIXES:
+
+* Ensuring the authorization header is set for calls to the User Assigned Identity API's [GH-3613]
+
 ## 1.30.0 (June 07, 2019)
 
 FEATURES:
