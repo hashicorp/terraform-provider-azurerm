@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_redis_cache` [GH-3481]
 * **New Data Source:** `azurerm_sql_server` [GH-3513]
 * **New Data Source:** `azurerm_virtual_network_gateway_connection` [GH-3571]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to Go 1.12 [GH-3525]
