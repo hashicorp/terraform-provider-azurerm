@@ -54,7 +54,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			},
 
 			"admin_users": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -203,18 +203,13 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	d.Set("sku", flattenAnalysisServicesServerSku(server.Sku))
 
 	if serverProps := server.ServerProperties; serverProps != nil {
-		if serverProps.AsAdministrators != nil {
-			d.Set("admin_users", *flattenAnalysisServicesServerAdminUsers(server.AsAdministrators))
-		}
+		d.Set("admin_users", *flattenAnalysisServicesServerAdminUsers(server.AsAdministrators))
 
 		//if serverProps.BackupBlobContainerURI != nil {
 		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
 		//}
 
-		gatewayResourceId := flattenAnalysisServicesServerGatewayDetails(serverProps)
-		if gatewayResourceId != nil {
-			d.Set("gateway_resource_id", *gatewayResourceId)
-		}
+		d.Set("gateway_resource_id", *flattenAnalysisServicesServerGatewayDetails(serverProps))
 
 		//_, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
 		//d.Set("enable_power_bi_service", flattenAnalysisServicesServerFirewallSettings(serverProps))
@@ -439,7 +434,7 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 }
 
 func flattenAnalysisServicesServerAdminUsers(serverAdministrators *analysisservices.ServerAdministrators) *[]string {
-	if serverAdministrators.Members == nil {
+	if serverAdministrators == nil || serverAdministrators.Members == nil {
 		return &[]string{}
 	}
 
