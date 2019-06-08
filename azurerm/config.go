@@ -53,6 +53,7 @@ import (
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
+	iotdps "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -132,6 +133,7 @@ type ArmClient struct {
 	eventhub         *eventhub.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
+	iotdps           *iothub.Client
 	logAnalytics     *loganalytics.Client
 	media            *media.Client
 	msi              *msi.Client
@@ -984,8 +986,12 @@ func (c *ArmClient) registerIoTHubClients(endpoint, subscriptionId string, auth 
 	iotClient := iotHubSvc.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&iotClient.Client, auth)
 
+	iotDpsClient := iotdps.NewIotDpsResourceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotDpsClient.Client, auth)
+
 	c.iothub = &iothub.Client{
-		ResourceClient: iotClient,
+		ResourceClient:    iotClient,
+		DPSResourceClient: iotDpsClient,
 	}
 }
 
