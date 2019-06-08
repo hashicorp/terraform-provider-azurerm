@@ -133,7 +133,6 @@ type ArmClient struct {
 	eventhub         *eventhub.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
-	iotdps           *iothub.Client
 	logAnalytics     *loganalytics.Client
 	media            *media.Client
 	msi              *msi.Client
