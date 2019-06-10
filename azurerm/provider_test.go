@@ -18,8 +18,9 @@ var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
 
 func init() {
+	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
-		"azurerm": Provider().(*schema.Provider),
+		"azurerm": testAccProvider,
 		"azuread": azuread.Provider().(*schema.Provider),
 	}
 }
