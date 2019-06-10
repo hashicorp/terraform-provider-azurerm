@@ -35,9 +35,9 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"target_resource_id": {
 				Type:         schema.TypeString,
@@ -360,7 +360,7 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	targetResourceId := d.Get("target_resource_id").(string)
 
@@ -429,7 +429,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("enabled", resp.Enabled)

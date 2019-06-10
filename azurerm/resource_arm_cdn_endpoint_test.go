@@ -278,7 +278,7 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).cdn.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
@@ -309,7 +309,7 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).cdn.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
@@ -326,7 +326,7 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+	conn := testAccProvider.Meta().(*ArmClient).cdn.EndpointsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

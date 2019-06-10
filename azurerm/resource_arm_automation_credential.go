@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +29,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:     schema.TypeString,
@@ -56,7 +57,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 }
 
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
+	client := meta.(*ArmClient).automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
@@ -110,7 +111,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
+	client := meta.(*ArmClient).automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -143,7 +144,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
+	client := meta.(*ArmClient).automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

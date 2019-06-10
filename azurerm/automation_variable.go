@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,7 +52,7 @@ func parseAzureAutomationVariableValue(resource string, input *string) (interfac
 
 func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFunc schema.SchemaValidateFunc) map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"resource_group_name": resourceGroupNameSchema(),
+		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"name": {
 			Type:         schema.TypeString,
@@ -88,7 +89,7 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 
 func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"resource_group_name": resourceGroupNameSchema(),
+		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"name": {
 			Type:         schema.TypeString,
@@ -120,7 +121,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 }
 
 func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*ArmClient).automationVariableClient
+	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -188,7 +189,7 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*ArmClient).automationVariableClient
+	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -235,7 +236,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 }
 
 func datasourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*ArmClient).automationVariableClient
+	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -279,7 +280,7 @@ func datasourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 }
 
 func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*ArmClient).automationVariableClient
+	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

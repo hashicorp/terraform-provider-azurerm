@@ -43,9 +43,9 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
 				Type:     schema.TypeString,
@@ -103,7 +103,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
 
@@ -173,7 +173,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -217,7 +217,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

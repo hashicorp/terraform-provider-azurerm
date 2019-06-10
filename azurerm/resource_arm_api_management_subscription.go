@@ -37,7 +37,7 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 
 			"product_id": azure.SchemaApiManagementChildID(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -79,7 +79,7 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 }
 
 func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementSubscriptionsClient
+	client := meta.(*ArmClient).apimgmt.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -141,7 +141,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementSubscriptionsClient
+	client := meta.(*ArmClient).apimgmt.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,7 +180,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementSubscriptionsClient
+	client := meta.(*ArmClient).apimgmt.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

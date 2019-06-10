@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,7 +40,7 @@ func resourceArmAutomationModule() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"module_link": {
 				Type:     schema.TypeList,
@@ -77,7 +78,7 @@ func resourceArmAutomationModule() *schema.Resource {
 }
 
 func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
@@ -168,7 +169,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -197,7 +198,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationModuleClient
+	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

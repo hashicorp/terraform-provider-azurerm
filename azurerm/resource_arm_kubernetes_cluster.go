@@ -71,9 +71,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"dns_prefix": {
 				Type:         schema.TypeString,
@@ -536,7 +536,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kubernetesClustersClient
+	client := meta.(*ArmClient).containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 	tenantId := meta.(*ArmClient).tenantId
 
@@ -558,7 +558,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
@@ -630,7 +630,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kubernetesClustersClient
+	client := meta.(*ArmClient).containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -659,7 +659,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ManagedClusterProperties; props != nil {
@@ -733,7 +733,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kubernetesClustersClient
+	client := meta.(*ArmClient).containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

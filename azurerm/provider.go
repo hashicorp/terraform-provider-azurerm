@@ -156,6 +156,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ips":                             dataSourceArmPublicIPs(),
 			"azurerm_recovery_services_vault":                dataSourceArmRecoveryServicesVault(),
 			"azurerm_recovery_services_protection_policy_vm": dataSourceArmRecoveryServicesProtectionPolicyVm(),
+			"azurerm_redis_cache":                            dataSourceArmRedisCache(),
 			"azurerm_resource_group":                         dataSourceArmResourceGroup(),
 			"azurerm_role_definition":                        dataSourceArmRoleDefinition(),
 			"azurerm_route_table":                            dataSourceArmRouteTable(),
@@ -176,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_user_assigned_identity":                 dataSourceArmUserAssignedIdentity(),
 			"azurerm_virtual_machine":                        dataSourceArmVirtualMachine(),
 			"azurerm_virtual_network_gateway":                dataSourceArmVirtualNetworkGateway(),
+			"azurerm_virtual_network_gateway_connection":     dataSourceArmVirtualNetworkGatewayConnection(),
 			"azurerm_virtual_network":                        dataSourceArmVirtualNetwork(),
 		},
 

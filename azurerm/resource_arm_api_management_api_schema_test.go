@@ -65,7 +65,7 @@ func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiSchemaDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiSchemasClient
+	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiSchemasClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -106,7 +106,7 @@ func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestChec
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiSchemasClient
+		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiSchemasClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -42,12 +43,12 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
+				StateFunc: azure.NormalizeLocation,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -249,12 +250,12 @@ func resourceArmRedisCache() *schema.Resource {
 }
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
@@ -328,7 +329,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = expandZones(v.([]interface{}))
+		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
@@ -363,7 +364,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	if schedule := patchSchedule; schedule != nil {
-		patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+		patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *schedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
@@ -374,7 +375,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
@@ -449,7 +450,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
-	patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
 		_, err = patchClient.Delete(ctx, resGroup, name)
 		if err != nil {
@@ -466,7 +467,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -493,7 +494,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
@@ -506,7 +507,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if zones := resp.Zones; zones != nil {
 		d.Set("zones", zones)
@@ -548,7 +549,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	redisClient := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -558,7 +559,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["Redis"]
 
-	read, err := redisClient.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Redis Cache %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -578,7 +579,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
 		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
 	}
-	future, err := redisClient.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -587,7 +588,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if err = future.WaitForCompletionRef(ctx, redisClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
