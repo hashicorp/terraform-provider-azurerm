@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -499,7 +500,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		"$web",
 	}
 	for _, v := range validNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Storage Container Name: %q", v, errors)
 		}
@@ -516,7 +517,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		strings.Repeat("w", 65),
 	}
 	for _, v := range invalidNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
