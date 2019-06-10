@@ -386,9 +386,9 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	if imageReference != nil {
 		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
 		if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Propeties version, offer, publish cannot be defined when using a custom image id", poolName, resourceGroup)
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Properties version, offer, publish cannot be defined when using a custom image id", poolName, resourceGroup)
 		} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Propeties version, offer, publish and sku are mandatory when not using a custom image", poolName, resourceGroup)
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Properties version, offer, publish and sku are mandatory when not using a custom image", poolName, resourceGroup)
 		}
 	} else {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): image reference property can not be empty", poolName, resourceGroup)
