@@ -189,6 +189,7 @@ type ArmClient struct {
 	// Databases
 	mariadbDatabasesClient                   mariadb.DatabasesClient
 	mariadbServersClient                     mariadb.ServersClient
+        mariadbFirewallRulesClient               mariadb.FirewallRulesClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
