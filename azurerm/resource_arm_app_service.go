@@ -43,7 +43,10 @@ func resourceArmAppService() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(web.ManagedServiceIdentityTypeNone),
+								string(web.ManagedServiceIdentityTypeSystemAssigned),
+								string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+								string(web.ManagedServiceIdentityTypeUserAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -53,6 +56,16 @@ func resourceArmAppService() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
 						},
 					},
 				},
@@ -719,12 +732,28 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 }
 
 func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
-	identities := d.Get("identity").([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &web.ManagedServiceIdentity{
-		Type: web.ManagedServiceIdentityType(identityType),
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	if len(identities) == 0 {
+		return nil
 	}
+	identity := identities[0].(map[string]interface{})
+	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	managedServiceIdentity := web.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &managedServiceIdentity
 }
 
 func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
@@ -741,6 +770,14 @@ func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentit
 	if identity.TenantID != nil {
 		result["tenant_id"] = *identity.TenantID
 	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
 
 	return []interface{}{result}
 }
