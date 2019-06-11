@@ -274,11 +274,11 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
-	deploymentsClient     resources.DeploymentsGroupClient
+	deploymentsClient     resources.DeploymentsClient
 	providersClient       resourcesprofile.ProvidersClient
-	resourcesClient       resources.GroupClient
-	resourceGroupsClient  resources.GroupsGroupClient
-	subscriptionsClient   subscriptions.GroupClient
+	resourcesClient       resources.Client
+	resourceGroupsClient  resources.GroupsClient
+	subscriptionsClient   subscriptions.Client
 
 	// Security Centre
 	securityCenterPricingClient   security.PricingsClient
@@ -1230,19 +1230,19 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.configureClient(&locksClient.Client, auth)
 	c.managementLocksClient = locksClient
 
-	deploymentsClient := resources.NewDeploymentsGroupClientWithBaseURI(endpoint, subscriptionId)
+	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&deploymentsClient.Client, auth)
 	c.deploymentsClient = deploymentsClient
 
-	resourcesClient := resources.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&resourcesClient.Client, auth)
 	c.resourcesClient = resourcesClient
 
-	resourceGroupsClient := resources.NewGroupsGroupClientWithBaseURI(endpoint, subscriptionId)
+	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&resourceGroupsClient.Client, auth)
 	c.resourceGroupsClient = resourceGroupsClient
 
-	subscriptionsClient := subscriptions.NewGroupClientWithBaseURI(endpoint)
+	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.subscriptionsClient = subscriptionsClient
 
