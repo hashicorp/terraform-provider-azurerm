@@ -1,4 +1,9 @@
 ## 1.31.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_iot_dps` [GH-3618]
+
 ## 1.30.1 (June 07, 2019)
 
 BUG FIXES:
