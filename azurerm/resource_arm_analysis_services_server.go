@@ -2,14 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
-	"regexp"
-	"strconv"
-
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"log"
+	"regexp"
 	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -211,9 +209,9 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 
 		d.Set("gateway_resource_id", *flattenAnalysisServicesServerGatewayDetails(serverProps))
 
-		//_, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
-		//d.Set("enable_power_bi_service", flattenAnalysisServicesServerFirewallSettings(serverProps))
-		//d.Set("ipv4_firewall_rules", fwRules)
+		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
+		d.Set("enable_power_bi_service", &enablePowerBi)
+		d.Set("ipv4_firewall_rules", fwRules)
 
 		d.Set("querypool_connection_mode", *flattenAnalysisServicesServerQuerypoolConnectionMode(serverProps))
 	}
@@ -346,7 +344,7 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 		serverProperties.GatewayDetails = gatewayDetails
 	}
 
-	//serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
 		serverProperties.QuerypoolConnectionMode = *connectionMode
@@ -368,7 +366,7 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 		serverProperties.GatewayDetails = gatewayDetails
 	}
 
-	//serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
 		serverProperties.QuerypoolConnectionMode = *connectionMode
@@ -412,8 +410,7 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	firewallSettings := analysisservices.IPv4FirewallSettings{}
 
 	if enablePowerBi, exists := d.GetOkExists("enable_power_bi_service"); exists {
-		enableString := strconv.FormatBool(enablePowerBi.(bool))
-		firewallSettings.EnablePowerBIService = &enableString
+		firewallSettings.EnablePowerBIService = enablePowerBi.(*bool)
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rules").([]interface{})
@@ -455,12 +452,6 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
-	enable, err := strconv.ParseBool(*firewallSettings.EnablePowerBIService)
-	if err != nil {
-		enablePowerBi = nil
-	} else {
-		enablePowerBi = &enable
-	}
 
 	if firewallSettings.FirewallRules != nil && len(*firewallSettings.FirewallRules) > 0 {
 		fwRules := make([]map[string]interface{}, len(*firewallSettings.FirewallRules))
@@ -471,7 +462,7 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 		}
 	}
 
-	return enablePowerBi, fwRules
+	return firewallSettings.EnablePowerBIService, fwRules
 }
 
 func flattenAnalysisServicesServerQuerypoolConnectionMode(serverProperties *analysisservices.ServerProperties) *string {

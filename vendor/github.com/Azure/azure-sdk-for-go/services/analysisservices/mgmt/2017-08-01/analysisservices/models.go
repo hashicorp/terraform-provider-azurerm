@@ -218,7 +218,7 @@ type IPv4FirewallSettings struct {
 	// FirewallRules - An array of firewall rules.
 	FirewallRules *[]IPv4FirewallRule `json:"firewallRules,omitempty"`
 	// EnablePowerBIService - The indicator of enabling PBI service.
-	EnablePowerBIService *string `json:"enablePowerBIService,omitempty"`
+	EnablePowerBIService *bool `json:"enablePowerBIService,omitempty"`
 }
 
 // Operation a Consumption REST API operation.

@@ -65,7 +65,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
+	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2019-03-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
@@ -327,11 +327,11 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
-	deploymentsClient     resources.DeploymentsGroupClient
+	deploymentsClient     resources.DeploymentsClient
 	providersClient       resourcesprofile.ProvidersClient
-	resourcesClient       resources.GroupClient
-	resourceGroupsClient  resources.GroupsGroupClient
-	subscriptionsClient   subscriptions.GroupClient
+	resourcesClient       resources.Client
+	resourceGroupsClient  resources.GroupsClient
+	subscriptionsClient   subscriptions.Client
 
 	// Scheduler
 	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
@@ -1275,19 +1275,19 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.configureClient(&locksClient.Client, auth)
 	c.managementLocksClient = locksClient
 
-	deploymentsClient := resources.NewDeploymentsGroupClientWithBaseURI(endpoint, subscriptionId)
+	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&deploymentsClient.Client, auth)
 	c.deploymentsClient = deploymentsClient
 
-	resourcesClient := resources.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&resourcesClient.Client, auth)
 	c.resourcesClient = resourcesClient
 
-	resourceGroupsClient := resources.NewGroupsGroupClientWithBaseURI(endpoint, subscriptionId)
+	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&resourceGroupsClient.Client, auth)
 	c.resourceGroupsClient = resourceGroupsClient
 
-	subscriptionsClient := subscriptions.NewGroupClientWithBaseURI(endpoint)
+	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.subscriptionsClient = subscriptionsClient
 
