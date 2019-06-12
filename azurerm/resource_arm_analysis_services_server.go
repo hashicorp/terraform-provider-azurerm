@@ -2,13 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"regexp"
+
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"log"
-	"regexp"
-	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,33 +70,33 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				Optional: true,
 			},
 
-			//"enable_power_bi_service": {
-			//	Type:     schema.TypeBool,
-			//	Optional: true,
-			//},
+			"enable_power_bi_service": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 
-			//"ipv4_firewall_rules": {
-			//	Type:     schema.TypeList,
-			//	Optional: true,
-			//	Elem: &schema.Resource{
-			//		Schema: map[string]*schema.Schema{
-			//			"name": {
-			//				Type:     schema.TypeString,
-			//				Required: true,
-			//			},
-			//			"range_start": {
-			//				Type:         schema.TypeString,
-			//				Required:     true,
-			//				ValidateFunc: validate.IPv4Address,
-			//			},
-			//			"range_end": {
-			//				Type:         schema.TypeString,
-			//				Required:     true,
-			//				ValidateFunc: validate.IPv4Address,
-			//			},
-			//		},
-			//	},
-			//},
+			"ipv4_firewall_rules": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"range_start": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+						"range_end": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+					},
+				},
+			},
 
 			"querypool_connection_mode": {
 				Type:         schema.TypeString,
@@ -207,13 +208,13 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
 		//}
 
-		d.Set("gateway_resource_id", *flattenAnalysisServicesServerGatewayDetails(serverProps))
+		d.Set("gateway_resource_id", flattenAnalysisServicesServerGatewayDetails(serverProps))
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
-		d.Set("enable_power_bi_service", &enablePowerBi)
+		d.Set("enable_power_bi_service", enablePowerBi)
 		d.Set("ipv4_firewall_rules", fwRules)
 
-		d.Set("querypool_connection_mode", *flattenAnalysisServicesServerQuerypoolConnectionMode(serverProps))
+		d.Set("querypool_connection_mode", flattenAnalysisServicesServerQuerypoolConnectionMode(serverProps))
 	}
 
 	flattenAndSetTags(d, server.Tags)
@@ -376,10 +377,10 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 }
 
 func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisservices.ServerAdministrators {
-	adminUsers := d.Get("admin_users").([]interface{})
+	adminUsers := d.Get("admin_users").(*schema.Set)
 	members := make([]string, 0)
 
-	for _, admin := range adminUsers {
+	for _, admin := range adminUsers.List() {
 		if adm, ok := admin.(string); ok {
 			members = append(members, adm)
 		}
@@ -410,7 +411,7 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	firewallSettings := analysisservices.IPv4FirewallSettings{}
 
 	if enablePowerBi, exists := d.GetOkExists("enable_power_bi_service"); exists {
-		firewallSettings.EnablePowerBIService = enablePowerBi.(*bool)
+		firewallSettings.EnablePowerBIService = utils.Bool(enablePowerBi.(bool))
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rules").([]interface{})
@@ -456,6 +457,7 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 	if firewallSettings.FirewallRules != nil && len(*firewallSettings.FirewallRules) > 0 {
 		fwRules := make([]map[string]interface{}, len(*firewallSettings.FirewallRules))
 		for i, fwRule := range *firewallSettings.FirewallRules {
+			fwRules[i] = make(map[string]interface{})
 			fwRules[i]["name"] = *fwRule.FirewallRuleName
 			fwRules[i]["range_start"] = *fwRule.RangeStart
 			fwRules[i]["range_end"] = *fwRule.RangeEnd
