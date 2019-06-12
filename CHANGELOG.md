@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_iot_dps` [GH-3618]
 
+IMPROVEMENTS:
+
+* `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
+
 ## 1.30.1 (June 07, 2019)
 
 BUG FIXES:
