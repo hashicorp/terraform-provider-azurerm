@@ -10,6 +10,7 @@ type Client struct {
 	ApiSchemasClient           apimanagement.APISchemaClient
 	ApiVersionSetClient        apimanagement.APIVersionSetClient
 	AuthorizationServersClient apimanagement.AuthorizationServerClient
+	BackendClient              apimanagement.BackendClient
 	CertificatesClient         apimanagement.CertificateClient
 	GroupClient                apimanagement.GroupClient
 	GroupUsersClient           apimanagement.GroupUserClient
