@@ -110,6 +110,28 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"subnets": {
+				Type:			schema.TypeSet,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"first": {
+							Type:			schema.TypeString,
+							Required: true,
+						},
+						"last": {
+							Type:			schema.TypeString,
+							Required: true,
+						},
+						"scope": {
+							Type:			schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+				Optional: true,
+			},
+
 		},
 	}
 }
@@ -207,6 +229,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
+		d.Set("subnets",props.Subnets)
 	}
 
 	return nil
