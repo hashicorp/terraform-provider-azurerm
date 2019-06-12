@@ -71,7 +71,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						"ttl": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(30, 999999),
+							ValidateFunc: validation.IntBetween(1, 999999),
 						},
 					},
 				},
