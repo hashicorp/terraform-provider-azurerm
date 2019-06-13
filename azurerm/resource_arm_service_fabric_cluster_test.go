@@ -417,7 +417,7 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 				Config: testAccAzureRMServiceFabricCluster_certificateCommonNames(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "certificate_common_names.0.common_names.0.certificate_common_name", "example"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_common_names.0.common_names.2962847220.certificate_common_name", "example"),
 					resource.TestCheckResourceAttr(resourceName, "certificate_common_names.0.x509_store_name", "My"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
@@ -1045,24 +1045,24 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
+  management_endpoint = "https://example:80"
 
-	certificate_common_names {
+  certificate_common_names {
     common_names {
       certificate_common_name = "example"
     }
-		
+
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3

@@ -67,7 +67,13 @@ The following arguments are supported:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
 
+* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below.
+
+-> **NOTE:** If Certificate Common Names conflicts with Certificate.
+
 * `certificate` - (Optional) A `certificate` block as defined below.
+
+-> **NOTE:** If Certificate conflicts with Certificate Common Names.
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
@@ -90,6 +96,24 @@ A `azure_active_directory` block supports the following:
 * `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID. Changing this forces a new resource to be created.
 
 * `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
+
+---
+
+A `certificate_common_names` block supports the following:
+
+* `common_names` - (Required) A `common_names` block as defined below.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `common_names` block supports the following:
+
+* `certificate_common_name` - (Required) A `common_names` block as defined below.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 

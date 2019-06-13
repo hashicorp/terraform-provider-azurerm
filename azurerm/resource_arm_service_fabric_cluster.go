@@ -138,24 +138,28 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"common_names": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
+							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate_common_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"certificate_issuer_thumbprint": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
 						},
 						"x509_store_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -421,6 +425,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		ClusterProperties: &servicefabric.ClusterProperties{
 			AddOnFeatures:                   addOnFeatures,
 			AzureActiveDirectory:            azureActiveDirectory,
+			CertificateCommonNames:          expandServiceFabricClusterCertificateCommonNames(d),
 			ReverseProxyCertificate:         reverseProxyCertificate,
 			ClientCertificateThumbprints:    clientCertificateThumbprints,
 			DiagnosticsStorageAccountConfig: diagnostics,
@@ -436,11 +441,6 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
 		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 		cluster.ClusterProperties.Certificate = certificate
-	}
-
-	if certificateCommonNamesRaw, ok := d.GetOk("certificate_common_names"); ok {
-		certificateCommonNames := expandServiceFabricClusterCertificateCommonNames(certificateCommonNamesRaw.([]interface{}))
-		cluster.ClusterProperties.CertificateCommonNames = certificateCommonNames
 	}
 
 	if clusterCodeVersion != "" {
@@ -500,6 +500,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	parameters := servicefabric.ClusterUpdateParameters{
 		ClusterPropertiesUpdateParameters: &servicefabric.ClusterPropertiesUpdateParameters{
 			AddOnFeatures:                addOnFeatures,
+			CertificateCommonNames:       expandServiceFabricClusterCertificateCommonNames(d),
 			ReverseProxyCertificate:      reverseProxyCertificate,
 			ClientCertificateThumbprints: clientCertificateThumbprints,
 			FabricSettings:               fabricSettings,
@@ -513,11 +514,6 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
 		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 		parameters.ClusterPropertiesUpdateParameters.Certificate = certificate
-	}
-
-	if certificateCommonNamesRaw, ok := d.GetOk("certificate_common_names"); ok {
-		certificateCommonNames := expandServiceFabricClusterCertificateCommonNames(certificateCommonNamesRaw.([]interface{}))
-		parameters.ClusterPropertiesUpdateParameters.CertificateCommonNames = certificateCommonNames
 	}
 
 	if clusterCodeVersion != "" {
@@ -755,15 +751,16 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 	return results
 }
 
-func expandServiceFabricClusterCertificateCommonNames(input []interface{}) *servicefabric.ServerCertificateCommonNames {
-	if len(input) == 0 {
+func expandServiceFabricClusterCertificateCommonNames(d *schema.ResourceData) *servicefabric.ServerCertificateCommonNames {
+	i := d.Get("certificate_common_names").([]interface{})
+	if len(i) <= 0 || i[0] == nil {
 		return nil
 	}
+	input := i[0].(map[string]interface{})
 
-	certificateCommonNames := input[0].(map[string]interface{})
-
-	commonNamesRaw := certificateCommonNames["common_names"].([]interface{})
+	commonNamesRaw := input["common_names"].(*schema.Set).List()
 	commonNames := make([]servicefabric.ServerCertificateCommonName, 0, len(commonNamesRaw))
+
 	for _, commonName := range commonNamesRaw {
 		commonNameDetails := commonName.(map[string]interface{})
 		certificateCommonName := commonNameDetails["certificate_common_name"].(string)
@@ -777,21 +774,25 @@ func expandServiceFabricClusterCertificateCommonNames(input []interface{}) *serv
 		commonNames = append(commonNames, commonName)
 	}
 
-	x509StoreName := certificateCommonNames["x509_store_name"].(string)
+	x509StoreName := input["x509_store_name"].(string)
 
-	result := servicefabric.ServerCertificateCommonNames{
+	output := servicefabric.ServerCertificateCommonNames{
 		CommonNames:   &commonNames,
 		X509StoreName: servicefabric.X509StoreName1(x509StoreName),
 	}
 
-	return &result
+	return &output
 }
 
-func flattenServiceFabricClusterCertificateCommonNames(input *servicefabric.ServerCertificateCommonNames) []interface{} {
-	result := make(map[string]interface{})
+func flattenServiceFabricClusterCertificateCommonNames(in *servicefabric.ServerCertificateCommonNames) []interface{} {
+	if in == nil {
+		return []interface{}{}
+	}
 
-	if v := input; v != nil {
-		if commonNames := input.CommonNames; commonNames != nil {
+	output := make(map[string]interface{})
+
+	if v := in; v != nil {
+		if commonNames := in.CommonNames; commonNames != nil {
 			common_names := make([]map[string]interface{}, 0, len(*commonNames))
 			for _, i := range *commonNames {
 				commonName := make(map[string]interface{})
@@ -805,14 +806,14 @@ func flattenServiceFabricClusterCertificateCommonNames(input *servicefabric.Serv
 				common_names = append(common_names, commonName)
 			}
 
-			result["common_names"] = common_names
+			output["common_names"] = common_names
 		}
 
-		result["x509_store_name"] = string(input.X509StoreName)
+		output["x509_store_name"] = string(in.X509StoreName)
 
 	}
 
-	return []interface{}{result}
+	return []interface{}{output}
 }
 
 func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *servicefabric.CertificateDescription {
