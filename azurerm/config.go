@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
@@ -120,7 +119,7 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	apimgmt          *apimgmt.Client
+	apimgmt          apimgmt.Client
 	automation       *automation.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
@@ -393,7 +392,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.registerAPIManagementClients(endpoint, c.SubscriptionID, auth)
+	client.apimgmt.RegisterClients(endpoint, c.SubscriptionID, partnerId, auth)
+
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
@@ -440,103 +440,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
-}
-
-func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	apisClient := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apisClient.Client, auth)
-
-	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiPoliciesClient.Client, auth)
-
-	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiOperationsClient.Client, auth)
-
-	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiOperationPoliciesClient.Client, auth)
-
-	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiSchemasClient.Client, auth)
-
-	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiVersionSetClient.Client, auth)
-
-	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&authorizationServersClient.Client, auth)
-
-	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&certificatesClient.Client, auth)
-
-	groupsClient := apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&groupsClient.Client, auth)
-
-	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&groupUsersClient.Client, auth)
-
-	loggerClient := apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&loggerClient.Client, auth)
-
-	policyClient := apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&policyClient.Client, auth)
-
-	serviceClient := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&serviceClient.Client, auth)
-
-	signInClient := apimanagement.NewSignInSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&signInClient.Client, auth)
-
-	signUpClient := apimanagement.NewSignUpSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&signUpClient.Client, auth)
-
-	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&openIdConnectClient.Client, auth)
-
-	productsClient := apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&productsClient.Client, auth)
-
-	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&productApisClient.Client, auth)
-
-	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&productGroupsClient.Client, auth)
-
-	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&productPoliciesClient.Client, auth)
-
-	propertiesClient := apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&propertiesClient.Client, auth)
-
-	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subscriptionsClient.Client, auth)
-
-	usersClient := apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&usersClient.Client, auth)
-
-	c.apimgmt = &apimgmt.Client{
-		ApiClient:                  apisClient,
-		ApiPoliciesClient:          apiPoliciesClient,
-		ApiOperationsClient:        apiOperationsClient,
-		ApiOperationPoliciesClient: apiOperationPoliciesClient,
-		ApiSchemasClient:           apiSchemasClient,
-		ApiVersionSetClient:        apiVersionSetClient,
-		AuthorizationServersClient: authorizationServersClient,
-		CertificatesClient:         certificatesClient,
-		GroupClient:                groupsClient,
-		GroupUsersClient:           groupUsersClient,
-		LoggerClient:               loggerClient,
-		PolicyClient:               policyClient,
-		ServiceClient:              serviceClient,
-		SignInClient:               signInClient,
-		SignUpClient:               signUpClient,
-		OpenIdConnectClient:        openIdConnectClient,
-		ProductsClient:             productsClient,
-		ProductApisClient:          productApisClient,
-		ProductGroupsClient:        productGroupsClient,
-		ProductPoliciesClient:      productPoliciesClient,
-		PropertyClient:             propertiesClient,
-		SubscriptionsClient:        subscriptionsClient,
-		UsersClient:                usersClient,
-	}
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
