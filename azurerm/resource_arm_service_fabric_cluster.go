@@ -16,9 +16,9 @@ import (
 
 func resourceArmServiceFabricCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricClusterCreate,
+		Create: resourceArmServiceFabricClusterCreateUpdate,
 		Read:   resourceArmServiceFabricClusterRead,
-		Update: resourceArmServiceFabricClusterUpdate,
+		Update: resourceArmServiceFabricClusterCreateUpdate,
 		Delete: resourceArmServiceFabricClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -84,24 +84,23 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 			"azure_active_directory": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
 						},
 						"cluster_application_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
 						},
 						"client_application_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
 						},
 					},
 				},
@@ -333,7 +332,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -427,67 +426,6 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*read.ID)
-
-	return resourceArmServiceFabricClusterRead(d, meta)
-}
-
-func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
-	ctx := meta.(*ArmClient).StopContext
-
-	log.Printf("[INFO] preparing arguments for Service Fabric Cluster update.")
-
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	reliabilityLevel := d.Get("reliability_level").(string)
-	upgradeMode := d.Get("upgrade_mode").(string)
-	clusterCodeVersion := d.Get("cluster_code_version").(string)
-	tags := d.Get("tags").(map[string]interface{})
-
-	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
-	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
-
-	certificateRaw := d.Get("certificate").([]interface{})
-	certificate := expandServiceFabricClusterCertificate(certificateRaw)
-
-	reverseProxyCertificateRaw := d.Get("reverse_proxy_certificate").([]interface{})
-	reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw)
-
-	clientCertificateThumbprintsRaw := d.Get("client_certificate_thumbprint").([]interface{})
-	clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintsRaw)
-
-	fabricSettingsRaw := d.Get("fabric_settings").([]interface{})
-	fabricSettings := expandServiceFabricClusterFabricSettings(fabricSettingsRaw)
-
-	nodeTypesRaw := d.Get("node_type").([]interface{})
-	nodeTypes := expandServiceFabricClusterNodeTypes(nodeTypesRaw)
-
-	parameters := servicefabric.ClusterUpdateParameters{
-		ClusterPropertiesUpdateParameters: &servicefabric.ClusterPropertiesUpdateParameters{
-			AddOnFeatures:                addOnFeatures,
-			Certificate:                  certificate,
-			ReverseProxyCertificate:      reverseProxyCertificate,
-			ClientCertificateThumbprints: clientCertificateThumbprints,
-			FabricSettings:               fabricSettings,
-			NodeTypes:                    nodeTypes,
-			ReliabilityLevel:             servicefabric.ReliabilityLevel1(reliabilityLevel),
-			UpgradeMode:                  servicefabric.UpgradeMode1(upgradeMode),
-		},
-		Tags: expandTags(tags),
-	}
-
-	if clusterCodeVersion != "" {
-		parameters.ClusterPropertiesUpdateParameters.ClusterCodeVersion = utils.String(clusterCodeVersion)
-	}
-
-	future, err := client.Update(ctx, resourceGroup, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error updating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
 
 	return resourceArmServiceFabricClusterRead(d, meta)
 }
