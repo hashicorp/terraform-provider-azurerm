@@ -67,7 +67,7 @@ func resourceArmIotDPSCertificateCreateOrUpdate(d *schema.ResourceData, meta int
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iot_dps", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_iot_dps_certificate", *existing.ID)
 		}
 	}
 
