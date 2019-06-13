@@ -421,6 +421,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_stream_analytics_job":                                                   resourceArmStreamAnalyticsJob(),
 			"azurerm_stream_analytics_function_javascript_udf":                               resourceArmStreamAnalyticsFunctionUDF(),
 			"azurerm_stream_analytics_output_blob":                                           resourceArmStreamAnalyticsOutputBlob(),
+			"azurerm_stream_analytics_output_mssql":                                          resourceArmStreamAnalyticsOutputSql(),
 			"azurerm_stream_analytics_output_eventhub":                                       resourceArmStreamAnalyticsOutputEventHub(),
 			"azurerm_stream_analytics_output_servicebus_queue":                               resourceArmStreamAnalyticsOutputServiceBusQueue(),
 			"azurerm_stream_analytics_stream_input_blob":                                     resourceArmStreamAnalyticsStreamInputBlob(),
