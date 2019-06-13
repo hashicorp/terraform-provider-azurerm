@@ -264,7 +264,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID: read.ID,
+		ID:                         read.ID,
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
@@ -345,7 +345,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
 		id := d.Id()
 		authSettings := web.SiteAuthSettings{
-			ID: &id,
+			ID:                         &id,
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
