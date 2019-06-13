@@ -175,7 +175,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 }
 
 func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.AuthorizationServersClient
+	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -269,7 +269,7 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 
 func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apimgmt.AuthorizationServersClient
+	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -333,7 +333,7 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 }
 
 func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.AuthorizationServersClient
+	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

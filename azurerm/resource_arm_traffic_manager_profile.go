@@ -71,7 +71,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						"ttl": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(30, 999999),
+							ValidateFunc: validation.IntBetween(1, 999999),
 						},
 					},
 				},
@@ -119,7 +119,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 }
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
@@ -168,7 +168,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -210,7 +210,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

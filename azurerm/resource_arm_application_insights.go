@@ -70,7 +70,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -132,7 +132,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -172,7 +172,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

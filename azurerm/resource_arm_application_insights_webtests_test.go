@@ -131,7 +131,7 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
+	conn := testAccProvider.Meta().(*ArmClient).appInsights.WebTestsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -166,7 +166,7 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
+		conn := testAccProvider.Meta().(*ArmClient).appInsights.WebTestsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
