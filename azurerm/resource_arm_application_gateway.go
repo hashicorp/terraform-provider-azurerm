@@ -83,7 +83,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 					},
 				},
 			},
-			
+
 			// Required
 			"backend_address_pool": {
 				Type:     schema.TypeList,
