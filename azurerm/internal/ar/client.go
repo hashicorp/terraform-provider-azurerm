@@ -10,15 +10,18 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
-func ConfigureClient(client *autorest.Client, auth autorest.Authorizer, partnerId string) {
+func ConfigureClient(client *autorest.Client, auth autorest.Authorizer, partnerId string, skipProviderReg bool) {
 	setUserAgent(client, partnerId)
 	client.Authorizer = auth
-	client.Sender = sender.BuildSender("AzureAD")
-	client.SkipResourceProviderRegistration = false
+	client.Sender = sender.BuildSender("AzureRM")
 	client.PollingDuration = 60 * time.Minute
+	client.SkipResourceProviderRegistration = skipProviderReg
+	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
+
 }
 
 func setUserAgent(client *autorest.Client, partnerID string) {

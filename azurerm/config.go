@@ -386,11 +386,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apimgmt = apimgmt.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
-	client.automation = automation.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
-	client.cdn = cdn.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
-	client.cognitive = cognitive.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
-	client.containers = containers.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
+	client.apimgmt = apimgmt.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)

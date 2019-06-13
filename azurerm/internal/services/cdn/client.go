@@ -12,17 +12,17 @@ type Client struct {
 	ProfilesClient      cdn.ProfilesClient
 }
 
-func BuildClients(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer) *Client {
+func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
 	c := Client{}
 
 	c.CustomDomainsClient = cdn.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.CustomDomainsClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.CustomDomainsClient.Client, auth, partnerId, skipProviderReg)
 
 	c.EndpointsClient = cdn.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.EndpointsClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.EndpointsClient.Client, auth, partnerId, skipProviderReg)
 
 	c.ProfilesClient = cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ProfilesClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.ProfilesClient.Client, auth, partnerId, skipProviderReg)
 
 	return &c
 }

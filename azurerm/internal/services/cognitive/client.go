@@ -10,11 +10,11 @@ type Client struct {
 	AccountsClient cognitiveservices.AccountsClient
 }
 
-func BuildClients(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer) *Client {
+func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
 	c := Client{}
 
 	c.AccountsClient = cognitiveservices.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.AccountsClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.AccountsClient.Client, auth, partnerId, skipProviderReg)
 
 	return &c
 }

@@ -16,25 +16,25 @@ type Client struct {
 	ServicesClient           containerservice.ContainerServicesClient
 }
 
-func BuildClients(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer) *Client {
+func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
 	c := Client{}
 
 	c.RegistriesClient = containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.RegistriesClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.RegistriesClient.Client, auth, partnerId, skipProviderReg)
 
 	c.ReplicationsClient = containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ReplicationsClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.ReplicationsClient.Client, auth, partnerId, skipProviderReg)
 
 	c.GroupsClient = containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.GroupsClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.GroupsClient.Client, auth, partnerId, skipProviderReg)
 
 	// ACS
 	c.ServicesClient = containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ServicesClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.ServicesClient.Client, auth, partnerId, skipProviderReg)
 
 	// AKS
 	c.KubernetesClustersClient = containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.KubernetesClustersClient.Client, auth, partnerId)
+	ar.ConfigureClient(&c.KubernetesClustersClient.Client, auth, partnerId, skipProviderReg)
 
 	return &c
 }
