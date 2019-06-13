@@ -50,6 +50,40 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ResourceIdentityTypeSystemAssigned),
+								string(network.ResourceIdentityTypeUserAssigned),
+								string(network.ResourceIdentityTypeSystemAssignedUserAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+					},
+				},
+			},
+			
 			// Required
 			"backend_address_pool": {
 				Type:     schema.TypeList,
@@ -1352,6 +1386,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
+	}
+
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
 		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
@@ -1456,6 +1494,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", applicationGateway.Zones)
+
+	identity := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
@@ -1585,6 +1628,46 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.ManagedServiceIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := network.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	appGatewayIdentity := network.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if identityType == network.ResourceIdentityTypeUserAssigned || identityType == network.ResourceIdentityTypeSystemAssignedUserAssigned {
+		appGatewayIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &appGatewayIdentity
+}
+
+func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
