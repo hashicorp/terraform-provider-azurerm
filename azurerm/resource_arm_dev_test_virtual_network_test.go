@@ -109,7 +109,7 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -135,7 +135,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
@@ -152,7 +152,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -233,7 +233,7 @@ resource "azurerm_dev_test_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   subnet {
-    use_public_ip_address           = "Allow"
+    use_public_ip_address           = "Deny"
     use_in_virtual_machine_creation = "Allow"
   }
 }

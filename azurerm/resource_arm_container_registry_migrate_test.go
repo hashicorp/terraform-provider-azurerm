@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
@@ -31,7 +32,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
-	location := azureRMNormalizeLocation(testLocation())
+	location := azure.NormalizeLocation(testLocation())
 	ctx := client.StopContext
 
 	err = createResourceGroup(ctx, client, resourceGroupName, location)
@@ -130,7 +131,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		return nil, fmt.Errorf("Error waiting for creation of Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
 	}

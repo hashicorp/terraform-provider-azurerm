@@ -13,16 +13,16 @@ Use this data source to retrieve the version of Kubernetes supported by Azure Ku
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_service" "current" {
+data "azurerm_kubernetes_service_versions" "current" {
   location = "West Europe"
 }
 
 output "versions" {
-  value = "${data.azurerm_kubernetes_service.current.versions}"
+  value = "${data.azurerm_kubernetes_service_versions.current.versions}"
 }
 
 output "latest_version" {
-  value = "${data.azurerm_kubernetes_service.current.latest_version}"
+  value = "${data.azurerm_kubernetes_service_versions.current.latest_version}"
 }
 ```
 

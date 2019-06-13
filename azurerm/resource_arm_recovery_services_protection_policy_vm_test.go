@@ -254,7 +254,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 }
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -283,7 +283,7 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.Stat
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectionPoliciesClient
+		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

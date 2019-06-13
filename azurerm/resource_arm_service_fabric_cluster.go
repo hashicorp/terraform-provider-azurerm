@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -30,9 +31,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"reliability_level": {
 				Type:     schema.TypeString,
@@ -50,8 +51,8 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicefabric.Automatic),
-					string(servicefabric.Manual),
+					string(servicefabric.UpgradeModeAutomatic),
+					string(servicefabric.UpgradeModeManual),
 				}, false),
 			},
 
@@ -365,7 +366,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 }
 
 func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabricClustersClient
+	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Service Fabric Cluster creation.")
@@ -469,7 +470,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabricClustersClient
+	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Service Fabric Cluster update.")
@@ -536,7 +537,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabricClustersClient
+	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -561,7 +562,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ClusterProperties; props != nil {
@@ -624,7 +625,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabricClustersClient
+	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

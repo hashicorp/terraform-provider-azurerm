@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementProductGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_group" {
 			continue
@@ -101,14 +101,14 @@ func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementProductGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: Product %q / Group %q (API Management Service %q / Resource Group %q) does not exist", productId, groupName, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementProductGroupsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductGroupsClient: %+v", err)
 		}
 
 		return nil

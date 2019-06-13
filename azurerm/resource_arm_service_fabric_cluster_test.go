@@ -698,7 +698,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 }
 
 func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceFabricClustersClient
+	client := testAccProvider.Meta().(*ArmClient).serviceFabric.ClustersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -737,7 +737,7 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Service Fabric Cluster %q", clusterName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceFabricClustersClient
+		client := testAccProvider.Meta().(*ArmClient).serviceFabric.ClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
@@ -1083,7 +1083,7 @@ resource "azurerm_resource_group" "test" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_azuread_application" "test" {
+resource "azuread_application" "test" {
   name                       = "${azurerm_resource_group.test.name}-AAD"
   homepage                   = "https://example:80/Explorer/index.html"
   identifier_uris            = ["https://acctestAAD-app"]
@@ -1108,7 +1108,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 	
   azure_active_directory {
     tenant_id              = "${data.azurerm_client_config.current.tenant_id}"
-    cluster_application_id = "${azurerm_azuread_application.test.application_id}"
+    cluster_application_id = "${azuread_application.test.application_id}"
     client_application_id  = "00000000-0000-0000-0000-000000000000"
 	}
 	

@@ -31,7 +31,7 @@ func resourceArmCosmosDbSQLDatabase() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:         schema.TypeString,

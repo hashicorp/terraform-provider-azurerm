@@ -189,7 +189,7 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiOperationsClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -230,7 +230,7 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiOperationsClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)

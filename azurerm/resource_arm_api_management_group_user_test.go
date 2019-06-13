@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementGroupUsersClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.GroupUsersClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group_user" {
 			continue
@@ -101,14 +101,14 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementGroupUsersClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.GroupUsersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: User %q / Group %q (API Management Service %q / Resource Group %q) does not exist", userId, groupName, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementGroupUsersClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.GroupUsersClient: %+v", err)
 		}
 
 		return nil

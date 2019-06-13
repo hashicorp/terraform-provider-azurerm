@@ -38,9 +38,9 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"status": {
 				Type:     schema.TypeString,
@@ -118,7 +118,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 }
 
 func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
@@ -190,7 +190,7 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -235,7 +235,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
 			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -255,7 +255,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
