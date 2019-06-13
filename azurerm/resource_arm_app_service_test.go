@@ -2490,8 +2490,8 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   identity {
-		type         = "UserAssigned"
-		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    type         = "UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -2528,8 +2528,8 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   identity {
-		type         = "SystemAssigned, UserAssigned"
-		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)

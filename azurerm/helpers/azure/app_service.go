@@ -208,6 +208,46 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ManagedServiceIdentityTypeNone),
+						string(web.ManagedServiceIdentityTypeSystemAssigned),
+						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+						string(web.ManagedServiceIdentityTypeUserAssigned),
+					}, true),
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"identity_ids": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.NoZeroValues,
+					},
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -1191,6 +1231,56 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	}
 
 	return logs
+}
+
+func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return nil
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	managedServiceIdentity := web.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &managedServiceIdentity
+}
+
+func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
