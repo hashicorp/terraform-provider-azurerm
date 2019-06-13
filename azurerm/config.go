@@ -366,7 +366,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apimgmt = apimgmt.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
 	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
 	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
 	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
@@ -417,13 +417,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	apiKeysClient := appinsightsSvc.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
+	apiKeysClient := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apiKeysClient.Client, auth)
 
-	componentsClient := appinsightsSvc.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
+	componentsClient := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&componentsClient.Client, auth)
 
-	webTestsClient := appinsightsSvc.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
+	webTestsClient := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&webTestsClient.Client, auth)
 
 	c.appInsights = &applicationinsights.Client{
