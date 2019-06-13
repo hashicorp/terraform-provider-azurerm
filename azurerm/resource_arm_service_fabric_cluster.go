@@ -51,8 +51,8 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicefabric.Automatic),
-					string(servicefabric.Manual),
+					string(servicefabric.UpgradeModeAutomatic),
+					string(servicefabric.UpgradeModeManual),
 				}, false),
 			},
 
