@@ -32,7 +32,8 @@ type Client struct {
 	UsersClient                apimanagement.UserClient
 }
 
-func (c *Client) RegisterClients(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer) {
+func RegisterClients(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer) *Client {
+	c := Client{}
 	c.ApiClient = apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
 	ar.ConfigureClient(&c.ApiClient.Client, auth, partnerId)
 
@@ -101,4 +102,6 @@ func (c *Client) RegisterClients(endpoint, subscriptionId, partnerId string, aut
 
 	c.UsersClient = apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
 	ar.ConfigureClient(&c.UsersClient.Client, auth, partnerId)
+
+	return &c
 }

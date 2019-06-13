@@ -119,7 +119,7 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
-	apimgmt          apimgmt.Client
+	apimgmt          *apimgmt.Client
 	automation       *automation.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
@@ -392,7 +392,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apimgmt.RegisterClients(endpoint, c.SubscriptionID, partnerId, auth)
+	client.apimgmt = apimgmt.RegisterClients(endpoint, c.SubscriptionID, partnerId, auth)
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth)
