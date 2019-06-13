@@ -13,9 +13,6 @@ import (
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	databricksSvc "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	datafactorySvc "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -393,12 +390,12 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.automation = automation.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 	client.cdn = cdn.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 	client.cognitive = cognitive.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
+	client.containers = containers.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
-	client.registerContainerClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
@@ -552,33 +549,6 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&galleryImageVersionsClient.Client, auth)
 	c.galleryImageVersionsClient = galleryImageVersionsClient
-}
-
-func (c *ArmClient) registerContainerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&registriesClient.Client, auth)
-
-	replicationsClient := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&replicationsClient.Client, auth)
-
-	groupsClient := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&groupsClient.Client, auth)
-
-	// ACS
-	containerServicesClient := containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&containerServicesClient.Client, auth)
-
-	// AKS
-	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&kubernetesClustersClient.Client, auth)
-
-	c.containers = &containers.Client{
-		KubernetesClustersClient:   kubernetesClustersClient,
-		GroupsClient:               groupsClient,
-		RegistryClient:             registriesClient,
-		RegistryReplicationsClient: replicationsClient,
-		ServicesClient:             containerServicesClient,
-	}
 }
 
 func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
