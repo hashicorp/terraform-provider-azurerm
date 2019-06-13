@@ -1,4 +1,4 @@
-package apimgmt
+package apimanagement
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"

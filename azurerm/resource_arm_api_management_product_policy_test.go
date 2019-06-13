@@ -109,7 +109,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ProductPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
@@ -117,7 +117,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 				return fmt.Errorf("Bad: Product Policy (API Management Service %q / Product %q/  Resource Group %q) does not exist", serviceName, productID, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apimgmt.ProductPoliciesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductPoliciesClient: %+v", err)
 		}
 
 		return nil
@@ -125,7 +125,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 }
 
 func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ProductPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_policy" {

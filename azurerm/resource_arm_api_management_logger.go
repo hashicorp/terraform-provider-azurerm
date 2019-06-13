@@ -87,7 +87,7 @@ func resourceArmApiManagementLogger() *schema.Resource {
 }
 
 func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.LoggerClient
+	client := meta.(*ArmClient).apiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -146,7 +146,7 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.LoggerClient
+	client := meta.(*ArmClient).apiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -183,7 +183,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.LoggerClient
+	client := meta.(*ArmClient).apiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -216,7 +216,7 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.LoggerClient
+	client := meta.(*ArmClient).apiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
