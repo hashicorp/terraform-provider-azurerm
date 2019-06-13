@@ -988,9 +988,13 @@ func (c *ArmClient) registerIoTHubClients(endpoint, subscriptionId string, auth 
 	iotDpsClient := iotdps.NewIotDpsResourceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&iotDpsClient.Client, auth)
 
+	iotDpsCertificateClient := iotdps.NewDpsCertificateClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotDpsCertificateClient.Client, auth)
+
 	c.iothub = &iothub.Client{
-		ResourceClient:    iotClient,
-		DPSResourceClient: iotDpsClient,
+		ResourceClient:       iotClient,
+		DPSResourceClient:    iotDpsClient,
+		DPSCertificateClient: iotDpsCertificateClient,
 	}
 }
 
