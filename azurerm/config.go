@@ -11,7 +11,6 @@ import (
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	automationSvc "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	cdnSvc "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	cognitiveSvc "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
@@ -392,10 +391,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apimgmt = apimgmt.RegisterClients(endpoint, c.SubscriptionID, partnerId, auth)
-
+	client.apimgmt = apimgmt.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
+	client.automation = automation.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
-	client.registerAutomationClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth)
@@ -454,51 +452,6 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 	aiwt := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&aiwt.Client, auth)
 	c.appInsightsWebTestsClient = aiwt
-}
-
-func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	accountClient := automationSvc.NewAccountClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&accountClient.Client, auth)
-
-	agentRegistrationInfoClient := automationSvc.NewAgentRegistrationInformationClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&agentRegistrationInfoClient.Client, auth)
-
-	credentialClient := automationSvc.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&credentialClient.Client, auth)
-
-	dscConfigurationClient := automationSvc.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dscConfigurationClient.Client, auth)
-
-	dscNodeConfigurationClient := automationSvc.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dscNodeConfigurationClient.Client, auth)
-
-	moduleClient := automationSvc.NewModuleClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&moduleClient.Client, auth)
-
-	runbookClient := automationSvc.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&runbookClient.Client, auth)
-
-	scheduleClient := automationSvc.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&scheduleClient.Client, auth)
-
-	runbookDraftClient := automationSvc.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&runbookDraftClient.Client, auth)
-
-	variableClient := automationSvc.NewVariableClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&variableClient.Client, auth)
-
-	c.automation = &automation.Client{
-		AccountClient:               accountClient,
-		AgentRegistrationInfoClient: agentRegistrationInfoClient,
-		CredentialClient:            credentialClient,
-		DscConfigurationClient:      dscConfigurationClient,
-		DscNodeConfigurationClient:  dscNodeConfigurationClient,
-		ModuleClient:                moduleClient,
-		RunbookClient:               runbookClient,
-		RunbookDraftClient:          runbookDraftClient,
-		ScheduleClient:              scheduleClient,
-		VariableClient:              variableClient,
-	}
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
