@@ -12,7 +12,6 @@ import (
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	cognitiveSvc "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
@@ -393,11 +392,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.apimgmt = apimgmt.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 	client.automation = automation.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 	client.cdn = cdn.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
+	client.cognitive = cognitive.BuildClients(endpoint, c.SubscriptionID, partnerId, auth)
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
-	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
@@ -484,15 +483,6 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchPool.Client, auth)
 	c.batchPoolClient = batchPool
-}
-
-func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	accountsClient := cognitiveSvc.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&accountsClient.Client, auth)
-
-	c.cognitive = &cognitive.Client{
-		AccountsClient: accountsClient,
-	}
 }
 
 func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
