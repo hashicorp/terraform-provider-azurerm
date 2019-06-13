@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	//"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -112,26 +113,26 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"subnets": {
-				Type:			schema.TypeSet,
+				Type: schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"first": {
-							Type:			schema.TypeString,
-							Required: true,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"last": {
-							Type:			schema.TypeString,
-							Required: true,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"scope": {
-							Type:			schema.TypeInt,
-							Required: true,
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
+				ForceNew: true,
 				Optional: true,
 			},
-
 		},
 	}
 }
@@ -229,10 +230,36 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
-		d.Set("subnets",props.Subnets)
-	}
 
+		subnetsFlat := make([]interface{}, 0)
+		for _, subnet := range *props.Subnets {
+			tempSubnet := flattenAzureRMTrafficManagerEndpointSubnetConfig(&subnet)
+			subnetsFlat = append(subnetsFlat, tempSubnet)
+		}
+		d.Set("subnets", subnetsFlat)
+
+	}
 	return nil
+}
+
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(subnet *trafficmanager.EndpointPropertiesSubnetsItem) map[string]interface{} {
+	result := make(map[string]interface{}, 3)
+	if subnet.First == nil {
+		result["first"] = nil
+	} else {
+		result["first"] = *subnet.First
+	}
+	if subnet.Last == nil {
+		result["last"] = nil
+	} else {
+		result["last"] = *subnet.Last
+	}
+	if subnet.Scope == nil {
+		result["scope"] = nil
+	} else {
+		result["scope"] = int(*subnet.Scope)
+	}
+	return result
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
@@ -302,6 +329,33 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
 		mci64 := int64(minChildEndpoints)
 		endpointProps.MinChildEndpoints = &mci64
+	}
+
+	templist := d.Get("subnets").([]interface{})
+	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnetOld := range templist {
+		subnetOld := subnetOld.(map[string]interface{})
+		subnetFirst := subnetOld["first"].(string)
+		subnetLast := subnetOld["last"].(string)
+		subnetScope := int32(subnetOld["scope"].(int))
+		var subnetNew trafficmanager.EndpointPropertiesSubnetsItem
+		if subnetScope == 0 {
+			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
+				First: &subnetFirst,
+				Last:  &subnetLast,
+				Scope: nil,
+			}
+		} else {
+			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
+				First: &subnetFirst,
+				Last:  nil,
+				Scope: &subnetScope,
+			}
+		}
+		subnetMappings = append(subnetMappings, subnetNew)
+	}
+	if len(subnetMappings) > 0 {
+		endpointProps.Subnets = &subnetMappings
 	}
 
 	return &endpointProps
