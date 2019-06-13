@@ -109,7 +109,7 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
@@ -117,7 +117,7 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 				return fmt.Errorf("Bad: API Policy (API Management Service %q / API %q/  Resource Group %q) does not exist", serviceName, apiName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apimgmt.ApiPoliciesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ApiPoliciesClient: %+v", err)
 		}
 
 		return nil
@@ -125,7 +125,7 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 }
 
 func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_policy" {

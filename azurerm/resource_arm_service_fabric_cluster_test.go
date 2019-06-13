@@ -669,7 +669,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 }
 
 func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceFabricClustersClient
+	client := testAccProvider.Meta().(*ArmClient).serviceFabric.ClustersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -708,7 +708,7 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Service Fabric Cluster %q", clusterName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceFabricClustersClient
+		client := testAccProvider.Meta().(*ArmClient).serviceFabric.ClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName)

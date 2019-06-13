@@ -62,7 +62,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 }
 
 func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.CertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -108,7 +108,7 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.CertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.CertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
