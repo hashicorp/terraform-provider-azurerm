@@ -791,27 +791,24 @@ func flattenServiceFabricClusterCertificateCommonNames(in *servicefabric.ServerC
 
 	output := make(map[string]interface{})
 
-	if v := in; v != nil {
-		if commonNames := in.CommonNames; commonNames != nil {
-			common_names := make([]map[string]interface{}, 0, len(*commonNames))
-			for _, i := range *commonNames {
-				commonName := make(map[string]interface{})
+	if commonNames := in.CommonNames; commonNames != nil {
+		common_names := make([]map[string]interface{}, 0, len(*commonNames))
+		for _, i := range *commonNames {
+			commonName := make(map[string]interface{})
 
-				commonName["certificate_common_name"] = *i.CertificateCommonName
+			commonName["certificate_common_name"] = *i.CertificateCommonName
 
-				if i.CertificateIssuerThumbprint != nil {
-					commonName["certificate_issuer_thumbprint"] = *i.CertificateIssuerThumbprint
-				}
-
-				common_names = append(common_names, commonName)
+			if i.CertificateIssuerThumbprint != nil {
+				commonName["certificate_issuer_thumbprint"] = *i.CertificateIssuerThumbprint
 			}
 
-			output["common_names"] = common_names
+			common_names = append(common_names, commonName)
 		}
 
-		output["x509_store_name"] = string(in.X509StoreName)
-
+		output["common_names"] = common_names
 	}
+
+	output["x509_store_name"] = string(in.X509StoreName)
 
 	return []interface{}{output}
 }
