@@ -7,6 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
+* `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
 
 ## 1.30.1 (June 07, 2019)
 
