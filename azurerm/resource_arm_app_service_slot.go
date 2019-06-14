@@ -38,13 +38,13 @@ func resourceArmAppServiceSlot() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ManagedServiceIdentityTypeNone),
 								string(web.ManagedServiceIdentityTypeSystemAssigned),
@@ -65,6 +65,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.NoZeroValues,
