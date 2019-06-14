@@ -806,10 +806,12 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnets {
+	subnets = [
+	{
 		first = "12.34.56.78"
 		last = "12.34.56.78"
 	}
+	]
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

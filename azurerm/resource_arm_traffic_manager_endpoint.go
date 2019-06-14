@@ -231,11 +231,17 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("geo_mappings", props.GeoMapping)
 
 		subnetsFlat := make([]interface{}, 0)
-		for _, subnet := range *props.Subnets {
-			tempSubnet := flattenAzureRMTrafficManagerEndpointSubnetConfig(&subnet)
-			subnetsFlat = append(subnetsFlat, tempSubnet)
+		if props.Subnets != nil {
+			for _, subnet := range *props.Subnets {
+				tempSubnet := flattenAzureRMTrafficManagerEndpointSubnetConfig(&subnet)
+				subnetsFlat = append(subnetsFlat, tempSubnet)
+			}
+			if len(subnetsFlat) > 0 {
+				d.Set("subnets", subnetsFlat)
+			}
+		} else {
+			d.Set("subnets", nil)
 		}
-		d.Set("subnets", subnetsFlat)
 
 	}
 	return nil
