@@ -254,7 +254,6 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		ID:                         read.ID,
 		SiteAuthSettingsProperties: &authSettings}
 
-	client.UpdateAuthSettingsSlot(ctx, resGroup, appServiceName, auth, slot)
 	if _, err := client.UpdateAuthSettingsSlot(ctx, resGroup, appServiceName, auth, slot); err != nil {
 		return fmt.Errorf("Error updating auth settings for App Service %q/%q (Resource Group %q): %+s", appServiceName, slot, resGroup, err)
 	}
