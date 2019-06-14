@@ -50,6 +50,8 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"site_config": azure.SchemaAppServiceSiteConfig(),
 
+			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -207,6 +209,63 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+
+	auth := web.SiteAuthSettings{
+		ID:                         read.ID,
+		SiteAuthSettingsProperties: &authSettings}
+
+	client.UpdateAuthSettingsSlot(ctx, resGroup, appServiceName, auth, slot)
+	if _, err := client.UpdateAuthSettingsSlot(ctx, resGroup, appServiceName, auth, slot); err != nil {
+		return fmt.Errorf("Error updating auth settings for App Service %q/%q (Resource Group %q): %+s", appServiceName, slot, resGroup, err)
+	}
+
+	return resourceArmAppServiceSlotUpdate(d, meta)
+}
+
+func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	appServiceName := id.Path["sites"]
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	appServicePlanId := d.Get("app_service_plan_id").(string)
+	slot := id.Path["slots"]
+	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+	siteEnvelope := web.Site{
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
+		},
+	}
+	if v, ok := d.GetOk("client_affinity_enabled"); ok {
+		enabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
+	}
+	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
+	if err != nil {
+		return err
+	}
+
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -215,6 +274,34 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
+		}
+	}
+
+	if d.HasChange("auth_settings") {
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		id := d.Id()
+		authSettings := web.SiteAuthSettings{
+			ID:                         &id,
+			SiteAuthSettingsProperties: &authSettingsProperties,
+		}
+
+		if _, err := client.UpdateAuthSettingsSlot(ctx, resGroup, appServiceName, authSettings, slot); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for App Service %q: %+v", appServiceName, err)
+		}
+	}
+
+	if d.HasChange("client_affinity_enabled") {
+		affinity := d.Get("client_affinity_enabled").(bool)
+		sitePatchResource := web.SitePatchResource{
+			ID: utils.String(d.Id()),
+			SitePatchResourceProperties: &web.SitePatchResourceProperties{
+				ClientAffinityEnabled: &affinity,
+			},
+		}
+		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
+		if err != nil {
+			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", slot, err)
 		}
 	}
 
@@ -290,6 +377,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot Configuration %q/%q: %+v", appServiceName, slot, err)
 	}
 
+	authResp, err := client.GetAuthSettingsSlot(ctx, resGroup, appServiceName, slot)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q/%q (Resource Group %q): %+v", appServiceName, slot, resGroup, err)
+	}
+
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, resGroup, appServiceName, slot)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
@@ -343,6 +435,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
+	}
+
+	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	if err := d.Set("auth_settings", authSettings); err != nil {
+		return fmt.Errorf("Error setting `auth_settings`: %+s", err)
 	}
 
 	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
