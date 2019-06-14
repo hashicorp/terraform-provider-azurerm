@@ -426,7 +426,7 @@ resource "azurerm_lb" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMLoadBalancer_frontEndConfigRemoval(rInt int, location string) string {
+func testAccAzureRMLoadBalancer_ftestAccrontEndConfigRemoval(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

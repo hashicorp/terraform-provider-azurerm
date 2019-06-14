@@ -98,6 +98,12 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Default:  false,
 			},
 
+			"disable_outbound_snat": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"idle_timeout_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -227,6 +233,10 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("enable_floating_ip", properties.EnableFloatingIP)
 		}
 
+		if properties.DisableOutboundSnat != nil {
+			d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
+		}
+
 		if properties.IdleTimeoutInMinutes != nil {
 			d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
 		}
@@ -311,10 +321,11 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.LoadBalancingRule, error) {
 
 	properties := network.LoadBalancingRulePropertiesFormat{
-		Protocol:         network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:     utils.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:      utils.Int32(int32(d.Get("backend_port").(int))),
-		EnableFloatingIP: utils.Bool(d.Get("enable_floating_ip").(bool)),
+		Protocol:            network.TransportProtocol(d.Get("protocol").(string)),
+		FrontendPort:        utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:         utils.Int32(int32(d.Get("backend_port").(int))),
+		EnableFloatingIP:    utils.Bool(d.Get("enable_floating_ip").(bool)),
+		DisableOutboundSnat: utils.Bool(d.Get("disable_outbound_snat").(bool)),
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
