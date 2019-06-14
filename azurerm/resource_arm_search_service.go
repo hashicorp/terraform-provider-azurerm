@@ -70,7 +70,7 @@ func resourceArmSearchService() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 		},
 	}
 }
