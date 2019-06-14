@@ -123,7 +123,32 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resourceName := "azurerm_lb.test"
 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
+					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "1"),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
@@ -387,7 +412,7 @@ resource "azurerm_lb" "test" {
   frontend_ip_configuration {
     name                 = "two-%d"
     public_ip_address_id = "${azurerm_public_ip.test1.id}"
-  }
+	}
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -426,7 +451,35 @@ resource "azurerm_lb" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMLoadBalancer_ftestAccrontEndConfigRemoval(rInt int, location string) string {
+func testAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "test-ip-prefix-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  prefix_length   = 31
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctest-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	sku = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "prefix-%d"
+    public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMLoadBalancer_frontEndConfigRemoval(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
