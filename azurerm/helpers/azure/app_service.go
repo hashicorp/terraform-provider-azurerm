@@ -225,6 +225,7 @@ func SchemaAppServiceIdentity() *schema.Schema {
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 				"principal_id": {
 					Type:     schema.TypeString,
