@@ -249,6 +249,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
 			"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
+			"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
+			"azurerm_iothub_endpoint_servicebus_topic":                   resourceArmIotHubEndpointServiceBusTopic(),
 			"azurerm_iothub_endpoint_storage_container":                  resourceArmIotHubEndpointStorageContainer(),
 		"azurerm_iothub_shared_access_policy":                        resourceArmIotHubSharedAccessPolicy(),
 		"azurerm_key_vault_access_policy":                            resourceArmKeyVaultAccessPolicy(),

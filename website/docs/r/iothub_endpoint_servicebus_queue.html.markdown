@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iothub_endpoint_eventhub"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-endpoint-eventhub-x"
+page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_queue"
+sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-queue-x"
 description: |-
-  Manages an IotHub EventHub Endpoint
+  Manages an IotHub ServiceBus Queue Endpoint
 ---
 
 # azurerm_iothub_endpoint_eventhub
 
-Manages an IotHub EventHub Endpoint
+Manages an IotHub ServiceBus Queue Endpoint
 
 ~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
@@ -20,27 +20,27 @@ resource "azurerm_resource_group" "example" {
   location = "East US"
 }
 
-resource "azurerm_eventhub_namespace" "example" {
-  name                = "exampleEventHubNamespace"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "exampleNamespace"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
-resource "azurerm_eventhub" "example" {
-  name                = "exampleEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+resource "azurerm_servicebus_queue" "example" {
+  name                = "exampleQueue"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  partition_count     = 2
-  message_retention   = 1
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+
+  enable_partitioning = true
 }
 
-resource "azurerm_eventhub_authorization_rule" "example" {
+resource "azurerm_servicebus_queue_authorization_rule" "example" {
   name                = "exampleRule"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  eventhub_name       = "${azurerm_eventhub.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  queue_name          = "${azurerm_servicebus_queue.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
- 
+
   listen = false
   send   = true
   manage = false
@@ -62,12 +62,12 @@ resource "azurerm_iothub" "example" {
   }
 }
 
-resource "azurerm_iothub_endpoint_eventhub" "example" {
+resource "azurerm_iothub_endpoint_servicebus_queue" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
   
-  connection_string = "${azurerm_eventhub_authorization_rule.example.primary_connection_string}"
+  connection_string = "${azurerm_servicebus_queue_authorization_rule.example.primary_connection_string}"
 }
 
 ```
@@ -84,12 +84,12 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the IoTHub EventHub Endpoint.
+* `id` - The ID of the IoTHub ServiceBus Queue Endpoint.
 
 ## Import
 
-IoTHub EventHub Endpoint can be imported using the `resource id`, e.g.
+IoTHub ServiceBus Queue Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_endpoint_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/eventhub_endpoint1
+terraform import azurerm_iothub_endpoint_servicebus_queue.servicebus_queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/servicebusqueue_endpoint1
 ```
