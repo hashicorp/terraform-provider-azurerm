@@ -10,8 +10,7 @@ description: |-
 
 Manages an IotHub Storage Container Endpoint
 
-~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_storage_container` resource in case of Storage Account Endpoints - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_storage_container` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
-
+~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_storage_container` and `azurerm_iothub_endpoint_eventhub` resources - but the two ways of definig the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_storage_container` or `azurerm_iothub_endpoint_eventhub` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
 ## Example Usage
 
