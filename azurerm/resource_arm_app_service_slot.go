@@ -250,7 +250,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service App Service Slot %q/%q: %+v", appServiceName, slot, err)
+			return fmt.Errorf("Error updating Managed Service Identity for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
 
