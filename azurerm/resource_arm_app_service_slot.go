@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +35,44 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": azure.SchemaAppServiceIdentity(),
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ManagedServiceIdentityTypeNone),
+								string(web.ManagedServiceIdentityTypeSystemAssigned),
+								string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+								string(web.ManagedServiceIdentityTypeUserAssigned),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+					},
+				},
+			},
 
 			"app_service_name": {
 				Type:     schema.TypeString,
