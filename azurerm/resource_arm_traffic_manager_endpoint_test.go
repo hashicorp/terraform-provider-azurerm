@@ -166,7 +166,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	})
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
+func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	firstResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
