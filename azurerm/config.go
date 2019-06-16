@@ -443,6 +443,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	apiBackendClient := apimanagement.NewBackendClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&apiBackendClient.Client, auth)
+
 	apisClient := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&apisClient.Client, auth)
 
@@ -519,6 +522,7 @@ func (c *ArmClient) registerAPIManagementClients(endpoint, subscriptionId string
 		ApiOperationPoliciesClient: apiOperationPoliciesClient,
 		ApiSchemasClient:           apiSchemasClient,
 		ApiVersionSetClient:        apiVersionSetClient,
+		BackendClient:              apiBackendClient,
 		AuthorizationServersClient: authorizationServersClient,
 		CertificatesClient:         certificatesClient,
 		GroupClient:                groupsClient,
