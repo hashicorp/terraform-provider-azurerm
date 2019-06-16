@@ -68,14 +68,28 @@ func resourceArmApiManagementBackend() *schema.Resource {
 								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
-						"header": {
-							Type:     schema.TypeMap,
-							Optional: true,
-						},
-						"query": {
-							Type:     schema.TypeMap,
-							Optional: true,
-						},
+						// "header": {
+						// 	Type:     schema.TypeMap,
+						// 	Optional: true,
+						// Elem: &schema.Schema{
+						// 	Type: schema.TypeList,
+						// 	Elem: &schema.Schema{
+						// 		Type:         schema.TypeString,
+						// 		ValidateFunc: validate.NoEmptyStrings,
+						// 	},
+						// },
+						// },
+						// "query": {
+						// 	Type:     schema.TypeMap,
+						// 	Optional: true,
+						// Elem: &schema.Schema{
+						// 	Type: schema.TypeList,
+						// 	Elem: &schema.Schema{
+						// 		Type:         schema.TypeString,
+						// 		ValidateFunc: validate.NoEmptyStrings,
+						// 	},
+						// },
+						// },
 					},
 				},
 			},
@@ -83,10 +97,8 @@ func resourceArmApiManagementBackend() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringLenBetween(1, 2000),
 			},
-
-			"properties": {},
 
 			"protocol": {
 				Type:     schema.TypeString,
@@ -126,13 +138,68 @@ func resourceArmApiManagementBackend() *schema.Resource {
 			"resource_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringLenBetween(1, 2000),
+			},
+
+			"service_fabric_cluster": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_certificate_thumbprint": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"management_endpoints": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+						"max_partition_resolution_retries": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"server_certificate_thumbprints": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							ConflictsWith: []string{"service_fabric_cluster.0.server_x509_name"},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+						"server_x509_name": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							ConflictsWith: []string{"service_fabric_cluster.0.server_certificate_thumbprints"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"issuer_certificate_thumbprint": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"title": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringLenBetween(1, 300),
 			},
 
 			"tls": {
@@ -184,12 +251,9 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 
 	credentialsRaw := d.Get("credentials").([]interface{})
 	credentials := expandApiManagementBackendCredentials(credentialsRaw)
-	description := d.Get("description").(string)
 	protocol := d.Get("protocol").(string)
 	proxyRaw := d.Get("proxy").([]interface{})
 	proxy := expandApiManagementBackendProxy(proxyRaw)
-	resourceID := d.Get("resource_id").(string)
-	title := d.Get("title").(string)
 	tlsRaw := d.Get("tls").([]interface{})
 	tls := expandApiManagementBackendTls(tlsRaw)
 	url := d.Get("url").(string)
@@ -197,15 +261,31 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 	backendContract := apimanagement.BackendContract{
 		BackendContractProperties: &apimanagement.BackendContractProperties{
 			Credentials: credentials,
-			Description: utils.String(description),
-			// Properties:  "",
-			Protocol:   apimanagement.BackendProtocol(protocol),
-			Proxy:      proxy,
-			ResourceID: utils.String(resourceID),
-			Title:      utils.String(title),
-			TLS:        tls,
-			URL:        utils.String(url),
+			Protocol:    apimanagement.BackendProtocol(protocol),
+			Proxy:       proxy,
+			TLS:         tls,
+			URL:         utils.String(url),
 		},
+	}
+	if description, ok := d.GetOk("description"); ok {
+		backendContract.BackendContractProperties.Description = utils.String(description.(string))
+	}
+	if resourceID, ok := d.GetOk("resource_id"); ok {
+		backendContract.BackendContractProperties.ResourceID = utils.String(resourceID.(string))
+	}
+	if title, ok := d.GetOk("title"); ok {
+		backendContract.BackendContractProperties.Title = utils.String(title.(string))
+	}
+
+	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
+		err, serviceFabricCluster := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+		properties := apimanagement.BackendProperties{
+			ServiceFabricCluster: serviceFabricCluster,
+		}
+		backendContract.BackendContractProperties.Properties = &properties
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, backendContract, ""); err != nil {
@@ -226,8 +306,8 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).apimgmt.BackendClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -254,14 +334,46 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.BackendContractProperties; props != nil {
-		d.Set("credentials", "")
 		d.Set("description", props.Description)
-		// d.Set("properties", "")
-		d.Set("protocol", props.Protocol)
+		d.Set("protocol", string(props.Protocol))
+		d.Set("title", props.Title)
+		d.Set("url", props.URL)
+		if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
+			return fmt.Errorf("Error setting `credentials`: %s", err)
+		}
+		if properties := props.Properties; properties != nil {
+			if err := d.Set("service_fabric_cluster", flattenApiManagementBackendServiceFabricCluster(properties.ServiceFabricCluster)); err != nil {
+				return fmt.Errorf("Error setting `service_fabric_cluster`: %s", err)
+			}
+		}
+		if err := d.Set("tls", flattenApiManagementBackendTls(props.TLS)); err != nil {
+			return fmt.Errorf("Error setting `tls`: %s", err)
+		}
 	}
+
+	return nil
 }
 
 func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).apimgmt.BackendClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["backends"]
+
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error deleting backend %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+		}
+	}
+
+	return nil
 }
 
 func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.BackendCredentialsContract {
@@ -269,19 +381,22 @@ func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.B
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	authorizationRaw := v["authorization"].([]interface{})
-	authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw)
-	certificate := v["certificate"].([]interface{})
-	headerRaw := v["header"].(map[string]interface{})
-	header := expandApiManagementBackendCredentialsObject(headerRaw)
-	queryRaw := v["query"].(map[string]interface{})
-	query := expandApiManagementBackendCredentialsObject(queryRaw)
-	contract := apimanagement.BackendCredentialsContract{
-		Authorization: authorization,
-		Certificate:   utils.ExpandStringSlice(certificate),
-		Header:        *header,
-		Query:         *query,
+	contract := apimanagement.BackendCredentialsContract{}
+	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
+		authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
+		contract.Authorization = authorization
 	}
+	if certificate := v["certificate"]; certificate != nil {
+		contract.Certificate = utils.ExpandStringSlice(certificate.([]interface{}))
+	}
+	// if headerRaw := v["header"]; headerRaw != nil {
+	// 	header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
+	// 	contract.Header = *header
+	// }
+	// if queryRaw := v["query"]; queryRaw != nil {
+	// 	query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
+	// 	contract.Query = *query
+	// }
 	return &contract
 }
 
@@ -290,11 +405,12 @@ func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *ap
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	parameter := v["parameter"].(string)
-	scheme := v["scheme"].(string)
-	credentials := apimanagement.BackendAuthorizationHeaderCredentials{
-		Parameter: utils.String(parameter),
-		Scheme:    utils.String(scheme),
+	credentials := apimanagement.BackendAuthorizationHeaderCredentials{}
+	if parameter := v["parameter"]; parameter != nil {
+		credentials.Parameter = utils.String(parameter.(string))
+	}
+	if scheme := v["scheme"]; scheme != nil {
+		credentials.Scheme = utils.String(scheme.(string))
 	}
 	return &credentials
 }
@@ -307,27 +423,64 @@ func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *
 	return &output
 }
 
-func expandApiManagementBackendProperties(input []interface{}) *apimanagement.BackendProperties {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-}
-
 func expandApiManagementBackendProxy(input []interface{}) *apimanagement.BackendProxyContract {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	password := v["password"].(string)
-	url := v["url"].(string)
-	username := v["username"].(string)
-	contract := apimanagement.BackendProxyContract{
-		Password: utils.String(password),
-		URL:      utils.String(url),
-		Username: utils.String(username),
+	contract := apimanagement.BackendProxyContract{}
+	if password := v["password"]; password != nil {
+		contract.Password = utils.String(password.(string))
+	}
+	if url := v["url"]; url != nil {
+		contract.URL = utils.String(url.(string))
+	}
+	if username := v["username"]; username != nil {
+		contract.Username = utils.String(username.(string))
 	}
 	return &contract
+}
+
+func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error, *apimanagement.BackendServiceFabricClusterProperties) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	v := input[0].(map[string]interface{})
+	clientCertificatethumbprint := v["client_certificate_thumbprint"].(string)
+	managementEndpoints := v["management_endpoints"].(*schema.Set).List()
+	maxPartitionResolutionRetries := int32(v["max_partition_resolution_retries"].(int))
+	properties := apimanagement.BackendServiceFabricClusterProperties{
+		ClientCertificatethumbprint:   utils.String(clientCertificatethumbprint),
+		ManagementEndpoints:           utils.ExpandStringSlice(managementEndpoints),
+		MaxPartitionResolutionRetries: utils.Int32(maxPartitionResolutionRetries),
+	}
+	serverCertificateThumbprintsUnset := true
+	serverX509NamesUnset := true
+	if serverCertificateThumbprints := v["server_certificate_thumbprints"]; serverCertificateThumbprints != nil {
+		properties.ServerCertificateThumbprints = utils.ExpandStringSlice(serverCertificateThumbprints.(*schema.Set).List())
+		serverCertificateThumbprintsUnset = false
+	}
+	if serverX509Names := v["server_x509_name"]; serverX509Names != nil {
+		properties.ServerX509Names = expandApiManagementBackendServiceFabricClusterServerX509Names(serverX509Names.(*schema.Set).List())
+		serverX509NamesUnset = false
+	}
+	if serverCertificateThumbprintsUnset && serverX509NamesUnset {
+		return fmt.Errorf("One of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
+	}
+	return nil, &properties
+}
+
+func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]apimanagement.X509CertificateName {
+	results := make([]apimanagement.X509CertificateName, 0)
+	for _, certificateName := range input {
+		v := certificateName.(map[string]interface{})
+		result := apimanagement.X509CertificateName{
+			IssuerCertificateThumbprint: utils.String(v["issuer_certificate_thumbprint"].(string)),
+			Name:                        utils.String(v["name"].(string)),
+		}
+		results = append(results, result)
+	}
+	return &results
 }
 
 func expandApiManagementBackendTls(input []interface{}) *apimanagement.BackendTLSProperties {
@@ -335,11 +488,97 @@ func expandApiManagementBackendTls(input []interface{}) *apimanagement.BackendTL
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	validateCertificateChain := v["validate_certificate_chain"].(bool)
-	validateCertificateName := v["validate_certificate_name"].(bool)
-	properties := apimanagement.BackendTLSProperties{
-		ValidateCertificateChain: utils.Bool(validateCertificateChain),
-		ValidateCertificateName:  utils.Bool(validateCertificateName),
+	properties := apimanagement.BackendTLSProperties{}
+	if validateCertificateChain := v["validate_certificate_chain"]; validateCertificateChain != nil {
+		properties.ValidateCertificateChain = utils.Bool(validateCertificateChain.(bool))
+	}
+	if validateCertificateName := v["validate_certificate_name"]; validateCertificateName != nil {
+		properties.ValidateCertificateName = utils.Bool(validateCertificateName.(bool))
 	}
 	return &properties
+}
+
+func flattenApiManagementBackendCredentials(input *apimanagement.BackendCredentialsContract) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+	result["authorization"] = flattenApiManagementBackendCredentialsAuthorization(input.Authorization)
+	if input.Certificate != nil {
+		result["certificate"] = *input.Certificate
+	}
+	// result["header"] = input.Header
+	// result["query"] = input.Query
+	return append(results, result)
+}
+
+func flattenApiManagementBackendCredentialsAuthorization(input *apimanagement.BackendAuthorizationHeaderCredentials) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+	if parameter := input.Parameter; parameter != nil {
+		result["parameter"] = *parameter
+	}
+	if scheme := input.Scheme; scheme != nil {
+		result["scheme"] = *scheme
+	}
+	return append(results, result)
+}
+
+func flattenApiManagementBackendServiceFabricCluster(input *apimanagement.BackendServiceFabricClusterProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+	if clientCertificatethumbprint := input.ClientCertificatethumbprint; clientCertificatethumbprint != nil {
+		result["client_certificate_thumbprint"] = *clientCertificatethumbprint
+	}
+	if managementEndpoints := input.ManagementEndpoints; managementEndpoints != nil {
+		result["management_endpoints"] = *managementEndpoints
+	}
+	if maxPartitionResolutionRetries := input.MaxPartitionResolutionRetries; maxPartitionResolutionRetries != nil {
+		result["max_partition_resolution_retries"] = int(*maxPartitionResolutionRetries)
+	}
+	if serverCertificateThumbprints := input.ServerCertificateThumbprints; serverCertificateThumbprints != nil {
+		result["server_certificate_thumbprints"] = *serverCertificateThumbprints
+	}
+	result["server_x509_name"] = flattenApiManagementBackendServiceFabricClusterServerX509Names(input.ServerX509Names)
+	return append(results, result)
+}
+
+func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]apimanagement.X509CertificateName) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	for _, certificateName := range *input {
+		result := make(map[string]interface{})
+		if issuerCertificateThumbprint := certificateName.IssuerCertificateThumbprint; issuerCertificateThumbprint != nil {
+			result["issuer_certificate_thumbprint"] = *issuerCertificateThumbprint
+		}
+		if name := certificateName.Name; name != nil {
+			result["name"] = *name
+		}
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenApiManagementBackendTls(input *apimanagement.BackendTLSProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+	if validateCertificateChain := input.ValidateCertificateChain; validateCertificateChain != nil {
+		result["validate_certificate_chain"] = *validateCertificateChain
+	}
+	if validateCertificateName := input.ValidateCertificateName; validateCertificateName != nil {
+		result["validate_certificate_name"] = *validateCertificateName
+	}
+	return append(results, result)
 }
