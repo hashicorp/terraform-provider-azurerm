@@ -25,29 +25,29 @@ import (
 	"net/http"
 )
 
-// GroupClient is the all resource groups and resources exist within subscriptions. These operation enable you get
+// Client is the all resource groups and resources exist within subscriptions. These operation enable you get
 // information about your subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory (Azure
 // AD) for your organization.
-type GroupClient struct {
+type Client struct {
 	BaseClient
 }
 
-// NewGroupClient creates an instance of the GroupClient client.
-func NewGroupClient() GroupClient {
-	return NewGroupClientWithBaseURI(DefaultBaseURI)
+// NewClient creates an instance of the Client client.
+func NewClient() Client {
+	return NewClientWithBaseURI(DefaultBaseURI)
 }
 
-// NewGroupClientWithBaseURI creates an instance of the GroupClient client.
-func NewGroupClientWithBaseURI(baseURI string) GroupClient {
-	return GroupClient{NewWithBaseURI(baseURI)}
+// NewClientWithBaseURI creates an instance of the Client client.
+func NewClientWithBaseURI(baseURI string) Client {
+	return Client{NewWithBaseURI(baseURI)}
 }
 
 // Get gets details about a specified subscription.
 // Parameters:
 // subscriptionID - the ID of the target subscription.
-func (client GroupClient) Get(ctx context.Context, subscriptionID string) (result Subscription, err error) {
+func (client Client) Get(ctx context.Context, subscriptionID string) (result Subscription, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GroupClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -58,27 +58,27 @@ func (client GroupClient) Get(ctx context.Context, subscriptionID string) (resul
 	}
 	req, err := client.GetPreparer(ctx, subscriptionID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client GroupClient) GetPreparer(ctx context.Context, subscriptionID string) (*http.Request, error) {
+func (client Client) GetPreparer(ctx context.Context, subscriptionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
@@ -98,14 +98,14 @@ func (client GroupClient) GetPreparer(ctx context.Context, subscriptionID string
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client GroupClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client GroupClient) GetResponder(resp *http.Response) (result Subscription, err error) {
+func (client Client) GetResponder(resp *http.Response) (result Subscription, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -117,9 +117,9 @@ func (client GroupClient) GetResponder(resp *http.Response) (result Subscription
 }
 
 // List gets all subscriptions for a tenant.
-func (client GroupClient) List(ctx context.Context) (result ListResultPage, err error) {
+func (client Client) List(ctx context.Context) (result ListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GroupClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/Client.List")
 		defer func() {
 			sc := -1
 			if result.lr.Response.Response != nil {
@@ -131,27 +131,27 @@ func (client GroupClient) List(ctx context.Context) (result ListResultPage, err 
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.lr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client GroupClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client Client) ListPreparer(ctx context.Context) (*http.Request, error) {
 	const APIVersion = "2016-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
@@ -167,14 +167,14 @@ func (client GroupClient) ListPreparer(ctx context.Context) (*http.Request, erro
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client GroupClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client Client) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client GroupClient) ListResponder(resp *http.Response) (result ListResult, err error) {
+func (client Client) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -186,10 +186,10 @@ func (client GroupClient) ListResponder(resp *http.Response) (result ListResult,
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client GroupClient) listNextResults(ctx context.Context, lastResults ListResult) (result ListResult, err error) {
+func (client Client) listNextResults(ctx context.Context, lastResults ListResult) (result ListResult, err error) {
 	req, err := lastResults.listResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "subscriptions.GroupClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.Client", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -197,19 +197,19 @@ func (client GroupClient) listNextResults(ctx context.Context, lastResults ListR
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "subscriptions.GroupClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.Client", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GroupClient) ListComplete(ctx context.Context) (result ListResultIterator, err error) {
+func (client Client) ListComplete(ctx context.Context) (result ListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GroupClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/Client.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -226,9 +226,9 @@ func (client GroupClient) ListComplete(ctx context.Context) (result ListResultIt
 // resource provider may support a subset of this list.
 // Parameters:
 // subscriptionID - the ID of the target subscription.
-func (client GroupClient) ListLocations(ctx context.Context, subscriptionID string) (result LocationListResult, err error) {
+func (client Client) ListLocations(ctx context.Context, subscriptionID string) (result LocationListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GroupClient.ListLocations")
+		ctx = tracing.StartSpan(ctx, fqdn+"/Client.ListLocations")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -239,27 +239,27 @@ func (client GroupClient) ListLocations(ctx context.Context, subscriptionID stri
 	}
 	req, err := client.ListLocationsPreparer(ctx, subscriptionID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "ListLocations", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "ListLocations", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListLocationsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "ListLocations", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "ListLocations", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListLocationsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.GroupClient", "ListLocations", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "subscriptions.Client", "ListLocations", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListLocationsPreparer prepares the ListLocations request.
-func (client GroupClient) ListLocationsPreparer(ctx context.Context, subscriptionID string) (*http.Request, error) {
+func (client Client) ListLocationsPreparer(ctx context.Context, subscriptionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
@@ -279,14 +279,14 @@ func (client GroupClient) ListLocationsPreparer(ctx context.Context, subscriptio
 
 // ListLocationsSender sends the ListLocations request. The method will close the
 // http.Response Body if it receives an error.
-func (client GroupClient) ListLocationsSender(req *http.Request) (*http.Response, error) {
+func (client Client) ListLocationsSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListLocationsResponder handles the response to the ListLocations request. The method always
 // closes the http.Response Body.
-func (client GroupClient) ListLocationsResponder(resp *http.Response) (result LocationListResult, err error) {
+func (client Client) ListLocationsResponder(resp *http.Response) (result LocationListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

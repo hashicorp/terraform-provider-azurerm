@@ -115,7 +115,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 }
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
@@ -163,7 +163,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -213,7 +213,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

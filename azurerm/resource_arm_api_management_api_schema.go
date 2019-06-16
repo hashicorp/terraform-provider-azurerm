@@ -47,7 +47,7 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 }
 
 func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiSchemasClient
+	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	schemaID := d.Get("schema_id").(string)
@@ -96,7 +96,7 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiSchemasClient
+	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -135,7 +135,7 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiSchemasClient
+	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -44,6 +44,36 @@ func PossibleKeyNameValues() []KeyName {
 	return []KeyName{Key1, Key2}
 }
 
+// NetworkRuleAction enumerates the values for network rule action.
+type NetworkRuleAction string
+
+const (
+	// Allow ...
+	Allow NetworkRuleAction = "Allow"
+	// Deny ...
+	Deny NetworkRuleAction = "Deny"
+)
+
+// PossibleNetworkRuleActionValues returns an array of possible values for the NetworkRuleAction const type.
+func PossibleNetworkRuleActionValues() []NetworkRuleAction {
+	return []NetworkRuleAction{Allow, Deny}
+}
+
+// NetworkRuleBypassOptions enumerates the values for network rule bypass options.
+type NetworkRuleBypassOptions string
+
+const (
+	// AzureServices ...
+	AzureServices NetworkRuleBypassOptions = "AzureServices"
+	// None ...
+	None NetworkRuleBypassOptions = "None"
+)
+
+// PossibleNetworkRuleBypassOptionsValues returns an array of possible values for the NetworkRuleBypassOptions const type.
+func PossibleNetworkRuleBypassOptionsValues() []NetworkRuleBypassOptions {
+	return []NetworkRuleBypassOptions{AzureServices, None}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
@@ -509,6 +539,8 @@ type AccountProperties struct {
 	InternalID *string `json:"internalId,omitempty"`
 	// CustomSubDomainName - Optional subdomain name used for token-based authentication.
 	CustomSubDomainName *string `json:"customSubDomainName,omitempty"`
+	// NetworkAcls - A collection of rules governing the accessibility from specific network locations.
+	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
 }
 
 // AccountUpdateParameters the parameters to provide for the account.
@@ -583,12 +615,30 @@ type ErrorBody struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// IPRule a rule governing the accessibility from a specific ip address or ip range.
+type IPRule struct {
+	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
+	Value *string `json:"value,omitempty"`
+}
+
 // MetricName a metric name.
 type MetricName struct {
 	// Value - READ-ONLY; The name of the metric.
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - READ-ONLY; The friendly name of the metric.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// NetworkRuleSet a set of rules governing the network accessibility.
+type NetworkRuleSet struct {
+	// Bypass - Tells what traffic can bypass network rules. This can be 'AzureServices' or 'None'.  If not specified the default is 'AzureServices'. Possible values include: 'AzureServices', 'None'
+	Bypass NetworkRuleBypassOptions `json:"bypass,omitempty"`
+	// DefaultAction - The default action when no rule from ipRules and from virtualNetworkRules match. This is only used after the bypass property has been evaluated. Possible values include: 'Allow', 'Deny'
+	DefaultAction NetworkRuleAction `json:"defaultAction,omitempty"`
+	// IPRules - The list of IP address rules.
+	IPRules *[]IPRule `json:"ipRules,omitempty"`
+	// VirtualNetworkRules - The list of virtual network rules.
+	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 }
 
 // OperationDisplayInfo the operation supported by Cognitive Services.
@@ -988,4 +1038,14 @@ type UsagesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of usages for Cognitive Service account.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// VirtualNetworkRule a rule governing the accessibility from a specific virtual network.
+type VirtualNetworkRule struct {
+	// ID - Full resource id of a vnet subnet, such as '/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1'.
+	ID *string `json:"id,omitempty"`
+	// State - Gets the state of virtual network rule.
+	State *string `json:"state,omitempty"`
+	// IgnoreMissingVnetServiceEndpoint - Ignore missing vnet service endpoint or not.
+	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
 }

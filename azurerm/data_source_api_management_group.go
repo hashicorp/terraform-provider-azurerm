@@ -44,7 +44,7 @@ func dataSourceApiManagementGroup() *schema.Resource {
 }
 
 func dataSourceApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.GroupClient
+	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

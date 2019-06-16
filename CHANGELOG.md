@@ -3,10 +3,14 @@
 FEATURES:
 
 * **New Resource:** `azurerm_iot_dps` [GH-3618]
+* **New Resource:** `azurerm_stream_analytics_output_mssql` [GH-3567]
 
 IMPROVEMENTS:
 
+* `azure_app_service_plan` - Prevented a panic during import [GH-3657]
 * `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
+* `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
+* `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
 
 ## 1.30.1 (June 07, 2019)
 

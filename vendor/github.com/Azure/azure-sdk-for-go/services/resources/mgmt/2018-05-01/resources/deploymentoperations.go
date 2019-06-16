@@ -26,19 +26,19 @@ import (
 	"net/http"
 )
 
-// DeploymentOperationsGroupClient is the provides operations for working with resources and resource groups.
-type DeploymentOperationsGroupClient struct {
+// DeploymentOperationsClient is the provides operations for working with resources and resource groups.
+type DeploymentOperationsClient struct {
 	BaseClient
 }
 
-// NewDeploymentOperationsGroupClient creates an instance of the DeploymentOperationsGroupClient client.
-func NewDeploymentOperationsGroupClient(subscriptionID string) DeploymentOperationsGroupClient {
-	return NewDeploymentOperationsGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewDeploymentOperationsClient creates an instance of the DeploymentOperationsClient client.
+func NewDeploymentOperationsClient(subscriptionID string) DeploymentOperationsClient {
+	return NewDeploymentOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDeploymentOperationsGroupClientWithBaseURI creates an instance of the DeploymentOperationsGroupClient client.
-func NewDeploymentOperationsGroupClientWithBaseURI(baseURI string, subscriptionID string) DeploymentOperationsGroupClient {
-	return DeploymentOperationsGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewDeploymentOperationsClientWithBaseURI creates an instance of the DeploymentOperationsClient client.
+func NewDeploymentOperationsClientWithBaseURI(baseURI string, subscriptionID string) DeploymentOperationsClient {
+	return DeploymentOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get gets a deployments operation.
@@ -46,9 +46,9 @@ func NewDeploymentOperationsGroupClientWithBaseURI(baseURI string, subscriptionI
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // deploymentName - the name of the deployment.
 // operationID - the ID of the operation to get.
-func (client DeploymentOperationsGroupClient) Get(ctx context.Context, resourceGroupName string, deploymentName string, operationID string) (result DeploymentOperation, err error) {
+func (client DeploymentOperationsClient) Get(ctx context.Context, resourceGroupName string, deploymentName string, operationID string) (result DeploymentOperation, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -66,32 +66,32 @@ func (client DeploymentOperationsGroupClient) Get(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("resources.DeploymentOperationsGroupClient", "Get", err.Error())
+		return result, validation.NewError("resources.DeploymentOperationsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, deploymentName, operationID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client DeploymentOperationsGroupClient) GetPreparer(ctx context.Context, resourceGroupName string, deploymentName string, operationID string) (*http.Request, error) {
+func (client DeploymentOperationsClient) GetPreparer(ctx context.Context, resourceGroupName string, deploymentName string, operationID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deploymentName":    autorest.Encode("path", deploymentName),
 		"operationId":       autorest.Encode("path", operationID),
@@ -114,14 +114,14 @@ func (client DeploymentOperationsGroupClient) GetPreparer(ctx context.Context, r
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client DeploymentOperationsGroupClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client DeploymentOperationsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client DeploymentOperationsGroupClient) GetResponder(resp *http.Response) (result DeploymentOperation, err error) {
+func (client DeploymentOperationsClient) GetResponder(resp *http.Response) (result DeploymentOperation, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -136,9 +136,9 @@ func (client DeploymentOperationsGroupClient) GetResponder(resp *http.Response) 
 // Parameters:
 // deploymentName - the name of the deployment.
 // operationID - the ID of the operation to get.
-func (client DeploymentOperationsGroupClient) GetAtSubscriptionScope(ctx context.Context, deploymentName string, operationID string) (result DeploymentOperation, err error) {
+func (client DeploymentOperationsClient) GetAtSubscriptionScope(ctx context.Context, deploymentName string, operationID string) (result DeploymentOperation, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.GetAtSubscriptionScope")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.GetAtSubscriptionScope")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -152,32 +152,32 @@ func (client DeploymentOperationsGroupClient) GetAtSubscriptionScope(ctx context
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("resources.DeploymentOperationsGroupClient", "GetAtSubscriptionScope", err.Error())
+		return result, validation.NewError("resources.DeploymentOperationsClient", "GetAtSubscriptionScope", err.Error())
 	}
 
 	req, err := client.GetAtSubscriptionScopePreparer(ctx, deploymentName, operationID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "GetAtSubscriptionScope", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "GetAtSubscriptionScope", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetAtSubscriptionScopeSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "GetAtSubscriptionScope", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "GetAtSubscriptionScope", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetAtSubscriptionScopeResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "GetAtSubscriptionScope", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "GetAtSubscriptionScope", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetAtSubscriptionScopePreparer prepares the GetAtSubscriptionScope request.
-func (client DeploymentOperationsGroupClient) GetAtSubscriptionScopePreparer(ctx context.Context, deploymentName string, operationID string) (*http.Request, error) {
+func (client DeploymentOperationsClient) GetAtSubscriptionScopePreparer(ctx context.Context, deploymentName string, operationID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deploymentName": autorest.Encode("path", deploymentName),
 		"operationId":    autorest.Encode("path", operationID),
@@ -199,14 +199,14 @@ func (client DeploymentOperationsGroupClient) GetAtSubscriptionScopePreparer(ctx
 
 // GetAtSubscriptionScopeSender sends the GetAtSubscriptionScope request. The method will close the
 // http.Response Body if it receives an error.
-func (client DeploymentOperationsGroupClient) GetAtSubscriptionScopeSender(req *http.Request) (*http.Response, error) {
+func (client DeploymentOperationsClient) GetAtSubscriptionScopeSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAtSubscriptionScopeResponder handles the response to the GetAtSubscriptionScope request. The method always
 // closes the http.Response Body.
-func (client DeploymentOperationsGroupClient) GetAtSubscriptionScopeResponder(resp *http.Response) (result DeploymentOperation, err error) {
+func (client DeploymentOperationsClient) GetAtSubscriptionScopeResponder(resp *http.Response) (result DeploymentOperation, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -222,9 +222,9 @@ func (client DeploymentOperationsGroupClient) GetAtSubscriptionScopeResponder(re
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // deploymentName - the name of the deployment with the operation to get.
 // top - the number of results to return.
-func (client DeploymentOperationsGroupClient) List(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (result DeploymentOperationsListResultPage, err error) {
+func (client DeploymentOperationsClient) List(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (result DeploymentOperationsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.List")
 		defer func() {
 			sc := -1
 			if result.dolr.Response.Response != nil {
@@ -242,33 +242,33 @@ func (client DeploymentOperationsGroupClient) List(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("resources.DeploymentOperationsGroupClient", "List", err.Error())
+		return result, validation.NewError("resources.DeploymentOperationsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, deploymentName, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.dolr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.dolr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client DeploymentOperationsGroupClient) ListPreparer(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (*http.Request, error) {
+func (client DeploymentOperationsClient) ListPreparer(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deploymentName":    autorest.Encode("path", deploymentName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -293,14 +293,14 @@ func (client DeploymentOperationsGroupClient) ListPreparer(ctx context.Context, 
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client DeploymentOperationsGroupClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client DeploymentOperationsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client DeploymentOperationsGroupClient) ListResponder(resp *http.Response) (result DeploymentOperationsListResult, err error) {
+func (client DeploymentOperationsClient) ListResponder(resp *http.Response) (result DeploymentOperationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -312,10 +312,10 @@ func (client DeploymentOperationsGroupClient) ListResponder(resp *http.Response)
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client DeploymentOperationsGroupClient) listNextResults(ctx context.Context, lastResults DeploymentOperationsListResult) (result DeploymentOperationsListResult, err error) {
+func (client DeploymentOperationsClient) listNextResults(ctx context.Context, lastResults DeploymentOperationsListResult) (result DeploymentOperationsListResult, err error) {
 	req, err := lastResults.deploymentOperationsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -323,19 +323,19 @@ func (client DeploymentOperationsGroupClient) listNextResults(ctx context.Contex
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DeploymentOperationsGroupClient) ListComplete(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (result DeploymentOperationsListResultIterator, err error) {
+func (client DeploymentOperationsClient) ListComplete(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (result DeploymentOperationsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -352,9 +352,9 @@ func (client DeploymentOperationsGroupClient) ListComplete(ctx context.Context, 
 // Parameters:
 // deploymentName - the name of the deployment with the operation to get.
 // top - the number of results to return.
-func (client DeploymentOperationsGroupClient) ListAtSubscriptionScope(ctx context.Context, deploymentName string, top *int32) (result DeploymentOperationsListResultPage, err error) {
+func (client DeploymentOperationsClient) ListAtSubscriptionScope(ctx context.Context, deploymentName string, top *int32) (result DeploymentOperationsListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.ListAtSubscriptionScope")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.ListAtSubscriptionScope")
 		defer func() {
 			sc := -1
 			if result.dolr.Response.Response != nil {
@@ -368,33 +368,33 @@ func (client DeploymentOperationsGroupClient) ListAtSubscriptionScope(ctx contex
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("resources.DeploymentOperationsGroupClient", "ListAtSubscriptionScope", err.Error())
+		return result, validation.NewError("resources.DeploymentOperationsClient", "ListAtSubscriptionScope", err.Error())
 	}
 
 	result.fn = client.listAtSubscriptionScopeNextResults
 	req, err := client.ListAtSubscriptionScopePreparer(ctx, deploymentName, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "ListAtSubscriptionScope", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "ListAtSubscriptionScope", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListAtSubscriptionScopeSender(req)
 	if err != nil {
 		result.dolr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "ListAtSubscriptionScope", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "ListAtSubscriptionScope", resp, "Failure sending request")
 		return
 	}
 
 	result.dolr, err = client.ListAtSubscriptionScopeResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "ListAtSubscriptionScope", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "ListAtSubscriptionScope", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListAtSubscriptionScopePreparer prepares the ListAtSubscriptionScope request.
-func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopePreparer(ctx context.Context, deploymentName string, top *int32) (*http.Request, error) {
+func (client DeploymentOperationsClient) ListAtSubscriptionScopePreparer(ctx context.Context, deploymentName string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deploymentName": autorest.Encode("path", deploymentName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
@@ -418,14 +418,14 @@ func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopePreparer(ct
 
 // ListAtSubscriptionScopeSender sends the ListAtSubscriptionScope request. The method will close the
 // http.Response Body if it receives an error.
-func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopeSender(req *http.Request) (*http.Response, error) {
+func (client DeploymentOperationsClient) ListAtSubscriptionScopeSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAtSubscriptionScopeResponder handles the response to the ListAtSubscriptionScope request. The method always
 // closes the http.Response Body.
-func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopeResponder(resp *http.Response) (result DeploymentOperationsListResult, err error) {
+func (client DeploymentOperationsClient) ListAtSubscriptionScopeResponder(resp *http.Response) (result DeploymentOperationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -437,10 +437,10 @@ func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopeResponder(r
 }
 
 // listAtSubscriptionScopeNextResults retrieves the next set of results, if any.
-func (client DeploymentOperationsGroupClient) listAtSubscriptionScopeNextResults(ctx context.Context, lastResults DeploymentOperationsListResult) (result DeploymentOperationsListResult, err error) {
+func (client DeploymentOperationsClient) listAtSubscriptionScopeNextResults(ctx context.Context, lastResults DeploymentOperationsListResult) (result DeploymentOperationsListResult, err error) {
 	req, err := lastResults.deploymentOperationsListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listAtSubscriptionScopeNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listAtSubscriptionScopeNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -448,19 +448,19 @@ func (client DeploymentOperationsGroupClient) listAtSubscriptionScopeNextResults
 	resp, err := client.ListAtSubscriptionScopeSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listAtSubscriptionScopeNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listAtSubscriptionScopeNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListAtSubscriptionScopeResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsGroupClient", "listAtSubscriptionScopeNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentOperationsClient", "listAtSubscriptionScopeNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListAtSubscriptionScopeComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DeploymentOperationsGroupClient) ListAtSubscriptionScopeComplete(ctx context.Context, deploymentName string, top *int32) (result DeploymentOperationsListResultIterator, err error) {
+func (client DeploymentOperationsClient) ListAtSubscriptionScopeComplete(ctx context.Context, deploymentName string, top *int32) (result DeploymentOperationsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsGroupClient.ListAtSubscriptionScope")
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentOperationsClient.ListAtSubscriptionScope")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {

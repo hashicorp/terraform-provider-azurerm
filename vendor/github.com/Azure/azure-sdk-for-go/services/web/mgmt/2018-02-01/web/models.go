@@ -6253,6 +6253,8 @@ type CloningInfo struct {
 	// /subscriptions/{subId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName} for production slots and
 	// /subscriptions/{subId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/slots/{slotName} for other slots.
 	SourceWebAppID *string `json:"sourceWebAppId,omitempty"`
+	// SourceWebAppLocation - Location of source app ex: West US or North Europe
+	SourceWebAppLocation *string `json:"sourceWebAppLocation,omitempty"`
 	// HostingEnvironment - App Service Environment.
 	HostingEnvironment *string `json:"hostingEnvironment,omitempty"`
 	// AppSettingsOverrides - Application setting overrides for cloned app. If specified, these settings override the settings cloned
@@ -6284,6 +6286,9 @@ func (ci CloningInfo) MarshalJSON() ([]byte, error) {
 	}
 	if ci.SourceWebAppID != nil {
 		objectMap["sourceWebAppId"] = ci.SourceWebAppID
+	}
+	if ci.SourceWebAppLocation != nil {
+		objectMap["sourceWebAppLocation"] = ci.SourceWebAppLocation
 	}
 	if ci.HostingEnvironment != nil {
 		objectMap["hostingEnvironment"] = ci.HostingEnvironment
@@ -7313,6 +7318,7 @@ type DeletedAppRestoreRequestProperties struct {
 
 // DeletedSite a deleted app.
 type DeletedSite struct {
+	autorest.Response `json:"-"`
 	// DeletedSiteProperties - DeletedSite resource specific properties
 	*DeletedSiteProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
