@@ -59,7 +59,7 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "credentials.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "credentials.0.authorization.0.parameter", "parameter"),
 					resource.TestCheckResourceAttr(resourceName, "credentials.0.authorization.0.scheme", "scheme"),
-					resource.TestCheckResourceAttr(resourceName, "credentials.0.certificate.0", "45D3B0209207229ACE3EDE48A9F64E7FFEC92684"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.0.certificate.0"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.0.url", "http://192.168.1.1:8080"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.0.username", "username"),
@@ -119,10 +119,10 @@ func TestAccAzureRMApiManagementBackend_update(t *testing.T) {
 					testCheckAzureRMApiManagementBackendExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "http"),
 					resource.TestCheckResourceAttr(resourceName, "url", "https://acctest"),
-					resource.TestCheckNoResourceAttr(resourceName, "description"),
-					resource.TestCheckNoResourceAttr(resourceName, "resource_id"),
-					resource.TestCheckNoResourceAttr(resourceName, "proxy"),
-					resource.TestCheckNoResourceAttr(resourceName, "tls"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "resource_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "proxy.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tls.#", "0"),
 				),
 			},
 		},
@@ -146,7 +146,7 @@ func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "protocol", "http"),
 					resource.TestCheckResourceAttr(resourceName, "url", "https://acctest"),
 					resource.TestCheckResourceAttr(resourceName, "service_fabric_cluster.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "service_fabric_cluster.0.client_certificate_thumbprint", "45D3B0209207229ACE3EDE48A9F64E7FFEC92684"),
+					resource.TestCheckResourceAttrSet(resourceName, "service_fabric_cluster.0.client_certificate_thumbprint"),
 					resource.TestCheckResourceAttr(resourceName, "service_fabric_cluster.0.max_partition_resolution_retries", "5"),
 					resource.TestCheckResourceAttr(resourceName, "service_fabric_cluster.0.management_endpoints.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "service_fabric_cluster.0.server_certificate_thumbprints.#", "2"),
@@ -367,7 +367,7 @@ resource "azurerm_api_management_backend" "test" {
       scheme    = "scheme"
     }
     certificate = [
-      "45D3B0209207229ACE3EDE48A9F64E7FFEC92684",
+      "${azurerm_api_management_certificate.test.thumbprint}",
     ]
   }
   proxy {
@@ -403,7 +403,7 @@ resource "azurerm_api_management_backend" "test" {
   protocol            = "http"
   url                 = "https://acctest"
   service_fabric_cluster {
-    client_certificate_thumbprint = "45D3B0209207229ACE3EDE48A9F64E7FFEC92684"
+    client_certificate_thumbprint = "${azurerm_api_management_certificate.test.thumbprint}"
     management_endpoints = [
       "https://acctestsf.com",
     ]
