@@ -336,10 +336,14 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	if props := resp.BackendContractProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("protocol", string(props.Protocol))
+		d.Set("resource_id", props.ResourceID)
 		d.Set("title", props.Title)
 		d.Set("url", props.URL)
 		if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
 			return fmt.Errorf("Error setting `credentials`: %s", err)
+		}
+		if err := d.Set("proxy", flattenApiManagementBackendProxy(props.Proxy)); err != nil {
+			return fmt.Errorf("Error setting `proxy`: %s", err)
 		}
 		if properties := props.Properties; properties != nil {
 			if err := d.Set("service_fabric_cluster", flattenApiManagementBackendServiceFabricCluster(properties.ServiceFabricCluster)); err != nil {
@@ -524,6 +528,24 @@ func flattenApiManagementBackendCredentialsAuthorization(input *apimanagement.Ba
 	}
 	if scheme := input.Scheme; scheme != nil {
 		result["scheme"] = *scheme
+	}
+	return append(results, result)
+}
+
+func flattenApiManagementBackendProxy(input *apimanagement.BackendProxyContract) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+	if password := input.Password; password != nil {
+		result["password"] = *password
+	}
+	if url := input.URL; url != nil {
+		result["url"] = *url
+	}
+	if username := input.Username; username != nil {
+		result["username"] = *username
 	}
 	return append(results, result)
 }
