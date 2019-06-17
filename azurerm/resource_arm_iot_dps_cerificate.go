@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -32,7 +31,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"iot_dps_name": {
 				Type:         schema.TypeString,
@@ -44,7 +43,8 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 			"certificate_content": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringLenBetween(1, 10000),
+				ValidateFunc: validate.NoEmptyStrings,
+				Sensitive:    true,
 			},
 		},
 	}
@@ -117,6 +117,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("iot_dps_name", iotDPSName)
+	// We are unable to set `certificate_content` since it is not returned from the API
 
 	return nil
 }
@@ -139,6 +140,10 @@ func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 		return fmt.Errorf("Error retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+	}
+
+	if resp.Etag == nil {
+		return fmt.Errorf("Error deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q) because Etag is nil", name, iotDPSName, resourceGroup)
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
