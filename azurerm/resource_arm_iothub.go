@@ -222,9 +222,10 @@ func resourceArmIotHub() *schema.Resource {
 			},
 
 			"endpoint": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Use one of the `azurerm_iothub_endpoint_storage_container`, `azurerm_iothub_endpoint_eventhub`, `azurerm_iothub_endpoint_servicebus_queue`, `azurerm_iothub_endpoint_servicebus_topic` resources instead.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
