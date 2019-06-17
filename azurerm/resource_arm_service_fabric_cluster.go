@@ -207,34 +207,28 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 			"diagnostics_config": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"protected_account_key_name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"blob_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"queue_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"table_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
