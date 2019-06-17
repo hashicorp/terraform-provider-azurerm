@@ -117,7 +117,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"first": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 						"last": {
 							Type:     schema.TypeString,
@@ -229,40 +229,30 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
-
-		subnetsFlat := make([]interface{}, 0)
-		if props.Subnets != nil {
-			for _, subnet := range *props.Subnets {
-				tempSubnet := flattenAzureRMTrafficManagerEndpointSubnetConfig(&subnet)
-				subnetsFlat = append(subnetsFlat, tempSubnet)
-			}
-			if len(subnetsFlat) > 0 {
-				d.Set("subnets", subnetsFlat)
-			}
-		} else {
-			d.Set("subnets", nil)
+		if err := d.Set("subnets", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			return fmt.Errorf("Error setting `subnets`: %s", err)
 		}
-
 	}
 	return nil
 }
 
-func flattenAzureRMTrafficManagerEndpointSubnetConfig(subnet *trafficmanager.EndpointPropertiesSubnetsItem) map[string]interface{} {
-	result := make(map[string]interface{}, 3)
-	if subnet.First == nil {
-		result["first"] = nil
-	} else {
-		result["first"] = *subnet.First
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
 	}
-	if subnet.Last == nil {
-		result["last"] = nil
-	} else {
-		result["last"] = *subnet.Last
-	}
-	if subnet.Scope == nil {
-		result["scope"] = nil
-	} else {
-		result["scope"] = int(*subnet.Scope)
+	for _, subnet := range *input {
+		flatSubnet := make(map[string]interface{}, 3)
+		if subnet.First != nil {
+			flatSubnet["first"] = *subnet.First
+		}
+		if subnet.Last != nil {
+			flatSubnet["last"] = *subnet.Last
+		}
+		if subnet.Scope != nil {
+			flatSubnet["scope"] = int(*subnet.Scope)
+		}
+		result = append(result, flatSubnet)
 	}
 	return result
 }
@@ -348,12 +338,10 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
 				First: &subnetFirst,
 				Last:  &subnetLast,
-				Scope: nil,
 			}
 		} else {
 			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
 				First: &subnetFirst,
-				Last:  nil,
 				Scope: &subnetScope,
 			}
 		}
