@@ -49,7 +49,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -58,23 +57,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ResourceIdentityTypeSystemAssigned),
-								string(network.ResourceIdentityTypeUserAssigned),
-								string(network.ResourceIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ResourceIdentityTypeUserAssigned),
+							}, false),
 						},
 						"identity_ids": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.NoZeroValues,
