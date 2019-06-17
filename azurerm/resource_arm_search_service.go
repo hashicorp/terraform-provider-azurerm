@@ -17,6 +17,7 @@ func resourceArmSearchService() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSearchServiceCreateUpdate,
 		Read:   resourceArmSearchServiceRead,
+		Update: resourceArmSearchServiceCreateUpdate,
 		Delete: resourceArmSearchServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
