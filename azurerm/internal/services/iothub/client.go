@@ -6,6 +6,7 @@ import (
 )
 
 type Client struct {
-	ResourceClient    devices.IotHubResourceClient
-	DPSResourceClient iothub.IotDpsResourceClient
+	ResourceClient       devices.IotHubResourceClient
+	DPSResourceClient    iothub.IotDpsResourceClient
+	DPSCertificateClient iothub.DpsCertificateClient
 }

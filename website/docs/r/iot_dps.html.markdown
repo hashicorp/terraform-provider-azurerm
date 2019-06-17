@@ -18,10 +18,10 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_iot_dps" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"
