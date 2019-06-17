@@ -137,6 +137,10 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 
+	if fwSettings := serverProperties.IPV4FirewallSettings; len(*fwSettings.FirewallRules) > 0 && fwSettings.EnablePowerBIService == nil {
+		return fmt.Errorf("`enable_power_bi_service` must be set if there is at least one firewall rule")
+	}
+
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
@@ -247,6 +251,10 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	sku := d.Get("sku").(string)
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
+
+	if fwSettings := serverProperties.IPV4FirewallSettings; len(*fwSettings.FirewallRules) > 0 && fwSettings.EnablePowerBIService == nil {
+		return fmt.Errorf("`enable_power_bi_service` must be set if there is at least one firewall rule")
+	}
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -415,18 +423,17 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rules").([]interface{})
-	if len(firewallRules) > 0 {
-		fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
-		for i, v := range firewallRules {
-			fwRule := v.(map[string]interface{})
-			fwRules[i] = analysisservices.IPv4FirewallRule{
-				FirewallRuleName: utils.String(fwRule["name"].(string)),
-				RangeStart:       utils.String(fwRule["range_start"].(string)),
-				RangeEnd:         utils.String(fwRule["range_end"].(string)),
-			}
+
+	fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
+	for i, v := range firewallRules {
+		fwRule := v.(map[string]interface{})
+		fwRules[i] = analysisservices.IPv4FirewallRule{
+			FirewallRuleName: utils.String(fwRule["name"].(string)),
+			RangeStart:       utils.String(fwRule["range_start"].(string)),
+			RangeEnd:         utils.String(fwRule["range_end"].(string)),
 		}
-		firewallSettings.FirewallRules = &fwRules
 	}
+	firewallSettings.FirewallRules = &fwRules
 
 	return &firewallSettings
 }
@@ -454,14 +461,14 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
 
-	if firewallSettings.FirewallRules != nil && len(*firewallSettings.FirewallRules) > 0 {
-		fwRules := make([]map[string]interface{}, len(*firewallSettings.FirewallRules))
-		for i, fwRule := range *firewallSettings.FirewallRules {
-			fwRules[i] = make(map[string]interface{})
-			fwRules[i]["name"] = *fwRule.FirewallRuleName
-			fwRules[i]["range_start"] = *fwRule.RangeStart
-			fwRules[i]["range_end"] = *fwRule.RangeEnd
-		}
+	fwRules = make([]interface{}, 0)
+	for _, fwRule := range *firewallSettings.FirewallRules {
+		output := make(map[string]interface{})
+		output["name"] = *fwRule.FirewallRuleName
+		output["range_start"] = *fwRule.RangeStart
+		output["range_end"] = *fwRule.RangeEnd
+
+		fwRules = append(fwRules, output)
 	}
 
 	return firewallSettings.EnablePowerBIService, fwRules
