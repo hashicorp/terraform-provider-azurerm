@@ -228,13 +228,10 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("protocol", properties.Protocol)
 		d.Set("frontend_port", properties.FrontendPort)
 		d.Set("backend_port", properties.BackendPort)
+		d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
 
 		if properties.EnableFloatingIP != nil {
 			d.Set("enable_floating_ip", properties.EnableFloatingIP)
-		}
-
-		if properties.DisableOutboundSnat != nil {
-			d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
 		}
 
 		if properties.IdleTimeoutInMinutes != nil {
