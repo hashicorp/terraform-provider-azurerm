@@ -259,7 +259,6 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"placement_properties": {
 							Type:     schema.TypeMap,
@@ -276,17 +275,14 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"is_primary": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 						"client_endpoint_port": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"http_endpoint_port": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"reverse_proxy_endpoint_port": {
 							Type:         schema.TypeInt,
@@ -297,7 +293,6 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(servicefabric.Bronze),
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servicefabric.Bronze),
 								string(servicefabric.Gold),
@@ -308,7 +303,6 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"application_ports": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -316,12 +310,10 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 									"start_port": {
 										Type:     schema.TypeInt,
 										Required: true,
-										ForceNew: true,
 									},
 									"end_port": {
 										Type:     schema.TypeInt,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -330,7 +322,6 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"ephemeral_ports": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -338,12 +329,10 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 									"start_port": {
 										Type:     schema.TypeInt,
 										Required: true,
-										ForceNew: true,
 									},
 									"end_port": {
 										Type:     schema.TypeInt,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
