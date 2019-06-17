@@ -213,7 +213,7 @@ func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apimgmt.BackendClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.BackendClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_backend" {
@@ -252,7 +252,7 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.BackendClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.BackendClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
@@ -283,7 +283,7 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.BackendClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.BackendClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
