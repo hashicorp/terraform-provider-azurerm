@@ -12,5 +12,8 @@ type Client struct {
 func BuildClient(endpoint, subscriptionId string, o *ar.ClientOptions) *Client {
 	c := Client{}
 
+	c.ControllersClient = devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.ControllersClient.Client, o)
+
 	return &c
 }

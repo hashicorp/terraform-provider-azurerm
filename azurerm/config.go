@@ -29,7 +29,6 @@ import (
 	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -381,8 +380,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
 	client.databricks = databricks.BuildClient(endpoint, c.SubscriptionID, o)
 	client.dataFactory = datafactory.BuildClient(endpoint, c.SubscriptionID, o)
-	
-	//devSpace         *devspace.Client
+	client.devSpace = devspace.BuildClient(endpoint, c.SubscriptionID, o)
 	//devTestLabs      *devtestlabs.Client
 	//dns              *dns.Client
 
@@ -392,7 +390,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
@@ -656,15 +653,6 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 		PoliciesClient:        devTestPoliciesClient,
 		VirtualMachinesClient: devTestVirtualMachinesClient,
 		VirtualNetworksClient: devTestVirtualNetworksClient,
-	}
-}
-
-func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&controllersClient.Client, auth)
-
-	c.devSpace = &devspace.Client{
-		ControllersClient: controllersClient,
 	}
 }
 
