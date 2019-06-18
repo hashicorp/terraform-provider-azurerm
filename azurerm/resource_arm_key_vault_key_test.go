@@ -99,7 +99,7 @@ func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicECHSM(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -119,7 +119,7 @@ func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_curveEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -129,6 +129,11 @@ func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -283,56 +288,6 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
 				),
 				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_importRSA(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_importEC(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_curveEC(rs, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -854,7 +809,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -909,7 +864,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

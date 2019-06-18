@@ -55,6 +55,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"key_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
@@ -68,10 +69,10 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_size": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				DiffSuppressFunc: ignoreKeySizeChangesForEC,
-				ConflictsWith:    []string{"curve"},
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{"curve"},
 			},
 
 			"key_opts": {
@@ -95,6 +96,8 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"curve": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.P256),
 					string(keyvault.P384),
@@ -104,8 +107,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				// TODO: the curve name should probably be mandatory for EC in the future,
 				// but handle the diff so that we don't break existing configurations and
 				// imported EC keys
-				DiffSuppressFunc: ignoreEmptyCurveChanges,
-				ConflictsWith:    []string{"key_size"},
+				ConflictsWith: []string{"key_size"},
 			},
 
 			// Computed
@@ -265,9 +267,6 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	if d.HasChange("key_size") || d.HasChange("key_type") || d.HasChange("curve") {
-		return resourceArmKeyVaultKeyCreate(d, meta)
-	}
 	keyOptions := expandKeyVaultKeyOptions(d)
 	tags := d.Get("tags").(map[string]interface{})
 
