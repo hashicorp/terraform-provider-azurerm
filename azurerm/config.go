@@ -13,7 +13,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	datafactorySvc "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
@@ -381,8 +380,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, o)
 	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
 	client.databricks = databricks.BuildClient(endpoint, c.SubscriptionID, o)
-
-	//dataFactory      *datafactory.Client
+	client.dataFactory = datafactory.BuildClient(endpoint, c.SubscriptionID, o)
+	
 	//devSpace         *devspace.Client
 	//devTestLabs      *devtestlabs.Client
 	//dns              *dns.Client
@@ -392,7 +391,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
@@ -616,27 +614,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-}
-
-func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	factoriesClient := datafactorySvc.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&factoriesClient.Client, auth)
-
-	datasetsClient := datafactorySvc.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&datasetsClient.Client, auth)
-
-	linkedServicesClient := datafactorySvc.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&linkedServicesClient.Client, auth)
-
-	pipelinesClient := datafactorySvc.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&pipelinesClient.Client, auth)
-
-	c.dataFactory = &datafactory.Client{
-		FactoriesClient:     factoriesClient,
-		DatasetClient:       datasetsClient,
-		LinkedServiceClient: linkedServicesClient,
-		PipelinesClient:     pipelinesClient,
-	}
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

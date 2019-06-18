@@ -15,5 +15,17 @@ type Client struct {
 func BuildClient(endpoint, subscriptionId string, o *ar.ClientOptions) *Client {
 	c := Client{}
 
+	c.DatasetClient = datafactory.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.DatasetClient.Client, o)
+
+	c.FactoriesClient = datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.FactoriesClient.Client, o)
+
+	c.LinkedServiceClient = datafactory.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.LinkedServiceClient.Client, o)
+
+	c.PipelinesClient = datafactory.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.PipelinesClient.Client, o)
+
 	return &c
 }
