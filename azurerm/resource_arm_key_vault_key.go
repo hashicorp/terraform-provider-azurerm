@@ -141,18 +141,6 @@ func resourceArmKeyVaultKey() *schema.Resource {
 	}
 }
 
-func ignoreKeySizeChangesForEC(k, old, new string, d *schema.ResourceData) bool {
-	keyType := keyvault.JSONWebKeyType(d.Get("key_type").(string))
-	if keyType == keyvault.EC || keyType == keyvault.ECHSM {
-		return true
-	}
-	return old == new
-}
-
-func ignoreEmptyCurveChanges(k, old, new string, d *schema.ResourceData) bool {
-	return new == "" || old == new
-}
-
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).keyVaultClient
 	client := meta.(*ArmClient).keyVaultManagementClient
