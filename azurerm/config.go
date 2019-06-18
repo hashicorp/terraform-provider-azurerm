@@ -13,7 +13,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	databricksSvc "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	datafactorySvc "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
@@ -381,12 +380,17 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, o)
 	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, o)
 	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
+	client.databricks = databricks.BuildClient(endpoint, c.SubscriptionID, o)
+
+	//dataFactory      *datafactory.Client
+	//devSpace         *devspace.Client
+	//devTestLabs      *devtestlabs.Client
+	//dns              *dns.Client
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
-	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
@@ -524,15 +528,6 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&galleryImageVersionsClient.Client, auth)
 	c.galleryImageVersionsClient = galleryImageVersionsClient
-}
-
-func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workspacesClient := databricksSvc.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workspacesClient.Client, auth)
-
-	c.databricks = &databricks.Client{
-		WorkspacesClient: workspacesClient,
-	}
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
