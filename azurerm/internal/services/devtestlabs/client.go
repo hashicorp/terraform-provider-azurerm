@@ -15,5 +15,17 @@ type Client struct {
 func BuildClient(endpoint, subscriptionId string, o *ar.ClientOptions) *Client {
 	c := Client{}
 
+	c.LabsClient = dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.LabsClient.Client, o)
+
+	c.PoliciesClient = dtl.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.PoliciesClient.Client, o)
+
+	c.VirtualMachinesClient = dtl.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.VirtualMachinesClient.Client, o)
+
+	c.VirtualNetworksClient = dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.VirtualNetworksClient.Client, o)
+
 	return &c
 }

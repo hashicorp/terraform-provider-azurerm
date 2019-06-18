@@ -16,7 +16,6 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	devtestlabsSvc "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -29,7 +28,6 @@ import (
 	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	iotHubSvc "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
@@ -59,7 +57,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/adal"
+	az "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
@@ -93,13 +97,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
-
-	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
-	az "github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -381,8 +378,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.databricks = databricks.BuildClient(endpoint, c.SubscriptionID, o)
 	client.dataFactory = datafactory.BuildClient(endpoint, c.SubscriptionID, o)
 	client.devSpace = devspace.BuildClient(endpoint, c.SubscriptionID, o)
-	//devTestLabs      *devtestlabs.Client
-	//dns              *dns.Client
+	client.devTestLabs = devtestlabs.BuildClient(endpoint, c.SubscriptionID, o)
+	client.dns = dns.BuildClient(endpoint, c.SubscriptionID, o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -390,8 +387,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
-	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
@@ -633,40 +628,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	labsClient := devtestlabsSvc.NewLabsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&labsClient.Client, auth)
-
-	devTestPoliciesClient := devtestlabsSvc.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestPoliciesClient.Client, auth)
-
-	devTestVirtualMachinesClient := devtestlabsSvc.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestVirtualMachinesClient.Client, auth)
-
-	devTestVirtualNetworksClient := devtestlabsSvc.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
-
-	c.devTestLabs = &devtestlabs.Client{
-		LabsClient:            labsClient,
-		PoliciesClient:        devTestPoliciesClient,
-		VirtualMachinesClient: devTestVirtualMachinesClient,
-		VirtualNetworksClient: devTestVirtualNetworksClient,
-	}
-}
-
-func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	recordSetsClient := dnsSvc.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&recordSetsClient.Client, auth)
-
-	zonesClient := dnsSvc.NewZonesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&zonesClient.Client, auth)
-
-	c.dns = &dns.Client{
-		RecordSetsClient: recordSetsClient,
-		ZonesClient:      zonesClient,
-	}
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

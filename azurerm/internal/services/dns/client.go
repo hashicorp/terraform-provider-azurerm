@@ -13,5 +13,11 @@ type Client struct {
 func BuildClient(endpoint, subscriptionId string, o *ar.ClientOptions) *Client {
 	c := Client{}
 
+	c.RecordSetsClient = dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.RecordSetsClient.Client, o)
+
+	c.ZonesClient = dns.NewZonesClientWithBaseURI(endpoint, subscriptionId)
+	ar.ConfigureClient(&c.ZonesClient.Client, o)
+
 	return &c
 }
