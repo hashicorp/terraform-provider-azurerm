@@ -10,26 +10,36 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
-func ConfigureClient(client *autorest.Client, auth autorest.Authorizer, partnerId string, skipProviderReg bool) {
-	setUserAgent(client, partnerId)
-	client.Authorizer = auth
-	client.Sender = sender.BuildSender("AzureRM")
-	client.PollingDuration = 60 * time.Minute
-	client.SkipResourceProviderRegistration = skipProviderReg
-	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
-
+type ClientOptions struct {
+	Authorizer                 autorest.Authorizer
+	ProviderName               string
+	PartnerId                  string
+	PollingDuration            time.Duration
+	SkipProviderReg            bool
+	EnableCorrelationRequestID bool
 }
 
-func setUserAgent(client *autorest.Client, partnerID string) {
-	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+func ConfigureClient(c *autorest.Client, o *ClientOptions) {
+	if o.PartnerId != "" {
+		setUserAgent(c, o.ProviderName, o.PartnerId)
+	}
+
+	c.Authorizer = o.Authorizer
+	c.Sender = sender.BuildSender(o.ProviderName)
+	c.PollingDuration = o.PollingDuration
+	c.SkipResourceProviderRegistration = o.SkipProviderReg
+	if o.EnableCorrelationRequestID {
+		c.RequestInspector = WithCorrelationRequestID(CorrelationRequestID())
+	}
+}
+
+func setUserAgent(client *autorest.Client, providerName, partnerID string) {
 	tfUserAgent := httpclient.UserAgentString()
 
-	pv := version.ProviderVersion
-	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
 	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists
@@ -41,5 +51,5 @@ func setUserAgent(client *autorest.Client, partnerID string) {
 		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
 	}
 
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
+	log.Printf("[DEBUG] %s Client User Agent: %s\n", providerName, client.UserAgent)
 }

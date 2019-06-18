@@ -63,6 +63,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -102,7 +104,6 @@ import (
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -285,8 +286,8 @@ type ArmClient struct {
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client, c.partnerId)
 	client.Authorizer = auth
-	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
-	client.Sender = azure.BuildSender()
+	client.RequestInspector = ar.WithCorrelationRequestID(ar.CorrelationRequestID())
+	client.Sender = sender.BuildSender("AzureRM")
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
 }
@@ -340,7 +341,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := azure.BuildSender()
+	sender := sender.BuildSender("AzureRM")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
@@ -366,11 +367,20 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	o := &ar.ClientOptions{
+		Authorizer:                 auth,
+		ProviderName:               "AzureRM",
+		PartnerId:                  partnerId,
+		PollingDuration:            60 * time.Minute,
+		SkipProviderReg:            skipProviderRegistration,
+		EnableCorrelationRequestID: true,
+	}
+
+	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, o)
+	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, o)
+	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, o)
+	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, o)
+	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)

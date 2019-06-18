@@ -1,4 +1,4 @@
-package azure
+package ar
 
 import (
 	"net/http"
