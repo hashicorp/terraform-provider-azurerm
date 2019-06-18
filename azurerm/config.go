@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -377,12 +376,12 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	}
 
 	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, o)
+	client.appInsights = applicationinsights.BuildClient(endpoint, c.SubscriptionID, o)
 	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, o)
 	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, o)
 	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, o)
 	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
 
-	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
@@ -424,23 +423,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
-}
-
-func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	apiKeysClient := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiKeysClient.Client, auth)
-
-	componentsClient := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&componentsClient.Client, auth)
-
-	webTestsClient := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&webTestsClient.Client, auth)
-
-	c.appInsights = &applicationinsights.Client{
-		APIKeyClient:     apiKeysClient,
-		ComponentsClient: componentsClient,
-		WebTestsClient:   webTestsClient,
-	}
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
