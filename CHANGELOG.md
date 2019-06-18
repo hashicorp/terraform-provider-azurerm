@@ -7,7 +7,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azure_app_service_plan` - Prevented a panic during import [GH-3657]
+* `azurerm_app_service_plan` - Prevented a panic during import [GH-3657]
+* `azurerm_key_vault_key` - add support for Elliptic Curve based keys [GH-1814]
 * `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
 * `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
 * `azurerm_lb` - support for the `public_ip_prefix_id` property [GH-3675]
