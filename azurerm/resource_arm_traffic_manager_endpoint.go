@@ -110,6 +110,28 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"subnets": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"first": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"last": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"scope": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+				ForceNew: true,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -207,9 +229,32 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
+		if err := d.Set("subnets", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			return fmt.Errorf("Error setting `subnets`: %s", err)
+		}
 	}
-
 	return nil
+}
+
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, subnet := range *input {
+		flatSubnet := make(map[string]interface{}, 3)
+		if subnet.First != nil {
+			flatSubnet["first"] = *subnet.First
+		}
+		if subnet.Last != nil {
+			flatSubnet["last"] = *subnet.Last
+		}
+		if subnet.Scope != nil {
+			flatSubnet["scope"] = int(*subnet.Scope)
+		}
+		result = append(result, flatSubnet)
+	}
+	return result
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
@@ -279,6 +324,31 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
 		mci64 := int64(minChildEndpoints)
 		endpointProps.MinChildEndpoints = &mci64
+	}
+
+	templist := d.Get("subnets").([]interface{})
+	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnetOld := range templist {
+		subnetOld := subnetOld.(map[string]interface{})
+		subnetFirst := subnetOld["first"].(string)
+		subnetLast := subnetOld["last"].(string)
+		subnetScope := int32(subnetOld["scope"].(int))
+		var subnetNew trafficmanager.EndpointPropertiesSubnetsItem
+		if subnetScope == 0 {
+			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
+				First: &subnetFirst,
+				Last:  &subnetLast,
+			}
+		} else {
+			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
+				First: &subnetFirst,
+				Scope: &subnetScope,
+			}
+		}
+		subnetMappings = append(subnetMappings, subnetNew)
+	}
+	if len(subnetMappings) > 0 {
+		endpointProps.Subnets = &subnetMappings
 	}
 
 	return &endpointProps
