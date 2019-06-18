@@ -1,12 +1,16 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,9 +38,9 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"runbook_type": {
 				Type:             schema.TypeString,
@@ -66,6 +70,12 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+
+			"content": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"publish_content_link": {
@@ -111,17 +121,31 @@ func resourceArmAutomationRunbook() *schema.Resource {
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	accName := d.Get("account_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, accName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Automation Runbook %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_automation_runbook", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	accName := d.Get("account_name").(string)
 	runbookType := automation.RunbookTypeEnum(d.Get("runbook_type").(string))
 	logProgress := d.Get("log_progress").(bool)
 	logVerbose := d.Get("log_verbose").(bool)
@@ -142,18 +166,31 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+	}
+
+	if v, ok := d.GetOk("content"); ok {
+		content := v.(string)
+		reader := ioutil.NopCloser(bytes.NewBufferString(content))
+		draftClient := meta.(*ArmClient).automation.RunbookDraftClient
+
+		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
+			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		}
+
+		if _, err := draftClient.Publish(ctx, resGroup, accName, name); err != nil {
+			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Runbook '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Runbook %q (Account %q / Resource Group %q) ID", name, accName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -162,7 +199,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,13 +217,13 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("account_name", accName)
@@ -201,11 +238,27 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		flattenAndSetTags(d, tags)
 	}
 
+	response, err := client.GetContent(ctx, resGroup, accName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+	}
+
+	if v := response.Value; v != nil {
+		if contentBytes := *response.Value; contentBytes != nil {
+			buf := new(bytes.Buffer)
+			if _, err := buf.ReadFrom(contentBytes); err != nil {
+				return fmt.Errorf("Error reading from Automation Runbook buffer %q: %+v", name, err)
+			}
+			content := buf.String()
+			d.Set("content", content)
+		}
+	}
+
 	return nil
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationRunbookClient
+	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

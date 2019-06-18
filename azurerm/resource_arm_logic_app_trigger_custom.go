@@ -52,13 +52,11 @@ func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta i
 	bodyRaw := d.Get("body").(string)
 
 	var body map[string]interface{}
-	err := json.Unmarshal([]byte(bodyRaw), &body)
-	if err != nil {
+	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("Error unmarshalling JSON for Custom Trigger %q: %+v", name, err)
 	}
 
-	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body)
-	if err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_trigger_custom"); err != nil {
 		return err
 	}
 
@@ -97,7 +95,7 @@ func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error flattening `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("Error setting `body` for Trigger %q: %+v", name, err)
 	}
 
 	return nil

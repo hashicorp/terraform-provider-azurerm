@@ -5,9 +5,11 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +31,9 @@ func resourceArmSnapshot() *schema.Resource {
 				ValidateFunc: validateSnapshotName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"create_option": {
 				Type:     schema.TypeString,
@@ -80,13 +82,26 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_snapshot", *existing.ID)
+		}
+	}
+
 	properties := compute.Snapshot{
 		Location: utils.String(location),
-		DiskProperties: &compute.DiskProperties{
+		SnapshotProperties: &compute.SnapshotProperties{
 			CreationData: &compute.CreationData{
 				CreateOption: compute.DiskCreateOption(createOption),
 			},
@@ -95,20 +110,20 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
-		properties.DiskProperties.CreationData.SourceURI = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.SourceURI = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_resource_id"); ok {
-		properties.DiskProperties.CreationData.SourceResourceID = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.SourceResourceID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		properties.DiskProperties.CreationData.StorageAccountID = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.StorageAccountID = utils.String(v.(string))
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
-		properties.DiskProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
+		properties.SnapshotProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
@@ -119,17 +134,16 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -163,10 +177,10 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.DiskProperties; props != nil {
+	if props := resp.SnapshotProperties; props != nil {
 
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
@@ -207,15 +221,14 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
 	return nil
 }
 
-func validateSnapshotName(v interface{}, k string) (ws []string, errors []error) {
+func validateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
@@ -229,5 +242,5 @@ func validateSnapshotName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
 	}
 
-	return
+	return warnings, errors
 }

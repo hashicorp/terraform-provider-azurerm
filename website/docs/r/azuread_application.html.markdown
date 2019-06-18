@@ -11,6 +11,8 @@ description: |-
 
 Manages an Application within Azure Active Directory.
 
+~> **NOTE:** The Azure Active Directory resources have been split out into [a new AzureAD Provider](http://terraform.io/docs/providers/azuread/index.html) - as such the AzureAD resources within the AzureRM Provider are deprecated and will be removed in the next major version (2.0). Information on how to migrate from the existing resources to the new AzureAD Provider [can be found here](../guides/migrating-to-azuread.html).
+
 -> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the `Windows Azure Active Directory` API.
 
 ## Example Usage
@@ -18,9 +20,9 @@ Manages an Application within Azure Active Directory.
 ```hcl
 resource "azurerm_azuread_application" "test" {
   name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
+  homepage                   = "https://homepage"
+  identifier_uris            = ["https://uri"]
+  reply_urls                 = ["https://replyurl"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
 }
@@ -32,7 +34,7 @@ The following arguments are supported:
 
 * `name` - (Required) The display name for the application.
 
-* `homepage` - (optional) The URL to the application's home page. If no homepage is specified this defaults to `http://{name}`.
+* `homepage` - (optional) The URL to the application's home page. If no homepage is specified this defaults to `https://{name}`.
 
 * `identifier_uris` - (Optional) A list of user-defined URI(s) that uniquely identify a Web application within it's Azure AD tenant, or within a verified custom domain if the application is multi-tenant.
 

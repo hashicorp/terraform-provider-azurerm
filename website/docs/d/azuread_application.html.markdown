@@ -3,12 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_application"
 sidebar_current: "docs-azurerm-datasource-azuread-application"
 description: |-
-  Gets information about an Application within Azure Active Directory.
+  Gets information about an existing Application within Azure Active Directory.
 ---
 
 # Data Source: azurerm_azuread_application
 
-Gets information about an Application within Azure Active Directory.
+Use this data source to access information about an existing Application within Azure Active Directory.
+
+~> **NOTE:** The Azure Active Directory resources have been split out into [a new AzureAD Provider](http://terraform.io/docs/providers/azuread/index.html) - as such the AzureAD resources within the AzureRM Provider are deprecated and will be removed in the next major version (2.0). Information on how to migrate from the existing resources to the new AzureAD Provider [can be found here](../guides/migrating-to-azuread.html).
 
 -> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the `Windows Azure Active Directory` API.
 
@@ -47,4 +49,3 @@ output "azure_active_directory_object_id" {
 * `object_id` - the Object ID of the Azure Active Directory Application.
 
 * `reply_urls` - A list of URLs that user tokens are sent to for sign in, or the redirect URIs that OAuth 2.0 authorization codes and access tokens are sent to.
-

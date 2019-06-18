@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
 sidebar_current: "docs-azurerm-datasource-container-registry"
 description: |-
-  Get information about an Container Registry
+  Get information about an existing Container Registry
 
 ---
 
 # Data Source: azurerm_container_registry
 
-Use this data source to access information about a Container Registry
+Use this data source to access information about an existing Container Registry.
 
 ## Example Usage
 

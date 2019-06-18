@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_firewall_rule"
-sidebar_current: "docs-azurerm-resource-database-sql-firewall_rule"
+sidebar_current: "docs-azurerm-resource-database-sql-firewall-rule"
 description: |-
   Manages a SQL Firewall Rule.
 ---
@@ -19,12 +19,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "mysqlserver"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
-    version = "12.0"
-    administrator_login = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  name                         = "mysqlserver"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "West US"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_sql_firewall_rule" "test" {

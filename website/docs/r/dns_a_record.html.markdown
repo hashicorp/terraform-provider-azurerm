@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Required) List of IPv4 Addresses.
 
@@ -59,5 +59,5 @@ The following attributes are exported:
 A records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_a_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/A/myrecord1
+terraform import azurerm_dns_a_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/A/myrecord1
 ```

@@ -6,15 +6,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionGroupCreateOrUpdate,
+		Create: resourceArmMonitorActionGroupCreateUpdate,
 		Read:   resourceArmMonitorActionGroupRead,
-		Update: resourceArmMonitorActionGroupCreateOrUpdate,
+		Update: resourceArmMonitorActionGroupCreateUpdate,
 		Delete: resourceArmMonitorActionGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -25,10 +28,10 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"short_name": {
 				Type:         schema.TypeString,
@@ -50,12 +53,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -69,17 +72,17 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -93,12 +96,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"service_uri": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -109,12 +112,25 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).actionGroupsClient
+func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).monitorActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Action Group Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_action_group", *existing.ID)
+		}
+	}
 
 	shortName := d.Get("short_name").(string)
 	enabled := d.Get("enabled").(bool)
@@ -127,7 +143,7 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:   utils.String(shortName),
 			Enabled:          utils.Bool(enabled),
@@ -138,8 +154,7 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 		Tags: expandedTags,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
@@ -157,7 +172,7 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).actionGroupsClient
+	client := meta.(*ArmClient).monitorActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -202,7 +217,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).actionGroupsClient
+	client := meta.(*ArmClient).monitorActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -266,7 +281,7 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
@@ -283,7 +298,7 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []i
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
@@ -303,7 +318,7 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}

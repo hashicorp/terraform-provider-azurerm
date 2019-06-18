@@ -6,7 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,26 +37,29 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"default_message_ttl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"enable_express": {
@@ -102,24 +107,32 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional: true,
 			},
 
-			// TODO: remove these in the next major release
+			// TODO: remove this in 2.0
 			"enable_batched_operations": {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
 
+			// TODO: remove this in 2.0
 			"support_ordering": {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
+			},
+
+			"max_delivery_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      10,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 		},
 	}
 }
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
@@ -130,9 +143,23 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBQueue{
 		Name: &name,
@@ -140,6 +167,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 			EnableExpress:                    &enableExpress,
 			EnablePartitioning:               &enablePartitioning,
 			MaxSizeInMegabytes:               &maxSize,
+			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
@@ -164,7 +192,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
-	namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+	namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
 	namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
@@ -176,8 +204,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 
@@ -195,7 +222,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -230,6 +257,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+		d.Set("max_delivery_count", props.MaxDeliveryCount)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)
@@ -237,7 +265,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 			// then the max size returned by the API will be 16 times greater than the value set.
 			if *props.EnablePartitioning {
-				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -257,7 +285,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusQueuesClient
+	client := meta.(*ArmClient).servicebus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

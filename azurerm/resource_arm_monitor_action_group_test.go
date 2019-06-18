@@ -5,23 +5,23 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMMonitorActionGroup_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -39,12 +39,41 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorActionGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_emailReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -71,10 +100,10 @@ func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_smsReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -102,10 +131,10 @@ func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -132,10 +161,10 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -169,12 +198,12 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(ri, location)
 	postConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -206,13 +235,13 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	emailConfig := testAccAzureRMMonitorActionGroup_emailReceiver(ri, location)
 	smsConfig := testAccAzureRMMonitorActionGroup_smsReceiver(ri, location)
 	webhookConfig := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -257,12 +286,12 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -322,6 +351,19 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorActionGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_action_group" "import" {
+  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = "${azurerm_monitor_action_group.test.resource_group_name}"
+  short_name          = "${azurerm_monitor_action_group.test.short_name}"
+}
+`, template)
 }
 
 func testAccAzureRMMonitorActionGroup_emailReceiver(rInt int, location string) string {
@@ -449,7 +491,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).actionGroupsClient
+	conn := testAccProvider.Meta().(*ArmClient).monitorActionGroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -474,30 +516,30 @@ func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMonitorActionGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).actionGroupsClient
+		conn := testAccProvider.Meta().(*ArmClient).monitorActionGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on actionGroupsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on monitorActionGroupsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Action Group Instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Action Group Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

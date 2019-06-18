@@ -15,7 +15,7 @@ Manages an Authorization Rule associated with a Notification Hub within a Notifi
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "notificationhub-resources"
+  name     = "notificationhub-resources"
   location = "Australia East"
 }
 

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_solution"
-sidebar_current: "docs-azurerm-resource-oms-log-analytics-solution"
+sidebar_current: "docs-azurerm-log-analytics-solution"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Solution.
 ---
@@ -31,11 +31,11 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Free"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "Containers"
+  solution_name         = "ContainerInsights"
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
@@ -43,7 +43,7 @@ resource "azurerm_log_analytics_solution" "test" {
 
   plan {
     publisher = "Microsoft"
-    product   = "OMSGallery/Containers"
+    product   = "OMSGallery/ContainerInsights"
   }
 }
 ```
@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `workspace_resource_id` - (Required) The full resource ID of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
-* `workspace_resource_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
+* `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
-* `plan` - A `plan` block as documented below.
+* `plan` - (Required) A `plan` block as documented below.
 
 ---
 
@@ -73,7 +73,6 @@ A `plan` block includes:
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution.
-
 
 ## Import
 

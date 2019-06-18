@@ -9,7 +9,7 @@ import (
 func TestAccDataSourceAzureRMSubscriptions_basic(t *testing.T) {
 	resourceName := "data.azurerm_subscriptions.current"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

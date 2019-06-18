@@ -7,12 +7,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCosmosDBAccount() *schema.Resource {
+func dataSourceArmCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCosmosDBAccountRead,
+		Read: dataSourceArmCosmosDbAccountRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -20,9 +21,9 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"tags": tagsForDataSourceSchema(),
 
@@ -105,6 +106,29 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				},
 			},
 
+			"is_virtual_network_filter_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"virtual_network_rule": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"enable_multiple_write_locations": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -153,8 +177,8 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
+func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).cosmosAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -174,7 +198,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", string(resp.Kind))
 	flattenAndSetTags(d, resp.Tags)
@@ -183,9 +207,10 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
 		d.Set("ip_range_filter", props.IPRangeFilter)
 		d.Set("endpoint", props.DocumentEndpoint)
+		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
-		if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
+		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
 		}
 
@@ -194,16 +219,20 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		for _, l := range *props.FailoverPolicies {
 			locations[*l.FailoverPriority] = map[string]interface{}{
 				"id":                *l.ID,
-				"location":          azureRMNormalizeLocation(*l.LocationName),
+				"location":          azure.NormalizeLocation(*l.LocationName),
 				"failover_priority": int(*l.FailoverPriority),
 			}
 		}
-		if err := d.Set("geo_location", locations); err != nil {
+		if err = d.Set("geo_location", locations); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
 
-		if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
+		if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
 			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+		}
+
+		if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
+			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 		}
 
 		readEndpoints := make([]string, 0)
@@ -221,6 +250,8 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("write_endpoints", writeEndpoints)
+
+		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
@@ -255,4 +286,18 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.
 	}
 
 	return &slice
+}
+
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []map[string]interface{} {
+	if rules == nil {
+		return []map[string]interface{}{}
+	}
+
+	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	for i, r := range *rules {
+		virtualNetworkRules[i] = map[string]interface{}{
+			"id": *r.ID,
+		}
+	}
+	return virtualNetworkRules
 }

@@ -5,10 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +20,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 		Read:   resourceArmExpressRouteCircuitPeeringRead,
 		Update: resourceArmExpressRouteCircuitPeeringCreateUpdate,
 		Delete: resourceArmExpressRouteCircuitPeeringDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -39,7 +42,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"primary_peer_address_prefix": {
 				Type:     schema.TypeString,
@@ -112,6 +115,22 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	circuitName := d.Get("express_route_circuit_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Peering %q (ExpressRoute Circuit %q / Resource Group %q): %s", peeringType, circuitName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", *existing.ID)
+		}
+	}
+
 	sharedKey := d.Get("shared_key").(string)
 	primaryPeerAddressPrefix := d.Get("primary_peer_address_prefix").(string)
 	secondaryPeerAddressPrefix := d.Get("secondary_peer_address_prefix").(string)
@@ -141,16 +160,12 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.MicrosoftPeeringConfig = peeringConfig
 	}
 
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -200,7 +215,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {
-			return fmt.Errorf("Error flattening `microsoft_peering_config`: %+v", err)
+			return fmt.Errorf("Error setting `microsoft_peering_config`: %+v", err)
 		}
 	}
 
@@ -231,8 +246,7 @@ func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -261,12 +275,10 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 		return []interface{}{}
 	}
 
-	config := make(map[string]interface{}, 0)
+	config := make(map[string]interface{})
 	prefixes := make([]string, 0)
 	if ps := input.AdvertisedPublicPrefixes; ps != nil {
-		for _, p := range *ps {
-			prefixes = append(prefixes, p)
-		}
+		prefixes = *ps
 	}
 
 	config["advertised_public_prefixes"] = prefixes

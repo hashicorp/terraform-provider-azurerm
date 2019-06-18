@@ -3,13 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_client_config"
 sidebar_current: "docs-azurerm-datasource-client-config"
 description: |-
-  Get information about the configuration of the azurerm provider.
+  Gets information about the configuration of the azurerm provider.
 ---
 
 # Data Source: azurerm_client_config
 
-Use this data source to access the configuration of the Azure Resource Manager
-provider.
+Use this data source to access the configuration of the AzureRM provider.
 
 ## Example Usage
 

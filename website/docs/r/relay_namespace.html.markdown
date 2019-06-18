@@ -23,11 +23,12 @@ resource "azurerm_relay_namespace" "test" {
   name                = "example-relay"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name = "Standard"
   }
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
-sidebar_current: "docs-azurerm-resource-oms-log-analytics-workspace"
+sidebar_current: "docs-azurerm-log-analytics-workspace-x"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Workspace.
 ---
@@ -22,7 +22,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-01"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
+  sku                 = "PerGB2018"
   retention_in_days   = 30
 }
 ```

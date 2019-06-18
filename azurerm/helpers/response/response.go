@@ -2,22 +2,16 @@ package response
 
 import (
 	"net/http"
+
+	"github.com/hashicorp/go-azure-helpers/response"
 )
 
+// TODO: deprecate and remove these
 func WasConflict(resp *http.Response) bool {
-	return responseWasStatusCode(resp, http.StatusConflict)
+	return response.WasConflict(resp)
 }
 
+// TODO: deprecate and remove these
 func WasNotFound(resp *http.Response) bool {
-	return responseWasStatusCode(resp, http.StatusNotFound)
-}
-
-func responseWasStatusCode(resp *http.Response, statusCode int) bool {
-	if r := resp; r != nil {
-		if r.StatusCode == statusCode {
-			return true
-		}
-	}
-
-	return false
+	return response.WasNotFound(resp)
 }

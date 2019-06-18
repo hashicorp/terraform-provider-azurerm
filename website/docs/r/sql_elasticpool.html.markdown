@@ -10,33 +10,35 @@ description: |-
 
 Allows you to manage an Azure SQL Elastic Pool.
 
+~> **NOTE:** -  This version of the `Elasticpool` resource is being **deprecated** and should no longer be used. Please use the [azurerm_mssql_elasticpool](./mssql_elasticpool.html) version instead.
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "my-resource-group"
+  name     = "my-resource-group"
   location = "West US"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "my-sql-server" # NOTE: needs to be globally unique
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  name                         = "my-sql-server"                           # NOTE: needs to be globally unique
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_sql_elasticpool" "test" {
-    name = "test"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    server_name = "${azurerm_sql_server.test.name}"
-    edition = "Basic"
-    dtu = 50
-    db_dtu_min = 0
-    db_dtu_max = 5
-    pool_size = 5000
+  name                = "test"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  edition             = "Basic"
+  dtu                 = 50
+  db_dtu_min          = 0
+  db_dtu_max          = 5
+  pool_size           = 5000
 }
 ```
 

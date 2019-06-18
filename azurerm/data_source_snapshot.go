@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,7 +17,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			// Computed
 			"os_type": {
@@ -24,7 +25,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"time_created": {
@@ -115,7 +116,7 @@ func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*resp.ID)
 
-	if props := resp.DiskProperties; props != nil {
+	if props := resp.SnapshotProperties; props != nil {
 		d.Set("os_type", string(props.OsType))
 		d.Set("time_created", props.TimeCreated.String())
 

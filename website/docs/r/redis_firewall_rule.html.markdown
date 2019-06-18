@@ -1,17 +1,15 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_firewall_rule"
-sidebar_current: "docs-azurerm-resource-redis-firewall-rule"
+sidebar_current: "docs-azurerm-redis-firewall-rule"
 description: |-
-  Manages a Firewall Rule associated with a Premium Redis Cache.
+  Manages a Firewall Rule associated with a Redis Cache.
 
 ---
 
 # azurerm_redis_firewall_rule
 
-Manages a Firewall Rule associated with a Premium Redis Cache.
-
-~> **Note:** Redis Firewall Rules can only be assigned to a Redis Cache with a `Premium` SKU.
+Manages a Firewall Rule associated with a Redis Cache.
 
 ## Example Usage
 

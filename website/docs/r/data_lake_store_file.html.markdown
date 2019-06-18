@@ -43,3 +43,11 @@ The following arguments are supported:
 * `local_file_path` - (Required) The path to the local file to be added to the Data Lake Store.
 
 * `remote_file_path` - (Required) The path created for the file on the Data Lake Store.
+
+## Import
+
+Date Lake Store File's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_data_lake_store_file.test example.azuredatalakestore.net/test/example.txt
+```

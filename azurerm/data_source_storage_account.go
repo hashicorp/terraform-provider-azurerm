@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,9 +19,9 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
@@ -76,6 +77,11 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"is_hns_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -91,7 +97,17 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -101,7 +117,17 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -111,13 +137,77 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"secondary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -172,7 +262,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(ctx, resourceGroup, name)
+	resp, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
@@ -189,23 +279,23 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	accessKeys := *keys.Keys
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("account_type", sku.Name)
 		d.Set("account_tier", sku.Tier)
-		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
+		d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
 	}
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
 		}
 
@@ -235,40 +325,25 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			d.Set("primary_blob_endpoint", endpoints.Blob)
-			d.Set("primary_queue_endpoint", endpoints.Queue)
-			d.Set("primary_table_endpoint", endpoints.Table)
-			d.Set("primary_file_endpoint", endpoints.File)
-
-			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
-			d.Set("primary_blob_connection_string", pscs)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
+			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if endpoints := props.SecondaryEndpoints; endpoints != nil {
-			if blob := endpoints.Blob; blob != nil {
-				d.Set("secondary_blob_endpoint", blob)
-				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-					*blob, *resp.Name, *accessKeys[1].Value)
-				d.Set("secondary_blob_connection_string", sscs)
-			} else {
-				d.Set("secondary_blob_endpoint", "")
-				d.Set("secondary_blob_connection_string", "")
-			}
-
-			if endpoints.Queue != nil {
-				d.Set("secondary_queue_endpoint", endpoints.Queue)
-			} else {
-				d.Set("secondary_queue_endpoint", "")
-			}
-
-			if endpoints.Table != nil {
-				d.Set("secondary_table_endpoint", endpoints.Table)
-			} else {
-				d.Set("secondary_table_endpoint", "")
-			}
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
 		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
+			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		}
+
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 	}
 
 	d.Set("primary_access_key", accessKeys[0].Value)

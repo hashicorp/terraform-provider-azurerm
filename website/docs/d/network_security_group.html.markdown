@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_group"
 sidebar_current: "docs-azurerm-datasource-network-security-group"
 description: |-
-  Get information about the specified Network Security Group.
+  Gets information about an existing Network Security Group.
 ---
 
 # Data Source: azurerm_network_security_group
 
-Use this data source to access the properties of a Network Security Group.
+Use this data source to access information about an existing Network Security Group.
 
 ## Example Usage
 
@@ -54,7 +54,11 @@ The `security_rule` block supports:
 
 * `source_address_prefix` - CIDR or source IP range or * to match any IP.
 
+* `source_address_prefixes` - A list of CIDRs or source IP ranges.
+
 * `destination_address_prefix` - CIDR or destination IP range or * to match any IP.
+
+* `destination_address_prefixes` - A list of CIDRs or destination IP ranges.
 
 * `source_application_security_group_ids` - A List of source Application Security Group ID's
 

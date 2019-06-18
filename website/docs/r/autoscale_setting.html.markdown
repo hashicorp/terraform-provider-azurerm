@@ -10,6 +10,8 @@ description: |-
 
 Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 ## Example Usage
 
 ```hcl
@@ -39,14 +41,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -59,14 +61,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 25
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
       }
 
       scale_action {
@@ -79,7 +81,6 @@ resource "azurerm_autoscale_setting" "test" {
   }
 
   notification {
-    operation = "Scale"
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -118,14 +119,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 90
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 90
       }
 
       scale_action {
@@ -138,14 +139,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 10
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 10
       }
 
       scale_action {
@@ -158,18 +159,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     recurrence {
       frequency = "Week"
-      schedule {
-        timezone = "Pacific Standard Time"
-        days      = [ "Saturday", "Sunday" ]
-        hours     = [ 12 ]
-        minutes   = [ 0 ]
-      }
+      timezone  = "Pacific Standard Time"
+      days      = ["Saturday", "Sunday"]
+      hours     = [12]
+      minutes   = [0]
     }
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -209,14 +206,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 90
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 90
       }
 
       scale_action {
@@ -229,14 +226,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 10
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 10
       }
 
       scale_action {
@@ -249,14 +246,12 @@ resource "azurerm_autoscale_setting" "test" {
 
     fixed_date {
       timezone = "Pacific Standard Time"
-      start     = "2020-07-01T00:00:00Z"
-      end       = "2020-07-31T23:59:59Z"
+      start    = "2020-07-01T00:00:00Z"
+      end      = "2020-07-31T23:59:59Z"
     }
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -304,13 +299,13 @@ A `profile` block supports the following:
 
 A `capacity` block supports the following:
 
-* `default` - (Required) The number of instances that are available for scaling if metrics are not available for evaluation. The default is only used if the current instance count is lower than the default.
+* `default` - (Required) The number of instances that are available for scaling if metrics are not available for evaluation. The default is only used if the current instance count is lower than the default. Valid values are between `0` and `1000`.
 
-* `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `1` and `40`.
+* `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `0` and `1000`.
 
 -> **NOTE:** The maximum number of instances is also limited by the amount of Cores available in the subscription.
 
-* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `1` and `40`.
+* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `0` and `1000`.
 
 ---
 
@@ -324,7 +319,9 @@ A `rule` block supports the following:
 
 A `metric_trigger` block supports the following:
 
-* `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU`.
+* `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
+
+-> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
 

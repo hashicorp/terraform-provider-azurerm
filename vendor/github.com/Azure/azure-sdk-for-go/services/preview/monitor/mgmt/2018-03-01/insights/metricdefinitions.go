@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -44,6 +45,16 @@ func NewMetricDefinitionsClientWithBaseURI(baseURI string, subscriptionID string
 // resourceURI - the identifier of the resource.
 // metricnamespace - metric namespace to query metric definitions for.
 func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI string, metricnamespace string) (result MetricDefinitionCollection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MetricDefinitionsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, resourceURI, metricnamespace)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricDefinitionsClient", "List", nil, "Failure preparing request")

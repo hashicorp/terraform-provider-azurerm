@@ -52,13 +52,11 @@ func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta in
 	bodyRaw := d.Get("body").(string)
 
 	var body map[string]interface{}
-	err := json.Unmarshal([]byte(bodyRaw), &body)
-	if err != nil {
+	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("Error unmarshalling JSON for Custom Action %q: %+v", name, err)
 	}
 
-	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, body)
-	if err != nil {
+	if err := resourceLogicAppActionUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_action_custom"); err != nil {
 		return err
 	}
 
@@ -97,7 +95,7 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error flattening `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("Error setting `body` for Action %q: %+v", name, err)
 	}
 
 	return nil

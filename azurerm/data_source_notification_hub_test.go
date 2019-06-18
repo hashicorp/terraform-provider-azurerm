@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_notification_hub.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMNotificationHubBasic(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMNotificationHubBasic(rInt int, location string) string {
-	resource := testAzureRMNotificationHub_basic(rInt, location)
+	r := testAccAzureRMNotificationHub_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -40,5 +40,5 @@ data "azurerm_notification_hub" "test" {
   namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

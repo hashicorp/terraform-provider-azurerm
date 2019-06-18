@@ -6,8 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var appServiceCustomHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
 func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 	return &schema.Resource{
@@ -25,7 +29,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
 				Type:     schema.TypeString,
@@ -46,13 +50,29 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 	appServiceName := d.Get("app_service_name").(string)
 	hostname := d.Get("hostname").(string)
 
+	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Custom Hostname Binding %q (App Service %q / Resource Group %q): %s", hostname, appServiceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_binding", *existing.ID)
+		}
+	}
+
 	properties := web.HostNameBinding{
 		HostNameBindingProperties: &web.HostNameBindingProperties{
 			SiteName: utils.String(appServiceName),
 		},
 	}
-	_, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties)
-	if err != nil {
+
+	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
 		return err
 	}
 
@@ -109,6 +129,9 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	resGroup := id.ResourceGroup
 	appServiceName := id.Path["sites"]
 	hostname := id.Path["hostNameBindings"]
+
+	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", hostname, appServiceName, resGroup)
 

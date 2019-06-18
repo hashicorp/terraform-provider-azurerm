@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -57,18 +55,18 @@ func findLoadBalancerBackEndAddressPoolByName(lb *network.LoadBalancer, name str
 	return nil, -1, false
 }
 
-func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, name string) (*network.FrontendIPConfiguration, int, bool) {
+func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, name string) (*network.FrontendIPConfiguration, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations == nil {
-		return nil, -1, false
+		return nil, false
 	}
 
-	for i, feip := range *lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations {
+	for _, feip := range *lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations {
 		if feip.Name != nil && *feip.Name == name {
-			return &feip, i, true
+			return &feip, true
 		}
 	}
 
-	return nil, -1, false
+	return nil, false
 }
 
 func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network.LoadBalancingRule, int, bool) {
@@ -79,6 +77,20 @@ func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network
 	for i, lbr := range *lb.LoadBalancerPropertiesFormat.LoadBalancingRules {
 		if lbr.Name != nil && *lbr.Name == name {
 			return &lbr, i, true
+		}
+	}
+
+	return nil, -1, false
+}
+
+func findLoadBalancerOutboundRuleByName(lb *network.LoadBalancer, name string) (*network.OutboundRule, int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.OutboundRules == nil {
+		return nil, -1, false
+	}
+
+	for i, or := range *lb.LoadBalancerPropertiesFormat.OutboundRules {
+		if or.Name != nil && *or.Name == name {
+			return &or, i, true
 		}
 	}
 
@@ -127,27 +139,16 @@ func findLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 	return nil, -1, false
 }
 
-func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalancersClient, resourceGroupName string, loadbalancer string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, loadbalancer, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in loadbalancerStateRefreshFunc to Azure ARM for Load Balancer '%s' (RG: '%s'): %s", loadbalancer, resourceGroupName, err)
-		}
-
-		return res, *res.LoadBalancerPropertiesFormat.ProvisioningState, nil
-	}
-}
-
-func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, k string) (ws []string, errors []error) {
+func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	if value != "static" && value != "dynamic" {
 		errors = append(errors, fmt.Errorf("LoadBalancer Allocations can only be Static or Dynamic"))
 	}
-	return
+	return warnings, errors
 }
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id
-func loadBalancerSubResourceStateImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
 	if err != nil {
 		return nil, err

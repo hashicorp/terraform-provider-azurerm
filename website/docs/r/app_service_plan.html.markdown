@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_app_service_plan
 
-Create an App Service Plan component.
+Manage an App Service Plan component.
 
 ## Example Usage (Dedicated)
 
@@ -64,14 +64,33 @@ resource "azurerm_app_service_plan" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
     size = "S1"
   }
+}
+```
 
-  properties {
-    reserved = true
+## Example Usage (Windows Container)
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "api-rg-pro"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "api-appserviceplan-pro"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "xenon"
+  is_xenon            = true
+
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
   }
 }
 ```
@@ -86,13 +105,21 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux` and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
+
+* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
 ~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`.
 
 * `sku` - (Required) A `sku` block as documented below.
 
-* `properties` - (Optional) A `properties` block as documented below.
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
+
+~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
+
+* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
+
+* `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -104,17 +131,6 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
-`properties` supports the following:
-
-* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
-
-~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
-
-* `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
-
-* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
-
-* `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
 ## Attributes Reference
 

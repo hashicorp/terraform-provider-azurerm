@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +30,9 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -99,7 +100,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 			},
 
 			"connection_string": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -137,6 +138,25 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"site_credential": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"default_site_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -147,13 +167,28 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Slot creation.")
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServiceName := d.Get("app_service_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetSlot(ctx, resGroup, appServiceName, slot)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_slot", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
@@ -180,9 +215,6 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
-
-	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, resGroup, appServiceName)
 	if err != nil {
@@ -227,7 +259,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	resGroup := id.ResourceGroup
 	appServiceName := id.Path["sites"]
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	slot := id.Path["slots"]
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -263,8 +295,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot)
-		if err != nil {
+		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
@@ -290,8 +321,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettingsSlot(ctx, resGroup, appServiceName, settings, slot)
-		if err != nil {
+		if _, err := client.UpdateApplicationSettingsSlot(ctx, resGroup, appServiceName, settings, slot); err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
@@ -303,8 +333,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot)
-		if err != nil {
+		if _, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
@@ -337,11 +366,21 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 
 	configResp, err := client.GetConfigurationSlot(ctx, resGroup, appServiceName, slot)
 	if err != nil {
+		if utils.ResponseWasNotFound(configResp.Response) {
+			log.Printf("[DEBUG] Configuration of App Service Slot %q/%q (resource group %q) was not found", appServiceName, slot, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot Configuration %q/%q: %+v", appServiceName, slot, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, resGroup, appServiceName, slot)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of App Service Slot %q/%q (resource group %q) were not found", appServiceName, slot, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot AppSettings %q/%q: %+v", appServiceName, slot, err)
 	}
 
@@ -350,11 +389,24 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on AzureRM App Service Slot ConnectionStrings %q/%q: %+v", appServiceName, slot, err)
 	}
 
+	siteCredFuture, err := client.ListPublishingCredentialsSlot(ctx, resGroup, appServiceName, slot)
+	if err != nil {
+		return err
+	}
+	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+	siteCredResp, err := siteCredFuture.Result(client)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Slot Site Credential %q/%q: %+v", appServiceName, slot, err)
+	}
+
 	d.Set("name", slot)
 	d.Set("app_service_name", appServiceName)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -374,6 +426,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 
 	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
+	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 

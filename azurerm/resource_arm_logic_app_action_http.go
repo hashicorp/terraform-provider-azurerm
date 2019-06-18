@@ -90,7 +90,7 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action)
+	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	if headers := inputs["headers"]; headers != nil {
 		hv := headers.(map[string]interface{})
 		if err := d.Set("headers", hv); err != nil {
-			return fmt.Errorf("Error flattening `headers` for HTTP Action %q: %+v", name, err)
+			return fmt.Errorf("Error setting `headers` for HTTP Action %q: %+v", name, err)
 		}
 	}
 
@@ -180,7 +180,7 @@ func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[string]string, error) {
-	headers := make(map[string]string, 0)
+	headers := make(map[string]string)
 
 	for i, v := range headersRaw {
 		value, err := tagValueToString(v)

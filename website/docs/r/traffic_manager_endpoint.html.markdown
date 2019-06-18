@@ -17,6 +17,7 @@ resource "random_id" "server" {
   keepers = {
     azi_id = 1
   }
+
   byte_length = 8
 }
 
@@ -42,7 +43,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

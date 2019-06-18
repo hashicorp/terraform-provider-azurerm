@@ -8,14 +8,15 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreate,
+		Create: resourceArmServiceBusTopicCreateUpdate,
 		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreate,
+		Update: resourceArmServiceBusTopicCreateUpdate,
 		Delete: resourceArmServiceBusTopicDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -37,9 +38,9 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"status": {
 				Type:     schema.TypeString,
@@ -53,21 +54,24 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			},
 
 			"auto_delete_on_idle": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"default_message_ttl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"enable_batched_operations": {
@@ -113,8 +117,8 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
@@ -129,6 +133,19 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBTopic{
 		Name: &name,
@@ -155,14 +172,13 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+		return fmt.Errorf("Error issuing create/update request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resourceGroup)
@@ -174,7 +190,7 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -219,7 +235,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
 			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -239,7 +255,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusTopicsClient
+	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

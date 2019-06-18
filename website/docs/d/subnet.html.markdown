@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-datasource-subnet"
 description: |-
-  Get information about the specified Subnet located within a Virtual Network.
+  Gets information about an existing Subnet located within a Virtual Network.
 ---
 
 # Data Source: azurerm_subnet
 
-Use this data source to access the properties of an Azure Subnet located within a Virtual Network.
+Use this data source to access information about an existing Subnet within a Virtual Network.
 
 ## Example Usage
 
@@ -37,3 +37,4 @@ output "subnet_id" {
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `ip_configurations` - The collection of IP Configurations with IPs within this subnet.
+* `service_endpoints` - A list of Service Endpoints within this subnet.

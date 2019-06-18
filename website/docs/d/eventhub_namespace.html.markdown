@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
 sidebar_current: "docs-azurerm-datasource-eventhub-namespace"
 description: |-
-  Get information about an EventHub Namespace.
+  Gets information about an existing EventHub Namespace.
 ---
 
 # Data Source: azurerm_eventhub_namespace
 
-Use this data source to obtain information about an EventHub Namespace.
+Use this data source to access information about an existing EventHub Namespace.
 
 ## Example Usage
 

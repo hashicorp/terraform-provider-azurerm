@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
 sidebar_current: "docs-azurerm-datasource-image"
 description: |-
-  Get information about an Image
+  Gets information about an existing Image
 
 ---
 
 # Data Source: azurerm_image
 
-Use this data source to access information about an Image.
+Use this data source to access information about an existing Image.
 
 ## Example Usage
 
@@ -33,11 +33,12 @@ output "image_id" {
 
 ## Attributes Reference
 
+* `data_disk` - a collection of `data_disk` blocks as defined below.
 * `name` - the name of the Image.
 * `location` - the Azure Location where this Image exists.
 * `os_disk` - a `os_disk` block as defined below.
-* `data_disk` - a collection of `data_disk` blocks as defined below.
 * `tags` - a mapping of tags to assigned to the resource.
+* `zone_resilient` - is zone resiliency enabled?
 
 `os_disk` supports the following:
 

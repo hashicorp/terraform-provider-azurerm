@@ -3,18 +3,18 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
 sidebar_current: "docs-azurerm-datasource-network-application-security-group"
 description: |-
-  Get information about an Application Security Group.
+  Gets information about an existing Application Security Group.
 ---
 
 # Data Source: azurerm_application_security_group
 
-Get information about an Application Security Group.
+Use this data source to access information about an existing Application Security Group.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_application_security_group" "test" {
-  name = "tf-appsecuritygroup"
+  name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 

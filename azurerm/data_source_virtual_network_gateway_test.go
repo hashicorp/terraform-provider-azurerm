@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
@@ -30,49 +30,49 @@ func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 func testAccAzureRMDataSourceVirtualNetworkGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctestvn-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestvn-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space = ["10.0.0.0/16"]
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "GatewaySubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.1.0/24"
+  address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "acctestpip-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "acctestvng-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestvng-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  type = "Vpn"
+  type     = "Vpn"
   vpn_type = "RouteBased"
-  sku = "Basic"
+  sku      = "Basic"
 
   ip_configuration {
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id                     = "${azurerm_subnet.test.id}"
   }
 }
 
 data "azurerm_virtual_network_gateway" "test" {
-  name = "${azurerm_virtual_network_gateway.test.name}"
+  name                = "${azurerm_virtual_network_gateway.test.name}"
   resource_group_name = "${azurerm_virtual_network_gateway.test.resource_group_name}"
 }
 `, rInt, location, rInt, rInt, rInt)

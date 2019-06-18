@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
 sidebar_current: "docs-azurerm-datasource-network-interface"
 description: |-
-  Get information about the specified Network Interface.
+  Gets information about an existing Network Interface.
 ---
 
 # Data Source: azurerm_network_interface
 
-Use this data source to access the properties of an Azure Network Interface.
+Use this data source to access information about an existing Network Interface.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_network_interface" "test" {
-  name                 = "acctest-nic"
-  resource_group_name  = "networking"
+  name                = "acctest-nic"
+  resource_group_name = "networking"
 }
 
 output "network_interface_id" {
@@ -37,7 +37,6 @@ output "network_interface_id" {
 * `enable_ip_forwarding` - Indicate if IP forwarding is set on the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
 * `internal_dns_name_label` - The internal dns name label of the specified Network Interface.
-* `internal_fqdn` - The internal FQDN associated to the specified Network Interface.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
 * `location` - The location of the specified Network Interface.
 * `mac_address` - The MAC address used by the specified Network Interface.

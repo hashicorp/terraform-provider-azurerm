@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_packet_capture"
-sidebar_current: "docs-azurerm-resource-network-packet-capture"
+sidebar_current: "docs-azurerm-resource-packet-capture"
 description: |-
   Configures Packet Capturing against a Virtual Machine using a Network Watcher.
 
@@ -11,11 +11,13 @@ description: |-
 
 Configures Packet Capturing against a Virtual Machine using a Network Watcher.
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_network_connection_monitor` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "packet-capture-rg"
+  name     = "packet-capture-rg"
   location = "West Europe"
 }
 
@@ -26,54 +28,54 @@ resource "azurerm_network_watcher" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "production-network"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
+  name                = "production-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "internal"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "pctest-nic"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "pctest-nic"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name = "pctest-vm"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                  = "pctest-vm"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size = "Standard_F2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
 
   storage_os_disk {
-    name = "osdisk"
-    caching = "ReadWrite"
-    create_option = "FromImage"
+    name              = "osdisk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name = "pctest-vm"
+    computer_name  = "pctest-vm"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -94,12 +96,11 @@ resource "azurerm_virtual_machine_extension" "test" {
   auto_upgrade_minor_version = true
 }
 
-
 resource "azurerm_storage_account" "test" {
-  name = "pctestsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  name                     = "pctestsa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 

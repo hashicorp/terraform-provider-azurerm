@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_application_security_group.test"
-	ri := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -30,8 +30,8 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_application_security_group.test"
-	ri := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	ri := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -52,8 +52,8 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 func testAccDataSourceApplicationSecurityGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
@@ -63,7 +63,7 @@ resource "azurerm_application_security_group" "test" {
 }
 
 data "azurerm_application_security_group" "test" {
-  name = "${azurerm_application_security_group.test.name}"
+  name                = "${azurerm_application_security_group.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -72,21 +72,22 @@ data "azurerm_application_security_group" "test" {
 func testAccDataSourceApplicationSecurityGroup_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  tags {
-	"Hello" = "World"
+
+  tags = {
+    Hello = "World"
   }
 }
 
 data "azurerm_application_security_group" "test" {
-  name = "${azurerm_application_security_group.test.name}"
+  name                = "${azurerm_application_security_group.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

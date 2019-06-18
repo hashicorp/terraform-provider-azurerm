@@ -7,14 +7,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionCreate,
+		Create: resourceArmServiceBusSubscriptionCreateUpdate,
 		Read:   resourceArmServiceBusSubscriptionRead,
-		Update: resourceArmServiceBusSubscriptionCreate,
+		Update: resourceArmServiceBusSubscriptionCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -42,9 +43,9 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
 				Type:     schema.TypeString,
@@ -101,8 +102,8 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
 
@@ -115,6 +116,19 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresSession := d.Get("requires_session").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBSubscription{
 		SBSubscriptionProperties: &servicebus.SBSubscriptionProperties{
@@ -141,14 +155,13 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters); err != nil {
+		return fmt.Errorf("Error issuing create/update request for ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ServiceBus Subscription %s (resource group %s) ID", name, resourceGroup)
@@ -160,7 +173,7 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -204,7 +217,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
+	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

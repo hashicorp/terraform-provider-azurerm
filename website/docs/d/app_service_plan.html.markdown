@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
 sidebar_current: "docs-azurerm-datasource-app-service-plan"
 description: |-
-  Get information about an App Service Plan.
+  Gets information about an existing App Service Plan.
 ---
 
 # Data Source: azurerm_app_service_plan
 
-Use this data source to obtain information about an App Service Plan (formerly known as a `Server Farm`).
+Use this data source to access information about an existing App Service Plan (formerly known as a `Server Farm`).
 
 ## Example Usage
 
@@ -41,6 +41,10 @@ output "app_service_plan_id" {
 * `properties` - A `properties` block as documented below.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
+
+* `is_xenon` - A flag that indicates if it's a xenon plan (support for Windows Container)
 
 * `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
 

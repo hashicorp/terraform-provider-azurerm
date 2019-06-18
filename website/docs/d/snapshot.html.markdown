@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_snapshot"
 sidebar_current: "docs-azurerm-datasource-snapshot"
 description: |-
-  Get information about the specified Snapshot
+  Get information about an existing Snapshot
 ---
 
 # Data Source: azurerm_snapshot
 
-Use this data source to access the properties of a Snapshot of an Disk.
+Use this data source to access information about an existing Snapshot.
 
 ## Example Usage
 

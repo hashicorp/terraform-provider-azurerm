@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_platform_image"
 sidebar_current: "docs-azurerm-datasource-platform-image"
 description: |-
-  Get information about the specified Platform Image.
+  Gets information about a Platform Image.
 ---
 
 # Data Source: azurerm_platform_image
 
-Use this data source to access the properties of an Azure Platform Image.
+Use this data source to access information about a Platform Image.
 
 ## Example Usage
 

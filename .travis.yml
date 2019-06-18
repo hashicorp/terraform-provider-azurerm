@@ -4,7 +4,13 @@ services:
 - docker
 language: go
 go:
-- "1.10.x"
+- "1.12.x"
+
+env:
+  matrix:
+  - MODE=unit-tests
+  - MODE=linters
+  - MODE=website
 
 install:
 # This script is used by the Travis build to install a cookie for
@@ -12,13 +18,12 @@ install:
 # packages that live there.
 # See: https://github.com/golang/go/issues/12933
 - bash scripts/gogetcookie.sh
-- go get github.com/kardianos/govendor
+- make tools
 
 script:
-- make test
-- make vendor-status
-- make vet
-- make website-test
+  - if [[ $MODE == 'unit-tests' ]]; then make test; fi
+  - if [[ $MODE == 'linters' ]]; then GOGC=30 make lint; fi
+  - if [[ $MODE == 'website' ]]; then make website-test; fi
 
 branches:
   only:

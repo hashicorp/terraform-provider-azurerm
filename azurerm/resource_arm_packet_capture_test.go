@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -27,14 +28,48 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
+func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_packet_capture.test"
+	ri := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPacketCapture_localDiskConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPacketCaptureExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMPacketCapture_localDiskConfig_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_packet_capture"),
+			},
+		},
+	})
+}
 func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -49,6 +84,11 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -56,7 +96,7 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -71,6 +111,11 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -78,7 +123,7 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -92,15 +137,20 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -116,7 +166,7 @@ func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Packet Capture does not exist: %s", name)
+			return fmt.Errorf("Packet Capture does not exist: %s", packetCaptureName)
 		}
 
 		return nil
@@ -153,7 +203,7 @@ func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
 func testAzureRMPacketCapture_base(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -164,54 +214,54 @@ resource "azurerm_network_watcher" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "internal"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name = "acctvm-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size = "Standard_F2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
 
   storage_os_disk {
-    name = "osdisk"
-    caching = "ReadWrite"
-    create_option = "FromImage"
+    name              = "osdisk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name = "hostname%d"
+    computer_name  = "hostname%d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -254,6 +304,26 @@ resource "azurerm_packet_capture" "test" {
 `, config, rInt)
 }
 
+func testAzureRMPacketCapture_localDiskConfig_requiresImport(rInt int, location string) string {
+	config := testAzureRMPacketCapture_localDiskConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_packet_capture" "import" {
+  name                 = "${azurerm_packet_capture.test.name}"
+  network_watcher_name = "${azurerm_packet_capture.test.network_watcher_name}"
+  resource_group_name  = "${azurerm_packet_capture.test.resource_group_name}"
+  target_resource_id   = "${azurerm_packet_capture.test.target_resource_id}"
+
+  storage_location {
+    file_path = "/var/captures/packet.cap"
+  }
+
+  depends_on = ["azurerm_virtual_machine_extension.test"]
+}
+`, config)
+}
+
 func testAzureRMPacketCapture_localDiskConfigWithFilters(rInt int, location string) string {
 	config := testAzureRMPacketCapture_base(rInt, location)
 	return fmt.Sprintf(`
@@ -271,14 +341,14 @@ resource "azurerm_packet_capture" "test" {
 
   filter {
     local_ip_address = "127.0.0.1"
-    local_port = "8080;9020;"
-    protocol = "TCP"
+    local_port       = "8080;9020;"
+    protocol         = "TCP"
   }
 
   filter {
     local_ip_address = "127.0.0.1"
-    local_port = "80;443;"
-    protocol = "UDP"
+    local_port       = "80;443;"
+    protocol         = "UDP"
   }
 
   depends_on = ["azurerm_virtual_machine_extension.test"]
@@ -292,10 +362,10 @@ func testAzureRMPacketCapture_storageAccountConfig(rInt int, rString string, loc
 %s
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
@@ -320,10 +390,10 @@ func testAzureRMPacketCapture_storageAccountAndLocalDiskConfig(rInt int, rString
 %s
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 

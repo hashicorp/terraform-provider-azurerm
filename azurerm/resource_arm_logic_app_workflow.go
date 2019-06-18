@@ -6,6 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,9 +30,9 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
@@ -63,14 +65,28 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Logic App Workflow %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_logic_app_workflow", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 
 	workflowSchema := d.Get("workflow_schema").(string)
@@ -83,16 +99,15 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			Definition: &map[string]interface{}{
 				"$schema":        workflowSchema,
 				"contentVersion": workflowVersion,
-				"actions":        make(map[string]interface{}, 0),
-				"triggers":       make(map[string]interface{}, 0),
+				"actions":        make(map[string]interface{}),
+				"triggers":       make(map[string]interface{}),
 			},
 			Parameters: parameters,
 		},
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -110,7 +125,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -139,7 +154,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -152,8 +167,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -161,7 +175,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -185,23 +199,21 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppWorkflowParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error flattening `parameters`: %+v", err)
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				schema := v["$schema"].(string)
-				version := v["contentVersion"].(string)
-				d.Set("workflow_schema", schema)
-				d.Set("workflow_version", version)
+				d.Set("workflow_schema", v["$schema"].(string))
+				d.Set("workflow_version", v["contentVersion"].(string))
 			}
 		}
 	}
@@ -212,7 +224,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -239,7 +251,7 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*logic.WorkflowParameter {
-	output := make(map[string]*logic.WorkflowParameter, 0)
+	output := make(map[string]*logic.WorkflowParameter)
 
 	for k, v := range input {
 		output[k] = &logic.WorkflowParameter{
@@ -252,11 +264,17 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*
 }
 
 func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		if v != nil {
-			output[k] = v.Value.(string)
+			// we only support string parameters at this time
+			val, ok := v.Value.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
 		}
 	}
 

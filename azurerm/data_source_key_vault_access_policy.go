@@ -3,7 +3,7 @@ package azurerm
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -52,7 +52,7 @@ func dataSourceArmKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, _ interface{}) error {
 	name := d.Get("name").(string)
 	templateManagementPermissions := map[string][]string{
 		"key": {

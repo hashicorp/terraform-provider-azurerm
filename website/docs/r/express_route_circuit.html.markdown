@@ -19,18 +19,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_express_route_circuit" "test" {
-  name                     = "expressRoute1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  service_provider_name    = "Equinix"
-  peering_location         = "Silicon Valley"
-  bandwidth_in_mbps        = 50
+  name                  = "expressRoute1"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = "${azurerm_resource_group.test.location}"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
