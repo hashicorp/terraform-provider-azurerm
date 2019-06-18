@@ -69,9 +69,9 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ForceNew:      true,
 				ConflictsWith: []string{"curve"},
 			},
 
