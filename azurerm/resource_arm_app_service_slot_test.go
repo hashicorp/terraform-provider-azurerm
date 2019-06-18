@@ -911,6 +911,34 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
