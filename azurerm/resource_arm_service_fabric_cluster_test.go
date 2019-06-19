@@ -1176,21 +1176,31 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
+  client_certificate_thumbprint {
+    thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
+    is_admin   = true
+  }
+
+  client_certificate_thumbprint {
+    thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
+    is_admin   = false
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3

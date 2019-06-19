@@ -67,13 +67,9 @@ The following arguments are supported:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
-* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below.
+* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below. Conflicts with `certificate`.
 
--> **NOTE:** If Certificate Common Names conflicts with Certificate.
-
-* `certificate` - (Optional) A `certificate` block as defined below.
-
--> **NOTE:** If Certificate conflicts with Certificate Common Names.
+* `certificate` - (Optional) A `certificate` block as defined below. Conflicts with `certificate_common_names`.
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
@@ -109,7 +105,7 @@ A `certificate_common_names` block supports the following:
 
 A `common_names` block supports the following:
 
-* `certificate_common_name` - (Required) A `common_names` block as defined below.
+* `certificate_common_name` - (Required) The common or subject name of the certificate.
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 

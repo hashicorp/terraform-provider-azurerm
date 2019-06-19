@@ -678,7 +678,7 @@ func expandServiceFabricClusterCertificateCommonNames(d *schema.ResourceData) *s
 	input := i[0].(map[string]interface{})
 
 	commonNamesRaw := input["common_names"].(*schema.Set).List()
-	commonNames := make([]servicefabric.ServerCertificateCommonName, 0, len(commonNamesRaw))
+	commonNames := make([]servicefabric.ServerCertificateCommonName, 0)
 
 	for _, commonName := range commonNamesRaw {
 		commonNameDetails := commonName.(map[string]interface{})
@@ -711,11 +711,13 @@ func flattenServiceFabricClusterCertificateCommonNames(in *servicefabric.ServerC
 	output := make(map[string]interface{})
 
 	if commonNames := in.CommonNames; commonNames != nil {
-		common_names := make([]map[string]interface{}, 0, len(*commonNames))
+		common_names := make([]map[string]interface{}, 0)
 		for _, i := range *commonNames {
 			commonName := make(map[string]interface{})
 
-			commonName["certificate_common_name"] = *i.CertificateCommonName
+			if i.CertificateCommonName != nil {
+				commonName["certificate_common_name"] = *i.CertificateCommonName
+			}
 
 			if i.CertificateIssuerThumbprint != nil {
 				commonName["certificate_issuer_thumbprint"] = *i.CertificateIssuerThumbprint
