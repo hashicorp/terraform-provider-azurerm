@@ -194,7 +194,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 		},
 		Tags: expandTags(tags),
 	}
-	
+
 	if len(natRules) > 0 {
 		parameters.LabVirtualMachineProperties.NetworkInterface = &nic
 	}
