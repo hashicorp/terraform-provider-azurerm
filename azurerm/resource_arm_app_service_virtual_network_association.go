@@ -20,9 +20,9 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"app_service_id": {
 				Type:         schema.TypeString,
