@@ -20,6 +20,8 @@ github.com/Azure/azure-sdk-for-go v30.0.0+incompatible h1:6o1Yzl7wTBYg+xw0pY4qna
 github.com/Azure/azure-sdk-for-go v30.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v31.0.0+incompatible h1:18nT+M3yxnWcO66yoJyomlCoKMu578UHh0DjJBA5c1M=
 github.com/Azure/azure-sdk-for-go v31.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
+github.com/Azure/azure-sdk-for-go v30.1.0+incompatible h1:HyYPft8wXpxMd0kfLtXo6etWcO+XuPbLkcgx9g2cqxU=
+github.com/Azure/azure-sdk-for-go v30.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-autorest v10.15.4+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v11.7.0+incompatible h1:gzma19dc9ejB75D90E5S+/wXouzpZyA+CV+/MJPSD/k=
 github.com/Azure/go-autorest v11.7.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=

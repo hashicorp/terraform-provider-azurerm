@@ -20,6 +20,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	logicSvc "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	mapsSvc "github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -60,6 +62,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -113,6 +116,7 @@ type ArmClient struct {
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
+	maps             *maps.Client
 	media            *media.Client
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
@@ -401,6 +405,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
+	client.registerMapsClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -630,6 +635,37 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient := keyVault.New()
 	c.configureClient(&keyVaultManagementClient.Client, keyVaultAuth)
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	workflowsClient := logicSvc.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&workflowsClient.Client, auth)
+
+	c.logic = &logic.Client{
+		WorkflowsClient: workflowsClient,
+	}
+}
+
+func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
+	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
+	c.configureClient(&groupsClient.Client, auth)
+
+	subscriptionClient := managementgroupsSvc.NewSubscriptionsClientWithBaseURI(endpoint)
+	c.configureClient(&subscriptionClient.Client, auth)
+
+	c.managementGroups = &managementgroup.Client{
+		GroupsClient:       groupsClient,
+		SubscriptionClient: subscriptionClient,
+	}
+}
+
+func (c *ArmClient) registerMapsClients(endpoint string, subscriptionId string, auth autorest.Authorizer) {
+	mapsAccountsClient := mapsSvc.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mapsAccountsClient.Client, auth)
+
+	c.maps = &maps.Client{
+		AccountsClient: mapsAccountsClient,
+	}
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
