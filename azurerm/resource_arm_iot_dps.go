@@ -39,7 +39,7 @@ func resourceArmIotDPS() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(), // azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
 

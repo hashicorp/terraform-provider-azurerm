@@ -92,6 +92,35 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "staging"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+				),
+			},
+			{
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "production"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -146,7 +175,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSearchService_basic(rInt int, location string) string {
+func testAccAzureRMSearchService_withCustomTagValue(rInt int, location string, tagValue string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -160,10 +189,14 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 
   tags = {
-    environment = "staging"
+    environment = "%s"
   }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, tagValue)
+}
+
+func testAccAzureRMSearchService_basic(rInt int, location string) string {
+	return testAccAzureRMSearchService_withCustomTagValue(rInt, location, "staging")
 }
 
 func testAccAzureRMSearchService_requiresImport(rInt int, location string) string {
