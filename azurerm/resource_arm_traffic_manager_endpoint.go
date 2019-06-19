@@ -112,7 +112,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"subnet": {
-				Type: schema.TypeSet,
+				Type: schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"first": {
@@ -326,7 +326,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
-	templist := d.Get("subnet").(*schema.Set).List()
+	templist := d.Get("subnet").([]interface{})
 	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
 	for _, subnetOld := range templist {
 		subnetOld := subnetOld.(map[string]interface{})
