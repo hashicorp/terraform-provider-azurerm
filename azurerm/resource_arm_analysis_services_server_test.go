@@ -96,6 +96,58 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+
+	preFirewallRules := make([]map[string]string, 0)
+	preConfig := testAccAzureRMAnalysisServicesServer_firewallSettings(ri, testLocation(), true, preFirewallRules)
+
+	postFirewallRules := make([]map[string]string, 2)
+
+	postFirewallRules[0] = make(map[string]string)
+	postFirewallRules[0]["name"] = "test1"
+	postFirewallRules[0]["range_start"] = "92.123.234.11"
+	postFirewallRules[0]["range_end"] = "92.123.234.12"
+
+	postFirewallRules[1] = make(map[string]string)
+	postFirewallRules[1]["name"] = "test2"
+	postFirewallRules[1]["range_start"] = "226.202.187.57"
+	postFirewallRules[1]["range_end"] = "226.208.192.47"
+
+	postConfig := testAccAzureRMAnalysisServicesServer_firewallSettings(ri, testLocation(), false, postFirewallRules)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_power_bi_service", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.%", "0"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_power_bi_service", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.0.name", "test1"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.0.range_start", "92.123.234.11"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.0.range_end", "92.123.234.12"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.1.name", "test2"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.1.range_start", "226.202.187.57"),
+					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rules.1.range_end", "226.208.192.47"),
+				),
+			},
+		},
+	})
+}
+
 // Currently unsure how to test it as the email addresses need to exist in the AD
 //func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 //	resourceName := "azurerm_analysis_services_server.test"
@@ -203,6 +255,36 @@ resource "azurerm_analysis_services_server" "test" {
   querypool_connection_mode = "%s"
 }
 `, rInt, location, rInt, connectionMode)
+}
+
+func testAccAzureRMAnalysisServicesServer_firewallSettings(rInt int, location string, enablePowerBIService bool, ipRules []map[string]string) string {
+	ipRulesStr := make([]string, len(ipRules))
+	for i, ipRule := range ipRules {
+		ipRulesStr[i] = fmt.Sprintf(`{
+  name        = "%s"
+  range_start = "%s"
+  range_end   = "%s"
+}`, ipRule["name"], ipRule["range_start"], ipRule["range_end"])
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                		= "acctestass%d"
+  location            		= "${azurerm_resource_group.test.location}"
+  resource_group_name 		= "${azurerm_resource_group.test.name}"
+  sku 				  		= "B1"
+  enable_power_bi_service   = %t
+
+  ipv4_firewall_rules = [
+    %s
+  ]
+}
+`, rInt, location, rInt, enablePowerBIService, strings.Join(ipRulesStr, ",\n"))
 }
 
 func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
