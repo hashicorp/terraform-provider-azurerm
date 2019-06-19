@@ -111,8 +111,8 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"subnets": {
-				Type: schema.TypeList,
+			"subnet": {
+				Type: schema.TypeSet,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"first": {
@@ -229,8 +229,8 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
-		if err := d.Set("subnets", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
-			return fmt.Errorf("Error setting `subnets`: %s", err)
+		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			return fmt.Errorf("Error setting `subnet`: %s", err)
 		}
 	}
 	return nil
@@ -326,7 +326,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
-	templist := d.Get("subnets").([]interface{})
+	templist := d.Get("subnet").(*schema.Set).List()
 	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
 	for _, subnetOld := range templist {
 		subnetOld := subnetOld.(map[string]interface{})

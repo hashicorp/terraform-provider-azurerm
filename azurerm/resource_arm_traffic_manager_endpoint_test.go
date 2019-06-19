@@ -186,13 +186,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 					testCheckAzureRMTrafficManagerEndpointExists(firstResourceName),
 					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
 					resource.TestCheckResourceAttr(firstResourceName, "subnets.#", "2"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnets.0.first", "1.2.3.0"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnets.0.scope", "24"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnets.1.first", "11.12.13.14"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnets.1.last", "11.12.13.14"),
 					resource.TestCheckResourceAttr(secondResourceName, "subnets.#", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnets.0.first", "21.22.23.24"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnets.0.scope", "32"),
 				),
 			},
 			{
@@ -202,8 +196,6 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
 					resource.TestCheckResourceAttr(firstResourceName, "subnets.#", "0"),
 					resource.TestCheckResourceAttr(secondResourceName, "subnets.#", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnets.0.first", "12.34.56.78"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnets.0.last", "12.34.56.78"),
 				),
 			},
 		},
@@ -740,16 +732,14 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnets = [
-	{
+	subnets {
 		first = "1.2.3.0"
 		scope = "24"
-	},
-	{
+	}
+	subnets {
 		first = "11.12.13.14"
     last = "11.12.13.14"
 	}
-	]
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -758,12 +748,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnets = [
-	{
+	subnets {
 		first = "21.22.23.24"
 		scope = "32"
 	}
-	]
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -806,12 +794,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnets = [
-	{
+	subnets {
 		first = "12.34.56.78"
 		last = "12.34.56.78"
 	}
-	]
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
