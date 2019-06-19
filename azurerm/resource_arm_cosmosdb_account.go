@@ -39,13 +39,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Cosmos DB Account name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tagsSchema(),
 
@@ -140,8 +140,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"location": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							StateFunc:        azure.NormalizeLocation,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
 						"priority": {
@@ -167,7 +167,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
 						},
 
@@ -176,7 +176,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -317,7 +317,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
@@ -450,7 +450,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		oldLocations = append(oldLocations, location)
-		oldLocationsMap[azureRMNormalizeLocation(*location.LocationName)] = location
+		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
 	//cannot update properties and add/remove replication locations at the same time
@@ -570,7 +570,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("resource_group_name", resourceGroup)
 	flattenAndSetTags(d, resp.Tags)
@@ -806,7 +806,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		data := l.(map[string]interface{})
 
 		location := documentdb.Location{
-			LocationName:     utils.String(azureRMNormalizeLocation(data["location"].(string))),
+			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
 
@@ -858,7 +858,7 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 	for _, configRaw := range input {
 		data := configRaw.(map[string]interface{})
 
-		locationName := azureRMNormalizeLocation(data["location"].(string))
+		locationName := azure.NormalizeLocation(data["location"].(string))
 		id := fmt.Sprintf("%s-%s", databaseName, locationName)
 		failoverPriority := int32(data["priority"].(int))
 
@@ -945,7 +945,7 @@ func flattenAzureRmCosmosDBAccountFailoverPolicy(list *[]documentdb.FailoverPoli
 	for _, i := range *list {
 		result := map[string]interface{}{
 			"id":       *i.ID,
-			"location": azureRMNormalizeLocation(*i.LocationName),
+			"location": azure.NormalizeLocation(*i.LocationName),
 			"priority": int(*i.FailoverPriority),
 		}
 
@@ -973,7 +973,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
-			"location":          azureRMNormalizeLocation(*l.LocationName),
+			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
 		}
 
@@ -1027,7 +1027,7 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		location := azureRMNormalizeLocation(m["location"].(string))
+		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
@@ -1044,7 +1044,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		if v, ok := m["prefix"].(string); ok {
 			prefix = v
 		}
-		location := azureRMNormalizeLocation(m["location"].(string))
+		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))

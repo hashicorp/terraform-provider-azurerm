@@ -38,9 +38,9 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 		}),
 
 		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
@@ -48,7 +48,7 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Authorization Rule creation.")
@@ -96,7 +96,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -142,7 +142,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 }
 
 func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubNamespacesClient
+	eventhubClient := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

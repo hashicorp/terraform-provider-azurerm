@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -47,9 +48,9 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"plan": {
 				Type:     schema.TypeList,
@@ -84,7 +85,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
@@ -109,7 +110,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
 	solutionPlan.Name = &name
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	workspaceID := d.Get("workspace_resource_id").(string)
 
 	parameters := operationsmanagement.Solution{
@@ -146,7 +147,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -170,7 +171,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	// Reversing the mapping used to get .solution_name
@@ -200,7 +201,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).solutionsClient
+	client := meta.(*ArmClient).logAnalytics.SolutionsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

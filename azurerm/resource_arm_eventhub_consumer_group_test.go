@@ -120,7 +120,7 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+	conn := testAccProvider.Meta().(*ArmClient).eventhub.ConsumerGroupClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -159,7 +159,7 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Consumer Group: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+		conn := testAccProvider.Meta().(*ArmClient).eventhub.ConsumerGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]

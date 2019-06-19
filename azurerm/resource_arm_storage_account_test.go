@@ -612,7 +612,7 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount)
+		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 		}
@@ -660,7 +660,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, name)
+		resp, err := conn.GetProperties(ctx, resourceGroup, name, "")
 		if err != nil {
 			return nil
 		}

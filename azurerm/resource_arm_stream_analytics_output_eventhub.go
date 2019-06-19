@@ -38,7 +38,7 @@ func resourceArmStreamAnalyticsOutputEventHub() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"eventhub_name": {
 				Type:         schema.TypeString,

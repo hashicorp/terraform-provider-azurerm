@@ -190,7 +190,7 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+	client := testAccProvider.Meta().(*ArmClient).servicebus.SubscriptionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -235,7 +235,7 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for subscription: %q", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+		client := testAccProvider.Meta().(*ArmClient).servicebus.SubscriptionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
