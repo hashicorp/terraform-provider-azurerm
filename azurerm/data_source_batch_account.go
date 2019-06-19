@@ -106,11 +106,12 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 
 			d.Set("primary_access_key", keys.Primary)
 			d.Set("secondary_access_key", keys.Secondary)
+
+			// set emtpy keyvault reference which is not needed in Batch Service allocation mode.
+			d.Set("key_vault_reference", []interface{}{})
 		} else if poolAllocationMode == string(batch.UserSubscription) {
-			if keyVaultReference := props.KeyVaultReference; keyVaultReference != nil {
-				if err := d.Set("key_vault_reference", azure.FlattenBatchAccountKeyvaultReference(keyVaultReference)); err != nil {
-					return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
-				}
+			if err := d.Set("key_vault_reference", azure.FlattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
+				return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
 			}
 		}
 	}

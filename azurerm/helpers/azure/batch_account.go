@@ -30,7 +30,7 @@ func FlattenBatchAccountKeyvaultReference(keyVaultReference *batch.KeyVaultRefer
 	result := make(map[string]interface{})
 
 	if keyVaultReference == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	if keyVaultReference.ID != nil {
