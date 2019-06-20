@@ -440,7 +440,7 @@ func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *
 	}
 
 	if string(notificationSettings.Status) != "" {
-		result["status"] = notificationSettings.Status
+		result["status"] = string(notificationSettings.Status)
 	}
 
 	return []interface{}{result}
