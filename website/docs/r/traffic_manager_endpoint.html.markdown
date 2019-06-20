@@ -110,11 +110,18 @@ The following arguments are supported:
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
-* `subnet` - (Optional) One or more subnet blocks as defined below
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below
+
+* `subnet` - (Optional) One or more `subnet` blocks as defined below
 
 ---
+A `custom_header` block supports the following:
 
-A subnet block supports the following:
+* `name` - (Required) The name of the custom header.
+
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol. 
+
+A `subnet` block supports the following:
 
 * `first` - (Required) The First IP....
 

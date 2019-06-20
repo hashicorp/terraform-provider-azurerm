@@ -111,6 +111,24 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
+			"custom_header": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+				ForceNew: true,
+				Optional: true,
+			},
+
 			"subnet": {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
@@ -232,6 +250,9 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
 			return fmt.Errorf("Error setting `subnet`: %s", err)
 		}
+		if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+			return fmt.Errorf("Error setting `custom_header`: %s", err)
+		}
 	}
 	return nil
 }
@@ -253,6 +274,24 @@ func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.En
 			flatSubnet["scope"] = int(*subnet.Scope)
 		}
 		result = append(result, flatSubnet)
+	}
+	return result
+}
+
+func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, header := range *input {
+		flatHeader := make(map[string]interface{}, 2)
+		if header.Name != nil {
+			flatHeader["name"] = *header.Name
+		}
+		if header.Value != nil {
+			flatHeader["value"] = *header.Value
+		}
+		result = append(result, flatHeader)
 	}
 	return result
 }
@@ -349,6 +388,22 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	}
 	if len(subnetMappings) > 0 {
 		endpointProps.Subnets = &subnetMappings
+	}
+
+	templist = d.Get("custom_header").([]interface{})
+	headerMappings := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	for _, headerOld := range templist {
+		headerOld := headerOld.(map[string]interface{})
+		headerName := headerOld["name"].(string)
+		headerValue := headerOld["value"].(string)
+		headerNew := trafficmanager.EndpointPropertiesCustomHeadersItem{
+			Name:  &headerName,
+			Value: &headerValue,
+		}
+		headerMappings = append(headerMappings, headerNew)
+	}
+	if len(headerMappings) > 0 {
+		endpointProps.CustomHeaders = &headerMappings
 	}
 
 	return &endpointProps

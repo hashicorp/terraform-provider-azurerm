@@ -210,6 +210,46 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
+	firstResourceName := "azurerm_traffic_manager_endpoint.testExternal"
+	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
+
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMTrafficManagerEndpoint_headers(ri, location)
+	postConfig := testAccAzureRMTrafficManagerEndpoint_updateHeaders(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerEndpointExists(firstResourceName),
+					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "custom_header.#", "1"),
+					resource.TestCheckResourceAttr(firstResourceName, "custom_header.0.name", "header"),
+					resource.TestCheckResourceAttr(firstResourceName, "custom_header.0.value", "www.bing.com"),
+					resource.TestCheckResourceAttr(secondResourceName, "custom_header.#", "0"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerEndpointExists(firstResourceName),
+					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "custom_header.#", "0"),
+					resource.TestCheckResourceAttr(secondResourceName, "custom_header.#", "1"),
+					resource.TestCheckResourceAttr(secondResourceName, "custom_header.0.name", "header"),
+					resource.TestCheckResourceAttr(secondResourceName, "custom_header.0.value", "www.bing.com"),
+				),
+			},
+		},
+	})
+}
+
 // Altering priority might be used to switch failover/active roles
 func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	firstResourceName := "azurerm_traffic_manager_endpoint.testExternal"
@@ -805,6 +845,98 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 	subnet {
 		first = "12.34.56.78"
 		last = "12.34.56.78"
+	}
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerEndpoint_headers(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Subnet"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_endpoint" "testExternal" {
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	custom_header {
+		name = "header"
+		value = "www.bing.com"
+	}
+}
+
+resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerEndpoint_updateSubnets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Subnet"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_endpoint" "testExternal" {
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	custom_header {
+		name = "header"
+		value = "www.bing.com"
 	}
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
