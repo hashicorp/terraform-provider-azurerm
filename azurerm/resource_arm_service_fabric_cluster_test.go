@@ -903,8 +903,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = %d
@@ -930,8 +930,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = %d
@@ -962,8 +962,8 @@ resource "azurerm_service_fabric_cluster" "import" {
   reliability_level   = "${azurerm_service_fabric_cluster.test.reliability_level}"
   upgrade_mode        = "${azurerm_service_fabric_cluster.test.upgrade_mode}"
   vm_image            = "${azurerm_service_fabric_cluster.test.vm_image}"
-	management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
-	
+  management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
+
   node_type {
     name                 = "first"
     instance_count       = %d
@@ -990,8 +990,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode         = "Manual"
   cluster_code_version = "%[3]s"
   vm_image             = "Windows"
-	management_endpoint  = "http://example:80"
-	
+  management_endpoint  = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1018,8 +1018,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
-	add_on_features     = ["DnsService", "RepairManager"]
-	
+  add_on_features     = ["DnsService", "RepairManager"]
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1045,21 +1045,21 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1085,26 +1085,26 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   reverse_proxy_certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                        = "first"
     instance_count              = 3
@@ -1131,26 +1131,26 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   client_certificate_thumbprint {
     thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     is_admin   = true
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1327,27 +1327,27 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:19080"
-	
+  management_endpoint = "https://example:19080"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   azure_active_directory {
     tenant_id              = "${data.azurerm_client_config.current.tenant_id}"
     cluster_application_id = "${azuread_application.cluster_explorer.application_id}"
     client_application_id  = "${azuread_application.cluster_console.application_id}"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "system"
     instance_count       = 3
@@ -1375,21 +1375,21 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:19080"
-	
+  management_endpoint = "https://example:19080"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "system"
     instance_count       = 3
@@ -1423,16 +1423,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   diagnostics_config {
     storage_account_name       = "${azurerm_storage_account.test.name}"
     protected_account_key_name = "StorageAccountKey1"
     blob_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
     queue_endpoint             = "${azurerm_storage_account.test.primary_queue_endpoint}"
     table_endpoint             = "${azurerm_storage_account.test.primary_table_endpoint}"
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1493,16 +1493,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "None"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1528,20 +1528,20 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
-		http_endpoint_port   = 80
-		
+    http_endpoint_port   = 80
+
     application_ports {
       start_port = 20000
       end_port   = 29999
-		}
-		
+    }
+
     ephemeral_ports {
       start_port = 30000
       end_port   = 39999
@@ -1565,16 +1565,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
-	}
-	
+  }
+
   node_type {
     name                 = "second"
     instance_count       = 4
@@ -1601,18 +1601,18 @@ resource "azurerm_service_fabric_cluster" "test" {
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
   node_type {
-		name                 = "first"
-		placement_properties = {
-			"HasSSD" = "true"
-		}
-		capacities = {
-			"ClientConnections" = "20000"
-			"MemoryGB" = "8"
-		}
+    name                 = "first"
+    placement_properties = {
+      "HasSSD" = "true"
+    }
+    capacities = {
+      "ClientConnections" = "20000"
+      "MemoryGB" = "8"
+    }
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
-		http_endpoint_port   = 80
+    http_endpoint_port   = 80
   }
   tags = {
     Hello = "World"
@@ -1635,16 +1635,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
-	}
-	
+  }
+
   tags = {
     Hello = "World"
   }
