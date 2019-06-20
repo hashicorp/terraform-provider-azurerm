@@ -2,7 +2,8 @@ package applicationinsights
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
@@ -11,17 +12,17 @@ type Client struct {
 	WebTestsClient   insights.WebTestsClient
 }
 
-func BuildClient(endpoint, subscriptionId string, o *ar.ClientOptions) *Client {
+func BuildClient(endpoint string, authorizer autorest.Authorizer, o *common.ClientOptions) *Client {
 	c := Client{}
 
-	c.APIKeyClient = insights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.APIKeyClient.Client, o)
+	c.APIKeyClient = insights.NewAPIKeysClientWithBaseURI(endpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.APIKeyClient.Client, authorizer)
 
-	c.ComponentsClient = insights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ComponentsClient.Client, o)
+	c.ComponentsClient = insights.NewComponentsClientWithBaseURI(endpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.ComponentsClient.Client, authorizer)
 
-	c.WebTestsClient = insights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.WebTestsClient.Client, o)
+	c.WebTestsClient = insights.NewWebTestsClientWithBaseURI(endpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.WebTestsClient.Client, authorizer)
 
 	return &c
 }

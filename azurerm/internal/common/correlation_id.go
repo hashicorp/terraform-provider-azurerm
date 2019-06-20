@@ -1,4 +1,4 @@
-package ar
+package common
 
 import (
 	"log"

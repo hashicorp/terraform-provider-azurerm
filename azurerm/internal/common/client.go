@@ -1,4 +1,4 @@
-package ar
+package common
 
 import (
 	"fmt"
@@ -14,21 +14,20 @@ import (
 )
 
 type ClientOptions struct {
-	Authorizer                 autorest.Authorizer
-	ProviderName               string
+	SubscriptionId             string
 	PartnerId                  string
 	PollingDuration            time.Duration
 	SkipProviderReg            bool
 	EnableCorrelationRequestID bool
 }
 
-func ConfigureClient(c *autorest.Client, o *ClientOptions) {
+func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
 	if o.PartnerId != "" {
-		setUserAgent(c, o.ProviderName, o.PartnerId)
+		setUserAgent(c, o.PartnerId)
 	}
 
-	c.Authorizer = o.Authorizer
-	c.Sender = sender.BuildSender(o.ProviderName)
+	c.Authorizer = authorizer
+	c.Sender = sender.BuildSender("AzureRM")
 	c.PollingDuration = o.PollingDuration
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
 	if o.EnableCorrelationRequestID {
@@ -36,7 +35,7 @@ func ConfigureClient(c *autorest.Client, o *ClientOptions) {
 	}
 }
 
-func setUserAgent(client *autorest.Client, providerName, partnerID string) {
+func setUserAgent(client *autorest.Client, partnerID string) {
 	tfUserAgent := httpclient.UserAgentString()
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
@@ -51,5 +50,5 @@ func setUserAgent(client *autorest.Client, providerName, partnerID string) {
 		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
 	}
 
-	log.Printf("[DEBUG] %s Client User Agent: %s\n", providerName, client.UserAgent)
+	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }

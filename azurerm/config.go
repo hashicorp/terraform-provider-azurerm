@@ -60,11 +60,11 @@ import (
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	az "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -109,7 +109,7 @@ type ArmClient struct {
 	subscriptionId           string
 	partnerId                string
 	usingServicePrincipal    bool
-	environment              az.Environment
+	environment              azure.Environment
 	skipProviderRegistration bool
 
 	StopContext context.Context
@@ -279,7 +279,7 @@ type ArmClient struct {
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client, c.partnerId)
 	client.Authorizer = auth
-	client.RequestInspector = ar.WithCorrelationRequestID(ar.CorrelationRequestID())
+	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
 	client.Sender = sender.BuildSender("AzureRM")
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
@@ -360,26 +360,25 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	o := &ar.ClientOptions{
-		Authorizer:                 auth,
-		ProviderName:               "AzureRM",
+	o := &common.ClientOptions{
+		SubscriptionId:             c.SubscriptionID,
 		PartnerId:                  partnerId,
 		PollingDuration:            60 * time.Minute,
 		SkipProviderReg:            skipProviderRegistration,
 		EnableCorrelationRequestID: true,
 	}
 
-	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, o)
-	client.appInsights = applicationinsights.BuildClient(endpoint, c.SubscriptionID, o)
-	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, o)
-	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, o)
-	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, o)
-	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, o)
-	client.databricks = databricks.BuildClient(endpoint, c.SubscriptionID, o)
-	client.dataFactory = datafactory.BuildClient(endpoint, c.SubscriptionID, o)
-	client.devSpace = devspace.BuildClient(endpoint, c.SubscriptionID, o)
-	client.devTestLabs = devtestlabs.BuildClient(endpoint, c.SubscriptionID, o)
-	client.dns = dns.BuildClient(endpoint, c.SubscriptionID, o)
+	client.apiManagement = apimanagement.BuildClient(endpoint, auth, o)
+	client.appInsights = applicationinsights.BuildClient(endpoint, auth, o)
+	client.automation = automation.BuildClient(endpoint, auth, o)
+	client.cdn = cdn.BuildClient(endpoint, auth, o)
+	client.cognitive = cognitive.BuildClient(endpoint, auth, o)
+	client.containers = containers.BuildClient(endpoint, auth, o)
+	client.databricks = databricks.BuildClient(endpoint, auth, o)
+	client.dataFactory = datafactory.BuildClient(endpoint, auth, o)
+	client.devSpace = devspace.BuildClient(endpoint, auth, o)
+	client.devTestLabs = devtestlabs.BuildClient(endpoint, auth, o)
+	client.dns = dns.BuildClient(endpoint, auth, o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
