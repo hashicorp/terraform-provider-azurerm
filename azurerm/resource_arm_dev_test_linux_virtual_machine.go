@@ -179,7 +179,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 	}
 
 	nic := dtl.NetworkInterfaceProperties{}
-	if disallowPublicIPAddress {
+	if disallowPublicIPAddress && len(natRules) > 0 {
 		nic.SharedPublicIPAddressConfiguration = &dtl.SharedPublicIPAddressConfiguration{
 			InboundNatRules: &natRules,
 		}
@@ -195,6 +195,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 			GalleryImageReference:      galleryImageReference,
 			LabSubnetName:              utils.String(labSubnetName),
 			LabVirtualNetworkID:        utils.String(labVirtualNetworkId),
+			NetworkInterface:           &nic,
 			OsType:                     utils.String("Linux"),
 			Notes:                      utils.String(notes),
 			Password:                   utils.String(password),
@@ -204,10 +205,6 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 			UserName:                   utils.String(username),
 		},
 		Tags: expandTags(tags),
-	}
-
-	if len(natRules) > 0 {
-		parameters.LabVirtualMachineProperties.NetworkInterface = &nic
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
