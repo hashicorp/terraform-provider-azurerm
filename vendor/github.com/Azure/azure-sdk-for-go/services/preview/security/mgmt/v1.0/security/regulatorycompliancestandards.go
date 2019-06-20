@@ -44,10 +44,8 @@ func NewRegulatoryComplianceStandardsClientWithBaseURI(baseURI string, subscript
 
 // Get supported regulatory compliance details state for selected standard
 // Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription. The name is case
-// insensitive.
 // regulatoryComplianceStandardName - name of the regulatory compliance standard object
-func (client RegulatoryComplianceStandardsClient) Get(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string) (result RegulatoryComplianceStandard, err error) {
+func (client RegulatoryComplianceStandardsClient) Get(ctx context.Context, regulatoryComplianceStandardName string) (result RegulatoryComplianceStandard, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceStandardsClient.Get")
 		defer func() {
@@ -60,15 +58,11 @@ func (client RegulatoryComplianceStandardsClient) Get(ctx context.Context, resou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.RegulatoryComplianceStandardsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, regulatoryComplianceStandardName)
+	req, err := client.GetPreparer(ctx, regulatoryComplianceStandardName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceStandardsClient", "Get", nil, "Failure preparing request")
 		return
@@ -90,10 +84,9 @@ func (client RegulatoryComplianceStandardsClient) Get(ctx context.Context, resou
 }
 
 // GetPreparer prepares the Get request.
-func (client RegulatoryComplianceStandardsClient) GetPreparer(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string) (*http.Request, error) {
+func (client RegulatoryComplianceStandardsClient) GetPreparer(ctx context.Context, regulatoryComplianceStandardName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"regulatoryComplianceStandardName": autorest.Encode("path", regulatoryComplianceStandardName),
-		"resourceGroupName":                autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -105,7 +98,7 @@ func (client RegulatoryComplianceStandardsClient) GetPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -132,10 +125,8 @@ func (client RegulatoryComplianceStandardsClient) GetResponder(resp *http.Respon
 
 // List supported regulatory compliance standards details and state
 // Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription. The name is case
-// insensitive.
 // filter - oData filter. Optional.
-func (client RegulatoryComplianceStandardsClient) List(ctx context.Context, resourceGroupName string, filter string) (result RegulatoryComplianceStandardListPage, err error) {
+func (client RegulatoryComplianceStandardsClient) List(ctx context.Context, filter string) (result RegulatoryComplianceStandardListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceStandardsClient.List")
 		defer func() {
@@ -148,16 +139,12 @@ func (client RegulatoryComplianceStandardsClient) List(ctx context.Context, reso
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.RegulatoryComplianceStandardsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, filter)
+	req, err := client.ListPreparer(ctx, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceStandardsClient", "List", nil, "Failure preparing request")
 		return
@@ -179,10 +166,9 @@ func (client RegulatoryComplianceStandardsClient) List(ctx context.Context, reso
 }
 
 // ListPreparer prepares the List request.
-func (client RegulatoryComplianceStandardsClient) ListPreparer(ctx context.Context, resourceGroupName string, filter string) (*http.Request, error) {
+func (client RegulatoryComplianceStandardsClient) ListPreparer(ctx context.Context, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
 	const APIVersion = "2019-01-01-preview"
@@ -196,7 +182,7 @@ func (client RegulatoryComplianceStandardsClient) ListPreparer(ctx context.Conte
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/regulatoryComplianceStandards", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/regulatoryComplianceStandards", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -243,7 +229,7 @@ func (client RegulatoryComplianceStandardsClient) listNextResults(ctx context.Co
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RegulatoryComplianceStandardsClient) ListComplete(ctx context.Context, resourceGroupName string, filter string) (result RegulatoryComplianceStandardListIterator, err error) {
+func (client RegulatoryComplianceStandardsClient) ListComplete(ctx context.Context, filter string) (result RegulatoryComplianceStandardListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceStandardsClient.List")
 		defer func() {
@@ -254,6 +240,6 @@ func (client RegulatoryComplianceStandardsClient) ListComplete(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, filter)
+	result.page, err = client.List(ctx, filter)
 	return
 }

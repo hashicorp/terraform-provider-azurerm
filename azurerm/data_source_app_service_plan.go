@@ -110,7 +110,6 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("kind", resp.Kind)
-	d.Set("is_xenon", resp.IsXenon)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -128,6 +127,8 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 		if props.MaximumElasticWorkerCount != nil {
 			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
 		}
+
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {

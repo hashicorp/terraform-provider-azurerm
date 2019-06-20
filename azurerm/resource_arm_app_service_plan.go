@@ -285,7 +285,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
-	d.Set("is_xenon", resp.IsXenon)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
@@ -306,6 +305,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
