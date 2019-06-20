@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -11,42 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMDevTestLabSchedule_autoShutdownPropertyRulesCheck(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	missingRecurrenceConfig := testAccAzureRMDevTestLabSchedule_autoShutdownMissingRecurrence(ri, location)
-	missingDailyRecurrenceConfig := testAccAzureRMDevTestLabSchedule_autoShutdownMissingDailyRecurrence(ri, location)
-	incorrectTaskNameConfig := testAccAzureRMDevTestLabSchedule_autoShutdownIncorrectTaskName(ri, location)
-	taskNameTaskTypeMismatchConfig := testAccAzureRMDevTestLabSchedule_autoShutdowntaskNameTaskTypeMismatch(ri, location)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      missingRecurrenceConfig,
-				ExpectError: regexp.MustCompile("MissingRequiredProperties"),
-			},
-			{
-				Config:      missingDailyRecurrenceConfig,
-				ExpectError: regexp.MustCompile("MissingRequiredProperty"),
-			},
-			{
-				Config:      incorrectTaskNameConfig,
-				ExpectError: regexp.MustCompile("IncorrectResourceName"),
-			},
-			{
-				Config:      taskNameTaskTypeMismatchConfig,
-				ExpectError: regexp.MustCompile("IncorrectResourceName"),
-			},
-		},
-	})
-
-}
-
 func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
-	resourceName := "azurerm_dev_test_lab_schedule.test"
+	resourceName := "azurerm_dev_test_schedule.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasic(ri, location)
@@ -62,9 +27,9 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 					testCheckAzureRMDevTestLabScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "status", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.2350700632.status", "Disabled"),
+					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.status", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.2029622669.time", "0100"),
+					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.0.time", "0100"),
 				),
 			},
 			{
@@ -79,11 +44,11 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 					testCheckAzureRMDevTestLabScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "status", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.941185200.status", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.941185200.time_in_minutes", "30"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.941185200.webhook_url", "https://www.bing.com/2/4"),
+					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.status", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.time_in_minutes", "30"),
+					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
 					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.3175988578.time", "0900"),
+					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.0.time", "0900"),
 				),
 			},
 		},
@@ -91,7 +56,7 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
-	resourceName := "azurerm_dev_test_lab_schedule.test"
+	resourceName := "azurerm_dev_test_schedule.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasic(ri, location)
@@ -107,9 +72,9 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 					testCheckAzureRMDevTestLabScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "status", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.504166703.time", "1100"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.504166703.week_days.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.504166703.week_days.1", "Tuesday"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.time", "1100"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.1", "Tuesday"),
 				),
 			},
 			{
@@ -124,9 +89,9 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 					testCheckAzureRMDevTestLabScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "status", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.4041497624.time", "1000"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.4041497624.week_days.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.4041497624.week_days.1", "Thursday"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.time", "1000"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.1", "Thursday"),
 				),
 			},
 		},
@@ -134,8 +99,8 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
-	firstResourceName := "azurerm_dev_test_lab_schedule.test"
-	secondResourceName := "azurerm_dev_test_lab_schedule.test2"
+	firstResourceName := "azurerm_dev_test_schedule.test"
+	secondResourceName := "azurerm_dev_test_schedule.test2"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDevTestLabSchedule_concurrent(ri, testLocation())
 
@@ -163,7 +128,7 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		}
 
 		name := rs.Primary.Attributes["name"]
-		devTestLabName := rs.Primary.Attributes["dev_test_lab_name"]
+		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).devTestLabSchedulesClient
@@ -187,7 +152,7 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_lab_schedule" {
+		if rs.Type != "azurerm_dev_test_schedule" {
 			continue
 		}
 
@@ -209,148 +174,6 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestLabSchedule_autoShutdowntaskNameTaskTypeMismatch(rInt int, location string) string {
-	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_lab_schedule" "test" {
-    name = "LabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
-    daily_recurrence  {
-        time = "0100"
-    }
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsStartupTask"
-    notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
-  }
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMDevTestLabSchedule_autoShutdownIncorrectTaskName(rInt int, location string) string {
-	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_lab_schedule" "test" {
-    name = "NotLabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
-    daily_recurrence  {
-        time = "0100"
-    }
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsShutdownTask"
-    notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
-  }
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMDevTestLabSchedule_autoShutdownMissingRecurrence(rInt int, location string) string {
-	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_lab_schedule" "test" {
-    name = "LabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
-  
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsShutdownTask"
-    notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
-  }
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMDevTestLabSchedule_autoShutdownMissingDailyRecurrence(rInt int, location string) string {
-	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_lab_schedule" "test" {
-    name = "LabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
-  
-    time_zone_id = "India Standard Time"
-		task_type = "LabVmsShutdownTask"
-		
-		weekly_recurrence {
-			time = "1100"
-			week_days = ["Monday", "Tuesday"]
-	}
-
-    notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
-  }
-`, rInt, location, rInt)
-}
-
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
@@ -365,11 +188,11 @@ func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(rInt int, location strin
     
   }
   
-  resource "azurerm_dev_test_lab_schedule" "test" {
+  resource "azurerm_dev_test_schedule" "test" {
     name = "LabVmsShutdown"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+    lab_name = "${azurerm_dev_test_lab.test.name}"
     daily_recurrence  {
         time = "0100"
     }
@@ -400,12 +223,12 @@ resource "azurerm_dev_test_lab" "test" {
   
 }
 
-resource "azurerm_dev_test_lab_schedule" "test" {
+resource "azurerm_dev_test_schedule" "test" {
   name = "LabVmsShutdown"
   status = "Enabled"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+  lab_name = "${azurerm_dev_test_lab.test.name}"
   daily_recurrence  {
       time = "0900"
   }
@@ -438,11 +261,11 @@ func testAccAzureRMDevTestLabSchedule_autoStartupBasic(rInt int, location string
     
   }
   
-  resource "azurerm_dev_test_lab_schedule" "test" {
+  resource "azurerm_dev_test_schedule" "test" {
     name = "LabVmAutoStart"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+    lab_name = "${azurerm_dev_test_lab.test.name}"
 		weekly_recurrence {
 			time = "1100"
 			week_days = ["Monday", "Tuesday"]
@@ -476,11 +299,11 @@ resource "azurerm_dev_test_lab" "test" {
   
 }
 
-resource "azurerm_dev_test_lab_schedule" "test" {
+resource "azurerm_dev_test_schedule" "test" {
   name = "LabVmAutoStart"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-		dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+	lab_name = "${azurerm_dev_test_lab.test.name}"
 		weekly_recurrence {
 			time = "1000"
 			week_days = ["Wednesday", "Thursday", "Friday"]
@@ -517,11 +340,11 @@ func testAccAzureRMDevTestLabSchedule_concurrent(rInt int, location string) stri
     
   }
   
-  resource "azurerm_dev_test_lab_schedule" "test" {
+  resource "azurerm_dev_test_schedule" "test" {
     name = "LabVmAutoStart"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+    lab_name = "${azurerm_dev_test_lab.test.name}"
 		weekly_recurrence {
 			time = "1100"
 			week_days = ["Monday", "Tuesday"]
@@ -539,11 +362,11 @@ func testAccAzureRMDevTestLabSchedule_concurrent(rInt int, location string) stri
     }
 	}
 	
-	resource "azurerm_dev_test_lab_schedule" "test2" {
+	resource "azurerm_dev_test_schedule" "test2" {
     name = "LabVmsShutdown"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+    lab_name = "${azurerm_dev_test_lab.test.name}"
     daily_recurrence  {
         time = "0100"
     }

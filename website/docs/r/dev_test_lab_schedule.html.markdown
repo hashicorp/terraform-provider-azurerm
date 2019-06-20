@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dev_test_lab_schedule"
+page_title: "Azure Resource Manager: azurerm_dev_test_schedule"
 sidebar_current: "docs-azurerm-dev-test-lab-schedule"
 description: |-
     Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 ---
 
-# azurerm_dev_test_lab_schedule
+# azurerm_dev_test_schedule
 
 Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 
@@ -26,11 +26,11 @@ resource "azurerm_dev_test_lab" "test" {
 
 }
 
-resource "azurerm_dev_test_lab_schedule" "test" {
+resource "azurerm_dev_test_schedule" "test" {
   name = "LabVmAutoStart"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  dev_test_lab_name = "${azurerm_dev_test_lab.test.name}"
+  lab_name = "${azurerm_dev_test_lab.test.name}"
   
   weekly_recurrence {
     time      = "1100"
@@ -65,7 +65,7 @@ The following arguments are supported:
     create the dev test lab schedule. Changing this forces a new resource to be
     created.
 
-* `dev_test_lab_name` - (Required) The name of the dev test lab. Changing
+* `lab_name` - (Required) The name of the dev test lab. Changing
     this forces a new resource to be created.
 
 * `status` - The status of this schedule. Possible values are `Enabled`
@@ -113,8 +113,8 @@ The following attributes are exported:
 
 ## Import
 
-Dev Test Lab Schedule can be imported using the `resource id`, e.g.
+Dev Test Schedule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_lab_schedule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
+terraform import azurerm_dev_test_schedule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
 ```
