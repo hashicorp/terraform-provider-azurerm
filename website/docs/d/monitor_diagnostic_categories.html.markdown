@@ -20,7 +20,7 @@ data "azurerm_key_vault" "test" {
 }
 
 data "azurerm_monitor_diagnostic_categories" "test" {
-  resource_id = "${azurerm_key_vault.test.id}"
+  resource_id = "${data.azurerm_key_vault.test.id}"
 }
 ```
 

@@ -778,7 +778,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/windowsservercore:latest"
+    image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
     ports {
@@ -836,7 +836,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/windowsservercore:latest"
+    image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
     ports {
@@ -845,13 +845,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -884,8 +884,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }
@@ -961,7 +961,7 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    gpu = {
+    gpu {
       count = 1
       sku = "K80"
     }
@@ -977,13 +977,13 @@ resource "azurerm_container_group" "test" {
     }
 
     environment_variables = {
-      "foo"  = "bar"
-      "foo1" = "bar1"
+      foo  = "bar"
+      foo1 = "bar1"
     }
 
     secure_environment_variables = {
-      "secureFoo"  = "secureBar"
-      "secureFoo1" = "secureBar1"
+      secureFoo  = "secureBar"
+      secureFoo1 = "secureBar1"
     }
 
     readiness_probe {
@@ -1016,8 +1016,8 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
-      metadata {
-        "node-name" = "acctestContainerGroup"
+      metadata = {
+        node-name = "acctestContainerGroup"
       }
     }
   }
@@ -1043,7 +1043,7 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+		conn := testAccProvider.Meta().(*ArmClient).containers.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -1058,7 +1058,7 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+	conn := testAccProvider.Meta().(*ArmClient).containers.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

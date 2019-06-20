@@ -4,7 +4,13 @@ services:
 - docker
 language: go
 go:
-- "1.11.x"
+- "1.12.x"
+
+env:
+  matrix:
+  - MODE=unit-tests
+  - MODE=linters
+  - MODE=website
 
 install:
 # This script is used by the Travis build to install a cookie for
@@ -15,9 +21,9 @@ install:
 - make tools
 
 script:
-- make test
-- make lint
-- make website-test
+  - if [[ $MODE == 'unit-tests' ]]; then make test; fi
+  - if [[ $MODE == 'linters' ]]; then GOGC=30 make lint; fi
+  - if [[ $MODE == 'website' ]]; then make website-test; fi
 
 branches:
   only:

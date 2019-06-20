@@ -1,6 +1,7 @@
 package validate
 
 import (
+	s "strings"
 	"testing"
 )
 
@@ -103,7 +104,7 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 	}{
 		{
 			Value:    "",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "/",
@@ -124,6 +125,10 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 		{
 			Value:    "api1/sub",
 			ErrCount: 0,
+		},
+		{
+			Value:    s.Repeat("x", 401),
+			ErrCount: 1,
 		},
 	}
 

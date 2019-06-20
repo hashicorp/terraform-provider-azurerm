@@ -50,12 +50,13 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"role_definition_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"role_definition_id"},
-				ValidateFunc:  validateRoleDefinitionName,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ConflictsWith:    []string{"role_definition_id"},
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validateRoleDefinitionName,
 			},
 
 			"principal_id": {

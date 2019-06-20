@@ -254,7 +254,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 }
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -283,7 +283,7 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.Stat
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).recoveryServicesProtectionPoliciesClient
+		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -325,7 +325,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:5])
+`, rInt, location, strconv.Itoa(rInt)[12:17])
 }
 
 func testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(rInt int, location string) string {

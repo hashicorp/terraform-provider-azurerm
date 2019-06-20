@@ -226,7 +226,7 @@ func TestAccAzureRMApiManagementUser_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementUserDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementUsersClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.UsersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_user" {
@@ -264,7 +264,7 @@ func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementUsersClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.UsersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, userId)
 		if err != nil {
@@ -272,7 +272,7 @@ func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestC
 				return fmt.Errorf("Bad: User %q (API Management Service %q / Resource Group %q) does not exist", userId, serviceName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apiManagementUsersClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.UsersClient: %+v", err)
 		}
 
 		return nil

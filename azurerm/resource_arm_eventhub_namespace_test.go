@@ -217,7 +217,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
+	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -228,7 +228,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "100"),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "20"),
 				),
 			},
 		},
@@ -238,7 +238,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 100)
+	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 	postConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 2)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -250,7 +250,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "100"),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "20"),
 				),
 			},
 			{
@@ -311,7 +311,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
-					resource.TestCheckResourceAttr(resourceName, "maximum_throughput_units", "100"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_throughput_units", "20"),
 				),
 			},
 			{
@@ -347,7 +347,7 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 }
 
 func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+	conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -384,7 +384,7 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
@@ -494,7 +494,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
-  maximum_throughput_units = 100
+  maximum_throughput_units = 20
 }
 `, rInt, location, rInt)
 }

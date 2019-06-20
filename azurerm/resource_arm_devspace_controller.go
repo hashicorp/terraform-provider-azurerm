@@ -31,9 +31,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 				ValidateFunc: validate.DevSpaceName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -95,7 +95,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 }
 
 func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
+	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
@@ -116,7 +116,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandDevSpaceControllerSku(d)
@@ -159,7 +159,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
+	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -183,7 +183,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", result.Name)
 	d.Set("resource_group_name", resGroupName)
 	if location := result.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
@@ -202,7 +202,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
+	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
@@ -229,7 +229,7 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
+	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

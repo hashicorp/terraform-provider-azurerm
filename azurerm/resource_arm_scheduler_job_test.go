@@ -514,7 +514,7 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		jobCollection := rs.Primary.Attributes["job_collection_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).schedulerJobsClient
+		client := testAccProvider.Meta().(*ArmClient).scheduler.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
@@ -548,7 +548,7 @@ func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).schedulerJobsClient
+		client := testAccProvider.Meta().(*ArmClient).scheduler.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
@@ -668,7 +668,7 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("testdata/application_gateway_test.pfx"))}"
+      pfx      = "${filebase64("testdata/application_gateway_test.pfx")}"
       password = "terraform"
     }
   }
@@ -920,7 +920,7 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }
 
 func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
@@ -957,5 +957,5 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }

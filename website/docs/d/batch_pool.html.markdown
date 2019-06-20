@@ -14,7 +14,7 @@ Use this data source to access information about an existing Batch pool
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_pool "test" {
+data "azurerm_batch_pool" "test" {
   name                = "testbatchpool"
   account_name        = "testbatchaccount"
   resource_group_name = "test"
@@ -46,6 +46,8 @@ The following attributes are exported:
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
 * `certificate` - One or more `certificate` blocks that describe the certificates installed on each compute node in the pool.
+
+* `container_configuration` - The container configuration used in the pool's VMs.
 
 ---
 
@@ -128,3 +130,9 @@ A `resource_file` block exports the following:
 * `http_url` - The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access.
 
 * `storage_container_url` - The URL of the blob container within Azure Blob Storage.
+
+---
+
+A `container_configuration` block exports the following:
+
+* `type` - The type of container configuration.

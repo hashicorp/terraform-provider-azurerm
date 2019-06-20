@@ -44,9 +44,9 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"user_metadata": {
 				Type:         schema.TypeString,
@@ -58,7 +58,7 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Consumer Group creation.")
 
@@ -109,7 +109,7 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

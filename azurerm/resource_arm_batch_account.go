@@ -34,9 +34,9 @@ func resourceArmBatchAccount() *schema.Resource {
 
 			// TODO: make this case sensitive once this API bug has been fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -79,7 +79,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
 	poolAllocationMode := d.Get("pool_allocation_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -160,7 +160,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("account_endpoint", resp.AccountEndpoint)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AccountProperties; props != nil {
