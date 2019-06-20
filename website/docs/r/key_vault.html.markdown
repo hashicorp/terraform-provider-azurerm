@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) 
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
 
 * `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
