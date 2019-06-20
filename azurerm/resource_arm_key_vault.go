@@ -189,30 +189,29 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 
 	// Remove in 2.0
-	var sku keyvault.Sku{}
+	var sku keyvault.Sku
 
 	if v := d.Get("sku_name").(string); v == "" {
 		inputs := d.Get("sku").([]interface{})
 
-		if len(inputs) == 0 {
-			sku = nil
+		if len(inputs) > 0 {
+			input := inputs[0].(map[string]interface{})
+			v = input["name"].(string)
 		}
 
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-
-		sku := &keyvault.Sku{
+		sku = keyvault.Sku{
 			Family: &armKeyVaultSkuFamily,
 			Name:   keyvault.SkuName(v),
 		}
 	} else {
 		// Keep in 2.0
-		sku := &keyvault.Sku{
+		sku = keyvault.Sku{
 			Family: &armKeyVaultSkuFamily,
 			Name:   keyvault.SkuName(d.Get("sku_name").(string)),
+		}
 	}
 
-	if sku == nil {
+	if sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
 	}
 
@@ -254,7 +253,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Properties: &keyvault.VaultProperties{
 			TenantID:                     &tenantUUID,
-			Sku:                          sku,
+			Sku:                          &sku,
 			AccessPolicies:               accessPolicies,
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
@@ -362,7 +361,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		if sku := props.Sku; sku != nil {
 			// Remove in 2.0
 			if skuName == "" {
-				if err := d.Set("sku", flattenKeyVaultSku(sku.Name)); err != nil {
+				if err := d.Set("sku", flattenKeyVaultSku(sku)); err != nil {
 					return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 				}
 				d.Set("sku_name", "")

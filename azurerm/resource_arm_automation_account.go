@@ -94,29 +94,27 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	ctx := meta.(*ArmClient).StopContext
 
 	// Remove in 2.0
-	var sku automation.Sku{}
+	var sku automation.Sku
 
 	if v := d.Get("sku_name").(string); v == "" {
 		inputs := d.Get("sku").([]interface{})
 
-		if len(inputs) == 0 {
-			sku = nil
-		} else {
+		if len(inputs) > 0 {
 			input := inputs[0].(map[string]interface{})
 			v = input["name"].(string)
 		}
 
-		sku = &automation.Sku{
+		sku = automation.Sku{
 			Name: automation.SkuNameEnum(v),
 		}
 	} else {
 		// Keep in 2.0
-		sku = &automation.Sku{
+		sku = automation.Sku{
 			Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 		}
 	}
 	
-	if sku == nil {
+	if sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
 	}
 
@@ -143,7 +141,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 	parameters := automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
-			Sku: sku,
+			Sku: &sku,
 		},
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
@@ -211,7 +209,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	if sku := resp.Sku; sku != nil {
 		if skuName == "" {
 			// Remove in 2.0
-			if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
+			if err := d.Set("sku", flattenAutomationAccountSku(sku)); err != nil {
 				return fmt.Errorf("Error setting 'sku': %+v", err)
 			}
 			d.Set("sku_name", "")

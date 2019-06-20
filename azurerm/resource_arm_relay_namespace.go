@@ -107,32 +107,30 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).relayNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	var sku = relay.Sku{}
+	// Remove in 2.0
+	var sku relay.Sku
 
 	if v := d.Get("sku_name").(string); v == "" {
-		// Remove in 2.0
 		inputs := d.Get("sku").([]interface{})
 
-		if len(inputs) == 0 {
-			return nil
+		if len(inputs) > 0 {
+			input := inputs[0].(map[string]interface{})
+			v = input["name"].(string)
 		}
 
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-	
-		sku = &relay.Sku{
+		sku = relay.Sku{
 			Name: utils.String(v),
 			Tier: relay.SkuTier(v),
 		}
 	} else {
 		// Keep in 2.0
-		sku = &relay.Sku{
+		sku = relay.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
 			Tier: relay.SkuTier(d.Get("sku_name").(string)),
 		}
 	}
 
-	if sku == nil {
+	if *sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
 	}
 
@@ -160,7 +158,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	parameters := relay.Namespace{
 		Location:            utils.String(location),
-		Sku:                 sku,
+		Sku:                 &sku,
 		NamespaceProperties: &relay.NamespaceProperties{},
 		Tags:                expandedTags,
 	}
@@ -217,7 +215,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 
 	if sku := resp.Sku; sku != nil {
 		if skuName == "" {
-			if err := d.Set("sku", flattenRelayNamespaceSku(resp.Sku)); err != nil {
+			if err := d.Set("sku", flattenRelayNamespaceSku(sku)); err != nil {
 				return fmt.Errorf("Error setting 'sku': %+v", err)
 			}
 			d.Set("sku_name", "")
@@ -228,7 +226,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("sku", "")
 		}
 	} else {
-		return fmt.Errorf("Error making Read request on Relay Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resGroup)
+		return fmt.Errorf("Error making Read request on Relay Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 	}
 
 	if props := resp.NamespaceProperties; props != nil {
