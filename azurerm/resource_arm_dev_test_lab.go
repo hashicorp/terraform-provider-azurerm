@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,11 +31,11 @@ func resourceArmDevTestLab() *schema.Resource {
 				ValidateFunc: validate.DevTestLabName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"storage_type": {
 				Type:     schema.TypeString,
@@ -82,7 +83,7 @@ func resourceArmDevTestLab() *schema.Resource {
 }
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
+	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
@@ -103,7 +104,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageType := d.Get("storage_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -139,7 +140,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
+	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -163,7 +164,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", read.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.LabProperties; props != nil {
@@ -184,7 +185,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
+	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

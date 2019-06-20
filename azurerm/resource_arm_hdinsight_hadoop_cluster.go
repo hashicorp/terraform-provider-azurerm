@@ -51,9 +51,9 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaHDInsightName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"cluster_version": azure.SchemaHDInsightClusterVersion(),
 
@@ -109,12 +109,12 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsightClustersClient
+	client := meta.(*ArmClient).hdinsight.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	tier := hdinsight.Tier(d.Get("tier").(string))
@@ -199,8 +199,8 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsightClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsightConfigurationsClient
+	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -230,7 +230,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯

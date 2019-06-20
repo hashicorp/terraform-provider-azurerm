@@ -105,6 +105,10 @@ func (client JitNetworkAccessPoliciesClient) CreateOrUpdatePreparer(ctx context.
 		"api-version": APIVersion,
 	}
 
+	body.ID = nil
+	body.Name = nil
+	body.Type = nil
+	body.Location = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

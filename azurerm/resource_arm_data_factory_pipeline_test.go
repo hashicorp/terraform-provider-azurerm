@@ -78,7 +78,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 }
 
 func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryPipelineClient
+	client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_pipeline" {
 			continue
@@ -113,7 +113,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryPipelineClient
+		client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -130,7 +130,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 func testAccAzureRMDataFactoryPipeline_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -151,7 +151,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 func testAccAzureRMDataFactoryPipeline_update1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -172,7 +172,7 @@ resource "azurerm_data_factory_pipeline" "test" {
     test = "testparameter"
   }
 	
-  variables {
+  variables = {
     foo = "test1"
     bar = "test2"
   }
@@ -183,7 +183,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 func testAccAzureRMDataFactoryPipeline_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -205,7 +205,7 @@ resource "azurerm_data_factory_pipeline" "test" {
     test2 = "testparameter2"
   }
 
-  variables {
+  variables = {
     foo = "test1"
     bar = "test2"
     baz = "test3"

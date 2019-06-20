@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,12 +19,15 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateAzureRMBatchCertificateName,
 			},
+
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
 			"public_data": {
 				Type:     schema.TypeString,
 				Computed: true,

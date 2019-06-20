@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -34,9 +35,11 @@ func resourceArmDataFactory() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -147,11 +150,11 @@ func resourceArmDataFactory() *schema.Resource {
 }
 
 func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
+	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -209,7 +212,7 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
+	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -232,7 +235,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("vsts_configuration", []interface{}{})
@@ -263,7 +266,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
+	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

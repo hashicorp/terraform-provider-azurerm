@@ -209,10 +209,6 @@ func testAccARMStorageShareDisappears(resourceName string, sS *storage.Share) re
 
 		reference := fileClient.GetShareReference(sS.Name)
 		options := &storage.FileRequestOptions{}
-		err = reference.Create(options)
-		if err != nil {
-			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", sS.Name, storageAccountName, err)
-		}
 
 		if _, err = reference.DeleteIfExists(options); err != nil {
 			return fmt.Errorf("Error deleting storage Share %q: %s", sS.Name, err)
@@ -273,12 +269,12 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -290,7 +286,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare"
+  name                 = "testshare%[3]s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
@@ -313,12 +309,12 @@ resource "azurerm_storage_share" "import" {
 func testAccAzureRMStorageShare_updateQuota(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -330,7 +326,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare"
+  name                 = "testshare%[3]s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
   quota                = 5

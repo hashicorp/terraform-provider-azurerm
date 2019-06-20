@@ -35,19 +35,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `identity` block supports the following:
-
-* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
 
 ---
 
@@ -64,6 +58,12 @@ A `github_configuration` block supports the following:
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
 -> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
 
 ---
 
@@ -86,6 +86,17 @@ A `vsts_configuration` block supports the following:
 The following attributes are exported:
 
 * `id` - The Data Factory ID.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+The `identity` block exports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
+
 
 ## Import
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"time"
@@ -58,7 +59,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				Optional: true,
 			},
 
-			"location": locationSchemaOptional(),
+			"location": azure.SchemaLocationOptional(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -106,7 +107,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 }
 
 func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -146,7 +147,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if v := d.Get("location").(string); v != "" {
-		assignment.Location = utils.String(azureRMNormalizeLocation(v))
+		assignment.Location = utils.String(azure.NormalizeLocation(v))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -193,7 +194,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -216,7 +217,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AssignmentProperties; props != nil {
@@ -242,7 +243,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()

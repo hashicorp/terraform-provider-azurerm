@@ -118,6 +118,7 @@ func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 			Type: streamanalytics.TypeJSON,
 			JSONSerializationProperties: &streamanalytics.JSONSerializationProperties{
 				Encoding: streamanalytics.Encoding(encoding),
+				Format:   streamanalytics.JSONOutputSerializationFormat(format),
 			},
 		}, nil
 	}

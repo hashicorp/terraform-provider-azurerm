@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
-* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
@@ -85,11 +85,11 @@ The following arguments are supported:
 
 A `azure_active_directory` block supports the following:
 
-* `tenant_id` - (Required) The Azure Active Directory Tenant ID. Changing this forces a new resource to be created.
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID.
 
-* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID. Changing this forces a new resource to be created.
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID.
 
-* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application.
 
 ---
 

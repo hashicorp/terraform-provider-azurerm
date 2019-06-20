@@ -27,7 +27,7 @@ func resourceArmApiManagementProduct() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"display_name": {
 				Type:         schema.TypeString,
@@ -69,7 +69,7 @@ func resourceArmApiManagementProduct() *schema.Resource {
 }
 
 func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for API Management Product creation.")
@@ -139,7 +139,7 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,7 +180,7 @@ func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmApiManagementProductDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -12,7 +12,7 @@ resource "azurerm_app_service" "test" {
   # ...
   site_config = {
     # ...
-    linux_fx_version = "COMPOSE|${base64encode(file("compose.yml"))}"
+    linux_fx_version = "COMPOSE|${filebase64("compose.yml")}"
   }
 
   lifecycle {

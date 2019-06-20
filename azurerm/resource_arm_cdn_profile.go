@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,9 +30,9 @@ func resourceArmCdnProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -53,7 +54,7 @@ func resourceArmCdnProfile() *schema.Resource {
 }
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
@@ -74,7 +75,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -109,7 +110,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	if !d.HasChange("tags") {
@@ -137,7 +138,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -159,7 +160,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -172,7 +173,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

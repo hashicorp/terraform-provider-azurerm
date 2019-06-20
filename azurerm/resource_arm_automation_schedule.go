@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -40,7 +41,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			//this is AutomationAccountName in the SDK
 			"account_name": {
@@ -216,7 +217,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
@@ -309,7 +310,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -369,7 +370,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationScheduleClient
+	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

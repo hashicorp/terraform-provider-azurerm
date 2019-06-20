@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) The name of the SQL Server on which to create the database.
 
-* `create_mode` - (Optional) Specifies the type of database to create. Defaults to `Default`. See below for the accepted values/
+* `create_mode` - (Optional) Specifies how to create the database. Must be either `Default` to create a new database or `PointInTimeRestore` to restore from a snapshot. Defaults to `Default`.
 
 * `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 
@@ -74,6 +74,8 @@ The following arguments are supported:
 * `elastic_pool_name` - (Optional) The name of the elastic database pool.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+
+* `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
