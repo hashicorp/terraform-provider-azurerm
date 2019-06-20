@@ -334,7 +334,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		subnetLast := subnetOld["last"].(string)
 		subnetScope := int32(subnetOld["scope"].(int))
 		var subnetNew trafficmanager.EndpointPropertiesSubnetsItem
-		if subnetScope == 0 {
+		if subnetScope == 0 && subnetFirst != "0.0.0.0" {
 			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
 				First: &subnetFirst,
 				Last:  &subnetLast,
