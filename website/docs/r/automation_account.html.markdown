@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) A `sku` block as described below.
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
 
 * `sku_name` - (Optional) The SKU name of the account - only `Basic` is supported at this time.
 
