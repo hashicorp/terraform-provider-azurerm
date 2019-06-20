@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku = "standard"
+  sku_name = "standard"
 
   tenant_id = "22222222-2222-2222-2222-222222222222"
 

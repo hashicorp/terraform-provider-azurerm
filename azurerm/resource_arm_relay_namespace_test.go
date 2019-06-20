@@ -66,7 +66,7 @@ func TestAccAzureRMRelayNamespace_basicClassic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})

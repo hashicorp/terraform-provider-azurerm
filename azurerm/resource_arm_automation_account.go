@@ -64,12 +64,11 @@ func resourceArmAutomationAccount() *schema.Resource {
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith:    []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Basic),
 					string(automation.Free),
-				}, true),
+				}, false),
 			},
 
 			"tags": tagsSchema(),
@@ -94,8 +93,29 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).automationAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	sku := expandAutomationAccountSku(d)
+	// Remove in 2.0
+	var sku automation.Sku{}
 
+	if v := d.Get("sku_name").(string); v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			sku = nil
+		} else {
+			input := inputs[0].(map[string]interface{})
+			v = input["name"].(string)
+		}
+
+		sku = &automation.Sku{
+			Name: automation.SkuNameEnum(v),
+		}
+	} else {
+		// Keep in 2.0
+		sku = &automation.Sku{
+			Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
+		}
+	}
+	
 	if sku == nil {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
 	}
@@ -103,13 +123,13 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -129,17 +149,17 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Automation Account %q (Resource Group %q) %+v", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Automation Account %q (Resource Group %q) %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Account %q (Resource Group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Account %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -156,53 +176,53 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
 	skuName := d.Get("sku_name").(string)
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Automation Account %q was not found in Resource Group %q - removing from state!", name, resGroup)
+			log.Printf("[DEBUG] Automation Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	keysResp, err := registrationClient.Get(ctx, resGroup, name)
+	keysResp, err := registrationClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Agent Registration Info for Automation Account %q was not found in Resource Group %q - removing from state!", name, resGroup)
+			log.Printf("[DEBUG] Agent Registration Info for Automation Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for Agent Registration Info for Automation Account %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request for Agent Registration Info for Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if skuName == "" {
-		// Remove in 2.0
-		if sku := resp.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
+		if skuName == "" {
+			// Remove in 2.0
 			if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku`: %+v", err)
+				return fmt.Errorf("Error setting 'sku': %+v", err)
 			}
+			d.Set("sku_name", "")
+		} else {
+			if err := d.Set("sku_name", string(sku.Name)); err != nil {
+				return fmt.Errorf("Error setting 'sku_name': %+v", err)
+			}
+			d.Set("sku", "")
 		}
-		d.Set("sku_name", "")
 	} else {
-		if sku := resp.Sku; sku != nil {
-			if err := d.Set("sku_name", flattenAutomationAccountSkuName(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku_name`: %+v", err)
-			}
-		}
-		d.Set("sku", "")
+		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 	}
 
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)
@@ -226,10 +246,10 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
@@ -242,14 +262,6 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenAutomationAccountSkuName(sku *automation.Sku) string {
-	if sku == nil {
-		return ""
-	}
-
-	return string(sku.Name)
-}
-
 // Remove in 2.0
 func flattenAutomationAccountSku(sku *automation.Sku) []interface{} {
 	if sku == nil {
@@ -259,28 +271,4 @@ func flattenAutomationAccountSku(sku *automation.Sku) []interface{} {
 	result := map[string]interface{}{}
 	result["name"] = string(sku.Name)
 	return []interface{}{result}
-}
-
-func expandAutomationAccountSku(d *schema.ResourceData) *automation.Sku {
-	v := d.Get("sku_name").(string)
-
-	// Remove in 2.0
-	if v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) == 0 {
-			return nil
-		}
-
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-	}
-
-	name := automation.SkuNameEnum(v)
-
-	sku := automation.Sku{
-		Name: name,
-	}
-
-	return &sku
 }

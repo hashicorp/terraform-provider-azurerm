@@ -78,7 +78,6 @@ func resourceArmKeyVault() *schema.Resource {
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
@@ -189,7 +188,29 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 
-	sku := expandKeyVaultSku(d)
+	// Remove in 2.0
+	var sku keyvault.Sku{}
+
+	if v := d.Get("sku_name").(string); v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			sku = nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+
+		sku := &keyvault.Sku{
+			Family: &armKeyVaultSkuFamily,
+			Name:   keyvault.SkuName(v),
+		}
+	} else {
+		// Keep in 2.0
+		sku := &keyvault.Sku{
+			Family: &armKeyVaultSkuFamily,
+			Name:   keyvault.SkuName(d.Get("sku_name").(string)),
+	}
 
 	if sku == nil {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
@@ -338,21 +359,21 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("vault_uri", props.VaultURI)
 
-		if skuName == "" {
+		if sku := props.Sku; sku != nil {
 			// Remove in 2.0
-			if sku := props.Sku; sku != nil {
-				if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
+			if skuName == "" {
+				if err := d.Set("sku", flattenKeyVaultSku(sku.Name)); err != nil {
 					return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 				}
-			}
-			d.Set("sku_name", "")
-		} else {
-			if sku := props.Sku; sku != nil {
-				if err := d.Set("sku_name", flattenKeyVaultSkuName(props.Sku)); err != nil {
+				d.Set("sku_name", "")
+			} else {
+				if err := d.Set("sku_name", string(sku.Name)); err != nil {
 					return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
 				}
+				d.Set("sku", "")
 			}
-			d.Set("sku", "")
+		} else {
+			return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
@@ -429,31 +450,6 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	v := d.Get("sku_name").(string)
-
-	// Remove in 2.0
-	if v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) == 0 {
-			return nil
-		}
-
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-	}
-
-	name := keyvault.SkuName(v)
-
-	sku := keyvault.Sku{
-		Family: &armKeyVaultSkuFamily,
-		Name:   name,
-	}
-
-	return &sku
-}
-
 // Remove in 2.0
 func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	result := map[string]interface{}{
@@ -461,14 +457,6 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	}
 
 	return []interface{}{result}
-}
-
-func flattenKeyVaultSkuName(sku *keyvault.Sku) string {
-	if sku == nil {
-		return ""
-	}
-
-	return string(sku.Name)
 }
 
 func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {

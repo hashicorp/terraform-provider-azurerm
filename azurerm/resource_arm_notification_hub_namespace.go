@@ -67,12 +67,11 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				ConflictsWith:    []string{"sku"},
-				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.Basic),
 					string(notificationhubs.Free),
 					string(notificationhubs.Standard),
-				}, true),
+				}, false),
 			},
 
 			"enabled": {
@@ -107,7 +106,28 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 	client := meta.(*ArmClient).notificationNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	sku := expandNotificationHubNamespacesSku(d)
+	// Remove in 2.0
+	var sku notificationhubs.Sku{}
+
+	if v := d.Get("sku_name").(string); v == "" {
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			sku = nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+
+		sku = &notificationhubs.Sku{
+			Name: notificationhubs.SkuName(v),
+		}
+	} else {
+		// Keep in 2.0
+		sku = &notificationhubs.Sku{
+			Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
+		}
+	}
 
 	if sku == nil {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
@@ -200,21 +220,20 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if skuName == "" {
-		// Remove in 2.0
-		if sku := resp.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil { 
+		if skuName == "" {
 			if err := d.Set("sku", flattenNotificationHubNamespacesSku(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku`: %+v", err)
+				return fmt.Errorf("Error setting 'sku': %+v", err)
 			}
+			d.Set("sku_name", "")
+		} else {
+			if err := d.Set("sku_name", string(sku.Name)); err != nil {
+				return fmt.Errorf("Error setting 'sku_name': %+v", err)
+			}
+			d.Set("sku", "")
 		}
-		d.Set("sku_name", "")
 	} else {
-		if sku := resp.Sku; sku != nil {
-			if err := d.Set("sku_name", flattenNotificationHubNamespacesSkuName(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku_name`: %+v", err)
-			}
-		}
-		d.Set("sku", "")
+		return fmt.Errorf("Error making Read request on Notification Hub Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 	}
 
 	if props := resp.NamespaceProperties; props != nil {
@@ -258,36 +277,6 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	}
 
 	return nil
-}
-
-func expandNotificationHubNamespacesSku(d *schema.ResourceData) *notificationhubs.Sku {
-	v := d.Get("sku_name").(string)
-
-	// Remove in 2.0
-	if v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) == 0 {
-			return nil
-		}
-
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-	}
-
-	sku := notificationhubs.Sku{
-		Name: notificationhubs.SkuName(v),
-	}
-
-	return &sku
-}
-
-func flattenNotificationHubNamespacesSkuName(sku *notificationhubs.Sku) string {
-	if sku == nil {
-		return ""
-	}
-
-	return string(sku.Name)
 }
 
 // Remove in 2.0

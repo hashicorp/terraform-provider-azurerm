@@ -64,7 +64,6 @@ func resourceArmRelayNamespace() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ConflictsWith:    []string{"sku"},
-				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
 				}, true),
@@ -108,7 +107,30 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).relayNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	sku := expandRelayNamespaceSku(d)
+	var sku = relay.Sku{}
+
+	if v := d.Get("sku_name").(string); v == "" {
+		// Remove in 2.0
+		inputs := d.Get("sku").([]interface{})
+
+		if len(inputs) == 0 {
+			return nil
+		}
+
+		input := inputs[0].(map[string]interface{})
+		v = input["name"].(string)
+	
+		sku = &relay.Sku{
+			Name: utils.String(v),
+			Tier: relay.SkuTier(v),
+		}
+	} else {
+		// Keep in 2.0
+		sku = &relay.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
+			Tier: relay.SkuTier(d.Get("sku_name").(string)),
+		}
+	}
 
 	if sku == nil {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
@@ -193,21 +215,20 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if skuName == "" {
-		// Remove in 2.0
-		if sku := resp.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
+		if skuName == "" {
 			if err := d.Set("sku", flattenRelayNamespaceSku(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku`: %+v", err)
+				return fmt.Errorf("Error setting 'sku': %+v", err)
 			}
+			d.Set("sku_name", "")
+		} else {
+			if err := d.Set("sku_name", *sku.Name); err != nil {
+				return fmt.Errorf("Error setting 'sku_name': %+v", err)
+			}
+			d.Set("sku", "")
 		}
-		d.Set("sku_name", "")
 	} else {
-		if sku := resp.Sku; sku != nil {
-			if err := d.Set("sku_name", flattenRelayNamespaceSkuName(resp.Sku)); err != nil {
-				return fmt.Errorf("Error setting `sku_name`: %+v", err)
-			}
-		}
-		d.Set("sku", "")
+		return fmt.Errorf("Error making Read request on Relay Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resGroup)
 	}
 
 	if props := resp.NamespaceProperties; props != nil {
@@ -278,37 +299,6 @@ func relayNamespaceDeleteRefreshFunc(ctx context.Context, client relay.Namespace
 
 		return res, "Pending", nil
 	}
-}
-
-func expandRelayNamespaceSku(d *schema.ResourceData) *relay.Sku {
-	v := d.Get("sku_name").(string)
-
-	// Remove in 2.0
-	if v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) == 0 {
-			return nil
-		}
-
-		input := inputs[0].(map[string]interface{})
-		v = input["name"].(string)
-	}
-
-	sku := relay.Sku{
-		Name: utils.String(v),
-		Tier: relay.SkuTier(v),
-	}
-
-	return &sku
-}
-
-func flattenRelayNamespaceSkuName(sku *relay.Sku) string {
-	if sku == nil {
-		return ""
-	}
-
-	return *sku.Name
 }
 
 // Remove in 2.0

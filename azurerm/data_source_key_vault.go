@@ -26,17 +26,9 @@ func dataSourceArmKeyVault() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
-			"sku": {
-				Type:     schema.TypeList,
+			"sku_name": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"vault_uri": {
@@ -177,8 +169,8 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("vault_uri", props.VaultURI)
 
-		if err := d.Set("sku_name", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+		if err := d.Set("sku_name", string(props.Sku.Name)); err != nil {
+			return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
@@ -194,10 +186,6 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
-}
-
-func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) string {
-	return string(sku.Name)
 }
 
 func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {

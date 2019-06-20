@@ -25,7 +25,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub"
 
-  sku = "Free"
+  sku_name = "Free"
 }
 
 resource "azurerm_notification_hub" "test" {
