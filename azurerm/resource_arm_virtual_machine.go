@@ -1133,7 +1133,9 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, disksInfo [
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
-		l["lun"] = *disk.Lun
+		if v := disk.Lun; v != nil {
+			l["lun"] = *v
+		}
 
 		if v := disk.WriteAcceleratorEnabled; v != nil {
 			l["write_accelerator_enabled"] = *disk.WriteAcceleratorEnabled
