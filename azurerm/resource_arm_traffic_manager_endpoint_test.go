@@ -896,7 +896,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updateSubnets(rInt int, location string) string {
+func testAccAzureRMTrafficManagerEndpoint_updateHeaders(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
