@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"time"
@@ -62,9 +62,9 @@ func resourceArmRelayNamespace() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ConflictsWith:    []string{"sku"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
 				}, true),

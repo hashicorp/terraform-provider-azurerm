@@ -64,10 +64,10 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				ConflictsWith:    []string{"sku"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.Basic),
 					string(notificationhubs.Free),

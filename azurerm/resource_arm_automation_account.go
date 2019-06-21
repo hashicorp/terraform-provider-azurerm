@@ -63,9 +63,9 @@ func resourceArmAutomationAccount() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ConflictsWith:    []string{"sku"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Basic),
 					string(automation.Free),

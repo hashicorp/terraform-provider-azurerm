@@ -76,8 +76,8 @@ func resourceArmKeyVault() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Optional:         true,
+				Type:     schema.TypeString,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
