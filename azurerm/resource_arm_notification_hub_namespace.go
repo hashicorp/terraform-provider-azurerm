@@ -219,7 +219,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if sku := resp.Sku; sku != nil { 
+	if sku := resp.Sku; sku != nil {
 		if skuName == "" {
 			if err := d.Set("sku", flattenNotificationHubNamespacesSku(sku)); err != nil {
 				return fmt.Errorf("Error setting 'sku': %+v", err)

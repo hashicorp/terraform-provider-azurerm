@@ -114,7 +114,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 			Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 		}
 	}
-	
+
 	if sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
 	}
