@@ -19,13 +19,20 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_analysis_services_server" "server" {
-  name                      = "analysisservicesserver"
-  location                  = "northeurope"
-  resource_group_name       = "${azurerm_resource_group.rg.name}"
-  sku                       = "S0"
-  admin_users               = ["myuser@domain.tld"]
+  name                    = "analysisservicesserver"
+  location                = "northeurope"
+  resource_group_name     = "${azurerm_resource_group.rg.name}"
+  sku                     = "S0"
+  admin_users             = ["myuser@domain.tld"]
+  enable_power_bi_service = true
   
-  tags {
+  ipv4_firewall_rule {
+    name        = "myRule1"
+    range_start = "210.117.252.0"
+    range_end   = "210.117.252.255"
+  }
+  
+  tags = {
     abc = 123
   }
 }
@@ -48,6 +55,21 @@ The following arguments are supported:
 * `gateway_resource_id` - (Optional) ID of the Gateway resource to be associated with the server.
 
 * `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this values is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` theses servers do not participate in query operations.
+
+* `enable_power_bi_service` - (Optional) Indicates if the Power BI service is allowed to access or not.
+
+* `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
+
+---
+
+A `ipv4_firwall_rule` block supports the following:
+
+* `name` - (Required) Specifies the name of the firewall rule.
+
+* `range_start` - (Required) Start of the firewall rule range as IPv4 address.
+
+* `range_end` - (Required) End of the firewall rule range as IPv4 address.
+
 
 ## Attributes Reference
 
