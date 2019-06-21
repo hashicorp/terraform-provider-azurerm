@@ -40,7 +40,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iotdps.test"
+	resourceName := "azurerm_iot_dps.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 

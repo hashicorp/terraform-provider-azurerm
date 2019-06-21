@@ -197,6 +197,23 @@ A `aci_connector_linux` block supports the following:
 
 * `subnet_name` - (Required) The subnet name for the virtual nodes to run.
 
+-> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+
+```
+resource "azurerm_subnet" "virtual" {
+  
+  ...
+
+  delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+```
+
 ---
 
 A `role_based_access_control` block supports the following:

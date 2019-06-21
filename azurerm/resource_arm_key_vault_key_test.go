@@ -94,6 +94,51 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicECHSM(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_curveEC(rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
@@ -723,6 +768,116 @@ resource "azurerm_key_vault_key" "test" {
     "unwrapKey",
     "verify",
     "wrapKey",
+  ]
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_curveEC(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name      = "key-%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_type  = "EC"
+  curve     = "P-521"
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_basicECHSM(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name      = "key-%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_type  = "EC-HSM"
+  curve     = "P-521"
+
+  key_opts = [
+    "sign",
+    "verify",
   ]
 }
 `, rString, location, rString, rString)
