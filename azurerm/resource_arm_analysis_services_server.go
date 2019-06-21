@@ -65,11 +65,6 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			//	ValidateFunc: validate.URLIsHTTPOrHTTPS,
 			//},
 
-			"gateway_resource_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"enable_power_bi_service": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -212,8 +207,6 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
 		//}
 
-		d.Set("gateway_resource_id", flattenAnalysisServicesServerGatewayDetails(serverProps))
-
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
 		d.Set("enable_power_bi_service", enablePowerBi)
 		d.Set("ipv4_firewall_rule", fwRules)
@@ -349,10 +342,6 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
 	//}
 
-	if gatewayDetails := expandAnalysisServicesServerGatewayDetails(d); gatewayDetails != nil {
-		serverProperties.GatewayDetails = gatewayDetails
-	}
-
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
@@ -370,10 +359,6 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 	//if backupBlobContainerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
 	//}
-
-	if gatewayDetails := expandAnalysisServicesServerGatewayDetails(d); gatewayDetails != nil {
-		serverProperties.GatewayDetails = gatewayDetails
-	}
 
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
@@ -395,15 +380,6 @@ func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisser
 	}
 
 	return &analysisservices.ServerAdministrators{Members: &members}
-}
-
-func expandAnalysisServicesServerGatewayDetails(d *schema.ResourceData) *analysisservices.GatewayDetails {
-	if gatewayResourceId, ok := d.GetOk("gateway_resource_id"); ok {
-		rId := gatewayResourceId.(string)
-		return &analysisservices.GatewayDetails{GatewayResourceID: &rId}
-	}
-
-	return nil
 }
 
 func expandAnalysisServicesServerQuerypoolConnectionMode(d *schema.ResourceData) *analysisservices.ConnectionMode {
@@ -444,14 +420,6 @@ func flattenAnalysisServicesServerAdminUsers(serverAdministrators *analysisservi
 	}
 
 	return serverAdministrators.Members
-}
-
-func flattenAnalysisServicesServerGatewayDetails(serverProperties *analysisservices.ServerProperties) *string {
-	if serverProperties.GatewayDetails == nil {
-		return nil
-	}
-
-	return serverProperties.GatewayDetails.GatewayResourceID
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {

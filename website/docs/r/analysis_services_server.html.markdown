@@ -52,8 +52,6 @@ The following arguments are supported:
 
 * `admin_users` - (Optional) List of email addresses of admin users.
 
-* `gateway_resource_id` - (Optional) ID of the Gateway resource to be associated with the server.
-
 * `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this values is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` theses servers do not participate in query operations.
 
 * `enable_power_bi_service` - (Optional) Indicates if the Power BI service is allowed to access or not.
