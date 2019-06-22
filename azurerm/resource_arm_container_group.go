@@ -20,9 +20,10 @@ import (
 
 func resourceArmContainerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerGroupCreate,
-		Read:   resourceArmContainerGroupRead,
-		Delete: resourceArmContainerGroupDelete,
+		Create:        resourceArmContainerGroupCreate,
+		CustomizeDiff: checkVirtualNetworkCompatibility,
+		Read:          resourceArmContainerGroupRead,
+		Delete:        resourceArmContainerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +48,20 @@ func resourceArmContainerGroup() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Public),
+					string(containerinstance.Private),
 				}, true),
+			},
+
+			"network_profile_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
+				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
+				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
+				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations */
+				ConflictsWith: []string{"dns_name_label", "identity"},
 			},
 
 			"os_type": {
@@ -443,7 +457,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
-
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 
@@ -471,6 +484,16 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
+	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
+		if strings.ToLower(OSType) != "linux" {
+			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
+		}
+		networkProfileConfig := &containerinstance.ContainerGroupNetworkProfile{
+			ID: &networkProfileID,
+		}
+		containerGroup.ContainerGroupProperties.NetworkProfile = networkProfileConfig
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
@@ -492,6 +515,17 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	d.SetId(*read.ID)
 
 	return resourceArmContainerGroupRead(d, meta)
+}
+
+// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
+// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
+func checkVirtualNetworkCompatibility(d *schema.ResourceDiff, _ interface{}) (err error) {
+	osType := d.Get("os_type").(string)
+	networkProfileID := d.Get("network_profile_id")
+	if strings.ToLower(osType) != "linux" && networkProfileID.(string) != "" {
+		err = fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
+	}
+	return
 }
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
