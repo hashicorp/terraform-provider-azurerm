@@ -63,11 +63,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+~> **Note:** managed identities are not supported for containers in virtual networks.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
-~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
+~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
 
@@ -75,9 +77,13 @@ The following arguments are supported:
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
+~> **Note:** DNS label/name is not supported when deploying to virtual networks.
+
 * `dns_name_label` - (Optional) The DNS label/name for the container groups IP. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+
+* `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
