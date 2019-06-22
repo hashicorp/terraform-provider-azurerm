@@ -140,6 +140,41 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestWindowsVirtualMachine_privatePolicy(t *testing.T) {
+	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
+	rInt := acctest.RandIntRange(11111, 99999)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestWindowsVirtualMachine_privatePolicy(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "disallow_public_ip_address", "true"),
+					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// not returned from the API
+					"lab_subnet_name",
+					"lab_virtual_network_id",
+					"password",
+				},
+			},
+		},
+	})
+}
+
 func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -198,7 +233,7 @@ func testCheckAzureRMDevTestWindowsVirtualMachineDestroy(s *terraform.State) err
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_basic(rInt int, location string) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
+	template := testAccAzureRMDevTestWindowsVirtualMachine_publicNetwork(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -252,7 +287,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "import" {
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(rInt int, location string) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
+	template := testAccAzureRMDevTestWindowsVirtualMachine_publicNetwork(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -293,8 +328,72 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMDevTestWindowsVirtualMachine_privatePolicy(rInt int, location string) string {
+	template := testAccAzureRMDevTestWindowsVirtualMachine_privateNetwork(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "NoPublicIPPolicyDefinition"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "No Public IP Policy"
+
+  policy_rule = <<POLICY_RULE
+  {
+    "if": {
+      "anyOf": [{
+        "source": "action",
+        "like": "Microsoft.Network/publicIPAddresses/*"
+      }]
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+POLICY_RULE
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "test-policy-assignment"
+  scope                = "${data.azurerm_subscription.current.id}"
+  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  description          = "No Public IP Policy Test"
+  display_name         = "No Public IP Policy"
+}
+
+resource "azurerm_dev_test_windows_virtual_machine" "test" {
+		name                       = "acctestvm%d"
+		lab_name                   = "${azurerm_dev_test_lab.test.name}"
+		resource_group_name        = "${azurerm_resource_group.test.name}"
+		location                   = "${azurerm_resource_group.test.location}"
+		size                       = "Standard_F2"
+		username                   = "acct5stU5er"
+		password                   = "Pa$$w0rd1234!"
+		disallow_public_ip_address = true
+		lab_virtual_network_id     = "${azurerm_dev_test_virtual_network.test.id}"
+		lab_subnet_name            = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+		storage_type               = "Standard"
+	
+
+  gallery_image_reference {
+    offer     = "WindowsServer"
+    publisher = "MicrosoftWindowsServer"
+    sku       = "2012-Datacenter"
+    version   = "latest"
+  }
+
+  tags = {
+    "Acceptance" = "Test"
+  }
+}
+`, template, rInt)
+}
+
 func testAccAzureRMDevTestWindowsVirtualMachine_storage(rInt int, location, storageType string) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
+	template := testAccAzureRMDevTestWindowsVirtualMachine_publicNetwork(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -320,6 +419,42 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, rInt, storageType)
 }
 
+func testAccAzureRMDevTestWindowsVirtualMachine_privateNetwork(rInt int, location string) string {
+	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_virtual_network" "test" {
+  name                = "acctestdtvn%d"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    use_public_ip_address           = "Deny"
+    use_in_virtual_machine_creation = "Allow"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMDevTestWindowsVirtualMachine_publicNetwork(rInt int, location string) string {
+	template := testAccAzureRMDevTestWindowsVirtualMachine_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_virtual_network" "test" {
+  name                = "acctestdtvn%d"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    use_public_ip_address           = "Allow"
+    use_in_virtual_machine_creation = "Allow"
+  }
+}
+`, template, rInt)
+}
+
 func testAccAzureRMDevTestWindowsVirtualMachine_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -333,15 +468,5 @@ resource "azurerm_dev_test_lab" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dev_test_virtual_network" "test" {
-  name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  subnet {
-    use_public_ip_address           = "Allow"
-    use_in_virtual_machine_creation = "Allow"
-  }
-}
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt)
 }
