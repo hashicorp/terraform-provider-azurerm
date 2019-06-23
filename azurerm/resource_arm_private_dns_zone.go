@@ -2,6 +2,9 @@ package azurerm
 
 import (
 	"fmt"
+
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -9,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 )
 
 func resourceArmPrivateDnsZone() *schema.Resource {
@@ -92,6 +94,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error creating/updating Private DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
+	time.Sleep(time.Second * 10) // resource is slow to create / update, retry covers the create, sleeping to make update more reliable
 	if err := resource.Retry(120*time.Second, retryPrivateDnsZonesClientGet(resGroup, name, meta)); err != nil {
 		return fmt.Errorf("error waiting for Private DNS Zone %q to become available: %+v", name, err)
 	}
