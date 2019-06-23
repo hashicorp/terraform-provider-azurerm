@@ -334,6 +334,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_management_group":                                   resourceArmManagementGroup(),
 			"azurerm_management_lock":                                    resourceArmManagementLock(),
 			"azurerm_mariadb_database":                                   resourceArmMariaDbDatabase(),
+			"azurerm_mariadb_firewall_rule":                              resourceArmMariaDBFirewallRule(),
 			"azurerm_mariadb_server":                                     resourceArmMariaDbServer(),
 			"azurerm_media_services_account":                             resourceArmMediaServicesAccount(),
 			"azurerm_metric_alertrule":                                   resourceArmMetricAlertRule(),
