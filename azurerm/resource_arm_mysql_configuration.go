@@ -15,6 +15,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 		Create: resourceArmMySQLConfigurationCreate,
 		Read:   resourceArmMySQLConfigurationRead,
 		Delete: resourceArmMySQLConfigurationDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -32,6 +33,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"value": {

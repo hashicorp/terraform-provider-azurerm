@@ -21,6 +21,7 @@ func resourceArmMySqlServer() *schema.Resource {
 		Read:   resourceArmMySqlServerRead,
 		Update: resourceArmMySqlServerUpdate,
 		Delete: resourceArmMySqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -30,6 +31,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"location": azure.SchemaLocation(),

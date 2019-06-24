@@ -17,6 +17,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 		Read:   resourceArmMySqlFirewallRuleRead,
 		Update: resourceArmMySqlFirewallRuleCreateUpdate,
 		Delete: resourceArmMySqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,6 +35,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"start_ip_address": {
