@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -32,9 +33,9 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				ValidateFunc: validateAnalysisServicesServerName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -128,7 +129,7 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	}
 
 	sku := d.Get("sku").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 
@@ -195,7 +196,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	d.Set("resource_group_name", resGroup)
 
 	if location := server.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("sku", flattenAnalysisServicesServerSku(server.Sku))
