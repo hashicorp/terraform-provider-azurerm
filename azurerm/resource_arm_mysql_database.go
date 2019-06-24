@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,9 +32,9 @@ func resourceArmMySqlDatabase() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
