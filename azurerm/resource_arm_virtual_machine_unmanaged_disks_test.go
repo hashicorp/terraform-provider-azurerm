@@ -620,15 +620,13 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfigContent(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             preConfig,
-				PreventDiskCleanup: true,
+				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 				),
 			},
 			{
-				Config:             postConfig,
-				PreventDiskCleanup: true,
+				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 				),
