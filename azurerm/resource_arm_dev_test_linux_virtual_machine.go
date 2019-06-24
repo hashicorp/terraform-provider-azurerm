@@ -40,9 +40,9 @@ func resourceArmDevTestLinuxVirtualMachine() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"size": {
 				Type:     schema.TypeString,
@@ -132,7 +132,7 @@ func resourceArmDevTestLinuxVirtualMachine() *schema.Resource {
 }
 
 func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Linux Virtual Machine creation")
@@ -160,7 +160,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
 	sshKey := d.Get("ssh_key").(string)
@@ -231,7 +231,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -257,7 +257,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 	d.Set("lab_name", labName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.LabVirtualMachineProperties; props != nil {
@@ -284,7 +284,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDevTestLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

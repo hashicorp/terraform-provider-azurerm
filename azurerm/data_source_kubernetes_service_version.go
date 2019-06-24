@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,7 +16,7 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 		Read: dataSourceArmKubernetesServiceVersionsRead,
 
 		Schema: map[string]*schema.Schema{
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"version_prefix": {
 				Type:     schema.TypeString,
@@ -37,10 +38,10 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 }
 
 func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerServicesClient
+	client := meta.(*ArmClient).containers.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	listResp, err := client.ListOrchestrators(ctx, location, "managedClusters")
 	if err != nil {

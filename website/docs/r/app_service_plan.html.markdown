@@ -73,6 +73,28 @@ resource "azurerm_app_service_plan" "test" {
 }
 ```
 
+## Example Usage (Windows Container)
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "api-rg-pro"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "api-appserviceplan-pro"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "xenon"
+  is_xenon            = true
+
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -84,6 +106,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
+
+* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
 ~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`.
 
@@ -106,7 +130,6 @@ The following arguments are supported:
 * `size` - (Required) Specifies the plan's instance size.
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
-
 
 
 ## Attributes Reference

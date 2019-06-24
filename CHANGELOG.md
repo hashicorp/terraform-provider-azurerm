@@ -1,13 +1,72 @@
-## 1.29.0 (Unreleased)
+## 1.31.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_application_insights_web_test` [GH-3331]
+* **New Resource:** `azurerm_iot_dps` [GH-3618]
+* **New Resource:** `azurerm_stream_analytics_output_mssql` [GH-3567]
 
 IMPROVEMENTS:
 
-* `azurerm_application_gateway` - support for rewrite rules [GH-3423]
-* `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` [GH-3360]
+* `azurerm_app_service_plan` - Prevented a panic during import [GH-3657]
+* `azurerm_key_vault_key` - add support for Elliptic Curve based keys [GH-1814]
+* `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
+* `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
+* `azurerm_lb` - support for the `public_ip_prefix_id` property [GH-3675]
+* `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
+* `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
+
+## 1.30.1 (June 07, 2019)
+
+BUG FIXES:
+
+* Ensuring the authorization header is set for calls to the User Assigned Identity API's ([#3613](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3613))
+
+## 1.30.0 (June 07, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_redis_cache` ([#3481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3481))
+* **New Data Source:** `azurerm_sql_server` ([#3513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3513))
+* **New Data Source:** `azurerm_virtual_network_gateway_connection` ([#3571](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3571))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to Go 1.12 ([#3525](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3525))
+* dependencies: upgrading the `storage` SDK to `2019-04-01` ([#3578](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3578))
+* Data Source `azurerm_app_service` - support windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* Data Source `azurerm_app_service_plan` - support windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` ([#3539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3539))
+* `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block ([#3533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3533))
+* `azurerm_app_service` - support for windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+* `azurerm_app_service_plan` - support for the `maximum_elastic_worker_count` property ([#3547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3547))
+* `azurerm_managed_disk` - support for the `create_option` of `Restore` ([#3598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3598))
+* `azurerm_app_service_plan` - support for windows containers ([#3566](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3566))
+
+
+## 1.29.0 (May 25, 2019)
+
+FEATURES:
+
+* **New Resource:** `azurerm_application_insights_web_test` ([#3331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3331))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v0.12.0` of `github.com/hashicorp/terraform` ([#3417](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3417))
+* sdk: configuring the Correlation Request ID ([#3253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3253))
+* `azurerm_application_gateway` - support for rewrite rules ([#3423](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3423))
+* `azurerm_application_gateway` - support for `ssl_policy` blocks and deprecating `disabled_ssl_protocols` ([#3360](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3360))
+* `azurerm_app_service` - support for configuring authentication settings ([#2831](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2831))
+* `azurerm_kubernetes_cluster` - updating the casing on the `SubnetName` field to match a change in the AKS API ([#3484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3484))
+* `azurerm_kubernetes_cluster` - support for multiple agent pools ([#3491](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3491))
+
+BUG FIXES:
+
+* Data Source `azurerm_virtual_network`: add `network_space` property to match resource while deprecating `network_spaces` ([#3494](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3494))
+* `azurerm_automation_module` - now polls to wait until the module's finished provisioning ([#3482](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3482))
+* `azurerm_api_management_api` - correct validation to allow empty and strings 400 characters long ([#3475](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3475))
+* `azurerm_dev_test_virtual_network` - correctly manages `subnets` on the initial creation ([#3501](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3501))
+* `azurerm_express_route_circuit` - no longer removes circuit subresources on update ([#3496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3496))
+* `azurerm_role_assignment` - making the `role_definition_name` field case-insensitive ([#3499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3499))
 
 ## 1.28.0 (May 17, 2019)
 

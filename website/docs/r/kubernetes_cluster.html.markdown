@@ -36,6 +36,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     os_disk_size_gb = 30
   }
 
+  agent_pool_profile {
+    name            = "pool2"
+    count           = 1
+    vm_size         = "Standard_D2_v2"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
+  }
+
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
@@ -65,7 +73,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) An `agent_pool_profile` block.  Currently only one agent pool can exist.
+* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as defined below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
@@ -188,6 +196,23 @@ A `aci_connector_linux` block supports the following:
 * `enabled` - (Required) Is the virtual node addon enabled?
 
 * `subnet_name` - (Required) The subnet name for the virtual nodes to run.
+
+-> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+
+```
+resource "azurerm_subnet" "virtual" {
+  
+  ...
+
+  delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+```
 
 ---
 

@@ -46,8 +46,8 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	priceClient := meta.(*ArmClient).securityCenterPricingClient
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	priceClient := meta.(*ArmClient).securityCenter.PricingClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterWorkspaceName
@@ -132,7 +132,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
@@ -155,7 +155,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)

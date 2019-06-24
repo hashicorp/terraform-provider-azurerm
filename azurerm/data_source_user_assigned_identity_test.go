@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -29,7 +30,7 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s-uai", rs)),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", fmt.Sprintf("acctest%d-rg", ri)),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestMatchResourceAttr(dataSourceName, "principal_id", validate.UUIDRegExp),
 					resource.TestMatchResourceAttr(dataSourceName, "client_id", validate.UUIDRegExp),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),

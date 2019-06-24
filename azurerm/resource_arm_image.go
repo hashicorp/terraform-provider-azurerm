@@ -31,9 +31,9 @@ func resourceArmImage() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_resilient": {
 				Type:     schema.TypeBool,
@@ -188,7 +188,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
 
 	properties := compute.ImageProperties{}
@@ -286,7 +286,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	//either source VM or storage profile can be specified, but not both
@@ -365,7 +365,9 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 			if disk.DiskSizeGB != nil {
 				l["size_gb"] = *disk.DiskSizeGB
 			}
-			l["lun"] = *disk.Lun
+			if v := disk.Lun; v != nil {
+				l["lun"] = *v
+			}
 			if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}

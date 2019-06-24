@@ -132,7 +132,7 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+	conn := testAccProvider.Meta().(*ArmClient).servicebus.TopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -172,7 +172,7 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Topic: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+		conn := testAccProvider.Meta().(*ArmClient).servicebus.TopicsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
