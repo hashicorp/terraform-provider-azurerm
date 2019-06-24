@@ -305,22 +305,22 @@ resource "azurerm_analysis_services_server" "test" {
 `, rInt, location, rInt, enablePowerBIService, strings.Join(ipRulesStr, "\n"))
 }
 
-func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
-  location            		= "${azurerm_resource_group.test.location}"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  sku 				  		= "B1"
-  admin_users 				= ["%s"]
-}
-`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
-}
+//func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
+//	return fmt.Sprintf(`
+//resource "azurerm_resource_group" "test" {
+//  name     = "acctestRG-%d"
+//  location = "%s"
+//}
+//
+//resource "azurerm_analysis_services_server" "test" {
+//  name                		= "acctestass%d"
+//  location            		= "${azurerm_resource_group.test.location}"
+//  resource_group_name 		= "${azurerm_resource_group.test.name}"
+//  sku 				  		= "B1"
+//  admin_users 				= ["%s"]
+//}
+//`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
+//}
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).analysisServicesServerClient
