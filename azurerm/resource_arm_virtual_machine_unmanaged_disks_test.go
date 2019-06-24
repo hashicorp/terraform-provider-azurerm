@@ -608,6 +608,35 @@ func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	})
 }
 
+// regression test for https://github.com/terraform-providers/terraform-provider-azurerm/pull/3700
+func TestAccAzureRMVirtualMachine_windowsUnattendedConfigContent(t *testing.T) {
+	var vm compute.VirtualMachine
+	ri := tf.AccRandTimeInt()
+	preConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D1_v2")
+	postConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfigContent(ri, testLocation(), "Standard_D1_v2")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:             preConfig,
+				PreventDiskCleanup: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				),
+			},
+			{
+				Config:             postConfig,
+				PreventDiskCleanup: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMVirtualMachine_basicLinuxMachine(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1760,13 +1789,108 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile_windows_config {
-    provision_vm_agent = true
+    enable_automatic_upgrades = false
+    provision_vm_agent        = true
 
     additional_unattend_config {
       pass         = "oobeSystem"
       component    = "Microsoft-Windows-Shell-Setup"
       setting_name = "FirstLogonCommands"
       content      = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, vmSize)
+}
+
+func testAccAzureRMVirtualMachine_windowsUnattendedConfigContent(rInt int, location string, vmSize string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "%s"
+
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2012-Datacenter"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
+
+  os_profile {
+    computer_name  = "winhost01"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_windows_config {
+    enable_automatic_upgrades = true
+    provision_vm_agent        = true
+
+    additional_unattend_config {
+      pass         = "oobeSystem"
+      component    = "Microsoft-Windows-Shell-Setup"
+      setting_name = "FirstLogonCommands"
+      content      = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"updated reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
     }
   }
 }
