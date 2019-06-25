@@ -127,7 +127,7 @@ A `agent_pool_profile` block supports the following:
 
 * `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
 
-~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. You can enable this feature using the Azure CLI by running `az feature show --namespace Microsoft.ContainerService --name VMSSPreview`
+~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. You can enable this feature using the Azure CLI by running `az feature register --namespace Microsoft.ContainerService --name VMSSPreview`
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
