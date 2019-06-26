@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_mysql_server` - add validation to the `name` property [GH-3695]
 * `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
 * `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
+* `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block [GH-3255]
 
 ## 1.30.1 (June 07, 2019)
 
