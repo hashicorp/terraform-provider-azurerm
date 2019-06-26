@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
 * `azurerm_lb` - support for the `public_ip_prefix_id` property [GH-3675]
 * `azurerm_mysql_server` - add validation to the `name` property [GH-3695]
+* `azurerm_redis_firewall_rule` - no longer fails with multiple rules [GH-3731]
 * `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
 * `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
 * `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block [GH-3255]
