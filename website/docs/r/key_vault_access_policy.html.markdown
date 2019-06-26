@@ -41,8 +41,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  key_vault_id          = "${azurerm_key_vault.test.id}"
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"
