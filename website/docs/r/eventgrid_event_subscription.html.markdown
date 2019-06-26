@@ -101,7 +101,7 @@ A `hybrid_connection_endpoint` supports the following:
 
 A `webhook_endpoint` supports the following:
 
-* `url` - (Required) Specifies the url of the webhook where the Event Subscription will recieve events. 
+* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events. 
 
 ---
 

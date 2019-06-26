@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: required
 services:
 - docker
@@ -6,29 +6,28 @@ language: go
 go:
 - "1.12.x"
 
-env:
-  matrix:
-  - MODE=unit-tests
-  - MODE=linters
-  - MODE=website
-
-install:
-# This script is used by the Travis build to install a cookie for
-# go.googlesource.com so rate limits are higher when using `go get` to fetch
-# packages that live there.
-# See: https://github.com/golang/go/issues/12933
-- bash scripts/gogetcookie.sh
-- make tools
-
-script:
-  - if [[ $MODE == 'unit-tests' ]]; then make test; fi
-  - if [[ $MODE == 'linters' ]]; then GOGC=30 make lint; fi
-  - if [[ $MODE == 'website' ]]; then make website-test; fi
-
 branches:
   only:
-  - master
+    - master
+
+install:
+  # This script is used by the Travis build to install a cookie for
+  # go.googlesource.com so rate limits are higher when using `go get` to fetch
+  # packages that live there.
+  # See: https://github.com/golang/go/issues/12933
+  - bash scripts/gogetcookie.sh
+  - make tools
+
 matrix:
   fast_finish: true
   allow_failures:
-  - go: tip
+    - go: tip
+  include:
+    - name: "make test"
+      script: make test
+    - name: "make lint"
+      script: GOGC=30 make lint
+    - name: "make website-lint"
+      script: make website-lint
+    - name: "make website-test"
+      script: make website-test
