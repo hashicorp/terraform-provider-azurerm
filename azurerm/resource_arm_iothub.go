@@ -163,6 +163,7 @@ func resourceArmIotHub() *schema.Resource {
 
 			"file_upload": {
 				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -199,19 +200,19 @@ func resourceArmIotHub() *schema.Resource {
 						"sas_ttl": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "PT1H",
+							Computed:     true,
 							ValidateFunc: validateIso8601Duration(),
 						},
 						"default_ttl": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "PT1H",
+							Computed:     true,
 							ValidateFunc: validateIso8601Duration(),
 						},
 						"lock_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "PT1M",
+							Computed:     true,
 							ValidateFunc: validateIso8601Duration(),
 						},
 					},
@@ -697,20 +698,16 @@ func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.Storage
 	messagingEndpointProperties := make(map[string]*devices.MessagingEndpointProperties)
 	notifications := false
 
-	if len(fileUploadList) > 1 {
-		return storageEndpointProperties, messagingEndpointProperties, notifications, fmt.Errorf("more than one file_upload found")
-	}
+	if len(fileUploadList) > 0 {
+		fileUploadMap := fileUploadList[0].(map[string]interface{})
 
-	for _, fileUploadRaw := range fileUploadList {
-		fileUpload := fileUploadRaw.(map[string]interface{})
-
-		connectionStr := fileUpload["connection_string"].(string)
-		containerName := fileUpload["container_name"].(string)
-		notifications = fileUpload["notifications"].(bool)
-		maxDeliveryCount := int32(fileUpload["max_delivery_count"].(int))
-		sasTTL := fileUpload["sas_ttl"].(string)
-		defaultTTL := fileUpload["default_ttl"].(string)
-		lockDuration := fileUpload["lock_duration"].(string)
+		connectionStr := fileUploadMap["connection_string"].(string)
+		containerName := fileUploadMap["container_name"].(string)
+		notifications = fileUploadMap["notifications"].(bool)
+		maxDeliveryCount := int32(fileUploadMap["max_delivery_count"].(int))
+		sasTTL := fileUploadMap["sas_ttl"].(string)
+		defaultTTL := fileUploadMap["default_ttl"].(string)
+		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
 			SasTTLAsIso8601:  &sasTTL,
@@ -891,22 +888,22 @@ func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpoin
 		if sasTTLAsIso8601 := storageEndpointProperties.SasTTLAsIso8601; sasTTLAsIso8601 != nil {
 			output["sas_ttl"] = *sasTTLAsIso8601
 		}
-	}
 
-	if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
-		if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {
-			output["lock_duration"] = *lockDurationAsIso8601
+		if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
+			if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {
+				output["lock_duration"] = *lockDurationAsIso8601
+			}
+			if ttlAsIso8601 := messagingEndpointProperties.TTLAsIso8601; ttlAsIso8601 != nil {
+				output["default_ttl"] = *ttlAsIso8601
+			}
+			if maxDeliveryCount := messagingEndpointProperties.MaxDeliveryCount; maxDeliveryCount != nil {
+				output["max_delivery_count"] = *maxDeliveryCount
+			}
 		}
-		if ttlAsIso8601 := messagingEndpointProperties.TTLAsIso8601; ttlAsIso8601 != nil {
-			output["default_ttl"] = *ttlAsIso8601
-		}
-		if maxDeliveryCount := messagingEndpointProperties.MaxDeliveryCount; maxDeliveryCount != nil {
-			output["max_delivery_count"] = *maxDeliveryCount
-		}
-	}
 
-	output["notifications"] = *enableFileUploadNotifications
-	results = append(results, output)
+		output["notifications"] = *enableFileUploadNotifications
+		results = append(results, output)
+	}
 
 	return results
 }
