@@ -860,7 +860,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmp%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
-  traffic_routing_method = "Subnet"
+  traffic_routing_method = "Priority"
 
   dns_config {
     relative_name = "acctesttmp%d"
@@ -880,6 +880,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+	priority            = 1
 	custom_header {
 		name = "header"
 		value = "www.bing.com"
@@ -892,6 +893,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+	priority            = 2
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -906,7 +908,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmp%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
-  traffic_routing_method = "Subnet"
+  traffic_routing_method = "Priority"
 
   dns_config {
     relative_name = "acctesttmp%d"
@@ -926,6 +928,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+	priority            = 1
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -934,6 +937,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+	priority            = 2
 	custom_header {
 		name = "header"
 		value = "www.bing.com"
