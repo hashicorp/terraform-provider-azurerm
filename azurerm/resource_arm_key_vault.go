@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -64,12 +63,12 @@ func resourceArmKeyVault() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Optional:         true,
+							Default:          string(keyvault.Standard),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(keyvault.Standard),
 								string(keyvault.Premium),
-							}, true),
+							}, false),
 						},
 					},
 				},
@@ -78,10 +77,11 @@ func resourceArmKeyVault() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  string(keyvault.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, true),
+				}, false),
 			},
 
 			"vault_uri": {
@@ -333,7 +333,6 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["vaults"]
-	skuName := d.Get("sku_name")
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -360,16 +359,12 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 		if sku := props.Sku; sku != nil {
 			// Remove in 2.0
-			if skuName == "" {
-				if err := d.Set("sku", flattenKeyVaultSku(sku)); err != nil {
-					return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
-				}
-				d.Set("sku_name", "")
-			} else {
-				if err := d.Set("sku_name", string(sku.Name)); err != nil {
-					return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
-				}
-				d.Set("sku", "")
+			if err := d.Set("sku", flattenKeyVaultSku(sku)); err != nil {
+				return fmt.Errorf("Error setting 'sku' for KeyVault %q: %+v", *resp.Name, err)
+			}
+
+			if err := d.Set("sku_name", string(sku.Name)); err != nil {
+				return fmt.Errorf("Error setting 'sku_name' for KeyVault %q: %+v", *resp.Name, err)
 			}
 		} else {
 			return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)

@@ -51,7 +51,8 @@ func resourceArmAutomationAccount() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
+							Default:          string(automation.Basic),
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(automation.Basic),
@@ -65,6 +66,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Default:       string(automation.Basic),
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Basic),
@@ -177,7 +179,6 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
-	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -208,17 +209,13 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if sku := resp.Sku; sku != nil {
-		if skuName == "" {
-			// Remove in 2.0
-			if err := d.Set("sku", flattenAutomationAccountSku(sku)); err != nil {
-				return fmt.Errorf("Error setting 'sku': %+v", err)
-			}
-			d.Set("sku_name", "")
-		} else {
-			if err := d.Set("sku_name", string(sku.Name)); err != nil {
-				return fmt.Errorf("Error setting 'sku_name': %+v", err)
-			}
-			d.Set("sku", "")
+		// Remove in 2.0
+		if err := d.Set("sku", flattenAutomationAccountSku(sku)); err != nil {
+			return fmt.Errorf("Error setting 'sku': %+v", err)
+		}
+
+		if err := d.Set("sku_name", string(sku.Name)); err != nil {
+			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {
 		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)

@@ -66,6 +66,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Default:       string(notificationhubs.Basic),
 				ForceNew:      true,
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
@@ -200,7 +201,6 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
-	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -220,16 +220,13 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	}
 
 	if sku := resp.Sku; sku != nil {
-		if skuName == "" {
-			if err := d.Set("sku", flattenNotificationHubNamespacesSku(sku)); err != nil {
-				return fmt.Errorf("Error setting 'sku': %+v", err)
-			}
-			d.Set("sku_name", "")
-		} else {
-			if err := d.Set("sku_name", string(sku.Name)); err != nil {
-				return fmt.Errorf("Error setting 'sku_name': %+v", err)
-			}
-			d.Set("sku", "")
+		// Remove in 2.0
+		if err := d.Set("sku", flattenNotificationHubNamespacesSku(sku)); err != nil {
+			return fmt.Errorf("Error setting 'sku': %+v", err)
+		}
+
+		if err := d.Set("sku_name", string(sku.Name)); err != nil {
+			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {
 		return fmt.Errorf("Error making Read request on Notification Hub Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
