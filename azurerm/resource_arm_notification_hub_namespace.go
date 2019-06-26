@@ -52,7 +52,6 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(notificationhubs.Basic),
 								string(notificationhubs.Free),
@@ -66,7 +65,6 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Default:       string(notificationhubs.Basic),
 				ForceNew:      true,
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{

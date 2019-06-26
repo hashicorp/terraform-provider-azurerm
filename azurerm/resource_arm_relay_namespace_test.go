@@ -35,7 +35,7 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -145,7 +145,7 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})

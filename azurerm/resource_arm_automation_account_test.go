@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -134,7 +134,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})

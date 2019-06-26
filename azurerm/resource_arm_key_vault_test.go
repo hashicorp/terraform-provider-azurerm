@@ -92,7 +92,7 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -138,7 +138,7 @@ func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -275,7 +275,7 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -354,7 +354,7 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: false,
+				ImportStateVerify: true,
 			},
 		},
 	})
