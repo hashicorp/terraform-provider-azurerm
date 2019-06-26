@@ -161,6 +161,63 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"file_upload": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connection_string": {
+							Type:     schema.TypeString,
+							Required: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+								// Azure will always mask the Access Keys and will include the port number in the GET response
+								// 5671 is the default port for Azure Service Bus connections
+								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
+							},
+							Sensitive: true,
+						},
+						"container_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"notifications": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"max_delivery_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"sas_ttl": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT1H",
+							ValidateFunc: validateIso8601Duration(),
+						},
+						"default_ttl": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT1H",
+							ValidateFunc: validateIso8601Duration(),
+						},
+						"lock_duration": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT1M",
+							ValidateFunc: validateIso8601Duration(),
+						},
+					},
+				},
+			},
+
 			"endpoint": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -407,6 +464,11 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error expanding `endpoint`: %+v", err)
 	}
 
+	storageEndpoints, messagingEndpoints, enableFileUploadNotifications, err := expandIoTHubFileUpload(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `file_upload`: %+v", err)
+	}
+
 	routes := expandIoTHubRoutes(d)
 	ipFilterRules := expandIPFilterRules(d)
 
@@ -421,6 +483,9 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 				Routes:        routes,
 				FallbackRoute: fallbackRoute,
 			},
+			StorageEndpoints:              storageEndpoints,
+			MessagingEndpoints:            messagingEndpoints,
+			EnableFileUploadNotifications: &enableFileUploadNotifications,
 		},
 		Tags: expandTags(tags),
 	}
@@ -517,6 +582,10 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
 		}
 
+		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
+		if err := d.Set("file_upload", fileUpload); err != nil {
+			return fmt.Errorf("Error setting `file_upload` in IoTHub %q: %+v", name, err)
+		}
 	}
 
 	d.Set("name", name)
@@ -619,6 +688,44 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 	}
 
 	return &routeProperties
+}
+
+func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool, error) {
+	fileUploadList := d.Get("file_upload").([]interface{})
+
+	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
+	messagingEndpointProperties := make(map[string]*devices.MessagingEndpointProperties)
+	notifications := false
+
+	if len(fileUploadList) > 1 {
+		return storageEndpointProperties, messagingEndpointProperties, notifications, fmt.Errorf("more than one file_upload found")
+	}
+
+	for _, fileUploadRaw := range fileUploadList {
+		fileUpload := fileUploadRaw.(map[string]interface{})
+
+		connectionStr := fileUpload["connection_string"].(string)
+		containerName := fileUpload["container_name"].(string)
+		notifications = fileUpload["notifications"].(bool)
+		maxDeliveryCount := int32(fileUpload["max_delivery_count"].(int))
+		sasTTL := fileUpload["sas_ttl"].(string)
+		defaultTTL := fileUpload["default_ttl"].(string)
+		lockDuration := fileUpload["lock_duration"].(string)
+
+		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
+			SasTTLAsIso8601:  &sasTTL,
+			ConnectionString: &connectionStr,
+			ContainerName:    &containerName,
+		}
+
+		messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
+			LockDurationAsIso8601: &lockDuration,
+			TTLAsIso8601:          &defaultTTL,
+			MaxDeliveryCount:      &maxDeliveryCount,
+		}
+	}
+
+	return storageEndpointProperties, messagingEndpointProperties, notifications, nil
 }
 
 func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
@@ -766,6 +873,40 @@ func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAutho
 			results = append(results, keyMap)
 		}
 	}
+
+	return results
+}
+
+func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpointProperties, messagingEndpoints map[string]*devices.MessagingEndpointProperties, enableFileUploadNotifications *bool) []interface{} {
+	results := make([]interface{}, 0)
+	output := make(map[string]interface{})
+
+	if storageEndpointProperties, ok := storageEndpoints["$default"]; ok {
+		if connString := storageEndpointProperties.ConnectionString; connString != nil {
+			output["connection_string"] = *connString
+		}
+		if containerName := storageEndpointProperties.ContainerName; containerName != nil {
+			output["container_name"] = *containerName
+		}
+		if sasTTLAsIso8601 := storageEndpointProperties.SasTTLAsIso8601; sasTTLAsIso8601 != nil {
+			output["sas_ttl"] = *sasTTLAsIso8601
+		}
+	}
+
+	if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
+		if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {
+			output["lock_duration"] = *lockDurationAsIso8601
+		}
+		if ttlAsIso8601 := messagingEndpointProperties.TTLAsIso8601; ttlAsIso8601 != nil {
+			output["default_ttl"] = *ttlAsIso8601
+		}
+		if maxDeliveryCount := messagingEndpointProperties.MaxDeliveryCount; maxDeliveryCount != nil {
+			output["max_delivery_count"] = *maxDeliveryCount
+		}
+	}
+
+	output["notifications"] = *enableFileUploadNotifications
+	results = append(results, output)
 
 	return results
 }
