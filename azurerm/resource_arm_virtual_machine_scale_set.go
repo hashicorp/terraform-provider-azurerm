@@ -1418,7 +1418,9 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
-		l["lun"] = *disk.Lun
+		if v := disk.Lun; v != nil {
+			l["lun"] = *v
+		}
 
 		result[i] = l
 	}

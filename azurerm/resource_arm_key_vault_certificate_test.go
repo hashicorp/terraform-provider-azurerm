@@ -392,7 +392,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
@@ -566,8 +566,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
+  name         = "acctestcert%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -648,7 +648,7 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
-    
+
     storage_permissions = [
       "set",
     ]
@@ -656,7 +656,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
@@ -749,7 +749,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {

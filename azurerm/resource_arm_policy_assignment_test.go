@@ -303,9 +303,11 @@ resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
   scope                = "${azurerm_resource_group.test.id}"
   policy_definition_id = "${azurerm_policy_definition.test.id}"
+
   identity {
     type = "SystemAssigned"
   }
+
   location = "%s"
 }
 `, ri, ri, ri, location, ri, location)

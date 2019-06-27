@@ -175,20 +175,20 @@ resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	
+
   sku {
     name     = "S1"
     tier     = "Standard"
     capacity = "1"
-  }	
+  }
 }
 
 resource "azurerm_iot_dps_certificate" "test" {
-	name                = "acctestIoTDPSCertificate-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  name                = "acctestIoTDPSCertificate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
-	certificate_content = "${filebase64("testdata/batch_certificate.cer")}"		
+  certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -199,11 +199,11 @@ func testAccAzureRMIotDPSCertificate_requiresImport(rInt int, location string) s
 %s
 
 resource "azurerm_iot_dps_certificate" "test" {
-	name                = "${azurerm_iot_dps_certificate.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  name                = "${azurerm_iot_dps_certificate.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
-	certificate_content = "${filebase64("testdata/batch_certificate.cer")}"		
+  certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
 `, template)
 }
@@ -219,7 +219,7 @@ resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	
+
   sku {
     name     = "S1"
     tier     = "Standard"
@@ -232,11 +232,11 @@ resource "azurerm_iot_dps" "test" {
 }
 
 resource "azurerm_iot_dps_certificate" "test" {
-	name                = "acctestIoTDPSCertificate-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  name                = "acctestIoTDPSCertificate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
-	certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"		
+  certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"
 }
 `, rInt, location, rInt, rInt)
 }

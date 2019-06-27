@@ -290,9 +290,9 @@ func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location 
 %s
 
 resource "azurerm_key_vault_access_policy" "import" {
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  tenant_id     = "${azurerm_key_vault_access_policy.test.tenant_id}"
-  object_id     = "${azurerm_key_vault_access_policy.test.object_id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  tenant_id    = "${azurerm_key_vault_access_policy.test.tenant_id}"
+  object_id    = "${azurerm_key_vault_access_policy.test.object_id}"
 
   key_permissions = [
     "get",
