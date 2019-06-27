@@ -56,7 +56,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 								string(notificationhubs.Basic),
 								string(notificationhubs.Free),
 								string(notificationhubs.Standard),
-							}, true),
+							}, false),
 						},
 					},
 				},
