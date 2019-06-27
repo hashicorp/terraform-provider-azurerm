@@ -42,6 +42,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"sku": {
 				Type:          schema.TypeList,
 				Optional:      true,
+				Computed:      true,
 				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
 				ConflictsWith: []string{"sku_name"},
 				MaxItems:      1,
@@ -64,6 +65,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
@@ -105,26 +107,22 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	// Remove in 2.0
-	var sku notificationhubs.Sku
+		// Remove in 2.0
+		var sku notificationhubs.Sku
 
-	if v := d.Get("sku_name").(string); v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) > 0 {
+		if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
 			input := inputs[0].(map[string]interface{})
-			v = input["name"].(string)
+			v := input["name"].(string)
+	
+			sku = notificationhubs.Sku{
+				Name:   notificationhubs.SkuName(v),
+			}
+		} else {
+			// Keep in 2.0
+			sku = notificationhubs.Sku{
+				Name:   notificationhubs.SkuName(d.Get("sku_name").(string)),
+			}
 		}
-
-		sku = notificationhubs.Sku{
-			Name: notificationhubs.SkuName(v),
-		}
-	} else {
-		// Keep in 2.0
-		sku = notificationhubs.Sku{
-			Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
-		}
-	}
 
 	if sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")

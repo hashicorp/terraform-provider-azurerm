@@ -56,6 +56,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"sku": {
 				Type:          schema.TypeList,
 				Optional:      true,
+				Computed:      true,
 				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
 				ConflictsWith: []string{"sku_name"},
 				MaxItems:      1,
@@ -76,6 +77,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
@@ -189,13 +191,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	// Remove in 2.0
 	var sku keyvault.Sku
 
-	if v := d.Get("sku_name").(string); v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) > 0 {
-			input := inputs[0].(map[string]interface{})
-			v = input["name"].(string)
-		}
+	if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
+		input := inputs[0].(map[string]interface{})
+		v := input["name"].(string)
 
 		sku = keyvault.Sku{
 			Family: &armKeyVaultSkuFamily,

@@ -44,6 +44,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 			"sku": {
 				Type:          schema.TypeList,
 				Optional:      true,
+				Computed:      true,
 				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
 				ConflictsWith: []string{"sku_name"},
 				MaxItems:      1,
@@ -64,6 +65,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
@@ -108,28 +110,24 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	// Remove in 2.0
-	var sku relay.Sku
+		// Remove in 2.0
+		var sku relay.Sku
 
-	if v := d.Get("sku_name").(string); v == "" {
-		inputs := d.Get("sku").([]interface{})
-
-		if len(inputs) > 0 {
+		if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
 			input := inputs[0].(map[string]interface{})
-			v = input["name"].(string)
+			v := input["name"].(string)
+	
+			sku = relay.Sku{
+				Name: utils.String(v),
+				Tier: relay.SkuName(v),
+			}
+		} else {
+			// Keep in 2.0
+			sku = relay.Sku{
+				Name: utils.String(d.Get("sku_name").(string)),
+				Tier: relay.SkuTier(d.Get("sku_name").(string)),
+			}
 		}
-
-		sku = relay.Sku{
-			Name: utils.String(v),
-			Tier: relay.SkuTier(v),
-		}
-	} else {
-		// Keep in 2.0
-		sku = relay.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
-			Tier: relay.SkuTier(d.Get("sku_name").(string)),
-		}
-	}
 
 	if *sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
@@ -196,7 +194,6 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
-	skuName := d.Get("sku_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -215,16 +212,13 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if sku := resp.Sku; sku != nil {
-		if skuName == "" {
-			if err := d.Set("sku", flattenRelayNamespaceSku(sku)); err != nil {
-				return fmt.Errorf("Error setting 'sku': %+v", err)
-			}
-			d.Set("sku_name", "")
-		} else {
-			if err := d.Set("sku_name", *sku.Name); err != nil {
-				return fmt.Errorf("Error setting 'sku_name': %+v", err)
-			}
-			d.Set("sku", "")
+		// Remove in 2.0
+		if err := d.Set("sku", flattenRelayNamespaceSku(sku)); err != nil {
+			return fmt.Errorf("Error setting 'sku': %+v", err)
+		}
+
+		if err := d.Set("sku_name", *sku.Name); err != nil {
+		return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {
 		return fmt.Errorf("Error making Read request on Relay Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
