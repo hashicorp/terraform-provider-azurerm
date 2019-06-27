@@ -69,7 +69,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
-				}, true),
+				}, false),
 			},
 
 			"metric_id": {
