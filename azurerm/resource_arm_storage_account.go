@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -151,6 +152,12 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
+			},
+
+			"enable_advanced_threat_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"network_rules": {
@@ -419,6 +426,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
@@ -528,6 +536,19 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
+	enableAdvanceThreatProtection := d.Get("enable_advanced_threat_protection").(bool)
+
+	advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
+		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+			IsEnabled: &enableAdvanceThreatProtection,
+		},
+	}
+
+	_, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting)
+	if err != nil {
+		return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -537,6 +558,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -695,6 +718,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
+	if d.HasChange("enable_advanced_threat_protection") {
+		enableAdvanceThreatProtection := d.Get("enable_advanced_threat_protection").(bool)
+
+		opts := security.AdvancedThreatProtectionSetting{
+			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+				IsEnabled: &enableAdvanceThreatProtection,
+			},
+		}
+
+		if _, err := advancedThreatProtectionClient.Create(ctx, d.Id(), opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("enable_advanced_threat_protection")
+	}
+
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
@@ -702,6 +741,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := parseAzureResourceID(d.Id())
@@ -811,6 +851,14 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
+
+	advancedThreatProtectionSetting, err := advancedThreatProtectionClient.Get(ctx, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+	}
+
+	d.Set("enable_advanced_threat_protection", advancedThreatProtectionSetting.AdvancedThreatProtectionProperties.IsEnabled)
 
 	flattenAndSetTags(d, resp.Tags)
 

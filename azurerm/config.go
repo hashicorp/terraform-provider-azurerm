@@ -1099,10 +1099,14 @@ func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId strin
 	workspaceSettingsClient := securitySvc.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
 	c.configureClient(&workspaceSettingsClient.Client, auth)
 
+	advancedThreatProtectionClient := securitySvc.NewAdvancedThreatProtectionClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&advancedThreatProtectionClient.Client, auth)
+
 	c.securityCenter = &securitycenter.Client{
-		ContactsClient:  contactsClient,
-		PricingClient:   pricingsClient,
-		WorkspaceClient: workspaceSettingsClient,
+		ContactsClient:                 contactsClient,
+		PricingClient:                  pricingsClient,
+		WorkspaceClient:                workspaceSettingsClient,
+		AdvancedThreatProtectionClient: advancedThreatProtectionClient,
 	}
 }
 
