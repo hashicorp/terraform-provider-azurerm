@@ -45,6 +45,7 @@ import (
 	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	vulnerabilitySvc "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	iotdps "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
@@ -203,11 +204,12 @@ type ArmClient struct {
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
-	sqlFirewallRulesClient               sql.FirewallRulesClient
-	sqlServersClient                     sql.ServersClient
-	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
+	msSqlElasticPoolsClient                            MsSql.ElasticPoolsClient
+	sqlFirewallRulesClient                             sql.FirewallRulesClient
+	sqlServersClient                                   sql.ServersClient
+	sqlServerAzureADAdministratorsClient               sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient                       sql.VirtualNetworkRulesClient
+	databaseVulnerabilityAssessmentRuleBaselinesClient vulnerabilitySvc.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
@@ -629,6 +631,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
+
+	databaseVulnerabilityAssessmentRuleBaselinesClient := vulnerabilitySvc.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&databaseVulnerabilityAssessmentRuleBaselinesClient.Client, auth)
+	c.databaseVulnerabilityAssessmentRuleBaselinesClient = databaseVulnerabilityAssessmentRuleBaselinesClient
 }
 
 func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
