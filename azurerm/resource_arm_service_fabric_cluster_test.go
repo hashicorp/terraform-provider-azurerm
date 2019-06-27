@@ -1592,6 +1592,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -1600,20 +1601,25 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
+
   node_type {
-    name                 = "first"
+    name = "first"
+
     placement_properties = {
       "HasSSD" = "true"
     }
+
     capacities = {
       "ClientConnections" = "20000"
-      "MemoryGB" = "8"
+      "MemoryGB"          = "8"
     }
+
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
   tags = {
     Hello = "World"
   }

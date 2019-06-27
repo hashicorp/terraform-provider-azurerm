@@ -1426,8 +1426,9 @@ resource "azurerm_app_service_slot" "test" {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
-        "contoso.com"
+        "contoso.com",
       ]
+
       support_credentials = true
     }
   }

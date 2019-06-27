@@ -412,7 +412,7 @@ resource "azurerm_lb" "test" {
   frontend_ip_configuration {
     name                 = "two-%d"
     public_ip_address_id = "${azurerm_public_ip.test1.id}"
-	}
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -462,17 +462,17 @@ resource "azurerm_public_ip_prefix" "test" {
   name                = "test-ip-prefix-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  prefix_length   = 31
+  prefix_length       = 31
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	sku = "Standard"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = "prefix-%d"
+    name                = "prefix-%d"
     public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
   }
 }
