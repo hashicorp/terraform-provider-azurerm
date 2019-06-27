@@ -1201,6 +1201,7 @@ func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId strin
 func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appServicePlansClient.Client, auth)
+	appServicePlansClient.PollingDuration = 180 * time.Minute
 	c.appServicePlansClient = appServicePlansClient
 
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
