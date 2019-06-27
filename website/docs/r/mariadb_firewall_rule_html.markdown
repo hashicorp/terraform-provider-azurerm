@@ -13,19 +13,10 @@ Manages a Firewall Rule for a MariaDB Server
 ## Example Usage (Single IP Address)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  # ...
-}
-
 resource "azurerm_mariadb_firewall_rule" "test" {
-  name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
+  name                = "test-rule"
+  resource_group_name = "test-rg"
+  server_name         = "test-server"
   start_ip_address    = "40.112.8.12"
   end_ip_address      = "40.112.8.12"
 }
@@ -34,19 +25,10 @@ resource "azurerm_mariadb_firewall_rule" "test" {
 ## Example Usage (IP Range)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  # ...
-}
-
 resource "azurerm_mariadb_firewall_rule" "test" {
-  name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
+  name                = "test-rule"
+  resource_group_name = "test-rg"
+  server_name         = "test-server"
   start_ip_address    = "40.112.0.0"
   end_ip_address      = "40.112.255.255"
 }
