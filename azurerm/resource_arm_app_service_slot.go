@@ -197,11 +197,10 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanId),
-			Enabled:               utils.Bool(enabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			SiteConfig:            &siteConfig,
-			ClientAffinityEnabled: &affinity,
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
 		},
 	}
 
