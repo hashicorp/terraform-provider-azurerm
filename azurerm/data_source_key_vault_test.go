@@ -24,6 +24,34 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "tenant_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "sku_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.object_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(dataSourceName, "access_policy.0.secret_permissions.0", "set"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
+	dataSourceName := "data.azurerm_key_vault.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "tenant_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "sku.0.name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.tenant_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.object_id"),
