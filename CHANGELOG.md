@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* increase the default timeout to `3 hours` [GH-3737]
 * **New Resource:** `azurerm_iot_dps` [GH-3618]
 * **New Resource:** `azurerm_stream_analytics_output_mssql` [GH-3567]
 
