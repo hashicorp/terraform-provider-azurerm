@@ -119,7 +119,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	
 			sku = relay.Sku{
 				Name: utils.String(v),
-				Tier: relay.SkuName(v),
+				Tier: relay.SkuTier(v),
 			}
 		} else {
 			// Keep in 2.0
