@@ -190,26 +190,24 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
+	affinity := d.Get("client_affinity_enabled").(bool)
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:          utils.String(appServicePlanId),
+			Enabled:               utils.Bool(enabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
+			ClientAffinityEnabled: &affinity,
 		},
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
 		siteEnvelope.Identity = appServiceIdentity
-	}
-	if v, ok := d.GetOk("client_affinity_enabled"); ok {
-		enabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
