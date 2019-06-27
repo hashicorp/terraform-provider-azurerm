@@ -5,6 +5,7 @@ FEATURES:
 * increase the default timeout to `3 hours` [GH-3737]
 * **New Resource:** `azurerm_iot_dps` [GH-3618]
 * **New Resource:** `azurerm_mariadb_firewall_rule` [GH-3720]
+* **New Resource:** `azurerm_private_dns_zone` [GH-3718]
 * **New Resource:** `azurerm_stream_analytics_output_mssql` [GH-3567]
 
 IMPROVEMENTS:
