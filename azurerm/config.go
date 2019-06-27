@@ -361,6 +361,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	})
 
 	o := &common.ClientOptions{
+		GraphAuthorizer:            graphAuth,
+		GraphEndpoint:              graphEndpoint,
+		KeyVaultAuthorizer:         keyVaultAuth,
+		ResourceManagerAuthorizer:  auth,
+		ResourceManagerEndpoint:    endpoint,
 		SubscriptionId:             c.SubscriptionID,
 		PartnerId:                  partnerId,
 		PollingDuration:            60 * time.Minute,
@@ -368,17 +373,17 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		EnableCorrelationRequestID: true,
 	}
 
-	client.apiManagement = apimanagement.BuildClient(endpoint, auth, o)
-	client.appInsights = applicationinsights.BuildClient(endpoint, auth, o)
-	client.automation = automation.BuildClient(endpoint, auth, o)
-	client.cdn = cdn.BuildClient(endpoint, auth, o)
-	client.cognitive = cognitive.BuildClient(endpoint, auth, o)
-	client.containers = containers.BuildClient(endpoint, auth, o)
-	client.databricks = databricks.BuildClient(endpoint, auth, o)
-	client.dataFactory = datafactory.BuildClient(endpoint, auth, o)
-	client.devSpace = devspace.BuildClient(endpoint, auth, o)
-	client.devTestLabs = devtestlabs.BuildClient(endpoint, auth, o)
-	client.dns = dns.BuildClient(endpoint, auth, o)
+	client.apiManagement = apimanagement.BuildClient(o)
+	client.appInsights = applicationinsights.BuildClient(o)
+	client.automation = automation.BuildClient(o)
+	client.cdn = cdn.BuildClient(o)
+	client.cognitive = cognitive.BuildClient(o)
+	client.containers = containers.BuildClient(o)
+	client.databricks = databricks.BuildClient(o)
+	client.dataFactory = datafactory.BuildClient(o)
+	client.devSpace = devspace.BuildClient(o)
+	client.devTestLabs = devtestlabs.BuildClient(o)
+	client.dns = dns.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)

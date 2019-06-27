@@ -14,6 +14,11 @@ import (
 )
 
 type ClientOptions struct {
+	GraphAuthorizer            autorest.Authorizer
+	GraphEndpoint              string
+	KeyVaultAuthorizer         autorest.Authorizer
+	ResourceManagerAuthorizer  autorest.Authorizer
+	ResourceManagerEndpoint    string
 	SubscriptionId             string
 	PartnerId                  string
 	PollingDuration            time.Duration
