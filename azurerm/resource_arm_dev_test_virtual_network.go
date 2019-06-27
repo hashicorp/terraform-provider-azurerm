@@ -286,7 +286,7 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 	results := make([]dtl.SubnetOverride, 0)
 	// default found from the Portal
 	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
-	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualnetworks/%s/subnets/%s"
+	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
 	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, virtualNetworkName, name)
 	if len(input) == 0 {
 		result := dtl.SubnetOverride{
