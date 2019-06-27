@@ -429,7 +429,7 @@ resource "azurerm_api_management" "test" {
   }
 
   sign_up {
-    enabled          = true
+    enabled = true
 
     terms_of_service {
       enabled          = true

@@ -249,12 +249,12 @@ func testAccAzureRMRedisFirewallRule_multi(rInt int, location string) string {
 %s
 
 resource "azurerm_redis_firewall_rule" "double" {
-	name                = "fwruletwo%d"
-	redis_cache_name    = "${azurerm_redis_cache.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	start_ip            = "4.5.6.7"
-	end_ip              = "8.9.0.1"
-  }
+  name                = "fwruletwo%d"
+  redis_cache_name    = "${azurerm_redis_cache.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  start_ip            = "4.5.6.7"
+  end_ip              = "8.9.0.1"
+}
 `, testAccAzureRMRedisFirewallRule_basic(rInt, location), rInt)
 }
 

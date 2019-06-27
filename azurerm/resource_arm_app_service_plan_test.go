@@ -630,21 +630,21 @@ resource "azurerm_app_service_plan" "test" {
 func testAccAzureRMAppServicePlan_basicWindowsContainer(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	kind                = "xenon"
-	is_xenon            = true
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "xenon"
+  is_xenon            = true
 
-	sku {
-		tier = "PremiumContainer"
-		size = "PC2"
-	}
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
 }
 `, rInt, location, rInt)
 }

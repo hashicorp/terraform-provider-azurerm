@@ -478,9 +478,9 @@ resource "azurerm_container_group" "test" {
     port   = 80
   }
 
-	identity {
-		type = "SystemAssigned"
-	}
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     environment = "Testing"
@@ -522,7 +522,7 @@ resource "azurerm_container_group" "test" {
     type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
-	
+
   tags = {
     environment = "Testing"
   }
@@ -563,7 +563,7 @@ resource "azurerm_container_group" "test" {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
-	
+
   tags = {
     environment = "Testing"
   }
@@ -695,7 +695,8 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  {
+
+    ports {
       port = 80
     }
   }
@@ -739,9 +740,11 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  {
-      port     = 80
+
+    ports {
+      port = 80
     }
+
     ports {
       port     = 5443
       protocol = "UDP"
@@ -781,10 +784,12 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
+
     ports {
       port     = 80
       protocol = "TCP"
     }
+
     ports {
       port     = 443
       protocol = "TCP"
@@ -839,6 +844,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/iis:windowsservercore"
     cpu    = "2.0"
     memory = "3.5"
+
     ports {
       port     = 80
       protocol = "TCP"
@@ -855,12 +861,12 @@ resource "azurerm_container_group" "test" {
     }
 
     readiness_probe {
-      exec                 = ["cat","/tmp/healthy"]
+      exec                  = ["cat", "/tmp/healthy"]
       initial_delay_seconds = 1
-      period_seconds       = 1
-      failure_threshold   = 1
-      success_threshold    = 1
-      timeout_seconds      = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
     }
 
     liveness_probe {
@@ -869,11 +875,12 @@ resource "azurerm_container_group" "test" {
         port   = 443
         scheme = "Http"
       }
+
       initial_delay_seconds = 1
-      period_seconds       = 1
-      failure_threshold   = 1
-      success_threshold    = 1
-      timeout_seconds      = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
     }
 
     commands = ["cmd.exe", "echo", "hi"]
@@ -884,6 +891,7 @@ resource "azurerm_container_group" "test" {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
+
       metadata = {
         node-name = "acctestContainerGroup"
       }
@@ -963,7 +971,7 @@ resource "azurerm_container_group" "test" {
 
     gpu {
       count = 1
-      sku = "K80"
+      sku   = "K80"
     }
 
     volume {
@@ -973,7 +981,7 @@ resource "azurerm_container_group" "test" {
       share_name = "${azurerm_storage_share.test.name}"
 
       storage_account_name = "${azurerm_storage_account.test.name}"
-      storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
     }
 
     environment_variables = {
@@ -987,12 +995,12 @@ resource "azurerm_container_group" "test" {
     }
 
     readiness_probe {
-      exec                 = ["cat","/tmp/healthy"]
+      exec                  = ["cat", "/tmp/healthy"]
       initial_delay_seconds = 1
-      period_seconds       = 1
-      failure_threshold   = 1
-      success_threshold    = 1
-      timeout_seconds      = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
     }
 
     liveness_probe {
@@ -1001,21 +1009,23 @@ resource "azurerm_container_group" "test" {
         port   = 443
         scheme = "Http"
       }
+
       initial_delay_seconds = 1
-      period_seconds       = 1
-      failure_threshold   = 1
-      success_threshold    = 1
-      timeout_seconds      = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
     }
 
     commands = ["/bin/bash", "-c", "ls"]
   }
 
   diagnostics {
-     log_analytics {
+    log_analytics {
       workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
       workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
       log_type      = "ContainerInsights"
+
       metadata = {
         node-name = "acctestContainerGroup"
       }

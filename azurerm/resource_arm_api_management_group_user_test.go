@@ -143,19 +143,19 @@ resource "azurerm_api_management_group" "test" {
 }
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
 }
 
 resource "azurerm_api_management_group_user" "test" {
-  user_id               = "${azurerm_api_management_user.test.user_id}"
-  group_name            = "${azurerm_api_management_group.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  user_id             = "${azurerm_api_management_user.test.user_id}"
+  group_name          = "${azurerm_api_management_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -166,10 +166,10 @@ func testAccAzureRMAPIManagementGroupUser_requiresImport(rInt int, location stri
 %s
 
 resource "azurerm_api_management_group_user" "import" {
-  user_id               = "${azurerm_api_management_group_user.test.user_id}"
-  group_name            = "${azurerm_api_management_group_user.test.group_name}"
-  api_management_name   = "${azurerm_api_management_group_user.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_group_user.test.resource_group_name}"
+  user_id             = "${azurerm_api_management_group_user.test.user_id}"
+  group_name          = "${azurerm_api_management_group_user.test.group_name}"
+  api_management_name = "${azurerm_api_management_group_user.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_group_user.test.resource_group_name}"
 }
 `, template)
 }

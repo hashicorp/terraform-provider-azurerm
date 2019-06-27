@@ -237,7 +237,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-   name     = "GP_Gen5_2"
+    name     = "GP_Gen5_2"
     capacity = 2
     tier     = "GeneralPurpose"
     family   = "Gen5"
