@@ -49,7 +49,7 @@ The following arguments are supported:
 
 ----
 
-A `sku` block supportes the following:
+A `sku` block supports the following:
 
 * `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
 

@@ -49,9 +49,9 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ForceNew:         true,
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(notificationhubs.Basic),
 								string(notificationhubs.Free),
@@ -107,22 +107,22 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-		// Remove in 2.0
-		var sku notificationhubs.Sku
+	// Remove in 2.0
+	var sku notificationhubs.Sku
 
-		if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
-			input := inputs[0].(map[string]interface{})
-			v := input["name"].(string)
-	
-			sku = notificationhubs.Sku{
-				Name:   notificationhubs.SkuName(v),
-			}
-		} else {
-			// Keep in 2.0
-			sku = notificationhubs.Sku{
-				Name:   notificationhubs.SkuName(d.Get("sku_name").(string)),
-			}
+	if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
+		input := inputs[0].(map[string]interface{})
+		v := input["name"].(string)
+
+		sku = notificationhubs.Sku{
+			Name: notificationhubs.SkuName(v),
 		}
+	} else {
+		// Keep in 2.0
+		sku = notificationhubs.Sku{
+			Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
+		}
+	}
 
 	if sku.Name == "" {
 		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")

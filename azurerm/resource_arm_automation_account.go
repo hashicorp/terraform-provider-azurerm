@@ -104,12 +104,12 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		v := input["name"].(string)
 
 		sku = automation.Sku{
-			Name:   automation.SkuNameEnum(v),
+			Name: automation.SkuNameEnum(v),
 		}
 	} else {
 		// Keep in 2.0
 		sku = automation.Sku{
-			Name:   automation.SkuNameEnum(d.Get("sku_name").(string)),
+			Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 		}
 	}
 

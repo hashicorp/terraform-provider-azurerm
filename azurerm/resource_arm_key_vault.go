@@ -63,8 +63,8 @@ func resourceArmKeyVault() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:             schema.TypeString,
-							Optional:         true,
+							Type:     schema.TypeString,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(keyvault.Standard),
 								string(keyvault.Premium),
