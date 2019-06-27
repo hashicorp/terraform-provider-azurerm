@@ -288,7 +288,7 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
 	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 60 * time.Minute
+	client.PollingDuration = 180 * time.Minute
 }
 
 func setUserAgent(client *autorest.Client, partnerID string) {

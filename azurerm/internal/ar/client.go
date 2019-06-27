@@ -18,7 +18,7 @@ func ConfigureClient(client *autorest.Client, auth autorest.Authorizer, partnerI
 	setUserAgent(client, partnerId)
 	client.Authorizer = auth
 	client.Sender = sender.BuildSender("AzureRM")
-	client.PollingDuration = 60 * time.Minute
+	client.PollingDuration = 180 * time.Minute
 	client.SkipResourceProviderRegistration = skipProviderReg
 	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
 
