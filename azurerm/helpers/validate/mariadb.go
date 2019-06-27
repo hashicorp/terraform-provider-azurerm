@@ -19,9 +19,9 @@ func MariaDBFirewallRuleName(v interface{}, k string) (warnings []string, errors
 func MariaDBServerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	// MariaDB server name can contain alphanumeric characters and hyphens and must be 3 - 50 characters long
-	if matched := regexp.MustCompile("^[-a-z0-9]{3,128}$").Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("Server name must be 3 - 50 characters long, contain only letters, numbers and hyphens."))
+	// MariaDB server name can contain alphanumeric characters and hyphens and must be 3 - 63 characters long
+	if matched := regexp.MustCompile("^[-a-z0-9]{3,63}$").Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("Server name must be 3 - 63 characters long, contain only letters, numbers and hyphens."))
 	}
 
 	return warnings, errors
