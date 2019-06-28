@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -33,9 +33,9 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"type": {
 				Type:     schema.TypeString,
@@ -106,6 +106,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+			},
+
+			"express_route_gateway_bypass": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"ipsec_policy": {
@@ -247,7 +253,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties, err := getArmVirtualNetworkGatewayConnectionProperties(d)
@@ -307,7 +313,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if string(conn.ConnectionType) != "" {
@@ -350,6 +356,10 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
+	if conn.ExpressRouteGatewayBypass != nil {
+		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
+	}
+
 	if conn.IpsecPolicies != nil {
 		ipsecPolicies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
 
@@ -390,6 +400,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
 		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
+		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
 	}
 

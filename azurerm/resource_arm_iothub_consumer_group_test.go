@@ -92,7 +92,7 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 }
 
 func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
+	client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -132,7 +132,7 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 		endpointName := rs.Primary.Attributes["eventhub_endpoint_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
+		client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
 		resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -166,7 +166,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 

@@ -44,7 +44,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Load Balancer.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
 * `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
-* `frontend_ip_configuration` - (Optional) A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -55,7 +55,8 @@ The following arguments are supported:
 * `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
-* `public_ip_address_id` - (Optional) Th ID of a Public IP Address which should be associated with the Load Balancer.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
+* `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
 * `zones` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,7 +39,7 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 }
 
 func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterPricingClient
+	client := meta.(*ArmClient).securityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterSubscriptionPricingName
@@ -53,11 +53,11 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 		},
 	}
 
-	if _, err := client.Update(ctx, name, pricing); err != nil {
+	if _, err := client.UpdateSubscriptionPricing(ctx, name, pricing); err != nil {
 		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.GetSubscriptionPricing(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
@@ -71,10 +71,10 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterPricingClient
+	client := meta.(*ArmClient).securityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Get(ctx, securityCenterSubscriptionPricingName)
+	resp, err := client.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription was not found: %v", err)

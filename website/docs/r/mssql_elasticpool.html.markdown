@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.
+
 ---
 
 `sku` supports the following:
@@ -91,8 +93,6 @@ The following arguments are supported:
 * `max_capacity` - (Required) The maximum capacity any one database can consume.
 
 ---
-
-* `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.
 
 ## Attributes Reference
 

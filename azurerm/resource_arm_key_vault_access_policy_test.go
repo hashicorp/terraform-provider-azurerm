@@ -290,9 +290,9 @@ func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location 
 %s
 
 resource "azurerm_key_vault_access_policy" "import" {
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  tenant_id     = "${azurerm_key_vault_access_policy.test.tenant_id}"
-  object_id     = "${azurerm_key_vault_access_policy.test.object_id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  tenant_id    = "${azurerm_key_vault_access_policy.test.tenant_id}"
+  object_id    = "${azurerm_key_vault_access_policy.test.object_id}"
 
   key_permissions = [
     "get",
@@ -352,6 +352,23 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
     "delete",
   ]
 
+  storage_permissions = [
+    "backup",
+    "delete",
+    "deletesas",
+    "get",
+    "getsas",
+    "list",
+    "listsas",
+    "purge",
+    "recover",
+    "regeneratekey",
+    "restore",
+    "set",
+    "setsas",
+    "update",
+  ]
+
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
@@ -395,9 +412,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   tags = {
     environment = "Production"
@@ -421,9 +436,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   tags = {
     environment = "Production"

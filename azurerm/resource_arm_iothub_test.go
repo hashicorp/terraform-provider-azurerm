@@ -35,6 +35,30 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_ipFilterRules(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -145,7 +169,7 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
+	client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -183,7 +207,7 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IotHub: %s", iothubName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
+		client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
 		resp, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -216,8 +240,8 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
@@ -239,8 +263,8 @@ resource "azurerm_iothub" "import" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 `, template)
@@ -264,8 +288,39 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_ipFilterRules(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  ip_filter_rule {
+    name    = "test"
+    ip_mask = "10.0.0.0/31"
+    action  = "Accept"
+  }
+
+  tags = {
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)
@@ -313,7 +368,7 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   name                = "acctest"
-  send                = true  
+  send                = true
 }
 
 resource "azurerm_iothub" "test" {
@@ -360,8 +415,8 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-  tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 `, rInt, location, rStr, rInt, rInt)
@@ -375,9 +430,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub" "test" {
-  name                  = "acctestIoTHub-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"
@@ -391,8 +446,8 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-	tags {
-    "purpose" = "testing"
+  tags = {
+    purpose = "testing"
   }
 }
 `, rInt, location, rInt)

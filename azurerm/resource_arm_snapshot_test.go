@@ -344,7 +344,7 @@ resource "azurerm_snapshot" "test" {
   source_uri          = "${azurerm_managed_disk.test.id}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt)

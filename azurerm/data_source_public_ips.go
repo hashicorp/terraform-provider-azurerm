@@ -6,9 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func dataSourceArmPublicIPs() *schema.Resource {
@@ -16,7 +17,7 @@ func dataSourceArmPublicIPs() *schema.Resource {
 		Read: dataSourceArmPublicIPsRead,
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name_prefix": {
 				Type:     schema.TypeString,

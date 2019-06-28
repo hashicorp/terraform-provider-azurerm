@@ -39,7 +39,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 }
 
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	groupId := d.Get("group_id").(string)
@@ -52,6 +52,10 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Client returned an nil ID for Management Group %q", groupId)
 	}
 
 	d.SetId(*resp.ID)

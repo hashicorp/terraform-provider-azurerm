@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -21,7 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/Azure/go-autorest/autorest/azure"
+	azauto "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -44,7 +45,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account_name": {
 				Type:     schema.TypeString,
@@ -113,6 +114,15 @@ func resourceArmStorageBlob() *schema.Resource {
 				Default:      1,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"metadata": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
 			},
 		},
 	}
@@ -199,6 +209,13 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 				}
 			}
 		}
+	}
+
+	blob.Metadata = expandStorageAccountBlobMetadata(d)
+
+	opts := &storage.SetBlobMetadataOptions{}
+	if err := blob.SetMetadata(opts); err != nil {
+		return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
 	}
 
 	d.SetId(id)
@@ -564,6 +581,15 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 
+	if d.HasChange("metadata") {
+		blob.Metadata = expandStorageAccountBlobMetadata(d)
+
+		opts := &storage.SetBlobMetadataOptions{}
+		if err := blob.SetMetadata(opts); err != nil {
+			return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
+		}
+	}
+
 	return nil
 }
 
@@ -615,6 +641,12 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 
+	metadataOptions := &storage.GetBlobMetadataOptions{}
+	err = blob.GetMetadata(metadataOptions)
+	if err != nil {
+		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+	}
+
 	d.Set("name", id.blobName)
 	d.Set("storage_container_name", id.containerName)
 	d.Set("storage_account_name", id.storageAccountName)
@@ -632,6 +664,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
 	d.Set("url", u)
+	d.Set("metadata", flattenStorageAccountBlobMetadata(blob.Metadata))
 
 	return nil
 }
@@ -681,7 +714,7 @@ type storageBlobId struct {
 	blobName           string
 }
 
-func parseStorageBlobID(input string, environment azure.Environment) (*storageBlobId, error) {
+func parseStorageBlobID(input string, environment azauto.Environment) (*storageBlobId, error) {
 	uri, err := url.Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
@@ -729,4 +762,24 @@ func determineResourceGroupForStorageAccount(accountName string, client *ArmClie
 	}
 
 	return nil, nil
+}
+
+func expandStorageAccountBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
+	blobMetadata := make(map[string]string)
+
+	blobMetadataRaw := d.Get("metadata").(map[string]interface{})
+	for key, value := range blobMetadataRaw {
+		blobMetadata[key] = value.(string)
+	}
+	return storage.BlobMetadata(blobMetadata)
+}
+
+func flattenStorageAccountBlobMetadata(in storage.BlobMetadata) map[string]interface{} {
+	blobMetadata := make(map[string]interface{})
+
+	for key, value := range in {
+		blobMetadata[key] = value
+	}
+
+	return blobMetadata
 }

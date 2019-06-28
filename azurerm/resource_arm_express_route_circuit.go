@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,9 +31,9 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"service_provider_name": {
 				Type:             schema.TypeString,
@@ -113,6 +114,9 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -126,7 +130,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceProviderName := d.Get("service_provider_name").(string)
 	peeringLocation := d.Get("peering_location").(string)
 	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
@@ -135,23 +139,52 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	erc := network.ExpressRouteCircuit{
-		Name:     &name,
-		Location: &location,
-		Sku:      sku,
-		ExpressRouteCircuitPropertiesFormat: &network.ExpressRouteCircuitPropertiesFormat{
+	// There is the potential for the express route circuit to become out of sync when the service provider updates
+	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
+	// We also want to keep track of the resource obtained from the api and pass down any attributes not
+	// managed by Terraform.
+	erc := network.ExpressRouteCircuit{}
+	if !d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(erc.Response) {
+				return fmt.Errorf("Error checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, existing)
+		if err != nil {
+			return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+		erc = existing
+	}
+
+	erc.Name = &name
+	erc.Location = &location
+	erc.Sku = sku
+	erc.Tags = expandedTags
+
+	if erc.ExpressRouteCircuitPropertiesFormat != nil {
+		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
+		if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = &serviceProviderName
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = &peeringLocation
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = &bandwidthInMbps
+		}
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
 			AllowClassicOperations: &allowRdfeOps,
 			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{
 				ServiceProviderName: &serviceProviderName,
 				PeeringLocation:     &peeringLocation,
 				BandwidthInMbps:     &bandwidthInMbps,
 			},
-		},
-		Tags: expandedTags,
+		}
 	}
-
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
@@ -190,7 +223,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if resp.Sku != nil {

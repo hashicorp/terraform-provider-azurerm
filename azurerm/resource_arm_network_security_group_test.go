@@ -98,12 +98,32 @@ func TestAccAzureRMNetworkSecurityGroup_update(t *testing.T) {
 				Config: testAccAzureRMNetworkSecurityGroup_singleRule(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+
+					// The configuration for this step contains one security_rule
+					// block, which should now be reflected in the state.
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+
+					// The configuration for this step contains no security_rule
+					// blocks at all, which means "ignore any existing security groups"
+					// and thus the one from the previous step is preserved.
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_rulesExplicitZero(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+
+					// The configuration for this step assigns security_rule = []
+					// to state explicitly that no rules are desired, so the
+					// rule from the first step should now be removed.
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "0"),
 				),
 			},
 		},
@@ -353,6 +373,23 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = "${azurerm_network_security_group.test.resource_group_name}"
 }
 `, template)
+}
+
+func testAccAzureRMNetworkSecurityGroup_rulesExplicitZero(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  security_rule = []
+}
+`, rInt, location)
 }
 
 func testAccAzureRMNetworkSecurityGroup_singleRule(rInt int, location string) string {

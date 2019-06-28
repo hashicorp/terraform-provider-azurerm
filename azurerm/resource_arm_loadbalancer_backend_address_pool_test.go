@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -97,40 +97,6 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName, &lb),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLoadBalancerBackEndAddressPool_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
-
-	deleteAddressPoolState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_backend_address_pool.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerBackEndAddressPool_basic(ri, addressPoolName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
-					deleteAddressPoolState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerBackEndAddressPool_basic(ri, addressPoolName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
 				),
 			},
 		},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,9 +18,9 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -73,6 +74,16 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
+			"maximum_elastic_worker_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -101,7 +112,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
@@ -112,6 +123,12 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
+
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+		}
+
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {

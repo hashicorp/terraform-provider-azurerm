@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v2.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -46,8 +46,8 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	priceClient := meta.(*ArmClient).securityCenterPricingClient
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	priceClient := meta.(*ArmClient).securityCenter.PricingClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterWorkspaceName
@@ -67,7 +67,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	//get pricing tier, workspace can only be configured when tier is not Free.
 	//API does not error, it just doesn't set the workspace scope
-	price, err := priceClient.Get(ctx, securityCenterSubscriptionPricingName)
+	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
@@ -132,7 +132,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
@@ -155,7 +155,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
+	client := meta.(*ArmClient).securityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)

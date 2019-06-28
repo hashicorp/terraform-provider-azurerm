@@ -30,7 +30,7 @@ resource "azurerm_iothub" "test" {
   }
 
   tags = {
-    "purpose" = "testing"
+    purpose = "testing"
   }
 }
 

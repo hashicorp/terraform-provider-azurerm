@@ -46,7 +46,7 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).securityCenterPricingClient
+		client := testAccProvider.Meta().(*ArmClient).securityCenter.PricingClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -56,7 +56,7 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 
 		pricingName := rs.Primary.Attributes["pricings"]
 
-		resp, err := client.Get(ctx, pricingName)
+		resp, err := client.GetSubscriptionPricing(ctx, pricingName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Security Center Subscription Pricing %q was not found: %+v", pricingName, err)

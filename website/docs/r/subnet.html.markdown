@@ -35,8 +35,10 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
+
   delegation {
     name = "acctestdelegation"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -59,7 +61,7 @@ The following arguments are supported:
 
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
--> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_network_security_group_association` resource. This field field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+-> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_network_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
 

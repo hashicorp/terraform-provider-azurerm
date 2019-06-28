@@ -6,10 +6,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +32,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"profile_status": {
 				Type:     schema.TypeString,
@@ -52,6 +53,8 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 					string(trafficmanager.Weighted),
 					string(trafficmanager.Performance),
 					string(trafficmanager.Priority),
+					string(trafficmanager.Subnet),
+					string(trafficmanager.MultiValue),
 				}, false),
 			},
 
@@ -68,7 +71,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						"ttl": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(30, 999999),
+							ValidateFunc: validation.IntBetween(1, 999999),
 						},
 					},
 				},
@@ -116,7 +119,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 }
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
@@ -165,7 +168,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -207,7 +210,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

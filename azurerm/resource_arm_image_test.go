@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"golang.org/x/crypto/ssh"
 )
@@ -247,7 +248,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 		vmClient := armClient.vmClient
 		ctx := armClient.StopContext
 
-		normalizedLocation := azureRMNormalizeLocation(location)
+		normalizedLocation := azure.NormalizeLocation(location)
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 
@@ -503,7 +504,7 @@ resource "azurerm_virtual_machine" "testsource" {
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
-  vm_size               = "Standard_D1_v2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -609,7 +610,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -663,7 +664,6 @@ func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName strin
 	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
 	return fmt.Sprintf(`
 %s
-
 
 resource "azurerm_image" "import" {
   name                = "${azurerm_image.test.name}"
@@ -757,7 +757,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -858,7 +858,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1004,7 +1004,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1084,7 +1084,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1240,7 +1240,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -1341,7 +1341,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 

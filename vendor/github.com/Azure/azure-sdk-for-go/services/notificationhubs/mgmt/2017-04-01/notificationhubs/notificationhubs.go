@@ -97,6 +97,8 @@ func (client Client) CheckNotificationHubAvailabilityPreparer(ctx context.Contex
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

@@ -108,7 +108,7 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestLabsClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.LabsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
@@ -124,7 +124,7 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestLabsClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.LabsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -193,7 +193,7 @@ resource "azurerm_dev_test_lab" "test" {
   storage_type        = "Standard"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

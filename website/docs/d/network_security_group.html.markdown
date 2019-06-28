@@ -54,7 +54,11 @@ The `security_rule` block supports:
 
 * `source_address_prefix` - CIDR or source IP range or * to match any IP.
 
+* `source_address_prefixes` - A list of CIDRs or source IP ranges.
+
 * `destination_address_prefix` - CIDR or destination IP range or * to match any IP.
+
+* `destination_address_prefixes` - A list of CIDRs or destination IP ranges.
 
 * `source_application_security_group_ids` - A List of source Application Security Group ID's
 

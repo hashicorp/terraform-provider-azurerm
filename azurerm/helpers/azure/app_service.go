@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -9,8 +10,203 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func SchemaAppServiceAadAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
+				"allowed_audiences": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"app_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"app_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"consumer_key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"consumer_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:     schema.TypeBool,
+					Required: true,
+				},
+				"additional_login_params": {
+					Type:     schema.TypeMap,
+					Optional: true,
+				},
+				"allowed_external_redirect_urls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"default_provider": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureActiveDirectory),
+						string(web.Facebook),
+						string(web.Google),
+						string(web.MicrosoftAccount),
+						string(web.Twitter),
+					}, false),
+				},
+				"issuer": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
+				},
+				"runtime_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"token_refresh_extension_hours": {
+					Type:     schema.TypeFloat,
+					Optional: true,
+					Default:  72,
+				},
+				"token_store_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"unauthenticated_client_action": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AllowAnonymous),
+						string(web.RedirectToLoginPage),
+					}, false),
+				},
+				"active_directory": SchemaAppServiceAadAuthSettings(),
+				"facebook":         SchemaAppServiceFacebookAuthSettings(),
+				"google":           SchemaAppServiceGoogleAuthSettings(),
+				"microsoft":        SchemaAppServiceMicrosoftAuthSettings(),
+				"twitter":          SchemaAppServiceTwitterAuthSettings(),
+			},
+		},
+	}
+}
 
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
@@ -55,9 +251,10 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"ip_restriction": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Computed: true,
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
@@ -79,6 +276,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.7",
 						"1.8",
+						"11",
 					}, false),
 				},
 
@@ -182,7 +380,6 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Computed: true,
 				},
 
 				"websockets_enabled": {
@@ -201,7 +398,14 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.FtpsOnly),
 					}, false),
 				},
+
 				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
@@ -239,6 +443,57 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Type:     schema.TypeBool,
 								Optional: true,
 								Default:  false,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceLogsConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"application_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"level": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(web.Error),
+												string(web.Information),
+												string(web.Off),
+												string(web.Verbose),
+												string(web.Warning),
+											}, false),
+										},
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -367,6 +622,11 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Computed: true,
 				},
 
+				"windows_fx_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"min_tls_version": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -451,6 +711,438 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 	return append(results, result)
 }
 
+func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsProperties {
+	siteAuthSettingsProperties := web.SiteAuthSettingsProperties{}
+
+	if len(input) == 0 {
+		return siteAuthSettingsProperties
+	}
+
+	setting := input[0].(map[string]interface{})
+
+	if v, ok := setting["enabled"]; ok {
+		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := setting["additional_login_params"]; ok {
+		input := v.(map[string]interface{})
+
+		additionalLoginParams := make([]string, 0)
+		for k, v := range input {
+			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, v.(string)))
+		}
+
+		siteAuthSettingsProperties.AdditionalLoginParams = &additionalLoginParams
+	}
+
+	if v, ok := setting["allowed_external_redirect_urls"]; ok {
+		input := v.([]interface{})
+
+		allowedExternalRedirectUrls := make([]string, 0)
+		for _, param := range input {
+			allowedExternalRedirectUrls = append(allowedExternalRedirectUrls, param.(string))
+		}
+
+		siteAuthSettingsProperties.AllowedExternalRedirectUrls = &allowedExternalRedirectUrls
+	}
+
+	if v, ok := setting["default_provider"]; ok {
+		siteAuthSettingsProperties.DefaultProvider = web.BuiltInAuthenticationProvider(v.(string))
+	}
+
+	if v, ok := setting["issuer"]; ok {
+		siteAuthSettingsProperties.Issuer = utils.String(v.(string))
+	}
+
+	if v, ok := setting["runtime_version"]; ok {
+		siteAuthSettingsProperties.RuntimeVersion = utils.String(v.(string))
+	}
+
+	if v, ok := setting["token_refresh_extension_hours"]; ok {
+		siteAuthSettingsProperties.TokenRefreshExtensionHours = utils.Float(v.(float64))
+	}
+
+	if v, ok := setting["token_store_enabled"]; ok {
+		siteAuthSettingsProperties.TokenStoreEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := setting["unauthenticated_client_action"]; ok {
+		siteAuthSettingsProperties.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.(string))
+	}
+
+	if v, ok := setting["active_directory"]; ok {
+		activeDirectorySettings := v.([]interface{})
+
+		for _, setting := range activeDirectorySettings {
+			if setting == nil {
+				continue
+			}
+
+			activeDirectorySetting := setting.(map[string]interface{})
+
+			if v, ok := activeDirectorySetting["client_id"]; ok {
+				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
+			}
+
+			if v, ok := activeDirectorySetting["client_secret"]; ok {
+				siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
+				input := v.([]interface{})
+
+				allowedAudiences := make([]string, 0)
+				for _, param := range input {
+					allowedAudiences = append(allowedAudiences, param.(string))
+				}
+
+				siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+			}
+		}
+	}
+
+	if v, ok := setting["facebook"]; ok {
+		facebookSettings := v.([]interface{})
+
+		for _, setting := range facebookSettings {
+			facebookSetting := setting.(map[string]interface{})
+
+			if v, ok := facebookSetting["app_id"]; ok {
+				siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
+			}
+
+			if v, ok := facebookSetting["app_secret"]; ok {
+				siteAuthSettingsProperties.FacebookAppSecret = utils.String(v.(string))
+			}
+
+			if v, ok := facebookSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.FacebookOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["google"]; ok {
+		googleSettings := v.([]interface{})
+
+		for _, setting := range googleSettings {
+			googleSetting := setting.(map[string]interface{})
+
+			if v, ok := googleSetting["client_id"]; ok {
+				siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
+			}
+
+			if v, ok := googleSetting["client_secret"]; ok {
+				siteAuthSettingsProperties.GoogleClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := googleSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.GoogleOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["microsoft"]; ok {
+		microsoftSettings := v.([]interface{})
+
+		for _, setting := range microsoftSettings {
+			microsoftSetting := setting.(map[string]interface{})
+
+			if v, ok := microsoftSetting["client_id"]; ok {
+				siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
+			}
+
+			if v, ok := microsoftSetting["client_secret"]; ok {
+				siteAuthSettingsProperties.MicrosoftAccountClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := microsoftSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.MicrosoftAccountOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["twitter"]; ok {
+		twitterSettings := v.([]interface{})
+
+		for _, setting := range twitterSettings {
+			twitterSetting := setting.(map[string]interface{})
+
+			if v, ok := twitterSetting["consumer_key"]; ok {
+				siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
+			}
+
+			if v, ok := twitterSetting["consumer_secret"]; ok {
+				siteAuthSettingsProperties.TwitterConsumerSecret = utils.String(v.(string))
+			}
+		}
+	}
+
+	return siteAuthSettingsProperties
+}
+
+func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if input == nil {
+		return result
+	}
+
+	for _, k := range *input {
+		parts := strings.Split(k, "=")
+		if len(parts) != 2 {
+			continue // Params not following the format `key=value` is considered malformed and will be ignored.
+		}
+		key := parts[0]
+		value := parts[1]
+
+		result[key] = value
+	}
+
+	return result
+}
+
+func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
+	}
+
+	result["additional_login_params"] = FlattenAdditionalLoginParams(input.AdditionalLoginParams)
+
+	allowedExternalRedirectUrls := make([]string, 0)
+	if s := input.AllowedExternalRedirectUrls; s != nil {
+		allowedExternalRedirectUrls = *s
+	}
+	result["allowed_external_redirect_urls"] = allowedExternalRedirectUrls
+
+	if input.DefaultProvider != "" {
+		result["default_provider"] = input.DefaultProvider
+	}
+
+	if input.Issuer != nil {
+		result["issuer"] = *input.Issuer
+	}
+
+	if input.RuntimeVersion != nil {
+		result["runtime_version"] = *input.RuntimeVersion
+	}
+
+	if input.TokenRefreshExtensionHours != nil {
+		result["token_refresh_extension_hours"] = *input.TokenRefreshExtensionHours
+	}
+
+	if input.TokenStoreEnabled != nil {
+		result["token_store_enabled"] = *input.TokenStoreEnabled
+	}
+
+	if input.UnauthenticatedClientAction != "" {
+		result["unauthenticated_client_action"] = input.UnauthenticatedClientAction
+	}
+
+	activeDirectorySettings := make([]interface{}, 0)
+
+	if input.ClientID != nil {
+		activeDirectorySetting := make(map[string]interface{})
+
+		activeDirectorySetting["client_id"] = *input.ClientID
+
+		if input.ClientSecret != nil {
+			activeDirectorySetting["client_secret"] = *input.ClientSecret
+		}
+
+		if input.AllowedAudiences != nil {
+			activeDirectorySetting["allowed_audiences"] = *input.AllowedAudiences
+		}
+
+		activeDirectorySettings = append(activeDirectorySettings, activeDirectorySetting)
+	}
+
+	result["active_directory"] = activeDirectorySettings
+
+	facebookSettings := make([]interface{}, 0)
+
+	if input.FacebookAppID != nil {
+		facebookSetting := make(map[string]interface{})
+
+		facebookSetting["app_id"] = *input.FacebookAppID
+
+		if input.FacebookAppSecret != nil {
+			facebookSetting["app_secret"] = *input.FacebookAppSecret
+		}
+
+		if input.FacebookOAuthScopes != nil {
+			facebookSetting["oauth_scopes"] = *input.FacebookOAuthScopes
+		}
+
+		facebookSettings = append(facebookSettings, facebookSetting)
+	}
+
+	result["facebook"] = facebookSettings
+
+	googleSettings := make([]interface{}, 0)
+
+	if input.GoogleClientID != nil {
+		googleSetting := make(map[string]interface{})
+
+		googleSetting["client_id"] = *input.GoogleClientID
+
+		if input.GoogleClientSecret != nil {
+			googleSetting["client_secret"] = *input.GoogleClientSecret
+		}
+
+		if input.GoogleOAuthScopes != nil {
+			googleSetting["oauth_scopes"] = *input.GoogleOAuthScopes
+		}
+
+		googleSettings = append(googleSettings, googleSetting)
+	}
+
+	result["google"] = googleSettings
+
+	microsoftSettings := make([]interface{}, 0)
+
+	if input.MicrosoftAccountClientID != nil {
+		microsoftSetting := make(map[string]interface{})
+
+		microsoftSetting["client_id"] = *input.MicrosoftAccountClientID
+
+		if input.MicrosoftAccountClientSecret != nil {
+			microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
+		}
+
+		if input.MicrosoftAccountOAuthScopes != nil {
+			microsoftSetting["oauth_scopes"] = *input.MicrosoftAccountOAuthScopes
+		}
+
+		microsoftSettings = append(microsoftSettings, microsoftSetting)
+	}
+
+	result["microsoft"] = microsoftSettings
+
+	twitterSettings := make([]interface{}, 0)
+
+	if input.TwitterConsumerKey != nil {
+		twitterSetting := make(map[string]interface{})
+
+		twitterSetting["consumer_key"] = *input.TwitterConsumerKey
+
+		if input.TwitterConsumerSecret != nil {
+			twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
+		}
+
+		twitterSettings = append(twitterSettings, twitterSetting)
+	}
+
+	result["twitter"] = twitterSettings
+
+	return append(results, result)
+}
+
+func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.ApplicationLogs != nil {
+		appLogs := make([]interface{}, 0)
+
+		appLogsItem := make(map[string]interface{})
+
+		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorage := make([]interface{}, 0)
+
+			blobStorageItem := make(map[string]interface{})
+
+			blobStorageItem["level"] = string(blobStorageInput.Level)
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			blobStorage = append(blobStorage, blobStorageItem)
+
+			appLogsItem["azure_blob_storage"] = blobStorage
+		}
+
+		appLogs = append(appLogs, appLogsItem)
+
+		result["application_logs"] = appLogs
+	}
+
+	return append(results, result)
+}
+
+func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
+	configs := input.([]interface{})
+	logs := web.SiteLogsConfigProperties{}
+
+	if len(configs) == 0 {
+		return logs
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["application_logs"]; ok {
+		appLogsConfigs := v.([]interface{})
+
+		for _, config := range appLogsConfigs {
+			appLogsConfig := config.(map[string]interface{})
+
+			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if v, ok := appLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
+						Level:           web.LogLevel(storageConfig["level"].(string)),
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	return logs
+}
+
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	configs := input.([]interface{})
 	siteConfig := web.SiteConfig{}
@@ -498,6 +1190,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["linux_fx_version"]; ok {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["windows_fx_version"]; ok {
+		siteConfig.WindowsFxVersion = utils.String(v.(string))
 	}
 
 	if v, ok := config["http2_enabled"]; ok {
@@ -686,6 +1382,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.WindowsFxVersion != nil {
+		result["windows_fx_version"] = *input.WindowsFxVersion
 	}
 
 	if input.VnetName != nil {

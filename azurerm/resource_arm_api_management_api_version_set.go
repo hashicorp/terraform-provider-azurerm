@@ -27,7 +27,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -71,7 +71,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 }
 
 func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiVersionSetClient
+	client := meta.(*ArmClient).apiManagement.ApiVersionSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -153,7 +153,7 @@ func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiVersionSetClient
+	client := meta.(*ArmClient).apiManagement.ApiVersionSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -191,7 +191,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiVersionSetClient
+	client := meta.(*ArmClient).apiManagement.ApiVersionSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

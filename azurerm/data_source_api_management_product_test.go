@@ -54,7 +54,6 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-
 resource "azurerm_api_management_product" "test" {
   product_id            = "test-product"
   api_management_name   = "${azurerm_api_management.test.name}"
@@ -62,6 +61,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = true
+  subscriptions_limit   = 2
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"

@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"net/http"
@@ -11,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
-	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	resourceName := "azurerm_user_assigned_identity.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
@@ -28,8 +27,8 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
-					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
+					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "client_id", validate.UUIDRegExp),
 				),
 			},
 			{
@@ -46,7 +45,6 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 		return
 	}
 
-	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	resourceName := "azurerm_user_assigned_identity.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
@@ -60,8 +58,8 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
-					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
+					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "client_id", validate.UUIDRegExp),
 				),
 			},
 			{
@@ -86,7 +84,7 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).userAssignedIdentitiesClient
+		client := testAccProvider.Meta().(*ArmClient).msi.UserAssignedIdentitiesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -103,7 +101,7 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).userAssignedIdentitiesClient
+	client := testAccProvider.Meta().(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
