@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	`net/http`
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -338,7 +338,6 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 		}
 	}
-
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var geoLocations []documentdb.Location
