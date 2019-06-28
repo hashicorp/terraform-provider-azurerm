@@ -171,6 +171,7 @@ type ArmClient struct {
 	galleriesClient            compute.GalleriesClient
 	galleryImagesClient        compute.GalleryImagesClient
 	galleryImageVersionsClient compute.GalleryImageVersionsClient
+	resourceSkusClient				 compute.ResourceSkusClient
 	snapshotsClient            compute.SnapshotsClient
 	usageOpsClient             compute.UsageClient
 	vmExtensionImageClient     compute.VirtualMachineExtensionImagesClient
@@ -703,6 +704,10 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&galleryImageVersionsClient.Client, auth)
 	c.galleryImageVersionsClient = galleryImageVersionsClient
+
+	resourceSkusClient := compute.NewResourceSkusClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&resourceSkusClient.Client, auth)
+	c.resourceSkusClient = resourceSkusClient
 }
 
 func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
