@@ -89,7 +89,7 @@ The following arguments are supported:
     resource exists. Changing this forces a new resource to be created.
 
 * `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
-    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
+    `StorageV2`,  `BlobStorage`, and `FileStorage`. Changing this forces a new resource to be created.
     Defaults to `Storage`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
