@@ -28,6 +28,10 @@ IMPROVEMENTS:
 * `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
 * `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block [GH-3255]
 
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - will ignore `500` responses from `documentdb.DatabaseAccountsClient#CheckNameExists` requests to work around a broken API [GH-3747]
+
 ## 1.30.1 (June 07, 2019)
 
 BUG FIXES:
