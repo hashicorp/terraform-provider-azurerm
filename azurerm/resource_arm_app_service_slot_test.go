@@ -284,7 +284,7 @@ func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(ri, testLocation(), tenantID)
@@ -316,7 +316,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(ri, testLocation(), tenantID)
@@ -349,7 +349,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(ri, testLocation(), tenantID)
@@ -381,7 +381,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(ri, testLocation(), tenantID)
@@ -413,7 +413,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *test
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(ri, testLocation(), tenantID)
@@ -445,7 +445,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *tes
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(ri, testLocation(), tenantID)
@@ -477,7 +477,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, testLocation(), tenantID)
@@ -508,7 +508,7 @@ func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_facebookAuthSettings(ri, testLocation())
 
@@ -537,7 +537,7 @@ func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_googleAuthSettings(ri, testLocation())
 
@@ -566,7 +566,7 @@ func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_microsoftAuthSettings(ri, testLocation())
 
@@ -595,7 +595,7 @@ func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_twitterAuthSettings(ri, testLocation())
 
@@ -623,7 +623,7 @@ func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
+	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	config1 := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, testLocation(), tenantID)
