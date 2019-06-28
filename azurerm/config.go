@@ -19,14 +19,9 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-<<<<<<< HEAD
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
-=======
 	devtestlabsSvc "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
->>>>>>> 03966b073d1d1a7ea0e51bbc4a8f3f8b267498d0
+	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
@@ -228,20 +223,9 @@ type ArmClient struct {
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
 
-<<<<<<< HEAD
-	// Databricks
-	databricksWorkspacesClient databricks.WorkspacesClient
-
 	// Frontdoor
-	frontdoorClient               frontdoor.FrontDoorsClient 
-
-	// HDInsight
-	hdinsightApplicationsClient   hdinsight.ApplicationsClient
-	hdinsightClustersClient       hdinsight.ClustersClient
-	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
-
-=======
->>>>>>> 03966b073d1d1a7ea0e51bbc4a8f3f8b267498d0
+	frontDoorsClient               frontdoor.FrontDoorsClient 
+	
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
@@ -784,7 +768,7 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 func (c *ArmClient) registerFrontdoorInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	fdc := frontdoor.NewFrontDoorsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&fdc.Client, auth)
-	c.frontdoorClient = fdc
+	c.frontDoorsClient = fdc
 }
 
 func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
