@@ -204,26 +204,26 @@ data "azurerm_app_service_plan" "test" {
 func testAccDataSourceAppServicePlan_basicWindowsContainer(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	is_xenon            = true
-	kind                = "xenon"
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  is_xenon            = true
+  kind                = "xenon"
 
-	sku {
-		tier = "PremiumContainer"
-		size = "PC2"
-	}
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
 }
 
 data "azurerm_app_service_plan" "test" {
-	name                = "${azurerm_app_service_plan.test.name}"
-	resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  name                = "${azurerm_app_service_plan.test.name}"
+  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
 }
 `, rInt, location, rInt)
 }

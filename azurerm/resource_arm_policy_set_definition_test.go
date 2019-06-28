@@ -239,7 +239,7 @@ POLICY_DEFINITIONS
 func testAzureRMPolicySetDefinition_ManagementGroup(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
-	display_name = "acctestmg-%d"
+  display_name = "acctestmg-%d"
 }
 
 resource "azurerm_policy_set_definition" "test" {

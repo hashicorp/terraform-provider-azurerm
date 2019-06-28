@@ -311,17 +311,16 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 }
-
 `, template)
 }
 
@@ -339,17 +338,16 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 }
-
 `, template)
 }
 
@@ -367,10 +365,10 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
-    
+
     header {
       name     = "X-Test-Operation"
       required = true
@@ -379,14 +377,14 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
   response {
     status_code = 200
     description = "successful operation"
-    
+
     header {
       name     = "X-Test-Operation"
       required = true
@@ -395,7 +393,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -408,7 +407,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 
@@ -426,13 +424,13 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
@@ -442,7 +440,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -455,7 +454,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 
@@ -473,13 +471,13 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
@@ -489,7 +487,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -503,7 +502,8 @@ SAMPLE
 
     representation {
       content_type = "application/json"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 {
   "user": {
     "groups": [
@@ -522,7 +522,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 

@@ -64,7 +64,7 @@ resource "azurerm_iothub" "test" {
   }
 
   fallback_route {
-    enabled        = true
+    enabled = true
   }
 
   tags = {
