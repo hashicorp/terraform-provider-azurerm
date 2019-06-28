@@ -10,15 +10,20 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` [GH-3119]
 * `azurerm_app_service` - support for shipping the application logs to blob storage [GH-3520]
 * `azurerm_app_service_plan` - prevent a panic during import [GH-3657]
 * `azurerm_app_service_slot` - updating `identity` no longer forces a new resource [GH-3702]
+* `azurerm_automation_account` - deprecated `sku` in favour of `sku_name` [GH-3119]
+* `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` [GH-3119]
 * `azurerm_key_vault_key` - add support for Elliptic Curve based keys [GH-1814]
 * `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
 * `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
 * `azurerm_lb` - support for the `public_ip_prefix_id` property [GH-3675]
 * `azurerm_mysql_server` - add validation to the `name` property [GH-3695]
+* `azurerm_notification_hub_namespace` - deprecated `sku` in favour of `sku_name` [GH-3119]
 * `azurerm_redis_firewall_rule` - no longer fails with multiple rules [GH-3731]
+* `azurerm_relay_namespace` - deprecated `sku` in favour of `sku_name` [GH-3119]
 * `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
 * `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
 * `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block [GH-3255]
