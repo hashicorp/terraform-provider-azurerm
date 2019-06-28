@@ -102,35 +102,6 @@ EOF
 }
 ```
 
-## Example Usage with a Custom VM Image
-
-It is also possible to use a custom VM image for an Azure Batch pool. The following assume that you have an image `ubuntu1604base-img` defined in a resource group `batch-custom-img-rg` in the same region than the Azure Batch account you are creating/updating.
-
-```hcl
-data "azurerm_image" "image" {
-  name                = "ubuntu1604base-img"
-  resource_group_name = "batch-custom-img-rg"
-}
-
-resource "azurerm_batch_pool" "pool" {
-  name                = "testaccpool"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
-  display_name        = "Test Acc Pool Auto"
-  vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
-
-  fixed_scale {
-    target_dedicated_nodes = 2
-    resize_timeout         = "PT15M"
-  }
-
-  storage_image_reference {
-    id = "${data.azurerm_image.image.id}"
-  }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -148,8 +119,6 @@ The following arguments are supported:
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
-
-~> **NOTE:** It's possible to reference a custom VM image for the pool by specifying it's `id` in the `id` property of the `storage_image_reference`. This property is mutually exclusive with other properties. The VM image should be in the same region that the batch pool you are about to create. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
@@ -169,6 +138,24 @@ The following arguments are supported:
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
+---
+A `storage_image_reference` block supports the following:
+
+This block provisions virtual machines in the Batch Pool from one of two sources: an Azure Platform Image (e.g. Ubuntu/Windows Server) or a Custom Image.
+
+To provision from an Azure Platform Image, the following fields are applicable:
+
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+To provision a Custom Image, the following fields are applicable:
+
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:
