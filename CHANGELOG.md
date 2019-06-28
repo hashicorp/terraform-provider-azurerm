@@ -1,36 +1,36 @@
-## 1.31.0 (Unreleased)
+## 1.31.0 (June 28, 2019)
 
 FEATURES:
 
-* increase the default timeout to `3 hours` [GH-3737]
-* **New Resource:** `azurerm_iot_dps` [GH-3618]
-* **New Resource:** `azurerm_mariadb_firewall_rule` [GH-3720]
-* **New Resource:** `azurerm_private_dns_zone` [GH-3718]
-* **New Resource:** `azurerm_stream_analytics_output_mssql` [GH-3567]
+* increase the default timeout to `3 hours` ([#3737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3737))
+* **New Resource:** `azurerm_iot_dps` ([#3618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3618))
+* **New Resource:** `azurerm_mariadb_firewall_rule` ([#3720](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3720))
+* **New Resource:** `azurerm_private_dns_zone` ([#3718](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3718))
+* **New Resource:** `azurerm_stream_analytics_output_mssql` ([#3567](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3567))
 
 IMPROVEMENTS:
 
-* Data Source `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` [GH-3119]
-* `azurerm_app_service` - support for shipping the application logs to blob storage [GH-3520]
-* `azurerm_app_service_plan` - prevent a panic during import [GH-3657]
-* `azurerm_app_service_slot` - updating `identity` no longer forces a new resource [GH-3702]
-* `azurerm_automation_account` - deprecated `sku` in favour of `sku_name` [GH-3119]
-* `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` [GH-3119]
-* `azurerm_key_vault_key` - add support for Elliptic Curve based keys [GH-1814]
-* `azurerm_traffic_manager_profile` - `ttl` can now be 1 second [GH-3632]
-* `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks [GH-3630]
-* `azurerm_lb` - support for the `public_ip_prefix_id` property [GH-3675]
-* `azurerm_mysql_server` - add validation to the `name` property [GH-3695]
-* `azurerm_notification_hub_namespace` - deprecated `sku` in favour of `sku_name` [GH-3119]
-* `azurerm_redis_firewall_rule` - no longer fails with multiple rules [GH-3731]
-* `azurerm_relay_namespace` - deprecated `sku` in favour of `sku_name` [GH-3119]
-* `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable [GH-3654]
-* `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` [GH-3652]
-* `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block [GH-3255]
+* Data Source `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` ([#3119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3119))
+* `azurerm_app_service` - support for shipping the application logs to blob storage ([#3520](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3520))
+* `azurerm_app_service_plan` - prevent a panic during import ([#3657](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3657))
+* `azurerm_app_service_slot` - updating `identity` no longer forces a new resource ([#3702](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3702))
+* `azurerm_automation_account` - deprecated `sku` in favour of `sku_name` ([#3119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3119))
+* `azurerm_key_vault` - deprecated `sku` in favour of `sku_name` ([#3119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3119))
+* `azurerm_key_vault_key` - add support for Elliptic Curve based keys ([#1814](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1814))
+* `azurerm_traffic_manager_profile` - `ttl` can now be 1 second ([#3632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3632))
+* `azurerm_eventgrid_event_subscription` - now retrieves the full URL for event webhooks ([#3630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3630))
+* `azurerm_lb` - support for the `public_ip_prefix_id` property ([#3675](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3675))
+* `azurerm_mysql_server` - add validation to the `name` property ([#3695](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3695))
+* `azurerm_notification_hub_namespace` - deprecated `sku` in favour of `sku_name` ([#3119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3119))
+* `azurerm_redis_firewall_rule` - no longer fails with multiple rules ([#3731](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3731))
+* `azurerm_relay_namespace` - deprecated `sku` in favour of `sku_name` ([#3119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3119))
+* `azurerm_service_fabric_cluster` - `tenant_id`, `cluster_application_id`, and `client_application_id` are now updateable ([#3654](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3654))
+* `azurerm_service_fabric_cluster` - ability to set `certificate_common_names` ([#3652](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3652))
+* `azurerm_storage_account` - ability to set `default_action` oi the `network_rules` block ([#3255](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3255))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - will ignore `500` responses from `documentdb.DatabaseAccountsClient#CheckNameExists` requests to work around a broken API [GH-3747]
+* `azurerm_cosmosdb_account` - will ignore `500` responses from `documentdb.DatabaseAccountsClient#CheckNameExists` requests to work around a broken API ([#3747](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3747))
 
 ## 1.30.1 (June 07, 2019)
 
