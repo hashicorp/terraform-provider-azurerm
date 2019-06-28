@@ -328,7 +328,10 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/5157 is fixed
+		if !utils.ResponseWasStatusCode(r, 500) {
+			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 	if !utils.ResponseWasNotFound(r) {
 		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
