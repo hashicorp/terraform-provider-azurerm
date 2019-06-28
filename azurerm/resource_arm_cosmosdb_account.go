@@ -332,10 +332,12 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		if !utils.ResponseWasStatusCode(r, 500) {
 			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	} else {
+		if !utils.ResponseWasNotFound(r) {
+			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		}
 	}
-	if !utils.ResponseWasNotFound(r) {
-		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
-	}
+
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var geoLocations []documentdb.Location
