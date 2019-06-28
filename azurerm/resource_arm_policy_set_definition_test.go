@@ -239,7 +239,7 @@ POLICY_DEFINITIONS
 func testAzureRMPolicySetDefinition_ManagementGroup(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
-	display_name = "acctestmg-%d"
+  display_name = "acctestmg-%d"
 }
 
 resource "azurerm_policy_set_definition" "test" {
@@ -287,7 +287,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).policySetDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		var err error
@@ -311,7 +311,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).policySetDefinitionsClient
+	client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

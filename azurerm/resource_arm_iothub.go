@@ -14,12 +14,15 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var iothubResourceName = "azurerm_iothub"
 
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
@@ -58,9 +61,9 @@ func resourceArmIotHub() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -323,6 +326,33 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"ip_filter_rule": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"ip_mask": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.CIDR,
+						},
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.Accept),
+								string(devices.Reject),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -330,12 +360,15 @@ func resourceArmIotHub() *schema.Resource {
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -364,7 +397,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 	fallbackRoute := expandIoTHubFallbackRoute(d)
@@ -375,12 +408,14 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	routes := expandIoTHubRoutes(d)
+	ipFilterRules := expandIPFilterRules(d)
 
 	properties := devices.IotHubDescription{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
+			IPFilterRules: ipFilterRules,
 			Routing: &devices.RoutingProperties{
 				Endpoints:     endpoints,
 				Routes:        routes,
@@ -410,7 +445,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -476,12 +511,18 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("fallback_route", fallbackRoute); err != nil {
 			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
+
+		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
+		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
+		}
+
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := hub.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	sku := flattenIoTHubSku(hub.Sku)
 	if err := d.Set("sku", sku); err != nil {
@@ -499,11 +540,14 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
+
+	azureRMLockByName(name, iothubResourceName)
+	defer azureRMUnlockByName(name, iothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -569,7 +613,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 			Name:          &name,
 			Source:        source,
 			Condition:     &condition,
-			EndpointNames: utils.ExpandStringArray(endpointNamesRaw),
+			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     &isEnabled,
 		})
 	}
@@ -667,7 +711,7 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 	return &devices.FallbackRouteProperties{
 		Source:        &source,
 		Condition:     &condition,
-		EndpointNames: utils.ExpandStringArray(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: utils.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     &isEnabled,
 	}
 }
@@ -862,7 +906,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = utils.FlattenStringArray(route.EndpointNames)
+	output["endpoint_names"] = utils.FlattenStringSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }
@@ -906,4 +950,47 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
+	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	if len(ipFilterRuleList) == 0 {
+		return nil
+	}
+
+	rules := make([]devices.IPFilterRule, 0)
+
+	for _, r := range ipFilterRuleList {
+		rawRule := r.(map[string]interface{})
+		rule := &devices.IPFilterRule{
+			FilterName: utils.String(rawRule["name"].(string)),
+			Action:     devices.IPFilterActionType(rawRule["action"].(string)),
+			IPMask:     utils.String(rawRule["ip_mask"].(string)),
+		}
+
+		rules = append(rules, *rule)
+	}
+	return &rules
+}
+
+func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
+	rules := make([]interface{}, 0)
+	if in == nil {
+		return rules
+	}
+
+	for _, r := range *in {
+		rawRule := make(map[string]interface{})
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
+		rawRule["action"] = string(r.Action)
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
+		rules = append(rules, rawRule)
+	}
+	return rules
 }

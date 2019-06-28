@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +25,7 @@ func dataSourceArmSubnet() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"address_prefix": {
 				Type:     schema.TypeString,
@@ -46,6 +47,14 @@ func dataSourceArmSubnet() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
+			},
+
+			"service_endpoints": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -88,6 +97,10 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("ip_configurations", flattenSubnetIPConfigurations(props.IPConfigurations)); err != nil {
+			return err
+		}
+
+		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
 			return err
 		}
 	}

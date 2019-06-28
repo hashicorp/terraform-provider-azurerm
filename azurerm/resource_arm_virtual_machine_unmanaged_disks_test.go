@@ -502,17 +502,19 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	})
 }
 
+// to accept terms for config:
+//   get-AzureRmMarketplaceTerms -publisher kemptech -product vlm-azure -name freeloadmaster | Set-AzureRmMarketplaceTerms -accept
 func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_plan(ri, testLocation())
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_plan(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 				),
@@ -1978,12 +1980,12 @@ resource "azurerm_network_interface" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-     ip_configuration {
-     	name = "testconfiguration1"
-     	subnet_id = "${azurerm_subnet.test.id}"
-     	private_ip_address_allocation = "Dynamic"
-     }
- }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
@@ -2072,12 +2074,12 @@ resource "azurerm_network_interface" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-     ip_configuration {
-     	name = "testconfiguration1"
-     	subnet_id = "${azurerm_subnet.test.id}"
-     	private_ip_address_allocation = "Dynamic"
-     }
- }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"

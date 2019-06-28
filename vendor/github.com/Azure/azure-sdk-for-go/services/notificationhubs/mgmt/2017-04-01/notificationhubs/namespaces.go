@@ -94,6 +94,8 @@ func (client NamespacesClient) CheckAvailabilityPreparer(ctx context.Context, pa
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

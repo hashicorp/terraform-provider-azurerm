@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -36,9 +37,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 				ValidateFunc: validateAzureRMContainerRegistryName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"sku": {
 				Type:             schema.TypeString,
@@ -67,7 +68,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
-				Set: azureRMHashLocation,
+				Set: azure.HashAzureLocation,
 			},
 
 			"storage_account_id": {
@@ -129,7 +130,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 }
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
@@ -149,7 +150,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -215,7 +216,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
@@ -300,7 +301,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
-	replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
+	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
@@ -308,14 +309,14 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the new location values
 	for _, nl := range newGeoReplicationLocations {
-		newLocation := azureRMNormalizeLocation(nl)
+		newLocation := azure.NormalizeLocation(nl)
 		createLocations[newLocation] = true // the location needs to be created
 	}
 
 	// loop on the old location values
 	for _, ol := range oldGeoReplicationLocations {
 		// oldLocation was created from a previous deployment
-		oldLocation := azureRMNormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol)
 
 		// if the list of locations to create already contains the location
 		if _, ok := createLocations[oldLocation]; ok {
@@ -348,7 +349,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the list of previously deployed locations
 	for _, ol := range oldGeoReplicationLocations {
-		oldLocation := azureRMNormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol)
 		// if the old location is still in the list of locations, then continue
 		if _, ok := createLocations[oldLocation]; ok {
 			continue
@@ -369,8 +370,8 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 }
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
-	replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
+	client := meta.(*ArmClient).containers.RegistriesClient
+	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -396,7 +397,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	location := resp.Location
 	if location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
@@ -440,8 +441,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 		for _, value := range replicationValues {
 			if value.Location != nil {
-				valueLocation := azureRMNormalizeLocation(*value.Location)
-				if location != nil && valueLocation != azureRMNormalizeLocation(*location) {
+				valueLocation := azure.NormalizeLocation(*value.Location)
+				if location != nil && valueLocation != azure.NormalizeLocation(*location) {
 					georeplication_locations.Add(valueLocation)
 				}
 			}
@@ -454,7 +455,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containerRegistryClient
+	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

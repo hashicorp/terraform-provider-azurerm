@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -223,7 +223,7 @@ resource "azurerm_network_interface" "test" {
     name                           = "testconfiguration1"
     subnet_id                      = "${azurerm_subnet.test.id}"
     private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = [ "${azurerm_application_security_group.test.id}" ]
+    application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
   }
 }
 

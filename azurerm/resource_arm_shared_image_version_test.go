@@ -166,11 +166,11 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 }
 
 func testAccAzureRMSharedImageVersion_setup(rInt int, location, username, password, hostname string) string {
-	return testAccAzureRMImage_standaloneImage_setup(rInt, username, password, hostname, location)
+	return testAccAzureRMImage_standaloneImage_setup(rInt, username, password, hostname, location, "LRS")
 }
 
 func testAccAzureRMSharedImageVersion_provision(rInt int, location, username, password, hostname string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(rInt, username, password, hostname, location)
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, username, password, hostname, location, "LRS")
 	return fmt.Sprintf(`
 %s
 

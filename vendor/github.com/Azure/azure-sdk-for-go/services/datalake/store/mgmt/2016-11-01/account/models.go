@@ -233,6 +233,29 @@ func PossibleTrustedIDProviderStateValues() []TrustedIDProviderState {
 	return []TrustedIDProviderState{TrustedIDProviderStateDisabled, TrustedIDProviderStateEnabled}
 }
 
+// UsageUnit enumerates the values for usage unit.
+type UsageUnit string
+
+const (
+	// Bytes ...
+	Bytes UsageUnit = "Bytes"
+	// BytesPerSecond ...
+	BytesPerSecond UsageUnit = "BytesPerSecond"
+	// Count ...
+	Count UsageUnit = "Count"
+	// CountsPerSecond ...
+	CountsPerSecond UsageUnit = "CountsPerSecond"
+	// Percent ...
+	Percent UsageUnit = "Percent"
+	// Seconds ...
+	Seconds UsageUnit = "Seconds"
+)
+
+// PossibleUsageUnitValues returns an array of possible values for the UsageUnit const type.
+func PossibleUsageUnitValues() []UsageUnit {
+	return []UsageUnit{Bytes, BytesPerSecond, Count, CountsPerSecond, Percent, Seconds}
+}
+
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
@@ -243,7 +266,7 @@ type AccountsCreateFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsCreateFutureType) Result(client AccountsClient) (dlsa DataLakeStoreAccount, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -272,7 +295,7 @@ type AccountsDeleteFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsDeleteFutureType) Result(client AccountsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsDeleteFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -295,7 +318,7 @@ type AccountsUpdateFutureType struct {
 // If the operation has not completed it will return an error.
 func (future *AccountsUpdateFutureType) Result(client AccountsClient) (dlsa DataLakeStoreAccount, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", future.Response(), "Polling failure")
 		return
@@ -317,15 +340,15 @@ func (future *AccountsUpdateFutureType) Result(client AccountsClient) (dlsa Data
 // CapabilityInformation subscription-level properties and limits for Data Lake Store.
 type CapabilityInformation struct {
 	autorest.Response `json:"-"`
-	// SubscriptionID - The subscription credentials that uniquely identifies the subscription.
+	// SubscriptionID - READ-ONLY; The subscription credentials that uniquely identifies the subscription.
 	SubscriptionID *uuid.UUID `json:"subscriptionId,omitempty"`
-	// State - The subscription state. Possible values include: 'SubscriptionStateRegistered', 'SubscriptionStateSuspended', 'SubscriptionStateDeleted', 'SubscriptionStateUnregistered', 'SubscriptionStateWarned'
+	// State - READ-ONLY; The subscription state. Possible values include: 'SubscriptionStateRegistered', 'SubscriptionStateSuspended', 'SubscriptionStateDeleted', 'SubscriptionStateUnregistered', 'SubscriptionStateWarned'
 	State SubscriptionState `json:"state,omitempty"`
-	// MaxAccountCount - The maximum supported number of accounts under this subscription.
+	// MaxAccountCount - READ-ONLY; The maximum supported number of accounts under this subscription.
 	MaxAccountCount *int32 `json:"maxAccountCount,omitempty"`
-	// AccountCount - The current number of accounts under this subscription.
+	// AccountCount - READ-ONLY; The current number of accounts under this subscription.
 	AccountCount *int32 `json:"accountCount,omitempty"`
-	// MigrationState - The Boolean value of true or false to indicate the maintenance state.
+	// MigrationState - READ-ONLY; The Boolean value of true or false to indicate the maintenance state.
 	MigrationState *bool `json:"migrationState,omitempty"`
 }
 
@@ -747,46 +770,25 @@ func (cvnrwap *CreateVirtualNetworkRuleWithAccountParameters) UnmarshalJSON(body
 // DataLakeStoreAccount data Lake Store account information.
 type DataLakeStoreAccount struct {
 	autorest.Response `json:"-"`
-	// Identity - The Key Vault encryption identity, if any.
+	// Identity - READ-ONLY; The Key Vault encryption identity, if any.
 	Identity *EncryptionIdentity `json:"identity,omitempty"`
-	// DataLakeStoreAccountProperties - The Data Lake Store account properties.
+	// DataLakeStoreAccountProperties - READ-ONLY; The Data Lake Store account properties.
 	*DataLakeStoreAccountProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for DataLakeStoreAccount.
 func (dlsa DataLakeStoreAccount) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dlsa.Identity != nil {
-		objectMap["identity"] = dlsa.Identity
-	}
-	if dlsa.DataLakeStoreAccountProperties != nil {
-		objectMap["properties"] = dlsa.DataLakeStoreAccountProperties
-	}
-	if dlsa.ID != nil {
-		objectMap["id"] = dlsa.ID
-	}
-	if dlsa.Name != nil {
-		objectMap["name"] = dlsa.Name
-	}
-	if dlsa.Type != nil {
-		objectMap["type"] = dlsa.Type
-	}
-	if dlsa.Location != nil {
-		objectMap["location"] = dlsa.Location
-	}
-	if dlsa.Tags != nil {
-		objectMap["tags"] = dlsa.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -870,41 +872,23 @@ func (dlsa *DataLakeStoreAccount) UnmarshalJSON(body []byte) error {
 
 // DataLakeStoreAccountBasic basic Data Lake Store account information, returned on list calls.
 type DataLakeStoreAccountBasic struct {
-	// DataLakeStoreAccountPropertiesBasic - The basic Data Lake Store account properties.
+	// DataLakeStoreAccountPropertiesBasic - READ-ONLY; The basic Data Lake Store account properties.
 	*DataLakeStoreAccountPropertiesBasic `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for DataLakeStoreAccountBasic.
 func (dlsab DataLakeStoreAccountBasic) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dlsab.DataLakeStoreAccountPropertiesBasic != nil {
-		objectMap["properties"] = dlsab.DataLakeStoreAccountPropertiesBasic
-	}
-	if dlsab.ID != nil {
-		objectMap["id"] = dlsab.ID
-	}
-	if dlsab.Name != nil {
-		objectMap["name"] = dlsab.Name
-	}
-	if dlsab.Type != nil {
-		objectMap["type"] = dlsab.Type
-	}
-	if dlsab.Location != nil {
-		objectMap["location"] = dlsab.Location
-	}
-	if dlsab.Tags != nil {
-		objectMap["tags"] = dlsab.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -980,9 +964,9 @@ func (dlsab *DataLakeStoreAccountBasic) UnmarshalJSON(body []byte) error {
 // DataLakeStoreAccountListResult data Lake Store account list information response.
 type DataLakeStoreAccountListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]DataLakeStoreAccountBasic `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1126,58 +1110,58 @@ func NewDataLakeStoreAccountListResultPage(getNextPage func(context.Context, Dat
 
 // DataLakeStoreAccountProperties data Lake Store account properties information.
 type DataLakeStoreAccountProperties struct {
-	// DefaultGroup - The default owner group for all new folders and files created in the Data Lake Store account.
+	// DefaultGroup - READ-ONLY; The default owner group for all new folders and files created in the Data Lake Store account.
 	DefaultGroup *string `json:"defaultGroup,omitempty"`
-	// EncryptionConfig - The Key Vault encryption configuration.
+	// EncryptionConfig - READ-ONLY; The Key Vault encryption configuration.
 	EncryptionConfig *EncryptionConfig `json:"encryptionConfig,omitempty"`
-	// EncryptionState - The current state of encryption for this Data Lake Store account. Possible values include: 'Enabled', 'Disabled'
+	// EncryptionState - READ-ONLY; The current state of encryption for this Data Lake Store account. Possible values include: 'Enabled', 'Disabled'
 	EncryptionState EncryptionState `json:"encryptionState,omitempty"`
-	// EncryptionProvisioningState - The current state of encryption provisioning for this Data Lake Store account. Possible values include: 'EncryptionProvisioningStateCreating', 'EncryptionProvisioningStateSucceeded'
+	// EncryptionProvisioningState - READ-ONLY; The current state of encryption provisioning for this Data Lake Store account. Possible values include: 'EncryptionProvisioningStateCreating', 'EncryptionProvisioningStateSucceeded'
 	EncryptionProvisioningState EncryptionProvisioningState `json:"encryptionProvisioningState,omitempty"`
-	// FirewallRules - The list of firewall rules associated with this Data Lake Store account.
+	// FirewallRules - READ-ONLY; The list of firewall rules associated with this Data Lake Store account.
 	FirewallRules *[]FirewallRule `json:"firewallRules,omitempty"`
-	// VirtualNetworkRules - The list of virtual network rules associated with this Data Lake Store account.
+	// VirtualNetworkRules - READ-ONLY; The list of virtual network rules associated with this Data Lake Store account.
 	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
-	// FirewallState - The current state of the IP address firewall for this Data Lake Store account. Possible values include: 'FirewallStateEnabled', 'FirewallStateDisabled'
+	// FirewallState - READ-ONLY; The current state of the IP address firewall for this Data Lake Store account. Possible values include: 'FirewallStateEnabled', 'FirewallStateDisabled'
 	FirewallState FirewallState `json:"firewallState,omitempty"`
-	// FirewallAllowAzureIps - The current state of allowing or disallowing IPs originating within Azure through the firewall. If the firewall is disabled, this is not enforced. Possible values include: 'FirewallAllowAzureIpsStateEnabled', 'FirewallAllowAzureIpsStateDisabled'
+	// FirewallAllowAzureIps - READ-ONLY; The current state of allowing or disallowing IPs originating within Azure through the firewall. If the firewall is disabled, this is not enforced. Possible values include: 'FirewallAllowAzureIpsStateEnabled', 'FirewallAllowAzureIpsStateDisabled'
 	FirewallAllowAzureIps FirewallAllowAzureIpsState `json:"firewallAllowAzureIps,omitempty"`
-	// TrustedIDProviders - The list of trusted identity providers associated with this Data Lake Store account.
+	// TrustedIDProviders - READ-ONLY; The list of trusted identity providers associated with this Data Lake Store account.
 	TrustedIDProviders *[]TrustedIDProvider `json:"trustedIdProviders,omitempty"`
-	// TrustedIDProviderState - The current state of the trusted identity provider feature for this Data Lake Store account. Possible values include: 'TrustedIDProviderStateEnabled', 'TrustedIDProviderStateDisabled'
+	// TrustedIDProviderState - READ-ONLY; The current state of the trusted identity provider feature for this Data Lake Store account. Possible values include: 'TrustedIDProviderStateEnabled', 'TrustedIDProviderStateDisabled'
 	TrustedIDProviderState TrustedIDProviderState `json:"trustedIdProviderState,omitempty"`
-	// NewTier - The commitment tier to use for next month. Possible values include: 'Consumption', 'Commitment1TB', 'Commitment10TB', 'Commitment100TB', 'Commitment500TB', 'Commitment1PB', 'Commitment5PB'
+	// NewTier - READ-ONLY; The commitment tier to use for next month. Possible values include: 'Consumption', 'Commitment1TB', 'Commitment10TB', 'Commitment100TB', 'Commitment500TB', 'Commitment1PB', 'Commitment5PB'
 	NewTier TierType `json:"newTier,omitempty"`
-	// CurrentTier - The commitment tier in use for the current month. Possible values include: 'Consumption', 'Commitment1TB', 'Commitment10TB', 'Commitment100TB', 'Commitment500TB', 'Commitment1PB', 'Commitment5PB'
+	// CurrentTier - READ-ONLY; The commitment tier in use for the current month. Possible values include: 'Consumption', 'Commitment1TB', 'Commitment10TB', 'Commitment100TB', 'Commitment500TB', 'Commitment1PB', 'Commitment5PB'
 	CurrentTier TierType `json:"currentTier,omitempty"`
-	// AccountID - The unique identifier associated with this Data Lake Store account.
+	// AccountID - READ-ONLY; The unique identifier associated with this Data Lake Store account.
 	AccountID *uuid.UUID `json:"accountId,omitempty"`
-	// ProvisioningState - The provisioning status of the Data Lake Store account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning status of the Data Lake Store account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
 	ProvisioningState DataLakeStoreAccountStatus `json:"provisioningState,omitempty"`
-	// State - The state of the Data Lake Store account. Possible values include: 'Active', 'Suspended'
+	// State - READ-ONLY; The state of the Data Lake Store account. Possible values include: 'Active', 'Suspended'
 	State DataLakeStoreAccountState `json:"state,omitempty"`
-	// CreationTime - The account creation time.
+	// CreationTime - READ-ONLY; The account creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - The account last modified time.
+	// LastModifiedTime - READ-ONLY; The account last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
-	// Endpoint - The full CName endpoint for this account.
+	// Endpoint - READ-ONLY; The full CName endpoint for this account.
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
 // DataLakeStoreAccountPropertiesBasic the basic account specific properties that are associated with an
 // underlying Data Lake Store account.
 type DataLakeStoreAccountPropertiesBasic struct {
-	// AccountID - The unique identifier associated with this Data Lake Store account.
+	// AccountID - READ-ONLY; The unique identifier associated with this Data Lake Store account.
 	AccountID *uuid.UUID `json:"accountId,omitempty"`
-	// ProvisioningState - The provisioning status of the Data Lake Store account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning status of the Data Lake Store account. Possible values include: 'Failed', 'Creating', 'Running', 'Succeeded', 'Patching', 'Suspending', 'Resuming', 'Deleting', 'Deleted', 'Undeleting', 'Canceled'
 	ProvisioningState DataLakeStoreAccountStatus `json:"provisioningState,omitempty"`
-	// State - The state of the Data Lake Store account. Possible values include: 'Active', 'Suspended'
+	// State - READ-ONLY; The state of the Data Lake Store account. Possible values include: 'Active', 'Suspended'
 	State DataLakeStoreAccountState `json:"state,omitempty"`
-	// CreationTime - The account creation time.
+	// CreationTime - READ-ONLY; The account creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - The account last modified time.
+	// LastModifiedTime - READ-ONLY; The account last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
-	// Endpoint - The full CName endpoint for this account.
+	// Endpoint - READ-ONLY; The full CName endpoint for this account.
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
@@ -1193,40 +1177,28 @@ type EncryptionConfig struct {
 type EncryptionIdentity struct {
 	// Type - The type of encryption being used. Currently the only supported type is 'SystemAssigned'.
 	Type *string `json:"type,omitempty"`
-	// PrincipalID - The principal identifier associated with the encryption.
+	// PrincipalID - READ-ONLY; The principal identifier associated with the encryption.
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
-	// TenantID - The tenant identifier associated with the encryption.
+	// TenantID - READ-ONLY; The tenant identifier associated with the encryption.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
 }
 
 // FirewallRule data Lake Store firewall rule information.
 type FirewallRule struct {
 	autorest.Response `json:"-"`
-	// FirewallRuleProperties - The firewall rule properties.
+	// FirewallRuleProperties - READ-ONLY; The firewall rule properties.
 	*FirewallRuleProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FirewallRule.
 func (fr FirewallRule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if fr.FirewallRuleProperties != nil {
-		objectMap["properties"] = fr.FirewallRuleProperties
-	}
-	if fr.ID != nil {
-		objectMap["id"] = fr.ID
-	}
-	if fr.Name != nil {
-		objectMap["name"] = fr.Name
-	}
-	if fr.Type != nil {
-		objectMap["type"] = fr.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1284,9 +1256,9 @@ func (fr *FirewallRule) UnmarshalJSON(body []byte) error {
 // FirewallRuleListResult data Lake Store firewall rule list information.
 type FirewallRuleListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]FirewallRule `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1429,9 +1401,9 @@ func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRul
 
 // FirewallRuleProperties the firewall rule properties.
 type FirewallRuleProperties struct {
-	// StartIPAddress - The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
+	// StartIPAddress - READ-ONLY; The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	StartIPAddress *string `json:"startIpAddress,omitempty"`
-	// EndIPAddress - The end IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
+	// EndIPAddress - READ-ONLY; The end IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
@@ -1448,118 +1420,91 @@ type KeyVaultMetaInfo struct {
 // NameAvailabilityInformation data Lake Store account name availability result information.
 type NameAvailabilityInformation struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - The Boolean value of true or false to indicate whether the Data Lake Store account name is available or not.
+	// NameAvailable - READ-ONLY; The Boolean value of true or false to indicate whether the Data Lake Store account name is available or not.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - The reason why the Data Lake Store account name is not available, if nameAvailable is false.
+	// Reason - READ-ONLY; The reason why the Data Lake Store account name is not available, if nameAvailable is false.
 	Reason *string `json:"reason,omitempty"`
-	// Message - The message describing why the Data Lake Store account name is not available, if nameAvailable is false.
+	// Message - READ-ONLY; The message describing why the Data Lake Store account name is not available, if nameAvailable is false.
 	Message *string `json:"message,omitempty"`
 }
 
 // Operation an available operation for Data Lake Store.
 type Operation struct {
-	// Name - The name of the operation.
+	// Name - READ-ONLY; The name of the operation.
 	Name *string `json:"name,omitempty"`
 	// Display - The display information for the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - The intended executor of the operation. Possible values include: 'User', 'System', 'Usersystem'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'User', 'System', 'Usersystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
 }
 
 // OperationDisplay the display information for a particular operation.
 type OperationDisplay struct {
-	// Provider - The resource provider of the operation.
+	// Provider - READ-ONLY; The resource provider of the operation.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The resource type of the operation.
+	// Resource - READ-ONLY; The resource type of the operation.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - A friendly name of the operation.
+	// Operation - READ-ONLY; A friendly name of the operation.
 	Operation *string `json:"operation,omitempty"`
-	// Description - A friendly description of the operation.
+	// Description - READ-ONLY; A friendly description of the operation.
 	Description *string `json:"description,omitempty"`
 }
 
 // OperationListResult the list of available operations for Data Lake Store.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // Resource the resource model definition.
 type Resource struct {
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
+	// Location - READ-ONLY; The resource location.
 	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
+	// Tags - READ-ONLY; The resource tags.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
-	if r.Location != nil {
-		objectMap["location"] = r.Location
-	}
-	if r.Tags != nil {
-		objectMap["tags"] = r.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
 // SubResource the resource model definition for a nested resource.
 type SubResource struct {
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // TrustedIDProvider data Lake Store trusted identity provider information.
 type TrustedIDProvider struct {
 	autorest.Response `json:"-"`
-	// TrustedIDProviderProperties - The trusted identity provider properties.
+	// TrustedIDProviderProperties - READ-ONLY; The trusted identity provider properties.
 	*TrustedIDProviderProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TrustedIDProvider.
 func (tip TrustedIDProvider) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if tip.TrustedIDProviderProperties != nil {
-		objectMap["properties"] = tip.TrustedIDProviderProperties
-	}
-	if tip.ID != nil {
-		objectMap["id"] = tip.ID
-	}
-	if tip.Name != nil {
-		objectMap["name"] = tip.Name
-	}
-	if tip.Type != nil {
-		objectMap["type"] = tip.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1617,9 +1562,9 @@ func (tip *TrustedIDProvider) UnmarshalJSON(body []byte) error {
 // TrustedIDProviderListResult data Lake Store trusted identity provider list information.
 type TrustedIDProviderListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]TrustedIDProvider `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1762,7 +1707,7 @@ func NewTrustedIDProviderListResultPage(getNextPage func(context.Context, Truste
 
 // TrustedIDProviderProperties the trusted identity provider properties.
 type TrustedIDProviderProperties struct {
-	// IDProvider - The URL of this trusted identity provider.
+	// IDProvider - READ-ONLY; The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
 }
 
@@ -2154,34 +2099,51 @@ func (uvnrwap *UpdateVirtualNetworkRuleWithAccountParameters) UnmarshalJSON(body
 	return nil
 }
 
+// Usage describes the Resource Usage.
+type Usage struct {
+	// Unit - READ-ONLY; Gets the unit of measurement. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountsPerSecond', 'BytesPerSecond'
+	Unit UsageUnit `json:"unit,omitempty"`
+	// ID - READ-ONLY; Resource identifier.
+	ID *string `json:"id,omitempty"`
+	// CurrentValue - READ-ONLY; Gets the current count of the allocated resources in the subscription.
+	CurrentValue *int32 `json:"currentValue,omitempty"`
+	// Limit - READ-ONLY; Gets the maximum count of the resources that can be allocated in the subscription.
+	Limit *int32 `json:"limit,omitempty"`
+	// Name - READ-ONLY; Gets the name of the type of usage.
+	Name *UsageName `json:"name,omitempty"`
+}
+
+// UsageListResult the response from the List Usages operation.
+type UsageListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Gets or sets the list of Storage Resource Usages.
+	Value *[]Usage `json:"value,omitempty"`
+}
+
+// UsageName the usage names that can be used.
+type UsageName struct {
+	// Value - READ-ONLY; Gets a string describing the resource name.
+	Value *string `json:"value,omitempty"`
+	// LocalizedValue - READ-ONLY; Gets a localized string describing the resource name.
+	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
 // VirtualNetworkRule data Lake Store virtual network rule information.
 type VirtualNetworkRule struct {
 	autorest.Response `json:"-"`
-	// VirtualNetworkRuleProperties - The virtual network rule properties.
+	// VirtualNetworkRuleProperties - READ-ONLY; The virtual network rule properties.
 	*VirtualNetworkRuleProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VirtualNetworkRule.
 func (vnr VirtualNetworkRule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if vnr.VirtualNetworkRuleProperties != nil {
-		objectMap["properties"] = vnr.VirtualNetworkRuleProperties
-	}
-	if vnr.ID != nil {
-		objectMap["id"] = vnr.ID
-	}
-	if vnr.Name != nil {
-		objectMap["name"] = vnr.Name
-	}
-	if vnr.Type != nil {
-		objectMap["type"] = vnr.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -2239,9 +2201,9 @@ func (vnr *VirtualNetworkRule) UnmarshalJSON(body []byte) error {
 // VirtualNetworkRuleListResult data Lake Store virtual network rule list information.
 type VirtualNetworkRuleListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The results of the list operation.
+	// Value - READ-ONLY; The results of the list operation.
 	Value *[]VirtualNetworkRule `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2384,6 +2346,6 @@ func NewVirtualNetworkRuleListResultPage(getNextPage func(context.Context, Virtu
 
 // VirtualNetworkRuleProperties the virtual network rule properties.
 type VirtualNetworkRuleProperties struct {
-	// SubnetID - The resource identifier for the subnet.
+	// SubnetID - READ-ONLY; The resource identifier for the subnet.
 	SubnetID *string `json:"subnetId,omitempty"`
 }

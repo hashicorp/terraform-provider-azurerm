@@ -334,13 +334,13 @@ resource "azurerm_image" "def" {
 
 data "azurerm_image" "test1" {
   name_regex          = "^def-acctest-\\d+"
-  resource_group_name = "${azurerm_resource_group.test.name}${substr(azurerm_image.abc.name, 0, 0)}${substr(azurerm_image.def.name, 0, 0)}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 data "azurerm_image" "test2" {
   name_regex          = "^[a-z]+-acctest-\\d+"
   sort_descending     = true
-  resource_group_name = "${azurerm_resource_group.test.name}${substr(azurerm_image.abc.name, 0, 0)}${substr(azurerm_image.def.name, 0, 0)}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 output "location" {

@@ -3,10 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,7 +36,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,
@@ -104,13 +108,8 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)
-	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	if err := resource.Retry(300*time.Second, retryVnetPeeringsClientCreateUpdate(resGroup, vnetName, name, peer, meta)); err != nil {
+		return err
 	}
 
 	read, err := client.Get(ctx, resGroup, vnetName, name)
@@ -204,5 +203,30 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 		RemoteVirtualNetwork: &network.SubResource{
 			ID: &remoteVirtualNetworkID,
 		},
+	}
+}
+
+func retryVnetPeeringsClientCreateUpdate(resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		vnetPeeringsClient := meta.(*ArmClient).vnetPeeringsClient
+		ctx := meta.(*ArmClient).StopContext
+
+		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)
+		if err != nil {
+			if utils.ResponseErrorIsRetryable(err) {
+				return resource.RetryableError(err)
+			} else if future.Response().StatusCode == 400 && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+				// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, vnetPeeringsClient.Client); err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	}
 }

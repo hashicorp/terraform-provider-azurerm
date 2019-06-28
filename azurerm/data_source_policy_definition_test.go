@@ -62,7 +62,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "policy_type", "Custom"),
 					resource.TestCheckResourceAttr(dataSourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
 					resource.TestCheckResourceAttr(dataSourceName, "parameters", "{\"allowedLocations\":{\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"},\"type\":\"Array\"}}"),
-					resource.TestCheckResourceAttr(dataSourceName, "metadata", "{\"note\":\"azurerm acceptance test\"}"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "metadata"),
 				),
 			},
 		},
@@ -79,7 +79,6 @@ data "azurerm_policy_definition" "test" {
 
 func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) string {
 	return fmt.Sprintf(`
-
 data "azurerm_client_config" "current" {}
 
 data "azurerm_policy_definition" "test" {
@@ -97,7 +96,7 @@ resource "azurerm_policy_definition" "test_policy" {
   mode         = "All"
   display_name = "acctestpol-%d"
 
-  policy_rule  = <<POLICY_RULE
+  policy_rule = <<POLICY_RULE
   {
     "if": {
       "not": {
@@ -132,9 +131,8 @@ METADATA
 }
 
 data "azurerm_policy_definition" "test" {
-	display_name = "${azurerm_policy_definition.test_policy.display_name}"
+  display_name = "${azurerm_policy_definition.test_policy.display_name}"
 }
-
 `, ri, ri)
 }
 

@@ -52,7 +52,9 @@ type Exporter struct {
 	connectionState int32
 
 	// mu protects the non-atomic and non-channel variables
-	mu                 sync.RWMutex
+	mu sync.RWMutex
+	// senderMu protects the concurrent unsafe traceExporter client
+	senderMu           sync.RWMutex
 	started            bool
 	stopped            bool
 	agentAddress       string
@@ -123,7 +125,9 @@ const (
 
 var (
 	errAlreadyStarted = errors.New("already started")
+	errNotStarted     = errors.New("not started")
 	errStopped        = errors.New("stopped")
+	errNoConnection   = errors.New("no active connection")
 )
 
 // Start dials to the agent, establishing a connection to it. It also
@@ -287,10 +291,6 @@ func (ae *Exporter) handleConfigStreaming(configStream agenttracepb.TraceService
 	}
 }
 
-var (
-	errNotStarted = errors.New("not started")
-)
-
 // Stop shuts down all the connections and resources
 // related to the exporter.
 func (ae *Exporter) Stop() error {
@@ -336,6 +336,31 @@ func (ae *Exporter) ExportSpan(sd *trace.SpanData) {
 	_ = ae.traceBundler.Add(sd, 1)
 }
 
+func (ae *Exporter) ExportTraceServiceRequest(batch *agenttracepb.ExportTraceServiceRequest) error {
+	if batch == nil || len(batch.Spans) == 0 {
+		return nil
+	}
+
+	select {
+	case <-ae.stopCh:
+		return errStopped
+
+	default:
+		if !ae.connected() {
+			return errNoConnection
+		}
+
+		ae.senderMu.Lock()
+		err := ae.traceExporter.Send(batch)
+		ae.senderMu.Unlock()
+		if err != nil {
+			ae.setStateDisconnected()
+			return err
+		}
+		return nil
+	}
+}
+
 func (ae *Exporter) ExportView(vd *view.Data) {
 	if vd == nil {
 		return
@@ -370,9 +395,11 @@ func (ae *Exporter) uploadTraces(sdl []*trace.SpanData) {
 		if len(protoSpans) == 0 {
 			return
 		}
+		ae.senderMu.Lock()
 		err := ae.traceExporter.Send(&agenttracepb.ExportTraceServiceRequest{
 			Spans: protoSpans,
 		})
+		ae.senderMu.Unlock()
 		if err != nil {
 			ae.setStateDisconnected()
 		}

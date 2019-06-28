@@ -35,7 +35,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
@@ -242,7 +242,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	expandedTags := expandTags(tags)
 
 	parameters := insights.MetricAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
 			Enabled:             utils.Bool(enabled),
 			AutoMitigate:        utils.Bool(autoMitigate),
@@ -250,7 +250,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 			Severity:            utils.Int32(int32(severity)),
 			EvaluationFrequency: utils.String(frequency),
 			WindowSize:          utils.String(windowSize),
-			Scopes:              utils.ExpandStringArray(scopesRaw),
+			Scopes:              utils.ExpandStringSlice(scopesRaw),
 			Criteria:            expandMonitorMetricAlertCriteria(criteriaRaw),
 			Actions:             expandMonitorMetricAlertAction(actionRaw),
 		},
@@ -303,7 +303,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		d.Set("severity", alert.Severity)
 		d.Set("frequency", alert.EvaluationFrequency)
 		d.Set("window_size", alert.WindowSize)
-		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
@@ -349,7 +349,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			dimensions = append(dimensions, insights.MetricDimension{
 				Name:     utils.String(dVal["name"].(string)),
 				Operator: utils.String(dVal["operator"].(string)),
-				Values:   utils.ExpandStringArray(dVal["values"].([]interface{})),
+				Values:   utils.ExpandStringSlice(dVal["values"].([]interface{})),
 			})
 		}
 
@@ -427,7 +427,7 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 				if dimension.Operator != nil {
 					dVal["operator"] = *dimension.Operator
 				}
-				dVal["values"] = utils.FlattenStringArray(dimension.Values)
+				dVal["values"] = utils.FlattenStringSlice(dimension.Values)
 				dimResult = append(dimResult, dVal)
 			}
 			v["dimension"] = dimResult

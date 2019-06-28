@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -30,7 +31,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"short_name": {
 				Type:         schema.TypeString,
@@ -142,7 +143,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:   utils.String(shortName),
 			Enabled:          utils.Bool(enabled),

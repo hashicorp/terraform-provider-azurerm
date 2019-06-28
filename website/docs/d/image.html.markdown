@@ -33,11 +33,12 @@ output "image_id" {
 
 ## Attributes Reference
 
+* `data_disk` - a collection of `data_disk` blocks as defined below.
 * `name` - the name of the Image.
 * `location` - the Azure Location where this Image exists.
 * `os_disk` - a `os_disk` block as defined below.
-* `data_disk` - a collection of `data_disk` blocks as defined below.
 * `tags` - a mapping of tags to assigned to the resource.
+* `zone_resilient` - is zone resiliency enabled?
 
 `os_disk` supports the following:
 

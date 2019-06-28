@@ -292,22 +292,22 @@ type AccessPolicyEntry struct {
 // CheckNameAvailabilityResult the CheckNameAvailability operation response.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - A boolean value that indicates whether the name is available for you to use. If true, the name is available. If false, the name has already been taken or is invalid and cannot be used.
+	// NameAvailable - READ-ONLY; A boolean value that indicates whether the name is available for you to use. If true, the name is available. If false, the name has already been taken or is invalid and cannot be used.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - The reason that a vault name could not be used. The Reason element is only returned if NameAvailable is false. Possible values include: 'AccountNameInvalid', 'AlreadyExists'
+	// Reason - READ-ONLY; The reason that a vault name could not be used. The Reason element is only returned if NameAvailable is false. Possible values include: 'AccountNameInvalid', 'AlreadyExists'
 	Reason Reason `json:"reason,omitempty"`
-	// Message - An error message explaining the Reason value in more detail.
+	// Message - READ-ONLY; An error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
 }
 
 // DeletedVault deleted vault information with extended details.
 type DeletedVault struct {
 	autorest.Response `json:"-"`
-	// ID - The resource ID for the deleted key vault.
+	// ID - READ-ONLY; The resource ID for the deleted key vault.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the key vault.
+	// Name - READ-ONLY; The name of the key vault.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type of the key vault.
+	// Type - READ-ONLY; The resource type of the key vault.
 	Type *string `json:"type,omitempty"`
 	// Properties - Properties of the vault
 	Properties *DeletedVaultProperties `json:"properties,omitempty"`
@@ -461,36 +461,21 @@ func NewDeletedVaultListResultPage(getNextPage func(context.Context, DeletedVaul
 
 // DeletedVaultProperties properties of the deleted vault.
 type DeletedVaultProperties struct {
-	// VaultID - The resource id of the original vault.
+	// VaultID - READ-ONLY; The resource id of the original vault.
 	VaultID *string `json:"vaultId,omitempty"`
-	// Location - The location of the original vault.
+	// Location - READ-ONLY; The location of the original vault.
 	Location *string `json:"location,omitempty"`
-	// DeletionDate - The deleted date.
+	// DeletionDate - READ-ONLY; The deleted date.
 	DeletionDate *date.Time `json:"deletionDate,omitempty"`
-	// ScheduledPurgeDate - The scheduled purged date.
+	// ScheduledPurgeDate - READ-ONLY; The scheduled purged date.
 	ScheduledPurgeDate *date.Time `json:"scheduledPurgeDate,omitempty"`
-	// Tags - Tags of the original vault.
+	// Tags - READ-ONLY; Tags of the original vault.
 	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for DeletedVaultProperties.
 func (dvp DeletedVaultProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dvp.VaultID != nil {
-		objectMap["vaultId"] = dvp.VaultID
-	}
-	if dvp.Location != nil {
-		objectMap["location"] = dvp.Location
-	}
-	if dvp.DeletionDate != nil {
-		objectMap["deletionDate"] = dvp.DeletionDate
-	}
-	if dvp.ScheduledPurgeDate != nil {
-		objectMap["scheduledPurgeDate"] = dvp.ScheduledPurgeDate
-	}
-	if dvp.Tags != nil {
-		objectMap["tags"] = dvp.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -782,11 +767,11 @@ type Permissions struct {
 
 // Resource key Vault resource
 type Resource struct {
-	// ID - The Azure Resource Manager resource ID for the key vault.
+	// ID - READ-ONLY; The Azure Resource Manager resource ID for the key vault.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the key vault.
+	// Name - READ-ONLY; The name of the key vault.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type of the key vault.
+	// Type - READ-ONLY; The resource type of the key vault.
 	Type *string `json:"type,omitempty"`
 	// Location - The supported Azure location where the key vault should be created.
 	Location *string `json:"location,omitempty"`
@@ -797,15 +782,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -980,11 +956,11 @@ type Vault struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the vault
 	Properties *VaultProperties `json:"properties,omitempty"`
-	// ID - The Azure Resource Manager resource ID for the key vault.
+	// ID - READ-ONLY; The Azure Resource Manager resource ID for the key vault.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the key vault.
+	// Name - READ-ONLY; The name of the key vault.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type of the key vault.
+	// Type - READ-ONLY; The resource type of the key vault.
 	Type *string `json:"type,omitempty"`
 	// Location - The supported Azure location where the key vault should be created.
 	Location *string `json:"location,omitempty"`
@@ -998,15 +974,6 @@ func (vVar Vault) MarshalJSON() ([]byte, error) {
 	if vVar.Properties != nil {
 		objectMap["properties"] = vVar.Properties
 	}
-	if vVar.ID != nil {
-		objectMap["id"] = vVar.ID
-	}
-	if vVar.Name != nil {
-		objectMap["name"] = vVar.Name
-	}
-	if vVar.Type != nil {
-		objectMap["type"] = vVar.Type
-	}
 	if vVar.Location != nil {
 		objectMap["location"] = vVar.Location
 	}
@@ -1019,13 +986,13 @@ func (vVar Vault) MarshalJSON() ([]byte, error) {
 // VaultAccessPolicyParameters parameters for updating the access policy in a vault
 type VaultAccessPolicyParameters struct {
 	autorest.Response `json:"-"`
-	// ID - The resource id of the access policy.
+	// ID - READ-ONLY; The resource id of the access policy.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name of the access policy.
+	// Name - READ-ONLY; The resource name of the access policy.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource name of the access policy.
+	// Type - READ-ONLY; The resource name of the access policy.
 	Type *string `json:"type,omitempty"`
-	// Location - The resource type of the access policy.
+	// Location - READ-ONLY; The resource type of the access policy.
 	Location *string `json:"location,omitempty"`
 	// Properties - Properties of the access policy
 	Properties *VaultAccessPolicyProperties `json:"properties,omitempty"`
@@ -1266,7 +1233,7 @@ type VaultProperties struct {
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
 	// Sku - SKU details
 	Sku *Sku `json:"sku,omitempty"`
-	// AccessPolicies - An array of 0 to 16 identities that have access to the key vault. All identities in the array must use the same tenant ID as the key vault's tenant ID.
+	// AccessPolicies - An array of 0 to 16 identities that have access to the key vault. All identities in the array must use the same tenant ID as the key vault's tenant ID. When `createMode` is set to `recover`, access policies are not required. Otherwise, access policies are required.
 	AccessPolicies *[]AccessPolicyEntry `json:"accessPolicies,omitempty"`
 	// VaultURI - The URI of the vault for performing operations on keys and secrets.
 	VaultURI *string `json:"vaultUri,omitempty"`
@@ -1296,7 +1263,7 @@ type VaultsCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *VaultsCreateOrUpdateFuture) Result(client VaultsClient) (vVar Vault, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.VaultsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1325,7 +1292,7 @@ type VaultsPurgeDeletedFuture struct {
 // If the operation has not completed it will return an error.
 func (future *VaultsPurgeDeletedFuture) Result(client VaultsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.VaultsPurgeDeletedFuture", "Result", future.Response(), "Polling failure")
 		return

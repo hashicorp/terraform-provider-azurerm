@@ -234,7 +234,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -289,7 +289,7 @@ resource "azurerm_monitor_log_profile" "import" {
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -333,7 +333,7 @@ resource "azurerm_monitor_log_profile" "test" {
 func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

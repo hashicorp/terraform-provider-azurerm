@@ -6,11 +6,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -38,9 +40,9 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateArmStorageAccountName,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
@@ -173,17 +175,30 @@ func resourceArmStorageAccount() *schema.Resource {
 							},
 							Set: schema.HashString,
 						},
+
 						"ip_rules": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
 						"virtual_network_subnet_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
+						},
+
+						"default_action": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.DefaultActionAllow),
+								string(storage.DefaultActionDeny),
+							}, false),
 						},
 					},
 				},
@@ -259,13 +274,62 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -316,7 +380,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 							}, true),
@@ -374,7 +438,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	resourceGroupName := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
@@ -387,7 +451,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	accountKind := d.Get("account_kind").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
@@ -398,8 +462,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
-
-	networkRules := expandStorageAccountNetworkRules(d)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -420,7 +482,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         networkRules,
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
 		},
 	}
@@ -466,7 +528,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
 
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
 	}
@@ -582,17 +644,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
 	}
 
 	if d.HasChange("custom_domain") {
-		customDomain := expandStorageAccountCustomDomain(d)
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: customDomain,
+				CustomDomain: expandStorageAccountCustomDomain(d),
 			},
 		}
 
@@ -618,10 +678,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
-
 		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
+			Identity: expandAzureRmStorageAccountIdentity(d),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -630,11 +688,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("network_rules") {
-		networkRules := expandStorageAccountNetworkRules(d)
-
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: networkRules,
+				NetworkRuleSet: expandStorageAccountNetworkRules(d),
 			},
 		}
 
@@ -661,7 +717,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := client.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -679,7 +735,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
 
@@ -746,8 +802,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
-		networkRules := props.NetworkRuleSet
-		if networkRules != nil {
+		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
@@ -778,7 +833,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
@@ -858,13 +913,15 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	}
 
 	networkRule := networkRules[0].(map[string]interface{})
-	networkRuleSet := &storage.NetworkRuleSet{}
+	networkRuleSet := &storage.NetworkRuleSet{
+		IPRules:             expandStorageAccountIPRules(networkRule),
+		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
+		Bypass:              expandStorageAccountBypass(networkRule),
+	}
 
-	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
-	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
-	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	// Default Access is disabled when network rules are set.
-	networkRuleSet.DefaultAction = storage.DefaultActionDeny
+	if v := networkRule["default_action"]; v != nil {
+		networkRuleSet.DefaultAction = storage.DefaultAction(v.(string))
+	}
 
 	return networkRuleSet
 }
@@ -921,6 +978,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
+	networkRules["default_action"] = string(input.DefaultAction)
 
 	return []interface{}{networkRules}
 }
@@ -1033,118 +1091,71 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 }
 
 func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
-	var blobEndpoint, blobHost string
-	if primary != nil {
-		if v := primary.Blob; v != nil {
-			blobEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
-			}
-			blobHost = u.Host
-		}
-	}
-	d.Set("primary_blob_endpoint", blobEndpoint)
-	d.Set("primary_blob_host", blobHost)
-
-	var queueEndpoint, queueHost string
-	if primary != nil {
-		if v := primary.Queue; v != nil {
-			queueEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
-			}
-			queueHost = u.Host
-		}
-	}
-	d.Set("primary_queue_endpoint", queueEndpoint)
-	d.Set("primary_queue_host", queueHost)
-
-	var tableEndpoint, tableHost string
-	if primary != nil {
-		if v := primary.Table; v != nil {
-			tableEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
-			}
-			tableHost = u.Host
-		}
-	}
-	d.Set("primary_table_endpoint", tableEndpoint)
-	d.Set("primary_table_host", tableHost)
-
-	var fileEndpoint, fileHost string
-	if primary != nil {
-		if v := primary.File; v != nil {
-			fileEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid file endpoint for parsing: %q", *v)
-			}
-			fileHost = u.Host
-		}
-	}
-	d.Set("primary_file_endpoint", fileEndpoint)
-	d.Set("primary_file_host", fileHost)
-
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
+	}
+
+	if err := setEndpointAndHost(d, "primary", primary.Blob, "blob"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Dfs, "dfs"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.File, "file"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Queue, "queue"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Web, "web"); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
-	var blobEndpoint, blobHost string
-	if secondary != nil {
-		if v := secondary.Blob; v != nil {
-			blobEndpoint = *v
-
-			if u, err := url.Parse(*v); err == nil {
-				blobHost = u.Host
-			} else {
-				return fmt.Errorf("invalid blob endpoint for parsing: %q", *v)
-			}
-		}
+	if secondary == nil {
+		return nil
 	}
-	d.Set("secondary_blob_endpoint", blobEndpoint)
-	d.Set("secondary_blob_host", blobHost)
 
-	var queueEndpoint, queueHost string
-	if secondary != nil {
-		if v := secondary.Queue; v != nil {
-			queueEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid queue endpoint for parsing: %q", *v)
-			}
-			queueHost = u.Host
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.Blob, "blob"); err != nil {
+		return err
 	}
-	d.Set("secondary_queue_endpoint", queueEndpoint)
-	d.Set("secondary_queue_host", queueHost)
-
-	var tableEndpoint, tableHost string
-	if secondary != nil {
-		if v := secondary.Table; v != nil {
-			tableEndpoint = *v
-
-			u, err := url.Parse(*v)
-			if err != nil {
-				return fmt.Errorf("invalid table endpoint for parsing: %q", *v)
-			}
-			tableHost = u.Host
-		}
+	if err := setEndpointAndHost(d, "secondary", secondary.Dfs, "dfs"); err != nil {
+		return err
 	}
-	d.Set("secondary_table_endpoint", tableEndpoint)
-	d.Set("secondary_table_host", tableHost)
+	if err := setEndpointAndHost(d, "secondary", secondary.File, "file"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Queue, "queue"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
+		return err
+	}
+	return nil
+}
 
+func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointType *string, typeString string) error {
+	var endpoint, host string
+	if v := endpointType; v != nil {
+		endpoint = *v
+
+		u, err := url.Parse(*v)
+		if err != nil {
+			return fmt.Errorf("invalid %s endpoint for parsing: %q", typeString, *v)
+		}
+		host = u.Host
+	}
+
+	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

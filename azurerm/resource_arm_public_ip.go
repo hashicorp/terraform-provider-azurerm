@@ -5,12 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,9 +44,9 @@ func resourceArmPublicIp() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"allocation_method": {
 				Type: schema.TypeString,
@@ -126,7 +126,14 @@ func resourceArmPublicIp() *schema.Resource {
 				Computed: true,
 			},
 
-			"zones": singleZonesSchema(),
+			"public_ip_prefix_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"zones": azure.SchemaSingleZone(),
 
 			"tags": tagsSchema(),
 		},
@@ -140,11 +147,11 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
 
@@ -195,6 +202,14 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		Tags:  expandTags(tags),
 		Zones: zones,
+	}
+
+	publicIpPrefixId, publicIpPrefixIdOk := d.GetOk("public_ip_prefix_id")
+
+	if publicIpPrefixIdOk {
+		publicIpPrefix := network.SubResource{}
+		publicIpPrefix.ID = utils.String(publicIpPrefixId.(string))
+		publicIp.PublicIPAddressPropertiesFormat.PublicIPPrefix = &publicIpPrefix
 	}
 
 	dnl, dnlOk := d.GetOk("domain_name_label")
@@ -261,7 +276,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {

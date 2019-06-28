@@ -275,7 +275,7 @@ type AnnotationError struct {
 // AnnotationsListResult annotations list result.
 type AnnotationsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of annotations.
+	// Value - READ-ONLY; An array of annotations.
 	Value *[]Annotation `json:"value,omitempty"`
 }
 
@@ -296,11 +296,11 @@ type ApplicationInsightsComponent struct {
 	Kind *string `json:"kind,omitempty"`
 	// ApplicationInsightsComponentProperties - Properties that define an Application Insights component resource.
 	*ApplicationInsightsComponentProperties `json:"properties,omitempty"`
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -316,15 +316,6 @@ func (aic ApplicationInsightsComponent) MarshalJSON() ([]byte, error) {
 	}
 	if aic.ApplicationInsightsComponentProperties != nil {
 		objectMap["properties"] = aic.ApplicationInsightsComponentProperties
-	}
-	if aic.ID != nil {
-		objectMap["id"] = aic.ID
-	}
-	if aic.Name != nil {
-		objectMap["name"] = aic.Name
-	}
-	if aic.Type != nil {
-		objectMap["type"] = aic.Type
 	}
 	if aic.Location != nil {
 		objectMap["location"] = aic.Location
@@ -423,15 +414,15 @@ type ApplicationInsightsComponentAnalyticsItem struct {
 	Name *string `json:"Name,omitempty"`
 	// Content - The content of this item
 	Content *string `json:"Content,omitempty"`
-	// Version - This instance's version of the data model. This can change as new features are added.
+	// Version - READ-ONLY; This instance's version of the data model. This can change as new features are added.
 	Version *string `json:"Version,omitempty"`
 	// Scope - Enum indicating if this item definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'ItemScopeShared', 'ItemScopeUser'
 	Scope ItemScope `json:"Scope,omitempty"`
 	// Type - Enum indicating the type of the Analytics item. Possible values include: 'Query', 'Function', 'Folder', 'Recent'
 	Type ItemType `json:"Type,omitempty"`
-	// TimeCreated - Date and time in UTC when this item was created.
+	// TimeCreated - READ-ONLY; Date and time in UTC when this item was created.
 	TimeCreated *string `json:"TimeCreated,omitempty"`
-	// TimeModified - Date and time in UTC of the last modification that was made to this item.
+	// TimeModified - READ-ONLY; Date and time in UTC of the last modification that was made to this item.
 	TimeModified *string                                              `json:"TimeModified,omitempty"`
 	Properties   *ApplicationInsightsComponentAnalyticsItemProperties `json:"Properties,omitempty"`
 }
@@ -447,9 +438,9 @@ type ApplicationInsightsComponentAnalyticsItemProperties struct {
 // Component.
 type ApplicationInsightsComponentAPIKey struct {
 	autorest.Response `json:"-"`
-	// ID - The unique ID of the API key inside an Application Insights component. It is auto generated when the API key is created.
+	// ID - READ-ONLY; The unique ID of the API key inside an Application Insights component. It is auto generated when the API key is created.
 	ID *string `json:"id,omitempty"`
-	// APIKey - The API key value. It will be only return once when the API Key was created.
+	// APIKey - READ-ONLY; The API key value. It will be only return once when the API Key was created.
 	APIKey *string `json:"apiKey,omitempty"`
 	// CreatedDate - The create date of this API key.
 	CreatedDate *string `json:"createdDate,omitempty"`
@@ -472,7 +463,7 @@ type ApplicationInsightsComponentAPIKeyListResult struct {
 // ApplicationInsightsComponentAvailableFeatures an Application Insights component available features.
 type ApplicationInsightsComponentAvailableFeatures struct {
 	autorest.Response `json:"-"`
-	// Result - A list of Application Insights component feature.
+	// Result - READ-ONLY; A list of Application Insights component feature.
 	Result *[]ApplicationInsightsComponentFeature `json:"Result,omitempty"`
 }
 
@@ -489,7 +480,7 @@ type ApplicationInsightsComponentBillingFeatures struct {
 type ApplicationInsightsComponentDataVolumeCap struct {
 	// Cap - Daily data volume cap in GB.
 	Cap *float64 `json:"Cap,omitempty"`
-	// ResetTime - Daily data volume cap UTC reset hour.
+	// ResetTime - READ-ONLY; Daily data volume cap UTC reset hour.
 	ResetTime *int32 `json:"ResetTime,omitempty"`
 	// WarningThreshold - Reserved, not used for now.
 	WarningThreshold *int32 `json:"WarningThreshold,omitempty"`
@@ -497,7 +488,7 @@ type ApplicationInsightsComponentDataVolumeCap struct {
 	StopSendNotificationWhenHitThreshold *bool `json:"StopSendNotificationWhenHitThreshold,omitempty"`
 	// StopSendNotificationWhenHitCap - Do not send a notification email when the daily data volume cap is met.
 	StopSendNotificationWhenHitCap *bool `json:"StopSendNotificationWhenHitCap,omitempty"`
-	// MaxHistoryCap - Maximum daily data volume cap that the user can set for this component.
+	// MaxHistoryCap - READ-ONLY; Maximum daily data volume cap that the user can set for this component.
 	MaxHistoryCap *float64 `json:"MaxHistoryCap,omitempty"`
 }
 
@@ -505,43 +496,43 @@ type ApplicationInsightsComponentDataVolumeCap struct {
 // configuration.
 type ApplicationInsightsComponentExportConfiguration struct {
 	autorest.Response `json:"-"`
-	// ExportID - The unique ID of the export configuration inside an Application Insights component. It is auto generated when the Continuous Export configuration is created.
+	// ExportID - READ-ONLY; The unique ID of the export configuration inside an Application Insights component. It is auto generated when the Continuous Export configuration is created.
 	ExportID *string `json:"ExportId,omitempty"`
-	// InstrumentationKey - The instrumentation key of the Application Insights component.
+	// InstrumentationKey - READ-ONLY; The instrumentation key of the Application Insights component.
 	InstrumentationKey *string `json:"InstrumentationKey,omitempty"`
 	// RecordTypes - This comma separated list of document types that will be exported. The possible values include 'Requests', 'Event', 'Exceptions', 'Metrics', 'PageViews', 'PageViewPerformance', 'Rdd', 'PerformanceCounters', 'Availability', 'Messages'.
 	RecordTypes *string `json:"RecordTypes,omitempty"`
-	// ApplicationName - The name of the Application Insights component.
+	// ApplicationName - READ-ONLY; The name of the Application Insights component.
 	ApplicationName *string `json:"ApplicationName,omitempty"`
-	// SubscriptionID - The subscription of the Application Insights component.
+	// SubscriptionID - READ-ONLY; The subscription of the Application Insights component.
 	SubscriptionID *string `json:"SubscriptionId,omitempty"`
-	// ResourceGroup - The resource group of the Application Insights component.
+	// ResourceGroup - READ-ONLY; The resource group of the Application Insights component.
 	ResourceGroup *string `json:"ResourceGroup,omitempty"`
-	// DestinationStorageSubscriptionID - The destination storage account subscription ID.
+	// DestinationStorageSubscriptionID - READ-ONLY; The destination storage account subscription ID.
 	DestinationStorageSubscriptionID *string `json:"DestinationStorageSubscriptionId,omitempty"`
-	// DestinationStorageLocationID - The destination account location ID.
+	// DestinationStorageLocationID - READ-ONLY; The destination account location ID.
 	DestinationStorageLocationID *string `json:"DestinationStorageLocationId,omitempty"`
-	// DestinationAccountID - The name of destination account.
+	// DestinationAccountID - READ-ONLY; The name of destination account.
 	DestinationAccountID *string `json:"DestinationAccountId,omitempty"`
-	// DestinationType - The destination type.
+	// DestinationType - READ-ONLY; The destination type.
 	DestinationType *string `json:"DestinationType,omitempty"`
-	// IsUserEnabled - This will be 'true' if the Continuous Export configuration is enabled, otherwise it will be 'false'.
+	// IsUserEnabled - READ-ONLY; This will be 'true' if the Continuous Export configuration is enabled, otherwise it will be 'false'.
 	IsUserEnabled *string `json:"IsUserEnabled,omitempty"`
-	// LastUserUpdate - Last time the Continuous Export configuration was updated.
+	// LastUserUpdate - READ-ONLY; Last time the Continuous Export configuration was updated.
 	LastUserUpdate *string `json:"LastUserUpdate,omitempty"`
 	// NotificationQueueEnabled - Deprecated
 	NotificationQueueEnabled *string `json:"NotificationQueueEnabled,omitempty"`
-	// ExportStatus - This indicates current Continuous Export configuration status. The possible values are 'Preparing', 'Success', 'Failure'.
+	// ExportStatus - READ-ONLY; This indicates current Continuous Export configuration status. The possible values are 'Preparing', 'Success', 'Failure'.
 	ExportStatus *string `json:"ExportStatus,omitempty"`
-	// LastSuccessTime - The last time data was successfully delivered to the destination storage container for this Continuous Export configuration.
+	// LastSuccessTime - READ-ONLY; The last time data was successfully delivered to the destination storage container for this Continuous Export configuration.
 	LastSuccessTime *string `json:"LastSuccessTime,omitempty"`
-	// LastGapTime - The last time the Continuous Export configuration started failing.
+	// LastGapTime - READ-ONLY; The last time the Continuous Export configuration started failing.
 	LastGapTime *string `json:"LastGapTime,omitempty"`
-	// PermanentErrorReason - This is the reason the Continuous Export configuration started failing. It can be 'AzureStorageNotFound' or 'AzureStorageAccessDenied'.
+	// PermanentErrorReason - READ-ONLY; This is the reason the Continuous Export configuration started failing. It can be 'AzureStorageNotFound' or 'AzureStorageAccessDenied'.
 	PermanentErrorReason *string `json:"PermanentErrorReason,omitempty"`
-	// StorageName - The name of the destination storage account.
+	// StorageName - READ-ONLY; The name of the destination storage account.
 	StorageName *string `json:"StorageName,omitempty"`
-	// ContainerName - The name of the destination storage container.
+	// ContainerName - READ-ONLY; The name of the destination storage container.
 	ContainerName *string `json:"ContainerName,omitempty"`
 }
 
@@ -578,13 +569,13 @@ type ApplicationInsightsComponentFavorite struct {
 	Config *string `json:"Config,omitempty"`
 	// Version - This instance's version of the data model. This can change as new features are added that can be marked favorite. Current examples include MetricsExplorer (ME) and Search.
 	Version *string `json:"Version,omitempty"`
-	// FavoriteID - Internally assigned unique id of the favorite definition.
+	// FavoriteID - READ-ONLY; Internally assigned unique id of the favorite definition.
 	FavoriteID *string `json:"FavoriteId,omitempty"`
 	// FavoriteType - Enum indicating if this favorite definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'Shared', 'User'
 	FavoriteType FavoriteType `json:"FavoriteType,omitempty"`
 	// SourceType - The source of the favorite definition.
 	SourceType *string `json:"SourceType,omitempty"`
-	// TimeModified - Date and time in UTC of the last modification that was made to this favorite definition.
+	// TimeModified - READ-ONLY; Date and time in UTC of the last modification that was made to this favorite definition.
 	TimeModified *string `json:"TimeModified,omitempty"`
 	// Tags - A list of 0 or more tags that are associated with this favorite definition
 	Tags *[]string `json:"Tags,omitempty"`
@@ -592,82 +583,82 @@ type ApplicationInsightsComponentFavorite struct {
 	Category *string `json:"Category,omitempty"`
 	// IsGeneratedFromTemplate - Flag denoting wether or not this favorite was generated from a template.
 	IsGeneratedFromTemplate *bool `json:"IsGeneratedFromTemplate,omitempty"`
-	// UserID - Unique user id of the specific user that owns this favorite.
+	// UserID - READ-ONLY; Unique user id of the specific user that owns this favorite.
 	UserID *string `json:"UserId,omitempty"`
 }
 
 // ApplicationInsightsComponentFeature an Application Insights component daily data volume cap status
 type ApplicationInsightsComponentFeature struct {
-	// FeatureName - The pricing feature name.
+	// FeatureName - READ-ONLY; The pricing feature name.
 	FeatureName *string `json:"FeatureName,omitempty"`
-	// MeterID - The meter id used for the feature.
+	// MeterID - READ-ONLY; The meter id used for the feature.
 	MeterID *string `json:"MeterId,omitempty"`
-	// MeterRateFrequency - The meter rate for the feature's meter.
+	// MeterRateFrequency - READ-ONLY; The meter rate for the feature's meter.
 	MeterRateFrequency *string `json:"MeterRateFrequency,omitempty"`
-	// ResouceID - Reserved, not used now.
+	// ResouceID - READ-ONLY; Reserved, not used now.
 	ResouceID *string `json:"ResouceId,omitempty"`
-	// IsHidden - Reserved, not used now.
+	// IsHidden - READ-ONLY; Reserved, not used now.
 	IsHidden *bool `json:"IsHidden,omitempty"`
-	// Capabilities - A list of Application Insights component feature capability.
+	// Capabilities - READ-ONLY; A list of Application Insights component feature capability.
 	Capabilities *[]ApplicationInsightsComponentFeatureCapability `json:"Capabilities,omitempty"`
-	// Title - Display name of the feature.
+	// Title - READ-ONLY; Display name of the feature.
 	Title *string `json:"Title,omitempty"`
-	// IsMainFeature - Whether can apply addon feature on to it.
+	// IsMainFeature - READ-ONLY; Whether can apply addon feature on to it.
 	IsMainFeature *bool `json:"IsMainFeature,omitempty"`
-	// SupportedAddonFeatures - The add on features on main feature.
+	// SupportedAddonFeatures - READ-ONLY; The add on features on main feature.
 	SupportedAddonFeatures *string `json:"SupportedAddonFeatures,omitempty"`
 }
 
 // ApplicationInsightsComponentFeatureCapabilities an Application Insights component feature capabilities
 type ApplicationInsightsComponentFeatureCapabilities struct {
 	autorest.Response `json:"-"`
-	// SupportExportData - Whether allow to use continuous export feature.
+	// SupportExportData - READ-ONLY; Whether allow to use continuous export feature.
 	SupportExportData *bool `json:"SupportExportData,omitempty"`
-	// BurstThrottlePolicy - Reserved, not used now.
+	// BurstThrottlePolicy - READ-ONLY; Reserved, not used now.
 	BurstThrottlePolicy *string `json:"BurstThrottlePolicy,omitempty"`
-	// MetadataClass - Reserved, not used now.
+	// MetadataClass - READ-ONLY; Reserved, not used now.
 	MetadataClass *string `json:"MetadataClass,omitempty"`
-	// LiveStreamMetrics - Reserved, not used now.
+	// LiveStreamMetrics - READ-ONLY; Reserved, not used now.
 	LiveStreamMetrics *bool `json:"LiveStreamMetrics,omitempty"`
-	// ApplicationMap - Reserved, not used now.
+	// ApplicationMap - READ-ONLY; Reserved, not used now.
 	ApplicationMap *bool `json:"ApplicationMap,omitempty"`
-	// WorkItemIntegration - Whether allow to use work item integration feature.
+	// WorkItemIntegration - READ-ONLY; Whether allow to use work item integration feature.
 	WorkItemIntegration *bool `json:"WorkItemIntegration,omitempty"`
-	// PowerBIIntegration - Reserved, not used now.
+	// PowerBIIntegration - READ-ONLY; Reserved, not used now.
 	PowerBIIntegration *bool `json:"PowerBIIntegration,omitempty"`
-	// OpenSchema - Reserved, not used now.
+	// OpenSchema - READ-ONLY; Reserved, not used now.
 	OpenSchema *bool `json:"OpenSchema,omitempty"`
-	// ProactiveDetection - Reserved, not used now.
+	// ProactiveDetection - READ-ONLY; Reserved, not used now.
 	ProactiveDetection *bool `json:"ProactiveDetection,omitempty"`
-	// AnalyticsIntegration - Reserved, not used now.
+	// AnalyticsIntegration - READ-ONLY; Reserved, not used now.
 	AnalyticsIntegration *bool `json:"AnalyticsIntegration,omitempty"`
-	// MultipleStepWebTest - Whether allow to use multiple steps web test feature.
+	// MultipleStepWebTest - READ-ONLY; Whether allow to use multiple steps web test feature.
 	MultipleStepWebTest *bool `json:"MultipleStepWebTest,omitempty"`
-	// APIAccessLevel - Reserved, not used now.
+	// APIAccessLevel - READ-ONLY; Reserved, not used now.
 	APIAccessLevel *string `json:"ApiAccessLevel,omitempty"`
-	// TrackingType - The application insights component used tracking type.
+	// TrackingType - READ-ONLY; The application insights component used tracking type.
 	TrackingType *string `json:"TrackingType,omitempty"`
-	// DailyCap - Daily data volume cap in GB.
+	// DailyCap - READ-ONLY; Daily data volume cap in GB.
 	DailyCap *float64 `json:"DailyCap,omitempty"`
-	// DailyCapResetTime - Daily data volume cap UTC reset hour.
+	// DailyCapResetTime - READ-ONLY; Daily data volume cap UTC reset hour.
 	DailyCapResetTime *float64 `json:"DailyCapResetTime,omitempty"`
-	// ThrottleRate - Reserved, not used now.
+	// ThrottleRate - READ-ONLY; Reserved, not used now.
 	ThrottleRate *float64 `json:"ThrottleRate,omitempty"`
 }
 
 // ApplicationInsightsComponentFeatureCapability an Application Insights component feature capability
 type ApplicationInsightsComponentFeatureCapability struct {
-	// Name - The name of the capability.
+	// Name - READ-ONLY; The name of the capability.
 	Name *string `json:"Name,omitempty"`
-	// Description - The description of the capability.
+	// Description - READ-ONLY; The description of the capability.
 	Description *string `json:"Description,omitempty"`
-	// Value - The value of the capability.
+	// Value - READ-ONLY; The value of the capability.
 	Value *string `json:"Value,omitempty"`
-	// Unit - The unit of the capability.
+	// Unit - READ-ONLY; The unit of the capability.
 	Unit *string `json:"Unit,omitempty"`
-	// MeterID - The meter used for the capability.
+	// MeterID - READ-ONLY; The meter used for the capability.
 	MeterID *string `json:"MeterId,omitempty"`
-	// MeterRateFrequency - The meter rate of the meter.
+	// MeterRateFrequency - READ-ONLY; The meter rate of the meter.
 	MeterRateFrequency *string `json:"MeterRateFrequency,omitempty"`
 }
 
@@ -860,9 +851,9 @@ type ApplicationInsightsComponentProactiveDetectionConfigurationRuleDefinitions 
 // ApplicationInsightsComponentProperties properties that define an Application Insights component
 // resource.
 type ApplicationInsightsComponentProperties struct {
-	// ApplicationID - The unique ID of your application. This field mirrors the 'Name' field and cannot be changed.
+	// ApplicationID - READ-ONLY; The unique ID of your application. This field mirrors the 'Name' field and cannot be changed.
 	ApplicationID *string `json:"ApplicationId,omitempty"`
-	// AppID - Application Insights Unique ID for your Application.
+	// AppID - READ-ONLY; Application Insights Unique ID for your Application.
 	AppID *string `json:"AppId,omitempty"`
 	// ApplicationType - Type of application being monitored. Possible values include: 'Web', 'Other'
 	ApplicationType ApplicationType `json:"Application_Type,omitempty"`
@@ -870,17 +861,17 @@ type ApplicationInsightsComponentProperties struct {
 	FlowType FlowType `json:"Flow_Type,omitempty"`
 	// RequestSource - Describes what tool created this Application Insights component. Customers using this API should set this to the default 'rest'. Possible values include: 'Rest'
 	RequestSource RequestSource `json:"Request_Source,omitempty"`
-	// InstrumentationKey - Application Insights Instrumentation key. A read-only value that applications can use to identify the destination for all telemetry sent to Azure Application Insights. This value will be supplied upon construction of each new Application Insights component.
+	// InstrumentationKey - READ-ONLY; Application Insights Instrumentation key. A read-only value that applications can use to identify the destination for all telemetry sent to Azure Application Insights. This value will be supplied upon construction of each new Application Insights component.
 	InstrumentationKey *string `json:"InstrumentationKey,omitempty"`
-	// CreationDate - Creation Date for the Application Insights component, in ISO 8601 format.
+	// CreationDate - READ-ONLY; Creation Date for the Application Insights component, in ISO 8601 format.
 	CreationDate *date.Time `json:"CreationDate,omitempty"`
-	// TenantID - Azure Tenant Id.
+	// TenantID - READ-ONLY; Azure Tenant Id.
 	TenantID *string `json:"TenantId,omitempty"`
 	// HockeyAppID - The unique application ID created when a new application is added to HockeyApp, used for communications with HockeyApp.
 	HockeyAppID *string `json:"HockeyAppId,omitempty"`
-	// HockeyAppToken - Token used to authenticate communications with between Application Insights and HockeyApp.
+	// HockeyAppToken - READ-ONLY; Token used to authenticate communications with between Application Insights and HockeyApp.
 	HockeyAppToken *string `json:"HockeyAppToken,omitempty"`
-	// ProvisioningState - Current state of this component: whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed.
+	// ProvisioningState - READ-ONLY; Current state of this component: whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// SamplingPercentage - Percentage of the data produced by the application being monitored that is being sampled for Application Insights telemetry.
 	SamplingPercentage *float64 `json:"SamplingPercentage,omitempty"`
@@ -889,20 +880,20 @@ type ApplicationInsightsComponentProperties struct {
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status
 type ApplicationInsightsComponentQuotaStatus struct {
 	autorest.Response `json:"-"`
-	// AppID - The Application ID for the Application Insights component.
+	// AppID - READ-ONLY; The Application ID for the Application Insights component.
 	AppID *string `json:"AppId,omitempty"`
-	// ShouldBeThrottled - The daily data volume cap is met, and data ingestion will be stopped.
+	// ShouldBeThrottled - READ-ONLY; The daily data volume cap is met, and data ingestion will be stopped.
 	ShouldBeThrottled *bool `json:"ShouldBeThrottled,omitempty"`
-	// ExpirationTime - Date and time when the daily data volume cap will be reset, and data ingestion will resume.
+	// ExpirationTime - READ-ONLY; Date and time when the daily data volume cap will be reset, and data ingestion will resume.
 	ExpirationTime *string `json:"ExpirationTime,omitempty"`
 }
 
 // ApplicationInsightsComponentWebTestLocation properties that define a web test location available to an
 // Application Insights Component.
 type ApplicationInsightsComponentWebTestLocation struct {
-	// DisplayName - The display name of the web test location.
+	// DisplayName - READ-ONLY; The display name of the web test location.
 	DisplayName *string `json:"DisplayName,omitempty"`
-	// Tag - Internally defined geographic location tag.
+	// Tag - READ-ONLY; Internally defined geographic location tag.
 	Tag *string `json:"Tag,omitempty"`
 }
 
@@ -950,11 +941,11 @@ type ComponentPurgeStatusResponse struct {
 
 // ComponentsResource an azure resource object
 type ComponentsResource struct {
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -965,15 +956,6 @@ type ComponentsResource struct {
 // MarshalJSON is the custom marshaler for ComponentsResource.
 func (cr ComponentsResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if cr.ID != nil {
-		objectMap["id"] = cr.ID
-	}
-	if cr.Name != nil {
-		objectMap["name"] = cr.Name
-	}
-	if cr.Type != nil {
-		objectMap["type"] = cr.Type
-	}
 	if cr.Location != nil {
 		objectMap["location"] = cr.Location
 	}
@@ -1244,11 +1226,11 @@ type WebTest struct {
 	Kind WebTestKind `json:"kind,omitempty"`
 	// WebTestProperties - Metadata describing a web test for an Azure resource.
 	*WebTestProperties `json:"properties,omitempty"`
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -1264,15 +1246,6 @@ func (wt WebTest) MarshalJSON() ([]byte, error) {
 	}
 	if wt.WebTestProperties != nil {
 		objectMap["properties"] = wt.WebTestProperties
-	}
-	if wt.ID != nil {
-		objectMap["id"] = wt.ID
-	}
-	if wt.Name != nil {
-		objectMap["name"] = wt.Name
-	}
-	if wt.Type != nil {
-		objectMap["type"] = wt.Type
 	}
 	if wt.Location != nil {
 		objectMap["location"] = wt.Location
@@ -1536,7 +1509,7 @@ type WebTestProperties struct {
 	Locations *[]WebTestGeolocation `json:"Locations,omitempty"`
 	// Configuration - An XML configuration specification for a WebTest.
 	Configuration *WebTestPropertiesConfiguration `json:"Configuration,omitempty"`
-	// ProvisioningState - Current state of this component, whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed.
+	// ProvisioningState - READ-ONLY; Current state of this component, whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
@@ -1548,11 +1521,11 @@ type WebTestPropertiesConfiguration struct {
 
 // WebtestsResource an azure resource object
 type WebtestsResource struct {
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -1563,15 +1536,6 @@ type WebtestsResource struct {
 // MarshalJSON is the custom marshaler for WebtestsResource.
 func (wr WebtestsResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if wr.ID != nil {
-		objectMap["id"] = wr.ID
-	}
-	if wr.Name != nil {
-		objectMap["name"] = wr.Name
-	}
-	if wr.Type != nil {
-		objectMap["type"] = wr.Type
-	}
 	if wr.Location != nil {
 		objectMap["location"] = wr.Location
 	}
@@ -1588,11 +1552,11 @@ type Workbook struct {
 	Kind SharedTypeKind `json:"kind,omitempty"`
 	// WorkbookProperties - Metadata describing a web test for an Azure resource.
 	*WorkbookProperties `json:"properties,omitempty"`
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -1608,15 +1572,6 @@ func (w Workbook) MarshalJSON() ([]byte, error) {
 	}
 	if w.WorkbookProperties != nil {
 		objectMap["properties"] = w.WorkbookProperties
-	}
-	if w.ID != nil {
-		objectMap["id"] = w.ID
-	}
-	if w.Name != nil {
-		objectMap["name"] = w.Name
-	}
-	if w.Type != nil {
-		objectMap["type"] = w.Type
 	}
 	if w.Location != nil {
 		objectMap["location"] = w.Location
@@ -1727,7 +1682,7 @@ type WorkbookProperties struct {
 	WorkbookID *string `json:"workbookId,omitempty"`
 	// SharedTypeKind - Enum indicating if this workbook definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'SharedTypeKindUser', 'SharedTypeKindShared'
 	SharedTypeKind SharedTypeKind `json:"kind,omitempty"`
-	// TimeModified - Date and time in UTC of the last modification that was made to this workbook definition.
+	// TimeModified - READ-ONLY; Date and time in UTC of the last modification that was made to this workbook definition.
 	TimeModified *string `json:"timeModified,omitempty"`
 	// Category - Workbook category, as defined by the user at creation time.
 	Category *string `json:"category,omitempty"`
@@ -1741,11 +1696,11 @@ type WorkbookProperties struct {
 
 // WorkbookResource an azure resource object
 type WorkbookResource struct {
-	// ID - Azure resource Id
+	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name
+	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type
+	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -1756,15 +1711,6 @@ type WorkbookResource struct {
 // MarshalJSON is the custom marshaler for WorkbookResource.
 func (wr WorkbookResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if wr.ID != nil {
-		objectMap["id"] = wr.ID
-	}
-	if wr.Name != nil {
-		objectMap["name"] = wr.Name
-	}
-	if wr.Type != nil {
-		objectMap["type"] = wr.Type
-	}
 	if wr.Location != nil {
 		objectMap["location"] = wr.Location
 	}
@@ -1777,7 +1723,7 @@ func (wr WorkbookResource) MarshalJSON() ([]byte, error) {
 // WorkbooksListResult workbook list result.
 type WorkbooksListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of workbooks.
+	// Value - READ-ONLY; An array of workbooks.
 	Value *[]Workbook `json:"value,omitempty"`
 }
 
@@ -1808,7 +1754,7 @@ type WorkItemConfigurationError struct {
 // WorkItemConfigurationsListResult work item configuration list result.
 type WorkItemConfigurationsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of work item configurations.
+	// Value - READ-ONLY; An array of work item configurations.
 	Value *[]WorkItemConfiguration `json:"value,omitempty"`
 }
 
@@ -1821,5 +1767,23 @@ type WorkItemCreateConfiguration struct {
 	// ValidateOnly - Boolean indicating validate only
 	ValidateOnly *bool `json:"ValidateOnly,omitempty"`
 	// WorkItemProperties - Custom work item properties
-	WorkItemProperties *string `json:"WorkItemProperties,omitempty"`
+	WorkItemProperties map[string]*string `json:"WorkItemProperties"`
+}
+
+// MarshalJSON is the custom marshaler for WorkItemCreateConfiguration.
+func (wicc WorkItemCreateConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wicc.ConnectorID != nil {
+		objectMap["ConnectorId"] = wicc.ConnectorID
+	}
+	if wicc.ConnectorDataConfiguration != nil {
+		objectMap["ConnectorDataConfiguration"] = wicc.ConnectorDataConfiguration
+	}
+	if wicc.ValidateOnly != nil {
+		objectMap["ValidateOnly"] = wicc.ValidateOnly
+	}
+	if wicc.WorkItemProperties != nil {
+		objectMap["WorkItemProperties"] = wicc.WorkItemProperties
+	}
+	return json.Marshal(objectMap)
 }

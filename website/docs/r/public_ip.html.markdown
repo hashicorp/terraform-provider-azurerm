@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
+* `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
+
+-> **Please Note**: Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
@@ -77,7 +81,7 @@ The following attributes are exported:
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
 
-* `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone
+* `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
 
 ## Import

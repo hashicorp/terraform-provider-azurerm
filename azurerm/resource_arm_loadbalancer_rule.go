@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -34,9 +34,9 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				ValidateFunc: validateArmLoadBalancerRuleName,
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
@@ -98,6 +98,12 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Default:  false,
 			},
 
+			"disable_outbound_snat": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"idle_timeout_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -135,7 +141,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
+		return fmt.Errorf("Error Expanding Load Balancer Rule: %+v", err)
 	}
 
 	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
@@ -222,6 +228,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("protocol", properties.Protocol)
 		d.Set("frontend_port", properties.FrontendPort)
 		d.Set("backend_port", properties.BackendPort)
+		d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
 
 		if properties.EnableFloatingIP != nil {
 			d.Set("enable_floating_ip", properties.EnableFloatingIP)
@@ -311,10 +318,11 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.LoadBalancingRule, error) {
 
 	properties := network.LoadBalancingRulePropertiesFormat{
-		Protocol:         network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:     utils.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:      utils.Int32(int32(d.Get("backend_port").(int))),
-		EnableFloatingIP: utils.Bool(d.Get("enable_floating_ip").(bool)),
+		Protocol:            network.TransportProtocol(d.Get("protocol").(string)),
+		FrontendPort:        utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:         utils.Int32(int32(d.Get("backend_port").(int))),
+		EnableFloatingIP:    utils.Bool(d.Get("enable_floating_ip").(bool)),
+		DisableOutboundSnat: utils.Bool(d.Get("disable_outbound_snat").(bool)),
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {

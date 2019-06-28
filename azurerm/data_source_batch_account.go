@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,8 +20,8 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
-			"location":            locationForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location":            azure.SchemaLocationForDataSource(),
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -70,7 +71,7 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_endpoint", resp.AccountEndpoint)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AccountProperties; props != nil {

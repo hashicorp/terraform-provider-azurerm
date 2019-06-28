@@ -989,10 +989,8 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Standard"
     size = "S1"
   }
-  
-  properties {
-    reserved = true
-  }
+
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {
@@ -1002,7 +1000,7 @@ resource "azurerm_function_app" "test" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  
+
   site_config {
     linux_fx_version = "DOCKER|(golang:latest)"
   }
@@ -1121,10 +1119,8 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Standard"
     size = "S1"
   }
-  
-  properties {
-    reserved = true
-  }
+
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {
@@ -1134,7 +1130,7 @@ resource "azurerm_function_app" "test" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  
+
   app_settings = {
     "hello" = "world"
   }
@@ -1173,9 +1169,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 
 resource "azurerm_function_app" "test" {
@@ -1185,7 +1179,7 @@ resource "azurerm_function_app" "test" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  
+
   app_settings = {
     "hello" = "world"
   }

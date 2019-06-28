@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -21,9 +21,17 @@ func resourceArmConnectionMonitor() *schema.Resource {
 		Read:   resourceArmConnectionMonitorRead,
 		Update: resourceArmConnectionMonitorCreateUpdate,
 		Delete: resourceArmConnectionMonitorDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		DeprecationMessage: `The 'azurerm_connection_monitor' resource is deprecated in favour of the renamed version 'azurerm_network_connection_monitor'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_connection_monitor' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -33,7 +41,7 @@ func resourceArmConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:         schema.TypeString,
@@ -42,7 +50,7 @@ func resourceArmConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"auto_start": {
 				Type:     schema.TypeBool,
@@ -117,7 +125,7 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	watcherName := d.Get("network_watcher_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoStart := d.Get("auto_start").(bool)
 	intervalInSeconds := int32(d.Get("interval_in_seconds").(int))
 
@@ -204,7 +212,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("network_watcher_name", watcherName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ConnectionMonitorResultProperties; props != nil {

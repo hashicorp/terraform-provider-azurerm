@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,7 +39,7 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 }
 
 func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterPricingClient
+	client := meta.(*ArmClient).securityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterSubscriptionPricingName
@@ -71,7 +71,7 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterPricingClient
+	client := meta.(*ArmClient).securityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
