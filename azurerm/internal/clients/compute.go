@@ -15,6 +15,7 @@ type ComputeClient struct {
 	ProximityPlacementGroupsClient *compute.ProximityPlacementGroupsClient
 	MarketplaceAgreementsClient    *marketplaceordering.MarketplaceAgreementsClient
 	ImagesClient                   *compute.ImagesClient
+	ResourceSkusClient             *compute.ResourceSkusClient
 	SnapshotsClient                *compute.SnapshotsClient
 	UsageClient                    *compute.UsageClient
 	VMExtensionImageClient         *compute.VirtualMachineExtensionImagesClient
@@ -49,6 +50,9 @@ func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 	proximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
+	ResourceSkusClient := compute.NewResourceSkusClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ResourceSkusClient.Client, o.ResourceManagerAuthorizer)
+
 	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -79,6 +83,7 @@ func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 		ImagesClient:                   &imagesClient,
 		MarketplaceAgreementsClient:    &marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient: &proximityPlacementGroupsClient,
+		ResourceSkusClient:             &ResourceSkusClient,
 		SnapshotsClient:                &snapshotsClient,
 		UsageClient:                    &usageClient,
 		VMExtensionImageClient:         &vmExtensionImageClient,

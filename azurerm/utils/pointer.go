@@ -23,3 +23,12 @@ func Float(input float64) *float64 {
 func String(input string) *string {
 	return &input
 }
+
+func StringSliceContains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
