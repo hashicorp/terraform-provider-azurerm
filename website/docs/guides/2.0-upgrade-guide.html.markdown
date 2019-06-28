@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.24.0"
+  version = "=1.28.0"
 }
 ```
 
@@ -156,6 +156,10 @@ The deprecated field `internal_fqdn` will be removed.
 ### Data Source: `azurerm_scheduler_job_collection`
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
+
+### Data Source: `azurerm_virtual_network`
+
+The deprecated field `address_space` will be removed.
 
 ### Resource: `azurerm_app_service_plan`
 

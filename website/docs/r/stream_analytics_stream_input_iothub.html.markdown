@@ -22,7 +22,6 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-
 resource "azurerm_iothub" "test" {
   name                = "example-iothub"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -80,7 +79,7 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for incoming data streams. Possible values are `Avro`, `Csv` and `Json`.
 
-* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output.
+* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 

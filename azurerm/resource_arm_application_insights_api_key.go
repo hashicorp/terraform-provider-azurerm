@@ -69,7 +69,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsAPIKeyClient
+	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
@@ -123,7 +123,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsAPIKeyClient
+	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -163,7 +163,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsAPIKeyClient
+	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

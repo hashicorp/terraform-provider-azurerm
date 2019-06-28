@@ -25,7 +25,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"workspace_name": {
 				Type:             schema.TypeString,
@@ -83,7 +83,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).linkedServicesClient
+	client := meta.(*ArmClient).logAnalytics.LinkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
@@ -140,7 +140,7 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).linkedServicesClient
+	client := meta.(*ArmClient).logAnalytics.LinkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,7 +180,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).linkedServicesClient
+	client := meta.(*ArmClient).logAnalytics.LinkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

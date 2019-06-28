@@ -40,10 +40,10 @@ func resourceArmEventHub() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: remove me in the next major version
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"partition_count": {
 				Type:         schema.TypeInt,
@@ -142,7 +142,7 @@ func resourceArmEventHub() *schema.Resource {
 }
 
 func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
@@ -201,7 +201,7 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -240,7 +240,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -266,8 +266,8 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 func validateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(32 >= value && value >= 2) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 2 and 32"))
+	if !(32 >= value && value >= 1) {
+		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32"))
 	}
 
 	return warnings, errors

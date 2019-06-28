@@ -90,7 +90,7 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["automation_account_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).automationVariableClient
+		client := testAccProvider.Meta().(*ArmClient).automation.VariableClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
@@ -105,7 +105,7 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 }
 
 func testCheckAzureRMAutomationVariableDestroy(s *terraform.State, varType string) error {
-	client := testAccProvider.Meta().(*ArmClient).automationVariableClient
+	client := testAccProvider.Meta().(*ArmClient).automation.VariableClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	resourceName := fmt.Sprintf("azurerm_automation_variable_%s", strings.ToLower(varType))

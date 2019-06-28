@@ -20,9 +20,9 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 24),
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"principal_id": {
 				Type:     schema.TypeString,
@@ -40,7 +40,7 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).userAssignedIdentitiesClient
+	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

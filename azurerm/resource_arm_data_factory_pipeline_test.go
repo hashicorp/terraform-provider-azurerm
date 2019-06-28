@@ -78,7 +78,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 }
 
 func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryPipelineClient
+	client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_pipeline" {
 			continue
@@ -113,7 +113,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryPipelineClient
+		client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -171,7 +171,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   parameters = {
     test = "testparameter"
   }
-	
+
   variables = {
     foo = "test1"
     bar = "test2"
@@ -199,9 +199,9 @@ resource "azurerm_data_factory_pipeline" "test" {
   data_factory_name   = "${azurerm_data_factory.test.name}"
   annotations         = ["test1", "test2"]
   description         = "test description2"
-	
+
   parameters = {
-    test = "testparameter"
+    test  = "testparameter"
     test2 = "testparameter2"
   }
 

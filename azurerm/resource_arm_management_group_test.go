@@ -219,7 +219,7 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 
 		groupName := rs.Primary.Attributes["group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).managementGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).managementGroups.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		recurse := false
@@ -237,7 +237,7 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).managementGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).managementGroups.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

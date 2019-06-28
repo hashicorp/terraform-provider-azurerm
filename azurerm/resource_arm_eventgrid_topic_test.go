@@ -96,7 +96,7 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 }
 
 func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).eventGridTopicsClient
+	client := testAccProvider.Meta().(*ArmClient).eventGrid.TopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -138,7 +138,7 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for EventGrid Topic: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).eventGridTopicsClient
+		client := testAccProvider.Meta().(*ArmClient).eventGrid.TopicsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

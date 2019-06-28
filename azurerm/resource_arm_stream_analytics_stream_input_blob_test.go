@@ -226,15 +226,15 @@ func testAccAzureRMStreamAnalyticsStreamInputBlob_avro(rInt int, rString string,
 %s
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"
@@ -249,15 +249,15 @@ func testAccAzureRMStreamAnalyticsStreamInputBlob_csv(rInt int, rString string, 
 %s
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type            = "Csv"
@@ -274,15 +274,15 @@ func testAccAzureRMStreamAnalyticsStreamInputBlob_json(rInt int, rString string,
 %s
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type     = "Json"
@@ -313,15 +313,15 @@ resource "azurerm_storage_container" "updated" {
 }
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.updated.name}"
-  storage_account_key          = "${azurerm_storage_account.updated.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.updated.name}"
-  path_pattern                 = "some-other-pattern"
-  date_format                  = "yyyy-MM-dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.updated.name}"
+  storage_account_key       = "${azurerm_storage_account.updated.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.updated.name}"
+  path_pattern              = "some-other-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"

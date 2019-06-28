@@ -356,20 +356,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     head_node {
       vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
       vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
-      ssh_keys              = [ "${var.ssh_key}" ]
+      ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
     }
 
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
   }
 }
