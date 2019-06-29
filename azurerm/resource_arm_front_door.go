@@ -577,7 +577,7 @@ func expandArmFrontDoorBackendPool(input []interface{}) *[]frontdoor.BackendPool
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-  
+
 	id := v["id"].(string)
 	backends := v["backends"].([]interface{})
 	loadBalancingSettings := v["load_balancing_settings"].([]interface{})
@@ -700,8 +700,8 @@ func expandArmFrontDoorRoutingRule(input []interface{}) *[]frontdoor.RoutingRule
 
 	id := v["id"].(string)
 	frontendEndpoints := v["frontend_endpoints"].([]interface{})
-	acceptedProtocols := v["accepted_protocols"].([]interface{})
-	patternsToMatch := v["patterns_to_match"].([]interface{})
+	acceptedProtocols := v["accepted_protocols"].(*[]frontdoor.Protocol)
+	patternsToMatch := v["patterns_to_match"].(*[]string)
 	enabledState := v["enabled_state"].(string)
 	resourceState := v["resource_state"].(string)
 	name := v["name"].(string)
@@ -710,25 +710,14 @@ func expandArmFrontDoorRoutingRule(input []interface{}) *[]frontdoor.RoutingRule
 		ID:   utils.String(id),
 		Name: utils.String(name),
 		RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
-			AcceptedProtocols: expandArmFrontDoorProtocols(acceptedProtocols),
+			AcceptedProtocols: acceptedProtocols,
 			EnabledState:      frontdoor.RoutingRuleEnabledState(enabledState),
-			FrontendEndpoints: expandArmFrontDoorSubResource(frontendEndpoints),
-			PatternsToMatch:   *patternsToMatch,
+			FrontendEndpoints: expandArmFrontDoorSubResources(frontendEndpoints),
+			PatternsToMatch:   patternsToMatch,
 			ResourceState:     frontdoor.ResourceState(resourceState),
 		},
 	}
 	return &[]frontdoor.RoutingRule{result}
-}
-func expandArmFrontDoorProtocols(input []interface{}) *[]frontdoor.Protocol {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(string)
-
-	protocol := v[0]
-	result := frontdoor.Protocol{protocol}
-
-	return &[]frontdoor.Protocol{result}
 }
 
 func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
@@ -768,7 +757,21 @@ func expandArmFrontDoorSubResource(input []interface{}) *frontdoor.SubResource {
 	result := frontdoor.SubResource{
 		ID: utils.String(id),
 	}
-	return &frontdoor.SubResource{result}
+	return &result
+}
+
+func expandArmFrontDoorSubResources(input []interface{}) *[]frontdoor.SubResource {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	id := v["id"].(string)
+
+	result := frontdoor.SubResource{
+		ID: utils.String(id),
+	}
+	return &[]frontdoor.SubResource{result}
 }
 
 func expandArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(input []interface{}) *frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink {
@@ -792,15 +795,15 @@ func flattenArmFrontDoorBackendPool(input *[]frontdoor.BackendPool) []interface{
 
 	result := make(map[string]interface{})
 
-	if id := input.ID; id != nil {
-		result["id"] = *id
-	}
-	if properties := input.BackendPoolProperties; properties != nil {
-		result["backends"] = flattenArmFrontDoorBackend(properties.Backends)
-		result["health_probe_settings"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings)
-		result["load_balancing_settings"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings)
-		if resourceState := string(properties.ResourceState); resourceState != nil {
-			result["resource_state"] = *resourceState
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		if properties := v.BackendPoolProperties; properties != nil {
+			result["backends"] = flattenArmFrontDoorBackend(properties.Backends)
+			result["health_probe_settings"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings)
+			result["load_balancing_settings"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings)
+			result["resource_state"] = string(properties.ResourceState)
 		}
 	}
 
@@ -827,26 +830,22 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 	}
 
 	result := make(map[string]interface{})
-
-	if id := input.ID; id != nil {
-		result["id"] = *id
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		if properties := v.FrontendEndpointProperties; properties != nil {
+			if hostName := properties.HostName; hostName != nil {
+				result["host_name"] = *hostName
+			}
+			result["resource_state"] = string(properties.ResourceState)
+			result["session_affinity_enabled_state"] = string(properties.SessionAffinityEnabledState)
+			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
+				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
+			}
+			result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
+		}
 	}
-	if properties := input.FrontendEndpointProperties; properties != nil {
-		if hostName := properties.HostName; hostName != nil {
-			result["host_name"] = *hostName
-		}
-		if resourceState := string(properties.ResourceState); resourceState != nil {
-			result["resource_state"] = *resourceState
-		}
-		if sessionAffinityEnabledState := string(properties.SessionAffinityEnabledState); sessionAffinityEnabledState != nil {
-			result["session_affinity_enabled_state"] = *sessionAffinityEnabledState
-		}
-		if sessionAffinityTtlSeconds := properties.SessionAffinityTtlSeconds; sessionAffinityTtlSeconds != nil {
-			result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
-		}
-		result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
-	}
-
 	return []interface{}{result}
 }
 
@@ -856,22 +855,19 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 	}
 
 	result := make(map[string]interface{})
-
-	if id := input.ID; id != nil {
-		result["id"] = *id
-	}
-	if properties := input.HealthProbeSettingsProperties; properties != nil {
-		if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
-			result["interval_in_seconds"] = *intervalInSeconds
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
 		}
-		if path := properties.Path; path != nil {
-			result["path"] = *path
-		}
-		if protocol := string(properties.Protocol); protocol != nil {
-			result["protocol"] = *protocol
-		}
-		if resourceState := string(properties.ResourceState); resourceState != nil {
-			result["resource_state"] = *resourceState
+		if properties := v.HealthProbeSettingsProperties; properties != nil {
+			if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
+				result["interval_in_seconds"] = *intervalInSeconds
+			}
+			if path := properties.Path; path != nil {
+				result["path"] = *path
+			}
+			result["protocol"] = string(properties.Protocol)
+			result["resource_state"] = string(properties.ResourceState)
 		}
 	}
 
@@ -885,24 +881,23 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 
 	result := make(map[string]interface{})
 
-	if id := input.ID; id != nil {
-		result["id"] = *id
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		if properties := v.LoadBalancingSettingsProperties; properties != nil {
+			if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
+				result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
+			}
+			result["resource_state"] = string(properties.ResourceState)
+			if sampleSize := properties.SampleSize; sampleSize != nil {
+				result["sample_size"] = *sampleSize
+			}
+			if successfulSamplesRequired := properties.SuccessfulSamplesRequired; successfulSamplesRequired != nil {
+				result["successful_samples_required"] = *successfulSamplesRequired
+			}
+		}
 	}
-	if properties := input.Properties; properties != nil {
-		if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
-			result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
-		}
-		if resourceState := string(properties.ResourceState); resourceState != nil {
-			result["resource_state"] = *resourceState
-		}
-		if sampleSize := properties.SampleSize; sampleSize != nil {
-			result["sample_size"] = *sampleSize
-		}
-		if successfulSamplesRequired := properties.SuccessfulSamplesRequired; successfulSamplesRequired != nil {
-			result["successful_samples_required"] = *successfulSamplesRequired
-		}
-	}
-
 	return []interface{}{result}
 }
 
@@ -913,57 +908,55 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 
 	result := make(map[string]interface{})
 
-	if id := input.ID; id != nil {
-		result["id"] = *id
-	}
-	if properties := input.Properties; properties != nil {
-		if acceptedProtocols := string(properties.AcceptedProtocols); acceptedProtocols != nil {
-			result["accepted_protocols"] = *acceptedProtocols
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
 		}
-		if enabledState := string(properties.EnabledState); enabledState != nil {
-			result["enabled_state"] = *enabledState
-		}
-		result["frontend_endpoints"] = flattenArmFrontDoorSubResource(properties.FrontendEndpoints)
-		if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
-			result["patterns_to_match"] = *patternsToMatch
-		}
-		if resourceState := string(properties.ResourceState); resourceState != nil {
-			result["resource_state"] = *resourceState
+		if properties := v.RoutingRuleProperties; properties != nil {
+			if acceptedProtocols := properties.AcceptedProtocols; acceptedProtocols != nil {
+				for _, ap := range *acceptedProtocols {
+					result["accepted_protocols"] = string(ap)
+				}
+			}
+				result["enabled_state"] = string(properties.EnabledState)
+				result["frontend_endpoints"] = flattenArmFrontDoorSubResources(properties.FrontendEndpoints)
+				if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
+					result["patterns_to_match"] = *patternsToMatch
+				}
+				result["resource_state"] = string(properties.ResourceState)
 		}
 	}
 
 	return []interface{}{result}
 }
 
-func flattenArmFrontDoorBackend(input *frontdoor.Backend) []interface{} {
+func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
-
-	if address := input.Address; address != nil {
-		result["address"] = *address
+	for _, v := range *input {
+		if address := v.Address; address != nil {
+			result["address"] = *address
+		}
+		if backendHostHeader := v.BackendHostHeader; backendHostHeader != nil {
+			result["backend_host_header"] = *backendHostHeader
+		}
+		result["enabled_state"] = string(v.EnabledState)
+		if httpPort := v.HTTPPort; httpPort != nil {
+			result["http_port"] = *httpPort
+		}
+		if httpsPort := v.HTTPSPort; httpsPort != nil {
+			result["https_port"] = *httpsPort
+		}
+		if priority := v.Priority; priority != nil {
+			result["priority"] = *priority
+		}
+		if weight := v.Weight; weight != nil {
+			result["weight"] = *weight
+		}
 	}
-	if backendHostHeader := input.BackendHostHeader; backendHostHeader != nil {
-		result["backend_host_header"] = *backendHostHeader
-	}
-	if enabledState := string(input.EnabledState); enabledState != nil {
-		result["enabled_state"] = *enabledState
-	}
-	if httpPort := input.HttpPort; httpPort != nil {
-		result["http_port"] = *httpPort
-	}
-	if httpsPort := input.HttpsPort; httpsPort != nil {
-		result["https_port"] = *httpsPort
-	}
-	if priority := input.Priority; priority != nil {
-		result["priority"] = *priority
-	}
-	if weight := input.Weight; weight != nil {
-		result["weight"] = *weight
-	}
-
 	return []interface{}{result}
 }
 
@@ -978,6 +971,21 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource) []interface{} 
 		result["id"] = *id
 	}
 
+	return []interface{}{result}
+}
+
+func flattenArmFrontDoorSubResources(input *[]frontdoor.SubResource) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	for _,v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+	}
 	return []interface{}{result}
 }
 
