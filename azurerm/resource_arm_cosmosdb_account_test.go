@@ -560,6 +560,38 @@ func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_virtualNetworkRules(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_virtualNetworkRules(ri, testLocation(), `["${azurerm_subnet.subnet1.id}"]`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "virtual_network_subnet_ids.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMCosmosDBAccount_virtualNetworkRules(ri, testLocation(), `["${azurerm_subnet.subnet1.id}", "${azurerm_subnet.subnet2.id}"]`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "virtual_network_subnet_ids.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 //basic --> complete (
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
@@ -913,14 +945,44 @@ resource "azurerm_subnet" "subnet2" {
 	basic := testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         is_virtual_network_filter_enabled = true
 
-        virtual_network_rule {
-          id = "${azurerm_subnet.subnet1.id}"
-        }
-
-        virtual_network_rule {
-          id = "${azurerm_subnet.subnet2.id}"
-        }
+        virtual_network_subnet_ids = ["${azurerm_subnet.subnet1.id}", "${azurerm_subnet.subnet2.id}"]
 	`)
+
+	return vnetConfig + basic
+}
+
+func testAccAzureRMCosmosDBAccount_virtualNetworkRules(rInt int, location string, subnetIdsList string) string {
+	vnetConfig := fmt.Sprintf(`
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+resource "azurerm_subnet" "subnet1" {
+  name                 = "acctest-%[1]d-1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+
+resource "azurerm_subnet" "subnet2" {
+  name                 = "acctest-%[1]d-2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+`, rInt)
+
+	basic := testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+        is_virtual_network_filter_enabled = true
+
+        virtual_network_subnet_ids = %s
+	`, subnetIdsList))
 
 	return vnetConfig + basic
 }

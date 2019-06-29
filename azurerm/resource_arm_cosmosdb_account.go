@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -20,6 +19,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -218,19 +218,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Default:  false,
 			},
 
-			"virtual_network_rule": {
+			"virtual_network_subnet_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
-				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
+				Set: set.HashStringIgnoreCase,
 			},
 
 			"enable_multiple_write_locations": {
@@ -615,8 +609,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `capabilities`: %+v", err)
 	}
 
-	if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
-		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
+	if err = d.Set("virtual_network_subnet_ids", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
+		return fmt.Errorf("Error setting `virtual_network_subnet_ids`: %+v", err)
 	}
 
 	if p := resp.ReadLocations; p != nil {
@@ -917,14 +911,13 @@ func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documen
 }
 
 func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]documentdb.VirtualNetworkRule {
-	virtualNetworkRules := d.Get("virtual_network_rule").(*schema.Set).List()
+	s := d.Get("virtual_network_subnet_ids").(*schema.Set).List()
 
-	s := make([]documentdb.VirtualNetworkRule, len(virtualNetworkRules))
-	for i, r := range virtualNetworkRules {
-		m := r.(map[string]interface{})
-		s[i] = documentdb.VirtualNetworkRule{ID: utils.String(m["id"].(string))}
+	virtualNetworkRules := make([]documentdb.VirtualNetworkRule, 0)
+	for _, r := range s {
+		virtualNetworkRules = append(virtualNetworkRules, documentdb.VirtualNetworkRule{ID: utils.String(r.(string))})
 	}
-	return &s
+	return &virtualNetworkRules
 }
 
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
@@ -1011,20 +1004,14 @@ func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capabi
 }
 
 func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.VirtualNetworkRule) *schema.Set {
-	results := schema.Set{
-		F: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-	}
-
+	virtualNetworkRules := make([]interface{}, 0)
 	if rules != nil {
 		for _, r := range *rules {
-			rule := map[string]interface{}{
-				"id": *r.ID,
-			}
-			results.Add(rule)
+			virtualNetworkRules = append(virtualNetworkRules, *r.ID)
 		}
 	}
 
-	return &results
+	return schema.NewSet(set.HashStringIgnoreCase, virtualNetworkRules)
 }
 
 //todo remove once deprecated field `failover_policy` is removed
@@ -1063,16 +1050,6 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	}
-
-	return hashcode.String(buf.String())
-}
-
-func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
 	return hashcode.String(buf.String())

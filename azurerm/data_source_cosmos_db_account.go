@@ -111,17 +111,12 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			"virtual_network_rule": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
+			"virtual_network_subnet_ids": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
+				Computed: true,
 			},
 
 			"enable_multiple_write_locations": {
@@ -231,8 +226,8 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `capabilities`: %+v", err)
 		}
 
-		if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
+		if err = d.Set("virtual_network_subnet_ids", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
+			return fmt.Errorf("Error setting `virtual_network_subnet_ids`: %+v", err)
 		}
 
 		readEndpoints := make([]string, 0)
@@ -288,16 +283,14 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []interface{} {
 	if rules == nil {
-		return []map[string]interface{}{}
+		return []interface{}{}
 	}
 
-	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	virtualNetworkRules := make([]interface{}, len(*rules))
 	for i, r := range *rules {
-		virtualNetworkRules[i] = map[string]interface{}{
-			"id": *r.ID,
-		}
+		virtualNetworkRules[i] = *r.ID
 	}
 	return virtualNetworkRules
 }

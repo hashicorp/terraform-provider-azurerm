@@ -53,7 +53,7 @@ The following attributes are exported:
 
 * `is_virtual_network_filter_enabled` - If virtual network filtering is enabled for this Cosmos DB account.
 
-* `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
+* `virtual_network_subnet_ids` - Subnets that are allowed to access this CosmosDB account.
 
 * `enable_multiple_write_locations` - If multi-master is enabled for this Cosmos DB account.
 
