@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -39,7 +40,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"priority": {
 				Type:         schema.TypeInt,
@@ -375,9 +376,9 @@ func expandArmFirewallApplicationRules(inputs []interface{}) ([]network.AzureFir
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
 			Description:     utils.String(ruleDescription),
-			SourceAddresses: utils.ExpandStringArray(ruleSourceAddresses),
-			FqdnTags:        utils.ExpandStringArray(ruleFqdnTags),
-			TargetFqdns:     utils.ExpandStringArray(ruleTargetFqdns),
+			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
+			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)

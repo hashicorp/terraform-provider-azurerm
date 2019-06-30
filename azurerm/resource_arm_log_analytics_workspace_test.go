@@ -130,7 +130,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 }
 
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+	conn := testAccProvider.Meta().(*ArmClient).logAnalytics.WorkspacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -169,7 +169,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+		conn := testAccProvider.Meta().(*ArmClient).logAnalytics.WorkspacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -228,7 +228,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
- tags = {
+  tags = {
     Environment = "Test"
   }
 }

@@ -73,7 +73,7 @@ func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementCertificatesClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.CertificatesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_certificate" {
 			continue
@@ -108,7 +108,7 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementCertificatesClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.CertificatesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

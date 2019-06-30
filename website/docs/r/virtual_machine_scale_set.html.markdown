@@ -444,7 +444,7 @@ output "principal_id" {
 `public_ip_address_configuration` supports the following:
 
 * `name` - (Required) The name of the public ip address configuration
-* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:

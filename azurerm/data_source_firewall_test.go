@@ -71,7 +71,7 @@ resource "azurerm_firewall" "test" {
 }
 
 data "azurerm_firewall" "test" {
-	name                = "${azurerm_firewall.test.name}"
+  name                = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)

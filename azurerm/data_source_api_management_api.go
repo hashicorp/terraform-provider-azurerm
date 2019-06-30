@@ -23,7 +23,7 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"revision": {
 				Type:         schema.TypeString,
@@ -106,7 +106,7 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apiManagementApiClient
+	client := meta.(*ArmClient).apiManagement.ApiClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)

@@ -21,9 +21,10 @@ data "azurerm_api_management_product" "example" {
 }
 
 resource "azurerm_api_management_product_policy" "example" {
-  product_id            = "${data.azurerm_api_management_product.example.product_id}"
-  api_management_name   = "${data.azurerm_api_management_product.example.api_management_name}"
-  resource_group_name   = "${data.azurerm_api_management_product.example.resource_group_name}"
+  product_id          = "${data.azurerm_api_management_product.example.product_id}"
+  api_management_name = "${data.azurerm_api_management_product.example.api_management_name}"
+  resource_group_name = "${data.azurerm_api_management_product.example.resource_group_name}"
+
   xml_content = <<XML
 <policies>
   <inbound>

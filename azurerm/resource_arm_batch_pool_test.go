@@ -457,11 +457,11 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  
+
   fixed_scale {
     target_dedicated_nodes = 2
   }
-  
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -510,7 +510,8 @@ resource "azurerm_batch_pool" "test" {
 
   auto_scale {
     evaluation_interval = "PT15M"
-    formula             = <<EOF
+
+    formula = <<EOF
       startingNumberOfVMs = 1;
       maxNumberofVMs = 25;
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
@@ -625,7 +626,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -682,7 +683,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -740,7 +741,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -753,8 +754,8 @@ resource "azurerm_batch_pool" "test" {
 
     resource_file {
       auto_storage_container_name = "test"
-      http_url  = "test"
-      file_path = "README.md"
+      http_url                    = "test"
+      file_path                   = "README.md"
     }
   }
 }
@@ -798,7 +799,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -856,7 +857,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -890,23 +891,24 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "testcer" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.cer")}"
-	format               = "Cer"
-	thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.cer")}"
+  format               = "Cer"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"        # deliberately using lowercase here as verification
+  thumbprint_algorithm = "SHA1"
 }
+
 resource "azurerm_batch_certificate" "testpfx" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
-	format               = "Pfx"
-	password             = "terraform"
-	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  format               = "Pfx"
+  password             = "terraform"
+  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint_algorithm = "SHA1"
 }
-	
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -928,16 +930,15 @@ resource "azurerm_batch_pool" "test" {
   certificate {
     id             = "${azurerm_batch_certificate.testcer.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask" ]
+    visibility     = ["StartTask"]
   }
 
   certificate {
     id             = "${azurerm_batch_certificate.testpfx.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask", "RemoteUser" ]
+    visibility     = ["StartTask", "RemoteUser"]
   }
 }
-
 `, rInt, location, rString, rString)
 }
 
@@ -983,6 +984,5 @@ resource "azurerm_batch_pool" "test" {
     type = "DockerCompatible"
   }
 }
-
 `, rInt, location, rString, rString, rString)
 }
