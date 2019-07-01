@@ -36,7 +36,6 @@ func dataSourceArmDevTestVirtualNetwork() *schema.Resource {
 			"allowed_subnets": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allow_public_ip": {
