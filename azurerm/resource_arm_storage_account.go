@@ -519,6 +519,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// AccountTier must be Premium for FileStorage
+	if accountKind == string(storage.FileStorage) {
+		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
+			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
+	}
+
 	// Create
 	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
 	if err != nil {

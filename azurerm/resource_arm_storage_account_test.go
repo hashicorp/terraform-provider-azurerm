@@ -414,6 +414,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "FileStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
@@ -426,6 +427,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
 			},
@@ -1030,8 +1032,9 @@ resource "azurerm_storage_account" "testsa" {
 
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "FileStorage"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_tier             = "Premium"
+	account_replication_type = "LRS"
+	access_tier              = "Hot"
 
   tags = {
     environment = "production"
@@ -1053,11 +1056,12 @@ resource "azurerm_storage_account" "testsa" {
 
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "FileStorage"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_tier             = "Premium"
+	account_replication_type = "LRS"
+	access_tier              = "Cool"
 
   tags = {
-    environment = "production2"
+    environment = "production"
   }
 }
 `, rInt, location, rString)
