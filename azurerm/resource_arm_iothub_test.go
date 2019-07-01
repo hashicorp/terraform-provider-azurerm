@@ -338,13 +338,13 @@ resource "azurerm_iothub" "test" {
     name     = "S1"
     tier     = "Standard"
     capacity = "1"
-	}
+  }
 
-	ip_filter_rule {
-		name        = "test"
-		ip_mask     = "10.0.0.0/31"
-		action      = "Accept"
-	}
+  ip_filter_rule {
+    name    = "test"
+    ip_mask = "10.0.0.0/31"
+    action  = "Accept"
+  }
 
   tags = {
     purpose = "testing"
@@ -457,9 +457,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub" "test" {
-  name                  = "acctestIoTHub-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"
@@ -473,7 +473,7 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-	tags = {
+  tags = {
     purpose = "testing"
   }
 }

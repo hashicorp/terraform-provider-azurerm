@@ -152,10 +152,12 @@ resource "azurerm_api_management_authorization_server" "test" {
   authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
   client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+
   grant_types = [
     "implicit",
   ]
-  authorization_methods        = [
+
+  authorization_methods = [
     "GET",
   ]
 }
@@ -176,7 +178,8 @@ resource "azurerm_api_management_authorization_server" "import" {
   client_id                    = "${azurerm_api_management_authorization_server.test.client_id}"
   client_registration_endpoint = "${azurerm_api_management_authorization_server.test.client_registration_endpoint}"
   grant_types                  = "${azurerm_api_management_authorization_server.test.grant_types}"
-  authorization_methods        = [
+
+  authorization_methods = [
     "GET",
   ]
 }
@@ -196,22 +199,26 @@ resource "azurerm_api_management_authorization_server" "test" {
   authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
   client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+
   grant_types = [
-     "authorizationCode",
+    "authorizationCode",
   ]
-  authorization_methods        = [
+
+  authorization_methods = [
     "GET",
     "POST",
   ]
+
   bearer_token_sending_methods = [
-    "authorizationHeader"
+    "authorizationHeader",
   ]
-  client_secret                = "n1n3-m0re-s3a5on5-m0r1y"
-  default_scope                = "read write"
-  token_endpoint               = "https://azacctest.hashicorptest.com/client/token"
-  resource_owner_username      = "rick"
-  resource_owner_password      = "C-193P"
-  support_state                = true
+
+  client_secret           = "n1n3-m0re-s3a5on5-m0r1y"
+  default_scope           = "read write"
+  token_endpoint          = "https://azacctest.hashicorptest.com/client/token"
+  resource_owner_username = "rick"
+  resource_owner_password = "C-193P"
+  support_state           = true
 }
 `, template, rInt)
 }

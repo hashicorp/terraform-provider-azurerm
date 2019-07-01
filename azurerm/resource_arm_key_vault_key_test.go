@@ -418,9 +418,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -473,9 +471,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -519,10 +515,10 @@ func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) s
 %s
 
 resource "azurerm_key_vault_key" "import" {
-  name      = "${azurerm_key_vault_key.test.name}"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  key_type  = "EC"
-  key_size  = 2048
+  name         = "${azurerm_key_vault_key.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "EC"
+  key_size     = 2048
 
   key_opts = [
     "sign",
@@ -547,9 +543,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -575,10 +569,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "key-%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -607,9 +601,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -634,10 +626,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "key-%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  key_type  = "RSA-HSM"
-  key_size  = 2048
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA-HSM"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -666,9 +658,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -693,10 +683,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name          = "key-%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  key_type      = "RSA"
-  key_size      = 2048
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -729,9 +719,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
