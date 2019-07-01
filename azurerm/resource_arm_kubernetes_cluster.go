@@ -974,6 +974,12 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 
 		if enableAutoScalingItf := config["enable_auto_scaling"]; enableAutoScalingItf != nil {
 			profile.EnableAutoScaling = utils.Bool(enableAutoScalingItf.(bool))
+
+			// Auto scaling will change the number of nodes, but the original count number should not be sent again.
+			// This avoid the cluster being resized after creation.
+			if *profile.EnableAutoScaling && !d.IsNewResource() {
+				profile.Count = nil
+			}
 		}
 
 		if availavilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availavilityZones) > 0 {
