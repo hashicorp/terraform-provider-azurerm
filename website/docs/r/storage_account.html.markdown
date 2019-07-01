@@ -92,7 +92,7 @@ The following arguments are supported:
     `StorageV2`,  `BlobStorage`, and `FileStorage`. Changing this forces a new resource to be created.
     Defaults to `Storage`.
 
-* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
 
