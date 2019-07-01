@@ -901,7 +901,10 @@ func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpoin
 			}
 		}
 
-		output["notifications"] = *enableFileUploadNotifications
+		if enableFileUploadNotifications != nil {
+			output["notifications"] = *enableFileUploadNotifications
+		}
+
 		results = append(results, output)
 	}
 
