@@ -47,6 +47,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	vulnerabilitySvc "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
+	privateDnsSvc "github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	iotdps "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
@@ -86,6 +87,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
@@ -133,6 +135,7 @@ type ArmClient struct {
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
+	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
 	hdinsight        *hdinsight.Client
@@ -189,6 +192,7 @@ type ArmClient struct {
 
 	// Databases
 	mariadbDatabasesClient                   mariadb.DatabasesClient
+	mariadbFirewallRulesClient               mariadb.FirewallRulesClient
 	mariadbServersClient                     mariadb.ServersClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
@@ -290,7 +294,7 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
 	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 60 * time.Minute
+	client.PollingDuration = 180 * time.Minute
 }
 
 func setUserAgent(client *autorest.Client, partnerID string) {
@@ -401,6 +405,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 	client.registerManagementGroupClients(endpoint, auth)
+	client.registerPrivateDNSClient(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -549,6 +554,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbDBClient.Client, auth)
 	c.mariadbDatabasesClient = mariadbDBClient
+
+	mariadbFWClient := mariadb.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbFWClient.Client, auth)
+	c.mariadbFirewallRulesClient = mariadbFWClient
 
 	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbServersClient.Client, auth)
@@ -994,6 +1003,15 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 		LinkedServicesClient: linkedServicesClient,
 		SolutionsClient:      solutionsClient,
 		WorkspacesClient:     workspacesClient,
+	}
+}
+
+func (c *ArmClient) registerPrivateDNSClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	privateZonesClient := privateDnsSvc.NewPrivateZonesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&privateZonesClient.Client, auth)
+
+	c.privateDns = &privatedns.Client{
+		PrivateZonesClient: privateZonesClient,
 	}
 }
 

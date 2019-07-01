@@ -2538,30 +2538,30 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_zeroedIpRestriction(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_app_service" "test" {
-	name                = "acctestAS-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-	site_config {
-		ip_restriction = []
-	}
+  site_config {
+    ip_restriction = []
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -3119,27 +3119,32 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
   site_config {
     cors {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
-        "contoso.com"
+        "contoso.com",
       ]
+
       support_credentials = true
     }
   }
@@ -3231,9 +3236,9 @@ resource "azurerm_app_service" "test" {
   auth_settings {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
-          
+
     allowed_external_redirect_urls = [
-      "https://terra.form"
+      "https://terra.form",
     ]
 
     active_directory {
@@ -3280,8 +3285,8 @@ resource "azurerm_app_service" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled         = true
+    issuer          = "https://sts.windows.net/%s"
     runtime_version = "1.0"
 
     active_directory {
@@ -3328,8 +3333,8 @@ resource "azurerm_app_service" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/%s"
     token_refresh_extension_hours = 75
 
     active_directory {
@@ -3376,8 +3381,8 @@ resource "azurerm_app_service" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled             = true
+    issuer              = "https://sts.windows.net/%s"
     token_store_enabled = true
 
     active_directory {
@@ -3424,8 +3429,8 @@ resource "azurerm_app_service" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/%s"
     unauthenticated_client_action = "RedirectToLoginPage"
 
     active_directory {
@@ -3474,6 +3479,7 @@ resource "azurerm_app_service" "test" {
   auth_settings {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
+
     active_directory {
       client_id     = "aadclientid"
       client_secret = "aadsecret"
@@ -3519,6 +3525,7 @@ resource "azurerm_app_service" "test" {
 
   auth_settings {
     enabled = true
+
     facebook {
       app_id     = "facebookappid"
       app_secret = "facebookappsecret"
@@ -3564,6 +3571,7 @@ resource "azurerm_app_service" "test" {
 
   auth_settings {
     enabled = true
+
     google {
       client_id     = "googleclientid"
       client_secret = "googleclientsecret"
@@ -3596,6 +3604,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -3608,6 +3617,7 @@ resource "azurerm_app_service" "test" {
 
   auth_settings {
     enabled = true
+
     microsoft {
       client_id     = "microsoftclientid"
       client_secret = "microsoftclientsecret"
@@ -3653,9 +3663,10 @@ resource "azurerm_app_service" "test" {
 
   auth_settings {
     enabled = true
+
     twitter {
-      consumer_key     = "twitterconsumerkey"
-      consumer_secret  = "twitterconsumersecret"
+      consumer_key    = "twitterconsumerkey"
+      consumer_secret = "twitterconsumersecret"
     }
   }
 }
@@ -3705,7 +3716,7 @@ resource "azurerm_app_service" "test" {
         "activedirectorytokenaudiences",
       ]
     }
-    
+
     microsoft {
       client_id     = "microsoftclientid"
       client_secret = "microsoftclientsecret"
@@ -3722,38 +3733,38 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_basicWindowsContainer(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	is_xenon            = true
-	kind                = "xenon"
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  is_xenon            = true
+  kind                = "xenon"
 
-	sku {
-		tier = "PremiumContainer"
-		size = "PC2"
-	}
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
 }
 
 resource "azurerm_app_service" "test" {
-	name                = "acctestAS-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-	
-	site_config {
-	  windows_fx_version = "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"
-	}
-	
-	app_settings = {
-		"DOCKER_REGISTRY_SERVER_URL" = "https://mcr.microsoft.com",
-		"DOCKER_REGISTRY_SERVER_USERNAME" = "",
-		"DOCKER_REGISTRY_SERVER_PASSWORD" = "",
-	}
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    windows_fx_version = "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"
+  }
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"      = "https://mcr.microsoft.com"
+    "DOCKER_REGISTRY_SERVER_USERNAME" = ""
+    "DOCKER_REGISTRY_SERVER_PASSWORD" = ""
+  }
 }
 `, rInt, location, rInt, rInt)
 }

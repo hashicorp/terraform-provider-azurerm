@@ -53,16 +53,15 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-
 resource "azurerm_api_management_user" "test" {
-  user_id               = "test-user"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "active"
-  note                  = "Used for testing in dimension C-137."
+  user_id             = "test-user"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
+  state               = "active"
+  note                = "Used for testing in dimension C-137."
 }
 
 data "azurerm_api_management_user" "test" {

@@ -27,9 +27,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   tenant_id = "22222222-2222-2222-2222-222222222222"
 
@@ -41,7 +39,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id          = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"

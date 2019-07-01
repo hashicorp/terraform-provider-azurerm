@@ -170,12 +170,11 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
 
-  server 						= "${azurerm_sql_server.test.fully_qualified_domain_name}"
-  user 							= "${azurerm_sql_server.test.administrator_login}"
-  password 					= "${azurerm_sql_server.test.administrator_login_password}"
-  database 					= "${azurerm_sql_database.test.name}"
-  table			 				= "AccTestTable"
-
+  server   = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+  user     = "${azurerm_sql_server.test.administrator_login}"
+  password = "${azurerm_sql_server.test.administrator_login_password}"
+  database = "${azurerm_sql_database.test.name}"
+  table    = "AccTestTable"
 }
 `, template, rInt)
 }
@@ -190,11 +189,11 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
 
-  server 						= "${azurerm_sql_server.test.fully_qualified_domain_name}"
-  user 							= "${azurerm_sql_server.test.administrator_login}"
-  password 					= "${azurerm_sql_server.test.administrator_login_password}"
-  database 					= "${azurerm_sql_database.test.name}"
-  table			 				= "AccTestTable"
+  server   = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+  user     = "${azurerm_sql_server.test.administrator_login}"
+  password = "${azurerm_sql_server.test.administrator_login_password}"
+  database = "${azurerm_sql_database.test.name}"
+  table    = "AccTestTable"
 }
 `, template, rInt)
 }
@@ -209,19 +208,17 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
   stream_analytics_job_name = "${azurerm_stream_analytics_output_mssql.test.stream_analytics_job_name}"
   resource_group_name       = "${azurerm_stream_analytics_output_mssql.test.resource_group_name}"
 
-  server 										= "${azurerm_sql_server.test.fully_qualified_domain_name}"
-  user 											= "${azurerm_sql_server.test.administrator_login}"
-  password 									= "${azurerm_sql_server.test.administrator_login_password}"
-  database 									= "${azurerm_sql_database.test.name}"
-  table			 								= "AccTestTable"
-
+  server   = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+  user     = "${azurerm_sql_server.test.administrator_login}"
+  password = "${azurerm_sql_server.test.administrator_login_password}"
+  database = "${azurerm_sql_database.test.name}"
+  table    = "AccTestTable"
 }
 `, template)
 }
 
 func testAccAzureRMStreamAnalyticsOutputSql_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -237,16 +234,16 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_sql_database" "test" {
-	name                             = "acctestdb"
-	resource_group_name              = "${azurerm_resource_group.test.name}"
-	location                         = "${azurerm_resource_group.test.location}"
-	server_name                      = "${azurerm_sql_server.test.name}"
-	requested_service_objective_name = "S0"
-	collation                        = "SQL_LATIN1_GENERAL_CP1_CI_AS"
-	max_size_bytes                   = "268435456000"
-	create_mode                      = "Default"
+  name                             = "acctestdb"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  requested_service_objective_name = "S0"
+  collation                        = "SQL_LATIN1_GENERAL_CP1_CI_AS"
+  max_size_bytes                   = "268435456000"
+  create_mode                      = "Default"
 }
-  
+
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%s"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
