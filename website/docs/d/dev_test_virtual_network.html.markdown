@@ -40,7 +40,7 @@ output "lab_subnet_name" {
 
 An `allowed_subnets` block supports the following:
 
-*	`allow_public_ip` - Indicates if this subnet allows public IP addresses. Possible values are `Allow`, `Default` and `Deny`.
+* `allow_public_ip` - Indicates if this subnet allows public IP addresses. Possible values are `Allow`, `Default` and `Deny`.
 
 * `lab_subnet_name` - The name of the subnet.
 
