@@ -22,7 +22,6 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-
 resource "azurerm_iothub" "test" {
   name                = "example-iothub"
   resource_group_name = "${azurerm_resource_group.example.name}"

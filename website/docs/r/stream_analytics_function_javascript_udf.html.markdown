@@ -26,6 +26,7 @@ resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "example-javascript-function"
   stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
+
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;

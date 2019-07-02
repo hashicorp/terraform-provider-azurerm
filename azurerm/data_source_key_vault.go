@@ -26,6 +26,7 @@ func dataSourceArmKeyVault() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			// Remove in 2.0
 			"sku": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -37,6 +38,11 @@ func dataSourceArmKeyVault() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"vault_uri": {
@@ -177,8 +183,17 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("vault_uri", props.VaultURI)
 
-		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+		if sku := props.Sku; sku != nil {
+			// Remove in 2.0
+			if err := d.Set("sku", flattenKeyVaultDataSourceSku(sku)); err != nil {
+				return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+			}
+
+			if err := d.Set("sku_name", string(sku.Name)); err != nil {
+				return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
+			}
+		} else {
+			return fmt.Errorf("Error making Read request on KeyVault %q: Unable to retrieve 'sku' value", *resp.Name)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
@@ -196,6 +211,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
+// Remove in 2.0
 func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) []interface{} {
 	result := map[string]interface{}{
 		"name": string(sku.Name),

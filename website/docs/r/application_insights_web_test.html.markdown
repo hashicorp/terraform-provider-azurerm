@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_application_insights_webtests"
-sidebar_current: "docs-azurerm-resource-application-insights-webtests"
+page_title: "Azure Resource Manager: azurerm_application_insights_web_test"
+sidebar_current: "docs-azurerm-resource-application-insights-web-test"
 description: |-
   Manages an Application Insights WebTest.
 ---
 
-# azurerm_application_insights_webtests
+# azurerm_application_insights_web_tests
 
 Manages an Application Insights WebTest.
 
@@ -25,7 +25,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_webtest" "test" {
+resource "azurerm_application_insights_web_test" "test" {
   name                    = "tf-test-appinsights-webtest"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"

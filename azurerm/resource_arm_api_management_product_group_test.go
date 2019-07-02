@@ -153,10 +153,10 @@ resource "azurerm_api_management_group" "test" {
 }
 
 resource "azurerm_api_management_product_group" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  group_name            = "${azurerm_api_management_group.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  group_name          = "${azurerm_api_management_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -167,10 +167,10 @@ func testAccAzureRMAPIManagementProductGroup_requiresImport(rInt int, location s
 %s
 
 resource "azurerm_api_management_product_group" "import" {
-  product_id            = "${azurerm_api_management_product_group.test.product_id}"
-  group_name            = "${azurerm_api_management_product_group.test.group_name}"
-  api_management_name   = "${azurerm_api_management_product_group.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_product_group.test.resource_group_name}"
+  product_id          = "${azurerm_api_management_product_group.test.product_id}"
+  group_name          = "${azurerm_api_management_product_group.test.group_name}"
+  api_management_name = "${azurerm_api_management_product_group.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_product_group.test.resource_group_name}"
 }
 `, template)
 }

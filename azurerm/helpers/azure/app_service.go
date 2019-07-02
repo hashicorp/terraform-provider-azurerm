@@ -452,6 +452,57 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceLogsConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"application_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"level": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(web.Error),
+												string(web.Information),
+												string(web.Off),
+												string(web.Verbose),
+												string(web.Warning),
+											}, false),
+										},
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -1012,6 +1063,84 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	result["twitter"] = twitterSettings
 
 	return append(results, result)
+}
+
+func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.ApplicationLogs != nil {
+		appLogs := make([]interface{}, 0)
+
+		appLogsItem := make(map[string]interface{})
+
+		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorage := make([]interface{}, 0)
+
+			blobStorageItem := make(map[string]interface{})
+
+			blobStorageItem["level"] = string(blobStorageInput.Level)
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			blobStorage = append(blobStorage, blobStorageItem)
+
+			appLogsItem["azure_blob_storage"] = blobStorage
+		}
+
+		appLogs = append(appLogs, appLogsItem)
+
+		result["application_logs"] = appLogs
+	}
+
+	return append(results, result)
+}
+
+func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
+	configs := input.([]interface{})
+	logs := web.SiteLogsConfigProperties{}
+
+	if len(configs) == 0 {
+		return logs
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["application_logs"]; ok {
+		appLogsConfigs := v.([]interface{})
+
+		for _, config := range appLogsConfigs {
+			appLogsConfig := config.(map[string]interface{})
+
+			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if v, ok := appLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
+						Level:           web.LogLevel(storageConfig["level"].(string)),
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	return logs
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {

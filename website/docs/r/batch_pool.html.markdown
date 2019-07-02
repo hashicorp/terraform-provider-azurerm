@@ -58,7 +58,8 @@ resource "azurerm_batch_pool" "test" {
 
   auto_scale {
     evaluation_interval = "PT15M"
-    formula             = <<EOF
+
+    formula = <<EOF
       startingNumberOfVMs = 1;
       maxNumberofVMs = 25;
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
@@ -96,8 +97,8 @@ EOF
   }
 
   certificate {
-    id             = "${azurerm_batch_certificate.testcer.id}"
-    visibility = [ "StartTask" ]
+    id         = "${azurerm_batch_certificate.testcer.id}"
+    visibility = ["StartTask"]
   }
 }
 ```

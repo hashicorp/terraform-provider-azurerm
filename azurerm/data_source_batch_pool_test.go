@@ -88,23 +88,23 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "test" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
-	format               = "Pfx"
-	password             = "terraform"
-	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  format               = "Pfx"
+  password             = "terraform"
+  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint_algorithm = "SHA1"
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                   = "testaccpool%s"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  account_name           = "${azurerm_batch_account.test.name}"
-  display_name           = "Test Acc Pool"
-  vm_size                = "Standard_A1"
-  node_agent_sku_id      = "batch.node.ubuntu 16.04"
-  max_tasks_per_node     = 2
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  max_tasks_per_node  = 2
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -121,13 +121,13 @@ resource "azurerm_batch_pool" "test" {
   certificate {
     id             = "${azurerm_batch_certificate.test.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask", "RemoteUser" ]
+    visibility     = ["StartTask", "RemoteUser"]
   }
 
   container_configuration {
     type = "DockerCompatible"
   }
-  
+
   start_task {
     command_line         = "echo 'Hello World from $env'"
     max_task_retry_count = 1

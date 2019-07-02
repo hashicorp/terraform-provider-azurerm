@@ -161,6 +161,7 @@ resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;
@@ -203,6 +204,7 @@ resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+
   script = <<SCRIPT
 function getRandomNumber(first, second) {
   return first * second;

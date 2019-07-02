@@ -181,10 +181,10 @@ resource "azurerm_api_management_product" "test" {
 }
 
 resource "azurerm_api_management_product_policy" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  xml_link            = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
 }
 `, rInt, location, rInt)
 }
@@ -195,10 +195,10 @@ func testAccAzureRMApiManagementProductPolicy_requiresImport(rInt int, location 
 %s
 
 resource "azurerm_api_management_product_policy" "import" {
-  product_id            = "${azurerm_api_management_product_policy.test.product_id}"
-  api_management_name   = "${azurerm_api_management_product_policy.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_product_policy.test.resource_group_name}"
-  xml_link              = "${azurerm_api_management_product_policy.test.xml_link}"
+  product_id          = "${azurerm_api_management_product_policy.test.product_id}"
+  api_management_name = "${azurerm_api_management_product_policy.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_product_policy.test.resource_group_name}"
+  xml_link            = "${azurerm_api_management_product_policy.test.xml_link}"
 }
 `, template)
 }
@@ -233,9 +233,10 @@ resource "azurerm_api_management_product" "test" {
 }
 
 resource "azurerm_api_management_product_policy" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
   xml_content = <<XML
 <policies>
   <inbound>

@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
+* `logs` - (Optional) A `logs` block as defined below.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -106,6 +108,28 @@ A `identity` block supports the following:
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+---
+
+A `logs` block supports the following:
+
+* `application_logs` - (Optional) An `application_logs` block as defined below.
+
+---
+
+An `application_logs` block supports the following:
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `azure_blob_storage` block supports the following:
+
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`.
+
+* `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
 
 ---
 
