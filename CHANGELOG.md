@@ -5,6 +5,10 @@ IMPROVEMENTS:
 
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 
+BUG FIXES:
+
+* `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
+
 ## 1.31.0 (June 28, 2019)
 
 FEATURES:
