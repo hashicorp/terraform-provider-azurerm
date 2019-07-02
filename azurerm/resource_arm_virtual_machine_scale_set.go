@@ -1326,14 +1326,23 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						config["primary"] = *properties.Primary
 					}
 
-					if properties.PublicIPAddressConfiguration != nil {
-						publicIpInfo := properties.PublicIPAddressConfiguration
-						publicIpConfigs := make([]map[string]interface{}, 0, 1)
-						publicIpConfig := make(map[string]interface{})
-						publicIpConfig["name"] = *publicIpInfo.Name
-						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
-						config["public_ip_address_configuration"] = publicIpConfigs
+					if ipCfg := properties.PublicIPAddressConfiguration; ipCfg != nil {
+						block := make(map[string]interface{})
+						if v := ipCfg.Name; v != nil {
+							block["name"] = *v
+						}
+
+						if ipProperties := ipCfg.VirtualMachineScaleSetPublicIPAddressConfigurationProperties; ipProperties != nil {
+							if dns := ipProperties.DNSSettings; dns != nil {
+								if v := dns.DomainNameLabel; v != nil {
+									block["domain_name_label"] = *v
+								}
+							}
+							if v := ipProperties.IdleTimeoutInMinutes; v != nil {
+								block["idle_timeout"] = *v
+							}
+						}
+						config["public_ip_address_configuration"] = []map[string]interface{}{block}
 					}
 
 					ipConfigs = append(ipConfigs, config)

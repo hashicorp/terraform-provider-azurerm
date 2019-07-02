@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"regexp"
 
@@ -114,11 +113,12 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"network_access_profile": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+			"network_rule": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr, // make sure we can set this to an empty array
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_action": {
@@ -131,8 +131,8 @@ func resourceArmContainerRegistry() *schema.Resource {
 							}, false),
 						},
 
-						"subnet_rule": {
-							Type:     schema.TypeList,
+						"virtual_network_rule": {
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -153,7 +153,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 						},
 
 						"ip_rule": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -219,10 +219,9 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	tags := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
-	networkRuleSet := expandNetworkRuleSet(d)
-	//NetworkRuleSet is only supported by Premium SDK
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
+		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule = []")
 	}
 
 	parameters := containerregistry.Registry{
@@ -303,10 +302,9 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
-	networkRuleSet := expandNetworkRuleSet(d)
-	//NetworkRuleSet is only supported by Premium SDK
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku.")
+		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule = []")
 	}
 
 	parameters := containerregistry.RegistryUpdateParameters{
@@ -481,8 +479,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("login_server", resp.LoginServer)
 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
-	if err := d.Set("network_access_profile", networkRuleSet); err != nil {
-		return fmt.Errorf("Error setting `network_access_profile`: %+v", err)
+	if err := d.Set("network_rule", networkRuleSet); err != nil {
+		return fmt.Errorf("Error setting `network_rule`: %+v", err)
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -584,16 +582,14 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 	return warnings, errors
 }
 
-func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRuleSet {
-	profiles := d.Get("network_access_profile").([]interface{})
-
+func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRuleSet {
 	if len(profiles) == 0 {
 		return nil
 	}
 
 	profile := profiles[0].(map[string]interface{})
 
-	virtualNetworkRuleConfigs := profile["subnet_rule"].([]interface{})
+	virtualNetworkRuleConfigs := profile["virtual_network_rule"].(*schema.Set).List()
 	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
 
 	for _, virtualNetworkRuleInterface := range virtualNetworkRuleConfigs {
@@ -605,9 +601,8 @@ func expandNetworkRuleSet(d *schema.ResourceData) *containerregistry.NetworkRule
 			})
 	}
 
-	ipRuleConfigs := profile["ip_rule"].([]interface{})
+	ipRuleConfigs := profile["ip_rule"].(*schema.Set).List()
 	ipRules := make([]containerregistry.IPRule, 0)
-
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
 		ipRules =
@@ -658,7 +653,7 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 		virtualNetworkRules = append(virtualNetworkRules, value)
 	}
 
-	values["subnet_rule"] = virtualNetworkRules
+	values["virtual_network_rule"] = virtualNetworkRules
 
 	return []interface{}{values}
 }

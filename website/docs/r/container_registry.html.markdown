@@ -54,17 +54,17 @@ The following arguments are supported:
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
-* `network_access_profile` - (Optional) A `network_access_profile` block as documented below.
+* `network_rule` - (Optional) A `network_rule` block as documented below.
 
-`network_access_profile` supports the following:
+`network_rule` supports the following:
 
 * `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `subnet_rule` - (Optional) One or more `subnet_rule` blocks as defined below.
+* `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 
-~> **NOTE:** `network_access_profile ` only supports `Premium` SDK at this time.
+~> **NOTE:** `network_rule ` only supports `Premium` SDK at this time.
 
 `ip_rule` supports the following:
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
 
-`subnet_rule` supports the following:
+`virtual_network_rule` supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
