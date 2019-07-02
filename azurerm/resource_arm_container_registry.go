@@ -118,7 +118,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr, // make sure we can set this to an empty array
+				ConfigMode: schema.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_action": {
@@ -132,8 +132,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 						},
 
 						"virtual_network_rule": {
-							Type:     schema.TypeSet,
-							Optional: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
@@ -153,8 +154,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 						},
 
 						"ip_rule": {
-							Type:     schema.TypeSet,
-							Optional: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
