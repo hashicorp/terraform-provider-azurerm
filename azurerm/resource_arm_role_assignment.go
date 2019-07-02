@@ -81,7 +81,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
 		roleName := v.(string)
-		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", fmt.Sprintf("roleName eq '%s'", roleName))
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleName))
 		if err != nil {
 			return fmt.Errorf("Error loading Role Definition List: %+v", err)
 		}
