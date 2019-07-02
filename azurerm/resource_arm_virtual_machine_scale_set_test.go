@@ -1847,7 +1847,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updated_tags(rInt int, location string ) string {
+func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updated_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
