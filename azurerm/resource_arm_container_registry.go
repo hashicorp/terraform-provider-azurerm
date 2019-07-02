@@ -113,7 +113,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"network_rule": {
+			"network_rule_set": {
 				Type:       schema.TypeList,
 				Optional:   true,
 				Computed:   true,
@@ -199,9 +199,9 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	tags := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
-	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule").([]interface{}))
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule = []")
+		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
 	parameters := containerregistry.Registry{
@@ -282,9 +282,9 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
-	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule").([]interface{}))
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule = []")
+		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
 	parameters := containerregistry.RegistryUpdateParameters{
@@ -459,8 +459,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("login_server", resp.LoginServer)
 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
-	if err := d.Set("network_rule", networkRuleSet); err != nil {
-		return fmt.Errorf("Error setting `network_rule`: %+v", err)
+	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
 	}
 
 	if sku := resp.Sku; sku != nil {

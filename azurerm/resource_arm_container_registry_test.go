@@ -346,8 +346,8 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_ip(t *testing.T) {
 				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(ri, l, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(rn, "network_rule.0.ip_rule.#", "1"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
 				),
 			},
 			{
@@ -379,8 +379,8 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(ri, l, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(rn, "network_rule.0.ip_rule.#", "1"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
 				),
 			},
 			{
@@ -506,9 +506,9 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "Basic"
 
-  # make sure network_rule is empty for basic SKU
-  # premiuim SKU will automaticcally populate network_rule.default_action to allow
-  network_rule = []
+  # make sure network_rule_set is empty for basic SKU
+  # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
+  network_rule_set = []
 }
 `, rInt, location, rInt)
 }
@@ -632,9 +632,9 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "Basic"
 
-  # make sure network_rule is empty for basic SKU
-  # premiuim SKU will automaticcally populate network_rule.default_action to allow
-  network_rule = []
+  # make sure network_rule_set is empty for basic SKU
+  # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
+  network_rule_set = []
 }
 `, rInt, location, rInt)
 }
@@ -653,7 +653,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "%[3]s"
   admin_enabled       = false
 
-  network_rule {
+  network_rule_set {
     default_action = "Allow"
 
 	ip_rule {
