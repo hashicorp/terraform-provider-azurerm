@@ -265,8 +265,9 @@ type ArmClient struct {
 	subscriptionsClient   subscriptions.Client
 
 	// Storage
-	storageServiceClient storage.AccountsClient
-	storageUsageClient   storage.UsagesClient
+	storageServiceClient      storage.AccountsClient
+	storageUsageClient        storage.UsagesClient
+	storageBlobServicesClient storage.BlobServicesClient
 
 	// Stream Analytics
 	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
@@ -1092,6 +1093,10 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	usageClient := storage.NewUsagesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
+
+	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&blobServicesClient.Client, auth)
+	c.storageBlobServicesClient = blobServicesClient
 }
 
 func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
