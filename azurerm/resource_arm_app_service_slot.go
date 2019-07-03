@@ -14,9 +14,9 @@ import (
 
 func resourceArmAppServiceSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSlotCreate,
+		Create: resourceArmAppServiceSlotCreateUpdate,
 		Read:   resourceArmAppServiceSlotRead,
-		Update: resourceArmAppServiceSlotUpdate,
+		Update: resourceArmAppServiceSlotCreateUpdate,
 		Delete: resourceArmAppServiceSlotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -37,7 +37,6 @@ func resourceArmAppServiceSlot() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -165,11 +164,9 @@ func resourceArmAppServiceSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
 	ctx := meta.(*ArmClient).StopContext
-
-	log.Printf("[INFO] preparing arguments for AzureRM App Service Slot creation.")
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -193,35 +190,24 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
+	affinity := d.Get("client_affinity_enabled").(bool)
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:          utils.String(appServicePlanId),
+			Enabled:               utils.Bool(enabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
+			ClientAffinityEnabled: &affinity,
 		},
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
 		siteEnvelope.Identity = appServiceIdentity
-	}
-
-	if v, ok := d.GetOk("client_affinity_enabled"); ok {
-		enabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
-	}
-
-	resp, err := client.Get(ctx, resGroup, appServiceName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("[DEBUG] App Service %q (resource group %q) was not found.", appServiceName, resGroup)
-		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
 	}
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
@@ -245,50 +231,6 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceSlotUpdate(d, meta)
-}
-
-func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
-	ctx := meta.(*ArmClient).StopContext
-
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resGroup := id.ResourceGroup
-	appServiceName := id.Path["sites"]
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	appServicePlanId := d.Get("app_service_plan_id").(string)
-	slot := id.Path["slots"]
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
-	enabled := d.Get("enabled").(bool)
-	httpsOnly := d.Get("https_only").(bool)
-	tags := d.Get("tags").(map[string]interface{})
-	siteEnvelope := web.Site{
-		Location: &location,
-		Tags:     expandTags(tags),
-		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
-		},
-	}
-	if v, ok := d.GetOk("client_affinity_enabled"); ok {
-		enabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
-	}
-	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
-	if err != nil {
-		return err
-	}
-
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
 	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -297,20 +239,6 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
-		}
-	}
-
-	if d.HasChange("client_affinity_enabled") {
-		affinity := d.Get("client_affinity_enabled").(bool)
-		sitePatchResource := web.SitePatchResource{
-			ID: utils.String(d.Id()),
-			SitePatchResourceProperties: &web.SitePatchResourceProperties{
-				ClientAffinityEnabled: &affinity,
-			},
-		}
-		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
-		if err != nil {
-			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", slot, err)
 		}
 	}
 
