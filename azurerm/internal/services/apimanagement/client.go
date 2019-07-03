@@ -55,11 +55,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.AuthorizationServersClient = apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.AuthorizationServersClient.Client, o.ResourceManagerAuthorizer)
-	c.BackendClient = apimanagement.NewBackendClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.BackendClient.Client, auth, partnerId, skipProviderReg)
 
-	c.CertificatesClient = apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.CertificatesClient.Client, auth, partnerId, skipProviderReg)
+	c.BackendClient = apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.BackendClient.Client, o.ResourceManagerAuthorizer)
 
 	c.CertificatesClient = apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.CertificatesClient.Client, o.ResourceManagerAuthorizer)
