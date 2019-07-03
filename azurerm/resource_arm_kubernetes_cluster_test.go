@@ -1546,8 +1546,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     name    = "default"
     count   = "1"
     vm_size = "Standard_DS2_v2"
-    name    = "default"
-    vm_size = "Standard_DS2_v2"
   }
 
   service_principal {
