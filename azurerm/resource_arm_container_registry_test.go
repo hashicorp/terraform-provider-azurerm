@@ -332,6 +332,33 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_networkAccessProfile_vnet(t *testing.T) {
+	rn := "azurerm_container_registry.test"
+	ri := tf.AccRandTimeInt()
+	l := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(ri, l, "Premium"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(rn),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network_rule.#", "1"),
+				),
+			},
+			{
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerRegistry_networkAccessProfile_ip(t *testing.T) {
 	rn := "azurerm_container_registry.test"
 	ri := tf.AccRandTimeInt()
@@ -380,6 +407,15 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(rn),
 					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_both(ri, l, "Premium"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(rn),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network_rule.#", "1"),
 					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
 				),
 			},
@@ -639,6 +675,55 @@ resource "azurerm_container_registry" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMContainerRegistry_networkAccessProfile_both(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testAccVnet-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  address_space = [
+    "10.0.0.0/16",
+  ]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testAccSubnet-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%[3]s"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+
+    virtual_network_rule {
+      action    = "Allow"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+
+	ip_rule {
+      action   = "Allow"
+      ip_range = "8.8.8.8/32"
+    }
+  }
+}
+
+`, rInt, location, sku)
+}
+
 func testAccAzureRMContainerRegistry_networkAccessProfile_ip(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -659,6 +744,49 @@ resource "azurerm_container_registry" "test" {
 	ip_rule {
       action   = "Allow"
       ip_range = "8.8.8.8/32"
+    }
+  }
+}
+`, rInt, location, sku)
+}
+
+func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testAccVnet-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  address_space = [
+    "10.0.0.0/16",
+  ]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testAccSubnet-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%[3]s"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+
+    virtual_network_rule {
+      action    = "Allow"
+      subnet_id = "${azurerm_subnet.test.id}"
     }
   }
 }

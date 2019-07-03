@@ -62,7 +62,9 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SDK at this time.
+* `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
+
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
 
 `ip_rule` supports the following:
 
@@ -70,6 +72,13 @@ The following arguments are supported:
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
 
+`virtual_network_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `subnet_id` - (Required) The ID of the Subnet from which requests will match the rule.
+
+~> **NOTE:** The `subnet_id` target subnet must have Service Endpoint `Microsoft.ContainerRegistry` enabled.
 
 ---
 ## Attributes Reference
