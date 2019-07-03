@@ -3,8 +3,9 @@
 
 IMPROVEMENTS:
 
-* `azurerm_container_registry`: support for `network_rule_set` property [GH-3194]
+* `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
+* `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
 
 BUG FIXES:
 
