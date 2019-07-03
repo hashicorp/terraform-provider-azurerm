@@ -1326,8 +1326,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						config["primary"] = *properties.Primary
 					}
 
-					if properties.PublicIPAddressConfiguration != nil {
-						publicIpInfo := properties.PublicIPAddressConfiguration
+					if publicIpInfo := properties.PublicIPAddressConfiguration ; publicIpInfo!= nil {
 						publicIpConfigs := make([]map[string]interface{}, 0, 1)
 						publicIpConfig := make(map[string]interface{})
 						publicIpConfig["name"] = *publicIpInfo.Name
