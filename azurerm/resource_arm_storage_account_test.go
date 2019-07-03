@@ -396,7 +396,44 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_fileStorage(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(ri, rs, location)
 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "FileStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
+				),
+			},
+		},
+	})
+}
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -543,6 +580,7 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 				),
@@ -556,8 +594,9 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.bypass.#", "2"),
 				),
 			},
@@ -571,7 +610,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_networkRulesReverted(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -582,6 +621,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 				),
@@ -590,7 +630,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Allow"),
 				),
 			},
 		},
@@ -939,11 +979,11 @@ resource "azurerm_storage_account" "testsa" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-  location                  = "${azurerm_resource_group.testrg.location}"
-  account_kind				= "StorageV2"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  is_hns_enabled 			= true
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true
 }
 `, rInt, location, rString)
 }
@@ -959,11 +999,11 @@ resource "azurerm_storage_account" "testsa" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-  location                  = "${azurerm_resource_group.testrg.location}"
-  account_kind				= "StorageV2"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = false
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = false
 }
 `, rInt, location, rString)
 }
@@ -1005,6 +1045,54 @@ resource "azurerm_storage_account" "testsa" {
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileStorage(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  access_tier              = "Hot"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileStorageUpdate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
   account_replication_type = "LRS"
   access_tier              = "Cool"
 
@@ -1139,6 +1227,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
+    default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
@@ -1180,8 +1269,51 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
-    ip_rules = ["127.0.0.1", "127.0.0.2"]
-    bypass   = ["Logging", "Metrics"]
+    default_action = "Deny"
+    ip_rules       = ["127.0.0.1", "127.0.0.2"]
+    bypass         = ["Logging", "Metrics"]
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_networkRulesReverted(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.testrg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.Storage"]
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  network_rules {
+    default_action             = "Allow"
+    ip_rules                   = ["127.0.0.1"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
   tags = {

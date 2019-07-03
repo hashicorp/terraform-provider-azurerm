@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_application_insights_webtests"
+page_title: "Azure Resource Manager: azurerm_application_insights_web_test"
 sidebar_current: "docs-azurerm-resource-application-insights-webtests"
 description: |-
   Manages an Application Insights WebTest.
 ---
 
-# azurerm_application_insights_webtests
+# azurerm_application_insights_web_test
 
 Manages an Application Insights WebTest.
 

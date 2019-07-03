@@ -999,9 +999,10 @@ resource "azurerm_subnet" "test-aci" {
 
   delegation {
     name = "aciDelegation"
+
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = [ "Microsoft.Network/virtualNetworks/subnets/action" ]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -1488,9 +1489,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   api_server_authorized_ip_ranges = [
-	"8.8.8.8/32",
-	"8.8.4.4/32",
-	"8.8.2.0/24",
+    "8.8.8.8/32",
+    "8.8.4.4/32",
+    "8.8.2.0/24",
   ]
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
@@ -1548,7 +1549,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     count   = "1"
     vm_size = "Standard_DS2_v2"
   }
-
 
   service_principal {
     client_id     = "%s"

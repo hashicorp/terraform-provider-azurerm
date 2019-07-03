@@ -221,12 +221,12 @@ resource "azurerm_storage_account" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   tags = {
     environment = "staging"
   }
 }
-  
+
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -252,21 +252,22 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                = "acctesteg-%d"
+  name  = "acctesteg-%d"
   scope = "${azurerm_resource_group.test.id}"
+
   storage_queue_endpoint {
-	  storage_account_id = "${azurerm_storage_account.test.id}"
-	  queue_name = "${azurerm_storage_queue.test.name}"
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
   }
 
   storage_blob_dead_letter_destination {
-	  storage_account_id = "${azurerm_storage_account.test.id}"
-	  storage_blob_container_name = "${azurerm_storage_container.test.name}"
+    storage_account_id          = "${azurerm_storage_account.test.id}"
+    storage_blob_container_name = "${azurerm_storage_container.test.name}"
   }
 
   retry_policy {
-	  event_time_to_live = 11
-	  max_delivery_attempts = 11
+    event_time_to_live    = 11
+    max_delivery_attempts = 11
   }
 
   labels = ["test", "test1", "test2"]
@@ -287,12 +288,12 @@ resource "azurerm_storage_account" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   tags = {
     environment = "staging"
   }
 }
-  
+
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -318,30 +319,31 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                = "acctesteg-%d"
+  name  = "acctesteg-%d"
   scope = "${azurerm_resource_group.test.id}"
+
   storage_queue_endpoint {
-	  storage_account_id = "${azurerm_storage_account.test.id}"
-	  queue_name = "${azurerm_storage_queue.test.name}"
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
   }
 
   storage_blob_dead_letter_destination {
-	  storage_account_id = "${azurerm_storage_account.test.id}"
-	  storage_blob_container_name = "${azurerm_storage_container.test.name}"
+    storage_account_id          = "${azurerm_storage_account.test.id}"
+    storage_blob_container_name = "${azurerm_storage_container.test.name}"
   }
 
   retry_policy {
-	  event_time_to_live = 12
-	  max_delivery_attempts = 10
+    event_time_to_live    = 12
+    max_delivery_attempts = 10
   }
 
   subject_filter {
-	subject_begins_with = "test/test"
-	subject_ends_with = ".jpg"
+    subject_begins_with = "test/test"
+    subject_ends_with   = ".jpg"
   }
 
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
-  labels = ["test4", "test5", "test6"]
+  labels               = ["test4", "test5", "test6"]
 }
 `, rInt, location, rString, rInt, rInt)
 }
@@ -369,11 +371,12 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                = "acctesteg-%d"
-  scope = "${azurerm_resource_group.test.id}"
+  name                  = "acctesteg-%d"
+  scope                 = "${azurerm_resource_group.test.id}"
   event_delivery_schema = "CloudEventV01Schema"
+
   eventhub_endpoint {
-	  eventhub_id = "${azurerm_eventhub.test.id}"
+    eventhub_id = "${azurerm_eventhub.test.id}"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -392,12 +395,12 @@ resource "azurerm_storage_account" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   tags = {
     environment = "staging"
   }
 }
-  
+
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -405,18 +408,19 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                = "acctesteg-%d"
+  name  = "acctesteg-%d"
   scope = "${azurerm_resource_group.test.id}"
+
   storage_queue_endpoint {
-	  storage_account_id = "${azurerm_storage_account.test.id}"
-	  queue_name = "${azurerm_storage_queue.test.name}"
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
   }
 
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
 
   subject_filter {
-	  subject_begins_with = "test/test"
-	  subject_ends_with = ".jpg"
+    subject_begins_with = "test/test"
+    subject_ends_with   = ".jpg"
   }
 }
 `, rInt, location, rString, rInt, rInt)

@@ -405,16 +405,15 @@ resource "azurerm_public_ip" "test" {
   name                = "test-ip-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Static"
-	sku 								= "Standard"
-
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "arm-test-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	sku 								= "Standard"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "one-%d"
@@ -430,9 +429,8 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-	frontend_ip_configuration_name = "one-%d"
-	disable_outbound_snat          = true
-
+  frontend_ip_configuration_name = "one-%d"
+  disable_outbound_snat          = true
 }
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt)
 }
@@ -583,7 +581,6 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3390
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }
 
@@ -633,6 +630,5 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3391
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }

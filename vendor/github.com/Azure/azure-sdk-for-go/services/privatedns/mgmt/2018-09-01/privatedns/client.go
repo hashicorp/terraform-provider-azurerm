@@ -1,7 +1,7 @@
-// Package containerregistry implements the Azure ARM Containerregistry service API version 2017-10-01.
+// Package privatedns implements the Azure ARM Privatedns service API version 2018-09-01.
 //
-//
-package containerregistry
+// The Private DNS Management Client.
+package privatedns
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Containerregistry
+	// DefaultBaseURI is the default URI used for the service Privatedns
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Containerregistry.
+// BaseClient is the base client for Privatedns.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string
