@@ -492,14 +492,14 @@ resource "azurerm_dev_test_lab" "test" {
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
-	name                = "acctestdtvn%d"
-	lab_name            = "${azurerm_dev_test_lab.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-  
-	subnet {
-	  use_public_ip_address           = "Allow"
-	  use_in_virtual_machine_creation = "Allow"
-	}
+  name                = "acctestdtvn%d"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    use_public_ip_address           = "Allow"
+    use_in_virtual_machine_creation = "Allow"
   }
+}
 `, rInt, location, rInt, rInt)
 }
