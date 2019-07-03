@@ -396,7 +396,44 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_fileStorage(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(ri, rs, location)
 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "FileStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
+				),
+			},
+		},
+	})
+}
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -972,6 +1009,54 @@ resource "azurerm_storage_account" "testsa" {
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileStorage(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  access_tier              = "Hot"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileStorageUpdate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
   account_replication_type = "LRS"
   access_tier              = "Cool"
 

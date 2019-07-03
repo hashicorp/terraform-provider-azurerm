@@ -51,6 +51,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
 				Default: string(storage.Storage),
@@ -503,8 +504,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage and StorageV2 accounts
-	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) {
+	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
+	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) || accountKind == string(storage.FileStorage) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
@@ -515,6 +516,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	} else {
 		if isHnsEnabled {
 			return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
+		}
+	}
+
+	// AccountTier must be Premium for FileStorage
+	if accountKind == string(storage.FileStorage) {
+		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
+			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
 		}
 	}
 
