@@ -1033,8 +1033,8 @@ resource "azurerm_storage_account" "testsa" {
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "FileStorage"
   account_tier             = "Premium"
-	account_replication_type = "LRS"
-	access_tier              = "Hot"
+  account_replication_type = "LRS"
+  access_tier              = "Hot"
 
   tags = {
     environment = "production"
@@ -1057,8 +1057,8 @@ resource "azurerm_storage_account" "testsa" {
   location                 = "${azurerm_resource_group.testrg.location}"
   account_kind             = "FileStorage"
   account_tier             = "Premium"
-	account_replication_type = "LRS"
-	access_tier              = "Cool"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
 
   tags = {
     environment = "production"
