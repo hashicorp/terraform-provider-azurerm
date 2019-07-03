@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `node_resource_group` - (Optional) Name of resource group where nodes should be created. Note that currently pre-existing resource group cannot be used. Changing this forces a new resource to be created.
+
 ---
 
 A `addon_profile` block supports the following:

@@ -740,6 +740,29 @@ func TestAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMKubernetesCluster_nodeResourceGroup(ri, clientId, clientSecret, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "node_resource_group", "ExampleResourceGroup"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -1735,6 +1758,35 @@ resource "azurerm_kubernetes_cluster" "test" {
 	node_taints = [
       "key=value:NoSchedule"
 	]
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_nodeResourceGroup(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+	node_resource_group = "ExampleResourceGroup"
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    type    = "VirtualMachineScaleSets"
+    vm_size = "Standard_DS2_v2"
   }
 
   service_principal {
