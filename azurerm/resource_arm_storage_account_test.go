@@ -745,6 +745,11 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

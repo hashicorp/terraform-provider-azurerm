@@ -556,16 +556,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
-	enableAdvanceThreatProtection := d.Get("enable_advanced_threat_protection").(bool)
-
 	advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: &enableAdvanceThreatProtection,
+			IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
 		},
 	}
 
-	_, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting)
-	if err != nil {
+	if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
 		return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
 	}
 
@@ -733,11 +730,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_advanced_threat_protection") {
-		enableAdvanceThreatProtection := d.Get("enable_advanced_threat_protection").(bool)
 
 		opts := security.AdvancedThreatProtectionSetting{
 			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-				IsEnabled: &enableAdvanceThreatProtection,
+				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
 			},
 		}
 
@@ -866,12 +862,15 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	advancedThreatProtectionSetting, err := advancedThreatProtectionClient.Get(ctx, d.Id())
-
 	if err != nil {
 		return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	d.Set("enable_advanced_threat_protection", advancedThreatProtectionSetting.AdvancedThreatProtectionProperties.IsEnabled)
+	if &advancedThreatProtectionSetting != nil {
+		if atpp := advancedThreatProtectionSetting.AdvancedThreatProtectionProperties; atpp != nil {
+			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
+		}
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
