@@ -866,10 +866,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	if &advancedThreatProtectionSetting != nil {
-		if atpp := advancedThreatProtectionSetting.AdvancedThreatProtectionProperties; atpp != nil {
-			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
-		}
+	if atpp := advancedThreatProtectionSetting.AdvancedThreatProtectionProperties; atpp != nil {
+		d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
