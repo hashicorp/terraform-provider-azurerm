@@ -996,10 +996,8 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 			return nil, fmt.Errorf("Can't create an AKS cluster with autoscaling enabled but not setting min_count or max_count")
 		}
 
-
-		nodeTaints := config["node_taints"].([]interface{})
-		if nodeTaints != nil && len(nodeTaints) > 0 {
-			profile.NodeTaints = utils.ExpandStringSlice(nodeTaints)
+		if nodeTaints := utils.ExpandStringSlice(config["node_taints"].([]interface{})); len(*nodeTaints) > 0 {
+			profile.NodeTaints = nodeTaints
 		}
 
 		profiles = append(profiles, profile)
