@@ -107,6 +107,8 @@ The following arguments are supported:
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
+* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
