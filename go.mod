@@ -1,7 +1,7 @@
 module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v30.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v31.0.0+incompatible
 	github.com/Azure/go-autorest v11.7.0+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
