@@ -3,8 +3,9 @@
 
 IMPROVEMENTS:
 
-* `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
+* `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
+* `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
 * `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
