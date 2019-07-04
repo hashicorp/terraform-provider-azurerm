@@ -40,7 +40,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iotdps.test"
+	resourceName := "azurerm_iot_dps.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -163,12 +163,12 @@ resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	
+
   sku {
     name     = "S1"
     tier     = "Standard"
     capacity = "1"
-  }	
+  }
 }
 `, rInt, location, rInt)
 }
@@ -182,7 +182,7 @@ resource "azurerm_iot_dps" "import" {
   name                = "${azurerm_iot_dps.test.name}"
   resource_group_name = "${azurerm_iot_dps.test.name}"
   location            = "${azurerm_iot_dps.test.location}"
-	
+
   sku {
     name     = "S1"
     tier     = "Standard"
@@ -203,7 +203,7 @@ resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	
+
   sku {
     name     = "S1"
     tier     = "Standard"

@@ -28,7 +28,6 @@ resource "azurerm_api_management_api_schema" "example" {
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
   value               = "${file("api_management_api_schema.xml")}"
 }
-
 ```
 
 ## Argument Reference

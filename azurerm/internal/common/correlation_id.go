@@ -1,4 +1,4 @@
-package azure
+package common
 
 import (
 	"log"
@@ -36,6 +36,6 @@ func CorrelationRequestID() string {
 		}
 	})
 
-	log.Printf("[DEBUG] AzureRM Correlation Request Id: %s", msCorrelationRequestID)
+	log.Printf("[DEBUG] Provider Correlation Request Id: %s", msCorrelationRequestID)
 	return msCorrelationRequestID
 }

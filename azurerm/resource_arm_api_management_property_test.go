@@ -181,7 +181,7 @@ resource "azurerm_api_management" "test" {
 
   sku {
     name     = "Developer"
-	capacity = 1
+    capacity = 1
   }
 }
 

@@ -90,7 +90,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path         = "/path1/"
+    path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -104,11 +104,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                        = "${local.request_routing_rule_name}"
-    rule_type                   = "Basic"
-    http_listener_name          = "${local.listener_name}"
-    backend_address_pool_name   = "${local.backend_address_pool_name}"
-    backend_http_settings_name  = "${local.http_setting_name}"
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
   }
 }
 ```

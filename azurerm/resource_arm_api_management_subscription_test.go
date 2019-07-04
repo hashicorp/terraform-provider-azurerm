@@ -285,12 +285,12 @@ resource "azurerm_api_management_product" "test" {
 }
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
 }
 `, rInt, location, rInt, rInt, rInt)
 }

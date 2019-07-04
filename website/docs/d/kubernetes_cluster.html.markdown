@@ -86,6 +86,16 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
+* `availability_zones` - The availability zones used for the nodes. 
+
+* `enable_auto_scaling` - If the auto-scaler is enabled. 
+
+* `min_count` - Minimum number of nodes for auto-scaling 
+
+* `min_count` - Minimum number of nodes for auto-scaling 
+
+* `max_count` - Maximum number of nodes for auto-scaling
+
 * `name` - The name assigned to this pool of agents.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.

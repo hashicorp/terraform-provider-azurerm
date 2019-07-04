@@ -36,19 +36,19 @@ func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
 func testAccResourceApplicationInsights_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_application_insights" "test" {
-	name                = "acctestappinsights-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	application_type    = "other"
+  name                = "acctestappinsights-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "other"
 
-	tags = {
-		"foo" = "bar"
-	}
+  tags = {
+    "foo" = "bar"
+  }
 }
 
 data "azurerm_application_insights" "test" {

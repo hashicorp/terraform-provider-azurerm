@@ -262,7 +262,7 @@ resource "azurerm_application_insights_web_test" "import" {
   resource_group_name     = "${azurerm_application_insights_web_test.test.resource_group_name}"
   application_insights_id = "${azurerm_application_insights_web_test.test.application_insights_id}"
   kind                    = "${azurerm_application_insights_web_test.test.kind}"
-  configuration			  = "${azurerm_application_insights_web_test.test.configuration}"
+  configuration           = "${azurerm_application_insights_web_test.test.configuration}"
 }
 `, template)
 }

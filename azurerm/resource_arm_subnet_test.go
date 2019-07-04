@@ -498,12 +498,14 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
+
   delegation {
-     name = "acctestdelegation"
-     service_delegation {
-       name    = "Microsoft.ContainerInstance/containerGroups"
-       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-     }
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
   }
 }
 `, rInt, location, rInt, rInt)

@@ -171,7 +171,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   parameters = {
     test = "testparameter"
   }
-	
+
   variables = {
     foo = "test1"
     bar = "test2"
@@ -199,9 +199,9 @@ resource "azurerm_data_factory_pipeline" "test" {
   data_factory_name   = "${azurerm_data_factory.test.name}"
   annotations         = ["test1", "test2"]
   description         = "test description2"
-	
+
   parameters = {
-    test = "testparameter"
+    test  = "testparameter"
     test2 = "testparameter2"
   }
 

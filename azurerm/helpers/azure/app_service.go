@@ -452,6 +452,107 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceLogsConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"application_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"level": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(web.Error),
+												string(web.Information),
+												string(web.Off),
+												string(web.Verbose),
+												string(web.Warning),
+											}, false),
+										},
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceStorageAccounts() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureBlob),
+						string(web.AzureFiles),
+					}, false),
+				},
+
+				"account_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"share_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"access_key": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"mount_path": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -1014,6 +1115,84 @@ func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 	return append(results, result)
 }
 
+func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.ApplicationLogs != nil {
+		appLogs := make([]interface{}, 0)
+
+		appLogsItem := make(map[string]interface{})
+
+		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorage := make([]interface{}, 0)
+
+			blobStorageItem := make(map[string]interface{})
+
+			blobStorageItem["level"] = string(blobStorageInput.Level)
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			blobStorage = append(blobStorage, blobStorageItem)
+
+			appLogsItem["azure_blob_storage"] = blobStorage
+		}
+
+		appLogs = append(appLogs, appLogsItem)
+
+		result["application_logs"] = appLogs
+	}
+
+	return append(results, result)
+}
+
+func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
+	configs := input.([]interface{})
+	logs := web.SiteLogsConfigProperties{}
+
+	if len(configs) == 0 {
+		return logs
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["application_logs"]; ok {
+		appLogsConfigs := v.([]interface{})
+
+		for _, config := range appLogsConfigs {
+			appLogsConfig := config.(map[string]interface{})
+
+			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if v, ok := appLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
+						Level:           web.LogLevel(storageConfig["level"].(string)),
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	return logs
+}
+
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	configs := input.([]interface{})
 	siteConfig := web.SiteConfig{}
@@ -1270,4 +1449,55 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
 
 	return append(results, result)
+}
+
+func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
+	input := d.Get("storage_account").(*schema.Set).List()
+	output := make(map[string]*web.AzureStorageInfoValue, len(input))
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		saName := vals["name"].(string)
+		saType := vals["type"].(string)
+		saAccountName := vals["account_name"].(string)
+		saShareName := vals["share_name"].(string)
+		saAccessKey := vals["access_key"].(string)
+		saMountPath := vals["mount_path"].(string)
+
+		output[saName] = &web.AzureStorageInfoValue{
+			Type:        web.AzureStorageType(saType),
+			AccountName: utils.String(saAccountName),
+			ShareName:   utils.String(saShareName),
+			AccessKey:   utils.String(saAccessKey),
+			MountPath:   utils.String(saMountPath),
+		}
+	}
+
+	return output
+}
+
+func FlattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValue) []interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range input {
+		result := make(map[string]interface{})
+		result["name"] = k
+		result["type"] = string(v.Type)
+		if v.AccountName != nil {
+			result["account_name"] = *v.AccountName
+		}
+		if v.ShareName != nil {
+			result["share_name"] = *v.ShareName
+		}
+		if v.AccessKey != nil {
+			result["access_key"] = *v.AccessKey
+		}
+		if v.MountPath != nil {
+			result["mount_path"] = *v.MountPath
+		}
+		results = append(results, result)
+	}
+
+	return results
 }
