@@ -96,6 +96,8 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
+
 ---
 
 A `azure_active_directory` block exports the following:
