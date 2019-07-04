@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,9 +25,10 @@ func resourceArmVirtualWan() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -64,7 +66,7 @@ func resourceArmVirtualWan() *schema.Resource {
 					string(network.OfficeTrafficCategoryNone),
 					string(network.OfficeTrafficCategoryOptimize),
 					string(network.OfficeTrafficCategoryOptimizeAndAllow),
-				}, true),
+				}, false),
 				Default: string(network.OfficeTrafficCategoryNone),
 			},
 
