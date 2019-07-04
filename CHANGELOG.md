@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
+* `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
 * `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
 
 
