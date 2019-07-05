@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -68,28 +69,22 @@ func resourceArmApiManagementBackend() *schema.Resource {
 								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
-						// "header": {
-						// 	Type:     schema.TypeMap,
-						// 	Optional: true,
-						// Elem: &schema.Schema{
-						// 	Type: schema.TypeList,
-						// 	Elem: &schema.Schema{
-						// 		Type:         schema.TypeString,
-						// 		ValidateFunc: validate.NoEmptyStrings,
-						// 	},
-						// },
-						// },
-						// "query": {
-						// 	Type:     schema.TypeMap,
-						// 	Optional: true,
-						// Elem: &schema.Schema{
-						// 	Type: schema.TypeList,
-						// 	Elem: &schema.Schema{
-						// 		Type:         schema.TypeString,
-						// 		ValidateFunc: validate.NoEmptyStrings,
-						// 	},
-						// },
-						// },
+						"header": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+						"query": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
 					},
 				},
 			},
@@ -392,14 +387,14 @@ func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.B
 	if certificate := v["certificate"]; certificate != nil {
 		contract.Certificate = utils.ExpandStringSlice(certificate.([]interface{}))
 	}
-	// if headerRaw := v["header"]; headerRaw != nil {
-	// 	header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
-	// 	contract.Header = *header
-	// }
-	// if queryRaw := v["query"]; queryRaw != nil {
-	// 	query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
-	// 	contract.Query = *query
-	// }
+	if headerRaw := v["header"]; headerRaw != nil {
+		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
+		contract.Header = *header
+	}
+	if queryRaw := v["query"]; queryRaw != nil {
+		query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
+		contract.Query = *query
+	}
 	return &contract
 }
 
@@ -418,13 +413,13 @@ func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *ap
 	return &credentials
 }
 
-// func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *map[string][]string {
-// 	output := make(map[string][]string)
-// 	for k, v := range input {
-// 		output[k] = v.([]string)
-// 	}
-// 	return &output
-// }
+func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *map[string][]string {
+	output := make(map[string][]string)
+	for k, v := range input {
+		output[k] = strings.Split(v.(string), ",")
+	}
+	return &output
+}
 
 func expandApiManagementBackendProxy(input []interface{}) *apimanagement.BackendProxyContract {
 	if len(input) == 0 {
@@ -511,9 +506,20 @@ func flattenApiManagementBackendCredentials(input *apimanagement.BackendCredenti
 	if input.Certificate != nil {
 		result["certificate"] = *input.Certificate
 	}
-	// result["header"] = input.Header
-	// result["query"] = input.Query
+	result["header"] = flattenApiManagementBackendCredentialsObject(input.Header)
+	result["query"] = flattenApiManagementBackendCredentialsObject(input.Query)
 	return append(results, result)
+}
+
+func flattenApiManagementBackendCredentialsObject(input map[string][]string) map[string]interface{} {
+	results := make(map[string]interface{})
+	if input == nil {
+		return results
+	}
+	for k, v := range input {
+		results[k] = strings.Join(v, ",")
+	}
+	return results
 }
 
 func flattenApiManagementBackendCredentialsAuthorization(input *apimanagement.BackendAuthorizationHeaderCredentials) []interface{} {

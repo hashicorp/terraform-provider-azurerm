@@ -60,6 +60,10 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "credentials.0.authorization.0.parameter", "parameter"),
 					resource.TestCheckResourceAttr(resourceName, "credentials.0.authorization.0.scheme", "scheme"),
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.0.certificate.0"),
+					resource.TestCheckResourceAttr(resourceName, "credentials.0.header.header1", "header1value1,header1value2"),
+					resource.TestCheckResourceAttr(resourceName, "credentials.0.header.header2", "header2value1,header2value2"),
+					resource.TestCheckResourceAttr(resourceName, "credentials.0.query.query1", "query1value1,query1value2"),
+					resource.TestCheckResourceAttr(resourceName, "credentials.0.query.query2", "query2value1,query2value2"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.0.url", "http://192.168.1.1:8080"),
 					resource.TestCheckResourceAttr(resourceName, "proxy.0.username", "username"),
@@ -369,6 +373,14 @@ resource "azurerm_api_management_backend" "test" {
     certificate = [
       "${azurerm_api_management_certificate.test.thumbprint}",
     ]
+    header = {
+      header1 = "header1value1,header1value2"
+      header2 = "header2value1,header2value2"
+    }
+    query = {
+      query1 = "query1value1,query1value2"
+      query2 = "query2value1,query2value2"
+    }
   }
   proxy {
     url      = "http://192.168.1.1:8080"
