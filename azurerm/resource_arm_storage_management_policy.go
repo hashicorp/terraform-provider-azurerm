@@ -331,6 +331,13 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					}
 					filter["prefix_match"] = prefixMatches
 				}
+				if armFilter.BlobTypes != nil {
+					blobTypes := make([]interface{}, 0)
+					for _, armBlobType := range *armFilter.BlobTypes {
+						blobTypes = append(blobTypes, armBlobType)
+					}
+					filter["blob_types"] = blobTypes
+				}
 				rule["filters"] = [1]interface{}{filter}
 			}
 
