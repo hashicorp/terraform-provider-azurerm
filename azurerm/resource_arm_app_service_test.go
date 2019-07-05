@@ -600,6 +600,39 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_storageAccounts(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppService_storageAccountsUpdated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -2452,6 +2485,121 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_storageAccounts(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acct%d"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  storage_account {
+    name         = "blobs"
+    type         = "AzureBlob"
+    account_name = "${azurerm_storage_account.test.name}"
+    share_name   = "${azurerm_storage_container.test.name}"
+    access_key   = "${azurerm_storage_account.test.primary_access_key}"
+    mount_path   = "/blobs"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppService_storageAccountsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acct%d"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "acctestshare"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  storage_account {
+    name         = "blobs"
+    type         = "AzureBlob"
+    account_name = "${azurerm_storage_account.test.name}"
+    share_name   = "${azurerm_storage_container.test.name}"
+    access_key   = "${azurerm_storage_account.test.primary_access_key}"
+    mount_path   = "/blobs"
+  }
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = "${azurerm_storage_account.test.name}"
+    share_name   = "${azurerm_storage_share.test.name}"
+    access_key   = "${azurerm_storage_account.test.primary_access_key}"
+    mount_path   = "/files"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMAppService_oneIpRestriction(rInt int, location string) string {

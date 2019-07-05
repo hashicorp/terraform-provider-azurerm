@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
@@ -90,6 +92,22 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
+
+---
+
+A `storage_account` block supports the following:
+
+* `name` - (Required) The name of the storage account identifier.
+
+* `type` - (Required) The type of storage. Possible values are `AzureBlob` and `AzureFiles`.
+
+* `account_name` - (Required) The name of the storage account.
+
+* `share_name` - (Required) The name of the file share (container name, for Blob storage).
+
+* `access_key` - (Required) The access key for the storage account.
+
+* `mount_path` - (Optional) The path to mount the storage within the site's runtime environment.
 
 ---
 

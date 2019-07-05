@@ -102,6 +102,8 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_account": azure.SchemaAppServiceStorageAccounts(),
+
 			"connection_string": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -418,6 +420,17 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("storage_account") {
+		storageAccounts := azure.ExpandAppServiceStorageAccounts(d)
+		properties := web.AzureStoragePropertyDictionaryResource{
+			Properties: storageAccounts,
+		}
+
+		if _, err := client.UpdateAzureStorageAccounts(ctx, resGroup, name, properties); err != nil {
+			return fmt.Errorf("Error updating Storage Accounts for App Service %q: %+v", name, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandAppServiceConnectionStrings(d)
@@ -505,6 +518,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
 	}
 
+	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Storage Accounts %q: %+v", name, err)
+	}
+
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
@@ -552,6 +570,10 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
+		return err
+	}
+
+	if err := d.Set("storage_account", azure.FlattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
 		return err
 	}
 
