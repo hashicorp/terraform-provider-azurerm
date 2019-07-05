@@ -282,10 +282,9 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 		if err != nil {
 			return err
 		}
-		properties := apimanagement.BackendProperties{
+		backendContract.BackendContractProperties.Properties = &apimanagement.BackendProperties{
 			ServiceFabricCluster: serviceFabricCluster,
 		}
-		backendContract.BackendContractProperties.Properties = &properties
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, backendContract, ""); err != nil {
