@@ -395,7 +395,6 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 			osState := compute.OperatingSystemStateTypes(v)
 			osDisk.OsState = osState
 		}
-
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
 			managedDisk := &compute.SubResource{
