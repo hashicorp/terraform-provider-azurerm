@@ -194,7 +194,6 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("**TODO - reinstate delete!")
 	client := meta.(*ArmClient).storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
