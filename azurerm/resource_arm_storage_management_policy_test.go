@@ -31,7 +31,9 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rule.1.name", "rule1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
+					// resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "rule1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.type", "Lifecycle"),
 					// TODO verify more fields
 				),
 			},
