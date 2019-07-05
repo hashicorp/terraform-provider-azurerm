@@ -37,12 +37,6 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -147,7 +141,7 @@ func resourceArmStorageManagementPolicyCreate(d *schema.ResourceData, meta inter
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	name := d.Get("name").(string)
+	name := "default" // The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
 
 	parameters := storage.ManagementPolicy{
 		Name: &name,
@@ -187,9 +181,6 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	if result.Name != nil {
-		d.Set("name", *result.Name)
-	}
 	if result.Policy != nil {
 		policy := result.Policy
 		if policy.Rules != nil {

@@ -60,7 +60,6 @@ resource "azurerm_storage_account" "testsa" {
 }
 
 resource "azurerm_storage_management_policy" "testpolicy" {
-  name               = "policy1"
   storage_account_id = "${azurerm_storage_account.testsa.id}"
   
   rule {
