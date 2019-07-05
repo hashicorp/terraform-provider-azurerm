@@ -3,6 +3,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - support for storage mounts [GH-3792]
 * `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
 * `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
