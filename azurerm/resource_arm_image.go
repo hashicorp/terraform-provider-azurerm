@@ -395,7 +395,6 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 			osState := compute.OperatingSystemStateTypes(v)
 			osDisk.OsState = osState
 		}
-
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
 			managedDisk := &compute.SubResource{
@@ -429,8 +428,9 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 	for _, diskConfig := range disks {
 		config := diskConfig.(map[string]interface{})
 
-		managedDiskID := d.Get("managed_disk_id").(string)
-		blobURI := d.Get("blob_uri").(string)
+		managedDiskID := config["managed_disk_id"].(string)
+
+		blobURI := config["blob_uri"].(string)
 		lun := int32(config["lun"].(int))
 
 		dataDisk := compute.ImageDataDisk{
@@ -438,12 +438,12 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 			BlobURI: &blobURI,
 		}
 
-		if size := d.Get("size_gb"); size != 0 {
+		if size := config["size_gb"]; size != 0 {
 			diskSize := int32(size.(int))
 			dataDisk.DiskSizeGB = &diskSize
 		}
 
-		if v := d.Get("caching").(string); v != "" {
+		if v := config["caching"].(string); v != "" {
 			caching := compute.CachingTypes(v)
 			dataDisk.Caching = caching
 		}
