@@ -9,6 +9,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for storage mounts [GH-3792]
 * `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
+* `azurerm_iothub` - support for the `file_upload` property [GH-3735]
 * `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
