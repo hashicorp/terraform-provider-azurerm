@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
 
 // AgentPoolType enumerates the values for agent pool type.
 type AgentPoolType string
@@ -58,21 +58,6 @@ const (
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
 	return []Kind{KindAADIdentityProvider, KindOpenShiftManagedClusterBaseIdentityProvider}
-}
-
-// LoadBalancerSku enumerates the values for load balancer sku.
-type LoadBalancerSku string
-
-const (
-	// Basic ...
-	Basic LoadBalancerSku = "basic"
-	// Standard ...
-	Standard LoadBalancerSku = "standard"
-)
-
-// PossibleLoadBalancerSkuValues returns an array of possible values for the LoadBalancerSku const type.
-func PossibleLoadBalancerSkuValues() []LoadBalancerSku {
-	return []LoadBalancerSku{Basic, Standard}
 }
 
 // NetworkPlugin enumerates the values for network plugin.
@@ -231,51 +216,6 @@ const (
 // PossibleOSTypeValues returns an array of possible values for the OSType const type.
 func PossibleOSTypeValues() []OSType {
 	return []OSType{Linux, Windows}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned}
-}
-
-// ScaleSetEvictionPolicy enumerates the values for scale set eviction policy.
-type ScaleSetEvictionPolicy string
-
-const (
-	// Deallocate ...
-	Deallocate ScaleSetEvictionPolicy = "Deallocate"
-	// Delete ...
-	Delete ScaleSetEvictionPolicy = "Delete"
-)
-
-// PossibleScaleSetEvictionPolicyValues returns an array of possible values for the ScaleSetEvictionPolicy const type.
-func PossibleScaleSetEvictionPolicyValues() []ScaleSetEvictionPolicy {
-	return []ScaleSetEvictionPolicy{Deallocate, Delete}
-}
-
-// ScaleSetPriority enumerates the values for scale set priority.
-type ScaleSetPriority string
-
-const (
-	// Low ...
-	Low ScaleSetPriority = "Low"
-	// Regular ...
-	Regular ScaleSetPriority = "Regular"
-)
-
-// PossibleScaleSetPriorityValues returns an array of possible values for the ScaleSetPriority const type.
-func PossibleScaleSetPriorityValues() []ScaleSetPriority {
-	return []ScaleSetPriority{Low, Regular}
 }
 
 // StorageProfileTypes enumerates the values for storage profile types.
@@ -731,95 +671,6 @@ func (ap *AgentPool) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AgentPoolAvailableVersions the list of available versions for an agent pool.
-type AgentPoolAvailableVersions struct {
-	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the agent pool available versions.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the agent pool available versions.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the agent pool  available versions.
-	Type *string `json:"type,omitempty"`
-	// AgentPoolAvailableVersionsProperties - Properties of agent pool available versions.
-	*AgentPoolAvailableVersionsProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AgentPoolAvailableVersions.
-func (apav AgentPoolAvailableVersions) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if apav.AgentPoolAvailableVersionsProperties != nil {
-		objectMap["properties"] = apav.AgentPoolAvailableVersionsProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AgentPoolAvailableVersions struct.
-func (apav *AgentPoolAvailableVersions) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				apav.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				apav.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				apav.Type = &typeVar
-			}
-		case "properties":
-			if v != nil {
-				var agentPoolAvailableVersionsProperties AgentPoolAvailableVersionsProperties
-				err = json.Unmarshal(*v, &agentPoolAvailableVersionsProperties)
-				if err != nil {
-					return err
-				}
-				apav.AgentPoolAvailableVersionsProperties = &agentPoolAvailableVersionsProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// AgentPoolAvailableVersionsProperties the list of available agent pool versions.
-type AgentPoolAvailableVersionsProperties struct {
-	// AgentPoolVersions - List of versions available for agent pool.
-	AgentPoolVersions *[]AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem `json:"agentPoolVersions,omitempty"`
-}
-
-// AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem ...
-type AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem struct {
-	// Default - Whether this version is the default agent pool version.
-	Default *bool `json:"default,omitempty"`
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
-	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
-}
-
 // AgentPoolListResult the response from the List Agent Pools operation.
 type AgentPoolListResult struct {
 	autorest.Response `json:"-"`
@@ -1040,97 +891,6 @@ func (future *AgentPoolsDeleteFuture) Result(client AgentPoolsClient) (ar autore
 	}
 	ar.Response = future.Response()
 	return
-}
-
-// AgentPoolUpgradeProfile the list of available upgrades for an agent pool.
-type AgentPoolUpgradeProfile struct {
-	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the agent pool upgrade profile.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the agent pool upgrade profile.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the agent pool upgrade profile.
-	Type *string `json:"type,omitempty"`
-	// AgentPoolUpgradeProfileProperties - Properties of agent pool upgrade profile.
-	*AgentPoolUpgradeProfileProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AgentPoolUpgradeProfile.
-func (apup AgentPoolUpgradeProfile) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if apup.AgentPoolUpgradeProfileProperties != nil {
-		objectMap["properties"] = apup.AgentPoolUpgradeProfileProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AgentPoolUpgradeProfile struct.
-func (apup *AgentPoolUpgradeProfile) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				apup.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				apup.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				apup.Type = &typeVar
-			}
-		case "properties":
-			if v != nil {
-				var agentPoolUpgradeProfileProperties AgentPoolUpgradeProfileProperties
-				err = json.Unmarshal(*v, &agentPoolUpgradeProfileProperties)
-				if err != nil {
-					return err
-				}
-				apup.AgentPoolUpgradeProfileProperties = &agentPoolUpgradeProfileProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// AgentPoolUpgradeProfileProperties the list of available upgrade versions.
-type AgentPoolUpgradeProfileProperties struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
-	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
-	OsType OSType `json:"osType,omitempty"`
-	// Upgrades - List of orchestrator types and versions available for upgrade.
-	Upgrades *[]AgentPoolUpgradeProfilePropertiesUpgradesItem `json:"upgrades,omitempty"`
-}
-
-// AgentPoolUpgradeProfilePropertiesUpgradesItem ...
-type AgentPoolUpgradeProfilePropertiesUpgradesItem struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
-	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
 }
 
 // CloudError an error response from the Container service.
@@ -1500,8 +1260,6 @@ type ManagedCluster struct {
 	autorest.Response `json:"-"`
 	// ManagedClusterProperties - Properties of a managed cluster.
 	*ManagedClusterProperties `json:"properties,omitempty"`
-	// Identity - The identity of the managed cluster, if configured.
-	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -1519,9 +1277,6 @@ func (mc ManagedCluster) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if mc.ManagedClusterProperties != nil {
 		objectMap["properties"] = mc.ManagedClusterProperties
-	}
-	if mc.Identity != nil {
-		objectMap["identity"] = mc.Identity
 	}
 	if mc.Location != nil {
 		objectMap["location"] = mc.Location
@@ -1549,15 +1304,6 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mc.ManagedClusterProperties = &managedClusterProperties
-			}
-		case "identity":
-			if v != nil {
-				var identity ManagedClusterIdentity
-				err = json.Unmarshal(*v, &identity)
-				if err != nil {
-					return err
-				}
-				mc.Identity = &identity
 			}
 		case "id":
 			if v != nil {
@@ -1773,14 +1519,6 @@ type ManagedClusterAgentPoolProfile struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
-	// EnableNodePublicIP - Enable public IP for nodes
-	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
-	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
-	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
-	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 }
 
 // ManagedClusterAgentPoolProfileProperties properties for the container service agent pool profile.
@@ -1811,24 +1549,6 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
-	// EnableNodePublicIP - Enable public IP for nodes
-	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
-	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
-	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
-	NodeTaints *[]string `json:"nodeTaints,omitempty"`
-}
-
-// ManagedClusterIdentity identity for the managed cluster.
-type ManagedClusterIdentity struct {
-	// PrincipalID - READ-ONLY; The principal id of the system assigned identity which is used by master components.
-	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - READ-ONLY; The tenant id of the system assigned identity which is used by master components.
-	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'SystemAssigned', 'None'
-	Type ResourceIdentityType `json:"type,omitempty"`
 }
 
 // ManagedClusterListResult the response from the List Managed Clusters operation.
@@ -1986,23 +1706,13 @@ type ManagedClusterPoolUpgradeProfile struct {
 	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
 	OsType OSType `json:"osType,omitempty"`
 	// Upgrades - List of orchestrator types and versions available for upgrade.
-	Upgrades *[]ManagedClusterPoolUpgradeProfileUpgradesItem `json:"upgrades,omitempty"`
-}
-
-// ManagedClusterPoolUpgradeProfileUpgradesItem ...
-type ManagedClusterPoolUpgradeProfileUpgradesItem struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
-	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
+	Upgrades *[]string `json:"upgrades,omitempty"`
 }
 
 // ManagedClusterProperties properties of the managed cluster.
 type ManagedClusterProperties struct {
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// MaxAgentPools - READ-ONLY; The max number of agent pools for the managed cluster.
-	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
 	// KubernetesVersion - Version of Kubernetes specified when creating the managed cluster.
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 	// DNSPrefix - DNS prefix specified when creating the managed cluster.
@@ -2013,13 +1723,11 @@ type ManagedClusterProperties struct {
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
 	// LinuxProfile - Profile for Linux VMs in the container service cluster.
 	LinuxProfile *LinuxProfile `json:"linuxProfile,omitempty"`
-	// WindowsProfile - Profile for Windows VMs in the container service cluster.
-	WindowsProfile *ManagedClusterWindowsProfile `json:"windowsProfile,omitempty"`
 	// ServicePrincipalProfile - Information about a service principal identity for the cluster to use for manipulating Azure APIs.
 	ServicePrincipalProfile *ManagedClusterServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
 	// AddonProfiles - Profile of managed cluster add-on.
 	AddonProfiles map[string]*ManagedClusterAddonProfile `json:"addonProfiles"`
-	// NodeResourceGroup - Name of the resource group containing agent pool nodes.
+	// NodeResourceGroup - READ-ONLY; Name of the resource group containing agent pool nodes.
 	NodeResourceGroup *string `json:"nodeResourceGroup,omitempty"`
 	// EnableRBAC - Whether to enable Kubernetes Role-Based Access Control.
 	EnableRBAC *bool `json:"enableRBAC,omitempty"`
@@ -2048,17 +1756,11 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.LinuxProfile != nil {
 		objectMap["linuxProfile"] = mcp.LinuxProfile
 	}
-	if mcp.WindowsProfile != nil {
-		objectMap["windowsProfile"] = mcp.WindowsProfile
-	}
 	if mcp.ServicePrincipalProfile != nil {
 		objectMap["servicePrincipalProfile"] = mcp.ServicePrincipalProfile
 	}
 	if mcp.AddonProfiles != nil {
 		objectMap["addonProfiles"] = mcp.AddonProfiles
-	}
-	if mcp.NodeResourceGroup != nil {
-		objectMap["nodeResourceGroup"] = mcp.NodeResourceGroup
 	}
 	if mcp.EnableRBAC != nil {
 		objectMap["enableRBAC"] = mcp.EnableRBAC
@@ -2295,14 +1997,6 @@ type ManagedClusterUpgradeProfileProperties struct {
 	AgentPoolProfiles *[]ManagedClusterPoolUpgradeProfile `json:"agentPoolProfiles,omitempty"`
 }
 
-// ManagedClusterWindowsProfile profile for Windows VMs in the container service cluster.
-type ManagedClusterWindowsProfile struct {
-	// AdminUsername - The administrator username to use for Windows VMs.
-	AdminUsername *string `json:"adminUsername,omitempty"`
-	// AdminPassword - The administrator password to use for Windows VMs.
-	AdminPassword *string `json:"adminPassword,omitempty"`
-}
-
 // MasterProfile profile for the container service master.
 type MasterProfile struct {
 	// Count - Number of masters (VMs) in the container service cluster. Allowed values are 1, 3, and 5. The default value is 1.
@@ -2329,8 +2023,6 @@ type NetworkProfile struct {
 	VnetCidr *string `json:"vnetCidr,omitempty"`
 	// PeerVnetID - CIDR of the Vnet to peer.
 	PeerVnetID *string `json:"peerVnetId,omitempty"`
-	// VnetID - ID of the Vnet created for OSA cluster.
-	VnetID *string `json:"vnetId,omitempty"`
 }
 
 // NetworkProfileType profile of network configuration.
@@ -2347,8 +2039,6 @@ type NetworkProfileType struct {
 	DNSServiceIP *string `json:"dnsServiceIP,omitempty"`
 	// DockerBridgeCidr - A CIDR notation IP range assigned to the Docker bridge network. It must not overlap with any Subnet IP ranges or the Kubernetes service address range.
 	DockerBridgeCidr *string `json:"dockerBridgeCidr,omitempty"`
-	// LoadBalancerSku - The load balancer sku for the managed cluster. Possible values include: 'Standard', 'Basic'
-	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 }
 
 // OpenShiftManagedCluster openShift Managed cluster.
@@ -2823,11 +2513,9 @@ type OpenShiftManagedClusterProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// OpenShiftVersion - Version of OpenShift specified when creating the cluster.
 	OpenShiftVersion *string `json:"openShiftVersion,omitempty"`
-	// ClusterVersion - READ-ONLY; Version of OpenShift specified when creating the cluster.
-	ClusterVersion *string `json:"clusterVersion,omitempty"`
-	// PublicHostname - READ-ONLY; Service generated FQDN for OpenShift API server.
+	// PublicHostname - Optional user-specified FQDN for OpenShift API server.
 	PublicHostname *string `json:"publicHostname,omitempty"`
-	// Fqdn - READ-ONLY; Service generated FQDN for OpenShift API server loadbalancer internal hostname.
+	// Fqdn - User-specified FQDN for OpenShift API server loadbalancer internal hostname.
 	Fqdn *string `json:"fqdn,omitempty"`
 	// NetworkProfile - Configuration for OpenShift networking.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
@@ -2926,7 +2614,7 @@ func (future *OpenShiftManagedClustersUpdateTagsFuture) Result(client OpenShiftM
 type OpenShiftRouterProfile struct {
 	// Name - Name of the router profile.
 	Name *string `json:"name,omitempty"`
-	// PublicSubdomain - READ-ONLY; DNS subdomain for OpenShift router.
+	// PublicSubdomain - DNS subdomain for OpenShift router.
 	PublicSubdomain *string `json:"publicSubdomain,omitempty"`
 	// Fqdn - READ-ONLY; Auto-allocated FQDN for the OpenShift router.
 	Fqdn *string `json:"fqdn,omitempty"`
@@ -3018,8 +2706,6 @@ type OrchestratorProfile struct {
 	OrchestratorType *string `json:"orchestratorType,omitempty"`
 	// OrchestratorVersion - Orchestrator version (major, minor, patch).
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
 }
 
 // OrchestratorProfileType profile for the container service orchestrator.
@@ -3038,8 +2724,6 @@ type OrchestratorVersionProfile struct {
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
 	// Default - Installed by default if version is not specified.
 	Default *bool `json:"default,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
 	// Upgrades - The list of available upgrade versions.
 	Upgrades *[]OrchestratorProfile `json:"upgrades,omitempty"`
 }

@@ -61,10 +61,6 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ManagedClusterProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.LinuxProfile", Name: validation.Null, Rule: false,
@@ -73,10 +69,6 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 						{Target: "parameters.ManagedClusterProperties.LinuxProfile.SSH", Name: validation.Null, Rule: true,
 							Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.LinuxProfile.SSH.PublicKeys", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
-					{Target: "parameters.ManagedClusterProperties.WindowsProfile", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.WindowsProfile.AdminUsername", Name: validation.Null, Rule: true,
-							Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.WindowsProfile.AdminUsername", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$`, Chain: nil}}},
-						}},
 					{Target: "parameters.ManagedClusterProperties.ServicePrincipalProfile", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.ServicePrincipalProfile.ClientID", Name: validation.Null, Rule: true, Chain: nil}}},
 					{Target: "parameters.ManagedClusterProperties.NetworkProfile", Name: validation.Null, Rule: false,
@@ -120,7 +112,7 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,11 +170,7 @@ func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupNam
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "Delete", err.Error())
 	}
 
@@ -209,7 +197,7 @@ func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -264,11 +252,7 @@ func (client ManagedClustersClient) Get(ctx context.Context, resourceGroupName s
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "Get", err.Error())
 	}
 
@@ -301,7 +285,7 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -353,11 +337,7 @@ func (client ManagedClustersClient) GetAccessProfile(ctx context.Context, resour
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "GetAccessProfile", err.Error())
 	}
 
@@ -391,7 +371,7 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -442,11 +422,7 @@ func (client ManagedClustersClient) GetUpgradeProfile(ctx context.Context, resou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "GetUpgradeProfile", err.Error())
 	}
 
@@ -479,7 +455,7 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -553,7 +529,7 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -673,7 +649,7 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -761,11 +737,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterAdminCredentials", err.Error())
 	}
 
@@ -798,7 +770,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -849,11 +821,7 @@ func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Conte
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterUserCredentials", err.Error())
 	}
 
@@ -886,7 +854,7 @@ func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -938,10 +906,6 @@ func (client ManagedClustersClient) ResetAADProfile(ctx context.Context, resourc
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ClientAppID", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.ServerAppID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -971,7 +935,7 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1030,10 +994,6 @@ func (client ManagedClustersClient) ResetServicePrincipalProfile(ctx context.Con
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ClientID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ResetServicePrincipalProfile", err.Error())
@@ -1062,7 +1022,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1120,11 +1080,7 @@ func (client ManagedClustersClient) UpdateTags(ctx context.Context, resourceGrou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceName,
-			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "UpdateTags", err.Error())
 	}
 
@@ -1151,7 +1107,7 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
