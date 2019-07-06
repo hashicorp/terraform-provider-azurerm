@@ -15,6 +15,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_image` - prevent crash when using `data_disk` [GH-3797]
 * `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
 
 ## 1.31.0 (June 28, 2019)
