@@ -964,7 +964,6 @@ func TestAccAzureRMApplicationGateway_UserAssignedIdentity(t *testing.T) {
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.principal_id", ""),
 				),
 			},
 		},
@@ -1121,19 +1120,26 @@ resource "azurerm_user_assigned_identity" "test" {
   name = "acctest%s"
 }
 
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
-    capacity = 2
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
   }
 
   identity {
-    type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -1149,7 +1155,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
 
   backend_address_pool {
@@ -1179,7 +1185,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-`, template, rString, rInt)
+`, template, rString, rInt, rInt)
 }
 
 func testAccAzureRMApplicationGateway_zones(rInt int, location string) string {

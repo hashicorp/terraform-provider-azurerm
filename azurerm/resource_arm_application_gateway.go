@@ -58,7 +58,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(network.ResourceIdentityTypeUserAssigned),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ResourceIdentityTypeUserAssigned),
 							}, false),
@@ -1638,7 +1639,7 @@ func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.Ma
 		Type: identityType,
 	}
 
-	if identityType == network.ResourceIdentityTypeUserAssigned || identityType == network.ResourceIdentityTypeSystemAssignedUserAssigned {
+	if identityType == network.ResourceIdentityTypeUserAssigned {
 		appGatewayIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -1652,20 +1653,12 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 
 	result := make(map[string]interface{})
 	result["type"] = string(identity.Type)
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+	if result["type"] == "userAssigned" {
+		result["type"] = "UserAssigned"
 	}
 
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
-		/*
-			"userAssignedIdentities": {
-			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
-				"principalId": "00000000-0000-0000-0000-000000000000",
-				"clientId": "00000000-0000-0000-0000-000000000000"
-			  }
-			}
-		*/
 		for key := range identity.UserAssignedIdentities {
 			identityIds = append(identityIds, key)
 		}
