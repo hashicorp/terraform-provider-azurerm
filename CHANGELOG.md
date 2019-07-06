@@ -1,5 +1,8 @@
 ## 1.32.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_backend` [GH-3676]
 
 IMPROVEMENTS:
 
