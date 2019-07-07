@@ -7,6 +7,8 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for storage mounts [GH-3792]
+* `azurerm_app_service` - support for user assigned identities [GH-3637]
+* `azurerm_app_service_slot` - support for user assigned identities [GH-3637]
 * `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
 * `azurerm_iothub` - support for the `file_upload` property [GH-3735]
