@@ -98,6 +98,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
@@ -149,6 +150,7 @@ type ArmClient struct {
 	servicebus       *servicebus.Client
 	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
+	storage          *intStor.Client
 	trafficManager   *trafficmanager.Client
 
 	// TODO: refactor
@@ -1092,6 +1094,8 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	usageClient := storage.NewUsagesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
+
+	c.storage = intStor.BuildClient(accountsClient)
 }
 
 func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
