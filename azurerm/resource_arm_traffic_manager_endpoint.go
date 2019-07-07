@@ -151,7 +151,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 						"scope": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 24),
+							ValidateFunc: validation.IntBetween(0, 32),
 						},
 					},
 				},
@@ -374,7 +374,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
 	for _, subnet := range d.Get("subnet").([]interface{}) {
 		subnetBlock := subnet.(map[string]interface{})
-		if subnetBlock["scope"].(int32) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
+		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
 			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
 				First: utils.String(subnetBlock["first"].(string)),
 				Last:  utils.String(subnetBlock["last"].(string)),
@@ -382,7 +382,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		} else {
 			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
 				First: utils.String(subnetBlock["first"].(string)),
-				Scope: utils.Int32(subnetBlock["scope"].(int32)),
+				Scope: utils.Int32(int32(subnetBlock["scope"].(int))),
 			})
 		}
 	}
