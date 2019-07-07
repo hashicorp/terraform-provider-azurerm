@@ -57,7 +57,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -102,7 +102,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -141,7 +141,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

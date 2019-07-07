@@ -280,7 +280,7 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+	client := testAccProvider.Meta().(*ArmClient).servicebus.TopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -323,7 +323,7 @@ func testCheckAzureRMServiceBusTopicExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for topic: %s", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+		client := testAccProvider.Meta().(*ArmClient).servicebus.TopicsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName)

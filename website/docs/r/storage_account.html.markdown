@@ -63,6 +63,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
+    default_action             = "Deny"
     ip_rules                   = ["100.0.0.1"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
@@ -77,25 +78,19 @@ resource "azurerm_storage_account" "testsa" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the storage account. Changing this forces a
-    new resource to be created. This must be unique across the entire Azure service,
-    not just within the resource group.
+* `name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage account. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the
-    resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
-    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
-    Defaults to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`, `StorageV2`,  `BlobStorage`, and `FileStorage`. Changing this forces a new resource to be created. Defaults to `Storage`.
 
-* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
 
-* `access_tier` - (Optional) Defines the access tier for `BlobStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
 * `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
@@ -112,6 +107,8 @@ The following arguments are supported:
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
+* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
@@ -127,12 +124,13 @@ The following arguments are supported:
 
 * `network_rules` supports the following:
 
+* `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
-~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified.
+~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 

@@ -152,7 +152,7 @@ func dataSourceApiManagementService() *schema.Resource {
 }
 
 func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ServiceClient
+	client := meta.(*ArmClient).apiManagement.ServiceClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

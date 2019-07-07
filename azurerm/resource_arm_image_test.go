@@ -665,7 +665,6 @@ func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName strin
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_image" "import" {
   name                = "${azurerm_image.test.name}"
   location            = "${azurerm_image.test.location}"

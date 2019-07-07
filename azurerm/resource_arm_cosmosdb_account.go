@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -39,7 +40,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Cosmos DB Account name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 				),
 			},
 
@@ -167,7 +168,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
 						},
 
@@ -328,10 +329,14 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if !utils.ResponseWasNotFound(r) {
-		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/5157 is fixed
+		if !utils.ResponseWasStatusCode(r, http.StatusInternalServerError) {
+			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	} else {
+		if !utils.ResponseWasNotFound(r) {
+			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		}
 	}
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed

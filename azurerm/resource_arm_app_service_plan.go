@@ -118,6 +118,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
+			/// AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -138,6 +139,13 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"properties.0.reserved"},
+			},
+
+			"maximum_elastic_worker_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"maximum_number_of_workers": {
@@ -216,6 +224,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if v, exists := d.GetOkExists("maximum_elastic_worker_count"); exists {
+		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v.(int)))
+	}
+
 	if reservedExists {
 		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
@@ -273,7 +285,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
-	d.Set("is_xenon", resp.IsXenon)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
@@ -288,8 +299,13 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
 
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+		}
+
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {

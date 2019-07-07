@@ -133,7 +133,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryDatasetClient
+	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -220,7 +220,7 @@ func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.Resourc
 }
 
 func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryDatasetClient
+	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -296,7 +296,7 @@ func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, met
 }
 
 func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryDatasetClient
+	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

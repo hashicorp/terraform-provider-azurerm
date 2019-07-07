@@ -211,7 +211,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 }
 
 func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridEventSubscriptionsClient
+	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -277,7 +277,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridEventSubscriptionsClient
+	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureEventGridEventSubscriptionID(d.Id())
@@ -323,8 +323,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 				return fmt.Errorf("Error setting `hybrid_connection_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
-		if webhookEndpoint, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(webhookEndpoint)); err != nil {
+		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
+			fullURL, err := client.GetFullURL(ctx, scope, name)
+			if err != nil {
+				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", name, err)
+			}
+			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
 				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
@@ -361,7 +365,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGridEventSubscriptionsClient
+	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureEventGridEventSubscriptionID(d.Id())
@@ -575,7 +579,7 @@ func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.
 	return []interface{}{result}
 }
 
-func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.WebHookEventSubscriptionDestination) []interface{} {
+func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
 	if input == nil {
 		return nil
 	}

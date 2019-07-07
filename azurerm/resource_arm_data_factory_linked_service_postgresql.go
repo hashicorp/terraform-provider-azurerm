@@ -87,7 +87,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryLinkedServicePostgreSQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -165,7 +165,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLCreateOrUpdate(d *schema.Resou
 }
 
 func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -221,7 +221,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, m
 }
 
 func resourceArmDataFactoryLinkedServicePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
+	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

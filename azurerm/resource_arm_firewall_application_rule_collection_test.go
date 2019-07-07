@@ -843,6 +843,7 @@ resource "azurerm_firewall_application_rule_collection" "test" {
       port = 9000
       type = "Https"
     }
+
     protocol {
       port = 9001
       type = "Http"

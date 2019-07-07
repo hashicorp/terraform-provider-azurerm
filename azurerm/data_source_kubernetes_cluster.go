@@ -87,6 +87,29 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"max_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"min_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"enable_auto_scaling": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"availability_zones": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
 						// TODO: remove this in a future version
 						"dns_prefix": {
 							Type:       schema.TypeString,
@@ -564,6 +587,20 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
 		}
+
+		if profile.MinCount != nil {
+			agentPoolProfile["min_count"] = int(*profile.MinCount)
+		}
+
+		if profile.MaxCount != nil {
+			agentPoolProfile["max_count"] = int(*profile.MaxCount)
+		}
+
+		if profile.EnableAutoScaling != nil {
+			agentPoolProfile["enable_auto_scaling"] = *profile.EnableAutoScaling
+		}
+
+		agentPoolProfile["availability_zones"] = utils.FlattenStringSlice(profile.AvailabilityZones)
 
 		if profile.Name != nil {
 			agentPoolProfile["name"] = *profile.Name

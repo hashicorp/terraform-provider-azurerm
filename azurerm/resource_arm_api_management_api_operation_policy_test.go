@@ -110,7 +110,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiOperationPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
@@ -126,7 +126,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 }
 
 func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ApiOperationPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation_policy" {
@@ -161,11 +161,11 @@ func testAccAzureRMApiManagementAPIOperationPolicy_basic(rInt int, location stri
 %s
 
 resource "azurerm_api_management_api_operation_policy" "test" {
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  operation_id          = "${azurerm_api_management_api_operation.test.operation_id}"
-  xml_link              = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
+  xml_link            = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
 }
 `, template)
 }
@@ -176,11 +176,11 @@ func testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(rInt int, loca
 %s
 
 resource "azurerm_api_management_api_operation_policy" "import" {
-  api_name              = "${azurerm_api_management_api_policy.test.api_name}"
-  api_management_name   = "${azurerm_api_management_api_policy.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_api_policy.test.resource_group_name}"
-  operation_id          = "${azurerm_api_management_api_operation.test.operation_id}"
-  xml_link              = "${azurerm_api_management_api_policy.test.xml_link}"
+  api_name            = "${azurerm_api_management_api_policy.test.api_name}"
+  api_management_name = "${azurerm_api_management_api_policy.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_api_policy.test.resource_group_name}"
+  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
+  xml_link            = "${azurerm_api_management_api_policy.test.xml_link}"
 }
 `, template)
 }
@@ -191,11 +191,12 @@ func testAccAzureRMApiManagementAPIOperationPolicy_updated(rInt int, location st
 %s
 
 resource "azurerm_api_management_api_operation_policy" "test" {
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  operation_id          = "${azurerm_api_management_api_operation.test.operation_id}"
-  xml_content           = <<XML
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
+
+  xml_content = <<XML
 <policies>
   <inbound>
     <find-and-replace from="xyz" to="abc" />
