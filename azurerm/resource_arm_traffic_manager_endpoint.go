@@ -149,8 +149,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 							ValidateFunc: validate.IPv4Address,
 						},
 						"scope": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 24),
 						},
 					},
 				},
@@ -370,45 +371,35 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
-	templist := d.Get("subnet").([]interface{})
-	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
-	for _, subnetOld := range d.Get("subnet").([]interface{}) {
-		subnetOld := subnetOld.(map[string]interface{})
-		subnetFirst := subnetOld["first"].(string)
-		subnetLast := subnetOld["last"].(string)
-		subnetScope := int32(subnetOld["scope"].(int))
-		var subnetNew trafficmanager.EndpointPropertiesSubnetsItem
-		if subnetScope == 0 && subnetFirst != "0.0.0.0" {
-			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
-				First: &subnetFirst,
-				Last:  &subnetLast,
-			}
+	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnet := range d.Get("subnet").([]interface{}) {
+		subnetBlock := subnet.(map[string]interface{})
+		if subnetBlock["scope"].(int32) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Last:  utils.String(subnetBlock["last"].(string)),
+			})
 		} else {
-			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
-				First: &subnetFirst,
-				Scope: &subnetScope,
-			}
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Scope: utils.Int32(subnetBlock["scope"].(int32)),
+			})
 		}
-		subnetMappings = append(subnetMappings, subnetNew)
 	}
-	if len(subnetMappings) > 0 {
-		endpointProps.Subnets = &subnetMappings
+	if len(subnetSlice) > 0 {
+		endpointProps.Subnets = &subnetSlice
 	}
 
-	templist = d.Get("custom_header").([]interface{})
 	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
-	for _, headerOld := range templist {
-		headerOld := headerOld.(map[string]interface{})
-		headerName := headerOld["name"].(string)
-		headerValue := headerOld["value"].(string)
-		headerNew := trafficmanager.EndpointPropertiesCustomHeadersItem{
-			Name:  &headerName,
-			Value: &headerValue,
-		}
-		headerMappings = append(headerMappings, headerNew)
+	for _, header := range d.Get("custom_header").([]interface{}) {
+		headerBlock := header.(map[string]interface{})
+		headerSlice = append(headerSlice, trafficmanager.EndpointPropertiesCustomHeadersItem{
+			Name:  utils.String(headerBlock["name"].(string)),
+			Value: utils.String(headerBlock["value"].(string)),
+		})
 	}
-	if len(headerMappings) > 0 {
-		endpointProps.CustomHeaders = &headerMappings
+	if len(headerSlice) > 0 {
+		endpointProps.CustomHeaders = &headerSlice
 	}
 
 	return &endpointProps
