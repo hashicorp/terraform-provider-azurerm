@@ -186,7 +186,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
+	client := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
@@ -277,7 +277,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	endpointsClient := meta.(*ArmClient).cdnEndpointsClient
+	endpointsClient := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -335,7 +335,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
+	client := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -400,7 +400,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
+	client := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

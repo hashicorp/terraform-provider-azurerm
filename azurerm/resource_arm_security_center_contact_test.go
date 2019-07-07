@@ -16,6 +16,7 @@ func TestAccAzureRMSecurityCenter_contact(t *testing.T) {
 			"basic":          testAccAzureRMSecurityCenterContact_basic,
 			"update":         testAccAzureRMSecurityCenterContact_update,
 			"requiresImport": testAccAzureRMSecurityCenterContact_requiresImport,
+			"phoneOptional":  testAccAzureRMSecurityCenterContact_phoneOptional,
 		},
 	}
 
@@ -127,9 +128,36 @@ func testAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	})
 }
 
+func testAccAzureRMSecurityCenterContact_phoneOptional(t *testing.T) {
+	resourceName := "azurerm_security_center_contact.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSecurityCenterContact_templateWithoutPhone("basic@example.com", true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSecurityCenterContactExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "email", "basic@example.com"),
+					resource.TestCheckResourceAttr(resourceName, "phone", ""),
+					resource.TestCheckResourceAttr(resourceName, "alert_notifications", "true"),
+					resource.TestCheckResourceAttr(resourceName, "alerts_to_admins", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
+		client := testAccProvider.Meta().(*ArmClient).securityCenter.ContactsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -153,7 +181,7 @@ func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
+	client := testAccProvider.Meta().(*ArmClient).securityCenter.ContactsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "azurerm_security_center_contact" {
@@ -181,6 +209,17 @@ resource "azurerm_security_center_contact" "test" {
   alerts_to_admins    = %t
 }
 `, email, phone, notifications, adminAlerts)
+}
+
+func testAccAzureRMSecurityCenterContact_templateWithoutPhone(email string, notifications, adminAlerts bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_security_center_contact" "test" {
+  email = "%s"
+
+  alert_notifications = %t
+  alerts_to_admins    = %t
+}
+`, email, notifications, adminAlerts)
 }
 
 func testAccAzureRMSecurityCenterContact_requiresImportCfg(email, phone string, notifications, adminAlerts bool) string {

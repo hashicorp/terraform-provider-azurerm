@@ -142,7 +142,7 @@ func resourceArmEventHub() *schema.Resource {
 }
 
 func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
@@ -201,7 +201,7 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -240,7 +240,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubClient
+	client := meta.(*ArmClient).eventhub.EventHubsClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

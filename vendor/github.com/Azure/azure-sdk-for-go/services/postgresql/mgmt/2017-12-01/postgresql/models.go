@@ -169,6 +169,21 @@ func PossibleSslEnforcementEnumValues() []SslEnforcementEnum {
 	return []SslEnforcementEnum{SslEnforcementEnumDisabled, SslEnforcementEnumEnabled}
 }
 
+// StorageAutogrow enumerates the values for storage autogrow.
+type StorageAutogrow string
+
+const (
+	// StorageAutogrowDisabled ...
+	StorageAutogrowDisabled StorageAutogrow = "Disabled"
+	// StorageAutogrowEnabled ...
+	StorageAutogrowEnabled StorageAutogrow = "Enabled"
+)
+
+// PossibleStorageAutogrowValues returns an array of possible values for the StorageAutogrow const type.
+func PossibleStorageAutogrowValues() []StorageAutogrow {
+	return []StorageAutogrow{StorageAutogrowDisabled, StorageAutogrowEnabled}
+}
+
 // VirtualNetworkRuleState enumerates the values for virtual network rule state.
 type VirtualNetworkRuleState string
 
@@ -1751,6 +1766,8 @@ type StorageProfile struct {
 	GeoRedundantBackup GeoRedundantBackup `json:"geoRedundantBackup,omitempty"`
 	// StorageMB - Max storage allowed for a server.
 	StorageMB *int32 `json:"storageMB,omitempty"`
+	// StorageAutogrow - Enable Storage Auto Grow. Possible values include: 'StorageAutogrowEnabled', 'StorageAutogrowDisabled'
+	StorageAutogrow StorageAutogrow `json:"storageAutogrow,omitempty"`
 }
 
 // TrackedResource resource properties including location and tags for track resources.

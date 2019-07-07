@@ -386,7 +386,11 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
+<<<<<<< HEAD
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+=======
+		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+>>>>>>> 7e1e88a9a5fde1aac54911ddac492b6f5472e382
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
@@ -417,8 +421,14 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
 		}
 
+<<<<<<< HEAD
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+=======
+
+		// Ensure resource group/virtual network combination exists in API
+		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+>>>>>>> 7e1e88a9a5fde1aac54911ddac492b6f5472e382
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
@@ -430,7 +440,12 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
+<<<<<<< HEAD
 	conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+=======
+
+	conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+>>>>>>> 7e1e88a9a5fde1aac54911ddac492b6f5472e382
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {

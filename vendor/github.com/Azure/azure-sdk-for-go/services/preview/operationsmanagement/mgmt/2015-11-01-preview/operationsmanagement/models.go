@@ -19,6 +19,7 @@ package operationsmanagement
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"net/http"
@@ -151,10 +152,45 @@ type Solution struct {
 	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
 	// Plan - Plan for solution object supported by the OperationsManagement resource provider.
 	Plan *SolutionPlan `json:"plan,omitempty"`
 	// Properties - Properties for solution object supported by the OperationsManagement resource provider.
 	Properties *SolutionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Solution.
+func (s Solution) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.Location != nil {
+		objectMap["location"] = s.Location
+	}
+	if s.Tags != nil {
+		objectMap["tags"] = s.Tags
+	}
+	if s.Plan != nil {
+		objectMap["plan"] = s.Plan
+	}
+	if s.Properties != nil {
+		objectMap["properties"] = s.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// SolutionPatch the properties of a Solution that can be patched.
+type SolutionPatch struct {
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SolutionPatch.
+func (sp SolutionPatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.Tags != nil {
+		objectMap["tags"] = sp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // SolutionPlan plan for solution object supported by the OperationsManagement resource provider.
@@ -237,5 +273,34 @@ func (future *SolutionsDeleteFuture) Result(client SolutionsClient) (ar autorest
 		return
 	}
 	ar.Response = future.Response()
+	return
+}
+
+// SolutionsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SolutionsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *SolutionsUpdateFuture) Result(client SolutionsClient) (s Solution, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("operationsmanagement.SolutionsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if s.Response.Response, err = future.GetResult(sender); err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+		s, err = client.UpdateResponder(s.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+		}
+	}
 	return
 }

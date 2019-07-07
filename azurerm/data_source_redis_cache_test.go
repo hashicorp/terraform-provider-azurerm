@@ -42,9 +42,8 @@ func testAccDataSourceAzureRMRedisCache_standardWithDataSource(rInt int, locatio
 %s
 
 data "azurerm_redis_cache" "test" {
-	  name                = "${azurerm_redis_cache.test.name}"
-  	  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
-
+  name                = "${azurerm_redis_cache.test.name}"
+  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
 }
 `, config)
 }

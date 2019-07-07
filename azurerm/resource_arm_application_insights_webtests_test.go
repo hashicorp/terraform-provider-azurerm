@@ -131,7 +131,7 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
+	conn := testAccProvider.Meta().(*ArmClient).appInsights.WebTestsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -166,7 +166,7 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := testAccProvider.Meta().(*ArmClient).appInsightsWebTestsClient
+		conn := testAccProvider.Meta().(*ArmClient).appInsights.WebTestsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
@@ -262,7 +262,7 @@ resource "azurerm_application_insights_web_test" "import" {
   resource_group_name     = "${azurerm_application_insights_web_test.test.resource_group_name}"
   application_insights_id = "${azurerm_application_insights_web_test.test.application_insights_id}"
   kind                    = "${azurerm_application_insights_web_test.test.kind}"
-  configuration			  = "${azurerm_application_insights_web_test.test.configuration}"
+  configuration           = "${azurerm_application_insights_web_test.test.configuration}"
 }
 `, template)
 }

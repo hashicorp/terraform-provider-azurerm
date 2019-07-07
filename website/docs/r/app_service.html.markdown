@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
@@ -83,11 +85,29 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
+* `logs` - (Optional) A `logs` block as defined below.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
+
+---
+
+A `storage_account` block supports the following:
+
+* `name` - (Required) The name of the storage account identifier.
+
+* `type` - (Required) The type of storage. Possible values are `AzureBlob` and `AzureFiles`.
+
+* `account_name` - (Required) The name of the storage account.
+
+* `share_name` - (Required) The name of the file share (container name, for Blob storage).
+
+* `access_key` - (Required) The access key for the storage account.
+
+* `mount_path` - (Optional) The path to mount the storage within the site's runtime environment.
 
 ---
 
@@ -106,6 +126,28 @@ A `identity` block supports the following:
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+---
+
+A `logs` block supports the following:
+
+* `application_logs` - (Optional) An `application_logs` block as defined below.
+
+---
+
+An `application_logs` block supports the following:
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `azure_blob_storage` block supports the following:
+
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`.
+
+* `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
 
 ---
 
