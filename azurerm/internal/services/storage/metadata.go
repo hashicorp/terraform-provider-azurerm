@@ -10,7 +10,7 @@ func MetaDataSchema() *schema.Schema {
 }
 
 func ExpandMetaData(input map[string]interface{}) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 
 	for k, v := range input {
 		output[k] = v.(string)
@@ -20,7 +20,7 @@ func ExpandMetaData(input map[string]interface{}) map[string]string {
 }
 
 func FlattenMetaData(input map[string]string) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		output[k] = v

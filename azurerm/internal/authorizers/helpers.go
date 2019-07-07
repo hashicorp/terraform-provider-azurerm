@@ -44,7 +44,7 @@ func buildCanonicalizedHeader(headers http.Header) string {
 		ch.WriteRune('\n')
 	}
 
-	return strings.TrimSuffix(string(ch.Bytes()), "\n")
+	return strings.TrimSuffix(ch.String(), "\n")
 }
 
 // buildCanonicalizedResource builds the Canonical Resource required for to sign Storage Account requests
@@ -72,7 +72,7 @@ func buildCanonicalizedResource(uri, accountName string) (*string, error) {
 		cr.WriteString(fmt.Sprintf("?comp=%s", comp))
 	}
 
-	out := string(cr.Bytes())
+	out := cr.String()
 	return &out, nil
 }
 
@@ -89,8 +89,8 @@ func hmacValue(storageAccountKey, canonicalizedString string) string {
 		return ""
 	}
 
-	encr := hmac.New(sha256.New, []byte(key))
-	encr.Write([]byte(canonicalizedString))
+	encr := hmac.New(sha256.New, key)
+	_, _ = encr.Write([]byte(canonicalizedString))
 	return base64.StdEncoding.EncodeToString(encr.Sum(nil))
 }
 
