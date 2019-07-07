@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -112,34 +113,40 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"custom_header": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
-				ForceNew: true,
-				Optional: true,
 			},
 
 			"subnet": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"first": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
 						},
 						"last": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.IPv4Address,
 						},
 						"scope": {
 							Type:     schema.TypeInt,
@@ -147,8 +154,6 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 						},
 					},
 				},
-				ForceNew: true,
-				Optional: true,
 			},
 		},
 	}
