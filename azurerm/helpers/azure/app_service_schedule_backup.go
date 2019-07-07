@@ -4,58 +4,85 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/go-autorest/autorest/date"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func SchemaAppServiceScheduleBackup() *schema.Schema {
+func SchemaAppServiceBackup() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"frequency_interval": {
-					Type:         schema.TypeInt,
+				"name": {
+					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validateFrequencyInterval,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 
-				"frequency_unit": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Default:  "Day",
-					ValidateFunc: validation.StringInSlice([]string{
-						"Day",
-						"Hour",
-					}, false),
+				"storage_account_url": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.URLIsHTTPS,
 				},
 
-				"keep_at_least_one_backup": {
+				"enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
+					Default:  true,
 				},
 
-				"retention_period_in_days": {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					Default:      30,
-					ValidateFunc: validateRetentionPeriod,
-				},
+				"schedule": {
+					Type:     schema.TypeList,
+					Required: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"frequency_interval": {
+								Type:         schema.TypeInt,
+								Required:     true,
+								ValidateFunc: validateFrequencyInterval,
+							},
 
-				"start_time": {
-					Type:             schema.TypeString,
-					Optional:         true,
-					DiffSuppressFunc: suppress.RFC3339Time,
-					ValidateFunc:     validate.RFC3339Time,
+							"frequency_unit": {
+								Type:     schema.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Day",
+									"Hour",
+								}, false),
+							},
+
+							"keep_at_least_one_backup": {
+								Type:     schema.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+
+							"retention_period_in_days": {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Default:      30,
+								ValidateFunc: validateRetentionPeriod,
+							},
+
+							"start_time": {
+								Type:             schema.TypeString,
+								Optional:         true,
+								DiffSuppressFunc: suppress.RFC3339Time,
+								ValidateFunc:     validate.RFC3339Time,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -80,36 +107,101 @@ func validateRetentionPeriod(val interface{}, key string) (warns []string, errs 
 	return
 }
 
-func ExpandAppServiceScheduleBackup(input interface{}) web.BackupSchedule {
-	configs := input.([]interface{})
-	backupSchedule := web.BackupSchedule{}
-
-	if len(configs) == 0 {
-		return backupSchedule
+func ExpandAppServiceBackup(input []interface{}) *web.BackupRequest {
+	if len(input) == 0 {
+		return nil
 	}
 
-	config := configs[0].(map[string]interface{})
+	vals := input[0].(map[string]interface{})
 
-	if v, ok := config["frequency_interval"].(int); ok {
-		backupSchedule.FrequencyInterval = utils.Int32(int32(v))
+	name := vals["name"].(string)
+	storageAccountUrl := vals["storage_account_url"].(string)
+	enabled := vals["enabled"].(bool)
+
+	request := &web.BackupRequest{
+		BackupRequestProperties: &web.BackupRequestProperties{
+			BackupName:        utils.String(name),
+			StorageAccountURL: utils.String(storageAccountUrl),
+			Enabled:           utils.Bool(enabled),
+		},
 	}
 
-	if v, ok := config["frequency_unit"]; ok {
-		backupSchedule.FrequencyUnit = web.FrequencyUnit(v.(string))
+	scheduleRaw := vals["schedule"].([]interface{})
+	if len(scheduleRaw) > 0 {
+		schedule := scheduleRaw[0].(map[string]interface{})
+		backupSchedule := web.BackupSchedule{}
+
+		if v, ok := schedule["frequency_interval"].(int); ok {
+			backupSchedule.FrequencyInterval = utils.Int32(int32(v))
+		}
+
+		if v, ok := schedule["frequency_unit"]; ok {
+			backupSchedule.FrequencyUnit = web.FrequencyUnit(v.(string))
+		}
+
+		if v, ok := schedule["keep_at_least_one_backup"]; ok {
+			backupSchedule.KeepAtLeastOneBackup = utils.Bool(v.(bool))
+		}
+
+		if v, ok := schedule["retention_period_in_days"].(int); ok {
+			backupSchedule.RetentionPeriodInDays = utils.Int32(int32(v))
+		}
+
+		if v, ok := schedule["start_time"].(string); ok {
+			dateTimeToStart, _ := time.Parse(time.RFC3339, v) //validated by schema
+			backupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
+		}
+
+		request.BackupRequestProperties.BackupSchedule = &backupSchedule
 	}
 
-	if v, ok := config["keep_at_least_one_backup"]; ok {
-		backupSchedule.KeepAtLeastOneBackup = utils.Bool(v.(bool))
+	return request
+}
+
+func FlattenAppServiceBackup(input *web.BackupRequestProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
 	}
 
-	if v, ok := config["retention_period_in_days"].(int); ok {
-		backupSchedule.RetentionPeriodInDays = utils.Int32(int32(v))
+	output := make(map[string]interface{})
+
+	if input.BackupName != nil {
+		output["name"] = *input.BackupName
+	}
+	if input.Enabled != nil {
+		output["enabled"] = *input.Enabled
+	}
+	if input.StorageAccountURL != nil {
+		output["storage_account_url"] = *input.StorageAccountURL
 	}
 
-	if v, ok := config["start_time"].(string); ok {
-		dateTimeToStart, _ := time.Parse(time.RFC3339, v) //validated by schema
-		backupSchedule.StartTime = &date.Time{Time: (dateTimeToStart)}
-	}
+	schedules := make([]interface{}, 0)
+	if input.BackupSchedule != nil {
+		v := *input.BackupSchedule
 
-	return backupSchedule
+		schedule := make(map[string]interface{})
+
+		if v.FrequencyInterval != nil {
+			schedule["frequency_interval"] = int(*v.FrequencyInterval)
+		}
+
+		schedule["frequency_unit"] = string(v.FrequencyUnit)
+
+		if v.KeepAtLeastOneBackup != nil {
+			schedule["keep_at_least_one_backup"] = *v.KeepAtLeastOneBackup
+		}
+		if v.RetentionPeriodInDays != nil {
+			schedule["retention_period_in_days"] = int(*v.RetentionPeriodInDays)
+		}
+		if v.StartTime != nil && !v.StartTime.IsZero() {
+			schedule["start_time"] = v.StartTime.Format(time.RFC3339)
+		}
+
+		schedules = append(schedules, schedule)
+	}
+	output["schedule"] = schedules
+
+	return []interface{}{
+		output,
+	}
 }

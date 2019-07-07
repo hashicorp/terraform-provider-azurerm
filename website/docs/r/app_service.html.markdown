@@ -93,10 +93,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
-* `storage_account_url` (Optional) Sets SAS URL to the container where save the backup.
-
-* `backup_name` (Optional) Sets name of the backup.
-
 ---
 
 A `storage_account` block supports the following:
@@ -305,15 +301,27 @@ A `microsoft` block supports the following:
 
 ---
 
-A `backup_schedule` block supports the following:
+A `backup` block supports the following:
+
+* `backup_name` (Required) Specifies the name for this Backup.
+
+* `enabled` - (Required) Is this Backup enabled?
+
+* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+
+* `schedule` - (Optional) A `schedule` block as defined below.
+
+---
+
+A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) Sets how often the backup should be executed.
 
-* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed, possible values: `Day` or `Hour`. Defaults to `Day`.
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
 
-* `keep_at_least_one_backup` - (Optional) Sets `true` if the retention policy should always keep at least one backup in the storage account, regardless how old it is; `false` otherwise. Defaults to `true`.
+* `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
 
-* `retention_period_in_days` - (Optional)  Sets after how many days backups should be deleted. Defaults to `30`.
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
 
 * `start_time` - (Optional) Sets when the schedule should start working.
 

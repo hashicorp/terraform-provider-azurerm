@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -49,20 +48,7 @@ func resourceArmAppService() *schema.Resource {
 
 			"logs": azure.SchemaAppServiceLogsConfig(),
 
-			"backup_schedule": azure.SchemaAppServiceScheduleBackup(),
-
-			"storage_account_url": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validate.URLIsHTTPS,
-			},
-
-			"backup_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
+			"backup": azure.SchemaAppServiceBackup(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -258,17 +244,17 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating App Service %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for App Service %q (Resource Group %q) to be created: %s", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving App Service %q (Resource Group %q): %s", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read App Service %q (resource group %q) ID", name, resGroup)
@@ -297,6 +283,14 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+s", name, resGroup, err)
 	}
 
+	backupRaw := d.Get("backup").([]interface{})
+	if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
+		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, *backup)
+		if err != nil {
+			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
+		}
+	}
+
 	return resourceArmAppServiceUpdate(d, meta)
 }
 
@@ -313,8 +307,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["sites"]
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	storageAccountURL := d.Get("storage_account_url").(string)
-	backupName := d.Get("backup_name").(string)
 
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -386,25 +378,17 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("backup_schedule") {
-		backupSchedule := azure.ExpandAppServiceScheduleBackup(d.Get("backup_schedule"))
-		if storageAccountURL != "" {
-			request := web.BackupRequest{
-				BackupRequestProperties: &web.BackupRequestProperties{
-					BackupName:        utils.String(backupName),
-					StorageAccountURL: utils.String(storageAccountURL),
-					Enabled:           utils.Bool(true),
-					BackupSchedule:    &backupSchedule,
-				},
-			}
-			_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, request)
+	if d.HasChange("backup") {
+		backupRaw := d.Get("backup").([]interface{})
+		if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
+			_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, *backup)
 			if err != nil {
-				return err
+				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		} else {
-			err = resourceArmDeleteScheduleBackup(d, meta)
+			_, err = client.DeleteBackupConfiguration(ctx, resGroup, name)
 			if err != nil {
-				return err
+				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 	}
@@ -520,6 +504,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
+	backupResp, err := client.GetBackupConfiguration(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(backupResp.Response) {
+			return fmt.Errorf("Error retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
 	logsResp, err := client.GetDiagnosticLogsConfiguration(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", name, resGroup, err)
@@ -587,15 +578,19 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
-		return err
+		return fmt.Errorf("Error setting `app_settings`: %s", err)
+	}
+
+	if err := d.Set("backup", azure.FlattenAppServiceBackup(backupResp.BackupRequestProperties)); err != nil {
+		return fmt.Errorf("Error setting `backup`: %s", err)
 	}
 
 	if err := d.Set("storage_account", azure.FlattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
-		return err
+		return fmt.Errorf("Error setting `storage_account`: %s", err)
 	}
 
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
-		return err
+		return fmt.Errorf("Error setting `connection_string`: %s", err)
 	}
 
 	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
@@ -615,17 +610,17 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
-		return err
+		return fmt.Errorf("Error setting `source_control`: %s", err)
 	}
 
 	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
 	if err := d.Set("site_credential", siteCred); err != nil {
-		return err
+		return fmt.Errorf("Error setting `site_credential`: %s", err)
 	}
 
 	identity := azure.FlattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
-		return err
+		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -763,24 +758,4 @@ func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
-}
-
-func resourceArmDeleteScheduleBackup(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
-	ctx := meta.(*ArmClient).StopContext
-
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
-
-	_, err = client.DeleteBackupConfiguration(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
