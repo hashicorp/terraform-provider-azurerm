@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_share"
-sidebar_current: "docs-azurerm-resource-storage-share"
+sidebar_current: "docs-azurerm-resource-storage-share-x"
 description: |-
   Manages an Azure Storage Share.
 ---
@@ -15,13 +15,13 @@ Manage an Azure Storage File Share.
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "azuretest"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "azureteststorage"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
