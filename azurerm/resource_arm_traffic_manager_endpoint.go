@@ -391,7 +391,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	}
 
 	templist = d.Get("custom_header").([]interface{})
-	headerMappings := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
 	for _, headerOld := range templist {
 		headerOld := headerOld.(map[string]interface{})
 		headerName := headerOld["name"].(string)
