@@ -34,31 +34,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": azure.SchemaAppServiceIdentity(),
 
 			"app_service_name": {
 				Type:     schema.TypeString,
@@ -206,7 +182,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -263,6 +239,18 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 
 		if _, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
+		}
+	}
+
+	if d.HasChange("identity") {
+		identity := azure.ExpandAppServiceIdentity(d)
+		sitePatchResource := web.SitePatchResource{
+			ID:       utils.String(d.Id()),
+			Identity: identity,
+		}
+		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
 
@@ -362,7 +350,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
+	identity := azure.FlattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
