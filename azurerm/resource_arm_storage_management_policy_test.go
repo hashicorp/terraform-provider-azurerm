@@ -25,16 +25,27 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// CheckDestroy: testCheckAzureRMBatchCertificateDestroy, // TODO add this
+		CheckDestroy: testCheckAzureRMBatchCertificateDestroy, // TODO add this
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
-					// resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "rule1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.type", "Lifecycle"),
-					// TODO verify more fields
+					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.blob_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.blob_types.1068358194", "blockBlob"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.base_blob.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", "10"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", "50"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", "100"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.snapshot.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "30"),
 				),
 			},
 		},
