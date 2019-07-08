@@ -1,14 +1,27 @@
 ## 1.32.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_backend` [GH-3676]
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - support for storage mounts [GH-3792]
+* `azurerm_app_service` - support for user assigned identities [GH-3637]
+* `azurerm_app_service_slot` - support for user assigned identities [GH-3637]
+* `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
+* `azurerm_iothub` - support for the `file_upload` property [GH-3735]
+* `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
+* `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
+* `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
+
 
 BUG FIXES:
 
+* `azurerm_image` - prevent crash when using `data_disk` [GH-3797]
 * `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
 
 ## 1.31.0 (June 28, 2019)

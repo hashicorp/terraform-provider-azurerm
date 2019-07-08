@@ -13,6 +13,7 @@ type Client struct {
 	ApiSchemasClient           apimanagement.APISchemaClient
 	ApiVersionSetClient        apimanagement.APIVersionSetClient
 	AuthorizationServersClient apimanagement.AuthorizationServerClient
+	BackendClient              apimanagement.BackendClient
 	CertificatesClient         apimanagement.CertificateClient
 	GroupClient                apimanagement.GroupClient
 	GroupUsersClient           apimanagement.GroupUserClient
@@ -54,6 +55,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.AuthorizationServersClient = apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.AuthorizationServersClient.Client, o.ResourceManagerAuthorizer)
+
+	c.BackendClient = apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.BackendClient.Client, o.ResourceManagerAuthorizer)
 
 	c.CertificatesClient = apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.CertificatesClient.Client, o.ResourceManagerAuthorizer)

@@ -208,6 +208,47 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ManagedServiceIdentityTypeNone),
+						string(web.ManagedServiceIdentityTypeSystemAssigned),
+						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+						string(web.ManagedServiceIdentityTypeUserAssigned),
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"identity_ids": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.NoZeroValues,
+					},
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -497,6 +538,56 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 							},
 						},
 					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceStorageAccounts() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureBlob),
+						string(web.AzureFiles),
+					}, false),
+				},
+
+				"account_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"share_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"access_key": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"mount_path": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -1143,6 +1234,56 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	return logs
 }
 
+func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return nil
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	managedServiceIdentity := web.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &managedServiceIdentity
+}
+
+func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
+}
+
 func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	configs := input.([]interface{})
 	siteConfig := web.SiteConfig{}
@@ -1399,4 +1540,55 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
 
 	return append(results, result)
+}
+
+func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
+	input := d.Get("storage_account").(*schema.Set).List()
+	output := make(map[string]*web.AzureStorageInfoValue, len(input))
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		saName := vals["name"].(string)
+		saType := vals["type"].(string)
+		saAccountName := vals["account_name"].(string)
+		saShareName := vals["share_name"].(string)
+		saAccessKey := vals["access_key"].(string)
+		saMountPath := vals["mount_path"].(string)
+
+		output[saName] = &web.AzureStorageInfoValue{
+			Type:        web.AzureStorageType(saType),
+			AccountName: utils.String(saAccountName),
+			ShareName:   utils.String(saShareName),
+			AccessKey:   utils.String(saAccessKey),
+			MountPath:   utils.String(saMountPath),
+		}
+	}
+
+	return output
+}
+
+func FlattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValue) []interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range input {
+		result := make(map[string]interface{})
+		result["name"] = k
+		result["type"] = string(v.Type)
+		if v.AccountName != nil {
+			result["account_name"] = *v.AccountName
+		}
+		if v.ShareName != nil {
+			result["share_name"] = *v.ShareName
+		}
+		if v.AccessKey != nil {
+			result["access_key"] = *v.AccessKey
+		}
+		if v.MountPath != nil {
+			result["mount_path"] = *v.MountPath
+		}
+		results = append(results, result)
+	}
+
+	return results
 }
