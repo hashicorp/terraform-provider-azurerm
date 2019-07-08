@@ -618,7 +618,6 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	// TODO add err ?
 	windowsProfile := expandKubernetesClusterWindowsProfile(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	networkProfile := expandKubernetesClusterNetworkProfile(d)
@@ -1186,8 +1185,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 
 	// admin password isn't returned, so let's look it up
 	if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
-		password := v.(string)
-		values["admin_password"] = password
+		values["admin_password"] := v.(string)
 	}
 
 	return []interface{}{values}

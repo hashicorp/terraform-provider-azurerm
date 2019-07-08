@@ -949,23 +949,23 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name    = "linux"
-	type            = "VirtualMachineScaleSets"
-    count   = "1"
-    vm_size = "Standard_DS2_v2"
-	max_pods = 30
-    os_type = "Linux"
-	os_disk_size_gb = "30"
+    name            = "linux"
+    type            = "VirtualMachineScaleSets"
+    count           = "1"
+    vm_size         = "Standard_DS2_v2"
+    max_pods        = 30
+    os_type         = "Linux"
+    os_disk_size_gb = "30"
   }
 
   agent_pool_profile {
-    name    = "win"
-	type            = "VirtualMachineScaleSets"
-    count   = "1"
-    vm_size = "Standard_DS3_v2"
-	max_pods = 30
-    os_type = "Windows"
-	os_disk_size_gb = "30"
+    name            = "win"
+    type            = "VirtualMachineScaleSets"
+    count           = "1"
+    vm_size         = "Standard_DS3_v2"
+    max_pods        = 30
+    os_type         = "Windows"
+    os_disk_size_gb = "30"
   }
 
   service_principal {
@@ -974,8 +974,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
  
   network_profile {
-    network_plugin = "azure"
-	network_policy = "azure"
+    network_plugin     = "azure"
+    network_policy     = "azure"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
