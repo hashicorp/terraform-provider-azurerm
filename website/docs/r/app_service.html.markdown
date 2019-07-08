@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
@@ -93,6 +95,22 @@ The following arguments are supported:
 
 ---
 
+A `storage_account` block supports the following:
+
+* `name` - (Required) The name of the storage account identifier.
+
+* `type` - (Required) The type of storage. Possible values are `AzureBlob` and `AzureFiles`.
+
+* `account_name` - (Required) The name of the storage account.
+
+* `share_name` - (Required) The name of the file share (container name, for Blob storage).
+
+* `access_key` - (Required) The access key for the storage account.
+
+* `mount_path` - (Optional) The path to mount the storage within the site's runtime environment.
+
+---
+
 A `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String.
@@ -105,9 +123,11 @@ A `connection_string` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the App Service. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 

@@ -214,17 +214,31 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	storageImageRef := list[0].(map[string]interface{})
+	imageRef := &batch.ImageReference{}
 
-	storageImageRefOffer := storageImageRef["offer"].(string)
-	storageImageRefPublisher := storageImageRef["publisher"].(string)
-	storageImageRefSku := storageImageRef["sku"].(string)
-	storageImageRefVersion := storageImageRef["version"].(string)
+	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
+		storageImageRefID := storageImageRef["id"].(string)
+		imageRef.ID = &storageImageRefID
+	}
 
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
+	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
+		storageImageRefOffer := storageImageRef["offer"].(string)
+		imageRef.Offer = &storageImageRefOffer
+	}
+
+	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
+		storageImageRefPublisher := storageImageRef["publisher"].(string)
+		imageRef.Publisher = &storageImageRefPublisher
+	}
+
+	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
+		storageImageRefSku := storageImageRef["sku"].(string)
+		imageRef.Sku = &storageImageRefSku
+	}
+
+	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
+		storageImageRefVersion := storageImageRef["version"].(string)
+		imageRef.Version = &storageImageRefVersion
 	}
 
 	return imageRef, nil
