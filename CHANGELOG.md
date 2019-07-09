@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_api_management_backend` [GH-3676]
+* **New Resource:** `azurerm_storage_share_directory` [GH-3802]
 
 IMPROVEMENTS:
 
