@@ -23,9 +23,8 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	config := testAccAzureRMStorageManagementPolicy_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBatchCertificateDestroy, // TODO add this
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -60,9 +59,8 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 	config := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBatchCertificateDestroy, // TODO add this
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

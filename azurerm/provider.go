@@ -132,6 +132,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_account_blob_container_sas":      dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                     dataSourceArmStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                         dataSourceArmStorageAccount(),
+		"azurerm_storage_management_policy":              dataSourceArmStorageManagementPolicy(),
 		"azurerm_subnet":                                  dataSourceArmSubnet(),
 		"azurerm_subscription":                            dataSourceArmSubscription(),
 		"azurerm_subscriptions":                           dataSourceArmSubscriptions(),
