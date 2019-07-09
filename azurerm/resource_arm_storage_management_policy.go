@@ -177,6 +177,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
+	d.SetId(*result.ID)
 
 	if result.Policy != nil {
 		policy := result.Policy
