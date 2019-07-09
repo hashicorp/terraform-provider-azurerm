@@ -713,6 +713,47 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtection(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
@@ -1285,4 +1326,40 @@ resource "azurerm_storage_account" "testsa" {
   }
 }
 `, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                              = "unlikely23exst2acct%s"
+  resource_group_name               = "${azurerm_resource_group.testrg.name}"
+  location                          = "${azurerm_resource_group.testrg.location}"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  enable_advanced_threat_protection = true
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                              = "unlikely23exst2acct%s"
+  resource_group_name               = "${azurerm_resource_group.testrg.name}"
+  location                          = "${azurerm_resource_group.testrg.location}"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  enable_advanced_threat_protection = false
+}
+`, rInt, location, rString)
 }
