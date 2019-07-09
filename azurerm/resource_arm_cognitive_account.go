@@ -54,6 +54,8 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"ComputerVision",
 					"ContentModerator",
 					"CustomSpeech",
+					"CustomVision.Prediction",
+					"CustomVision.Training",
 					"Emotion",
 					"Face",
 					"LUIS",
