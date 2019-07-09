@@ -1104,7 +1104,7 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.configureClient(&blobServicesClient.Client, auth)
 	c.storageBlobServicesClient = blobServicesClient
   
-  c.storage = intStor.BuildClient(accountsClient)
+	c.storage = intStor.BuildClient(accountsClient)
 }
 
 func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
