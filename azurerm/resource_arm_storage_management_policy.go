@@ -36,7 +36,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							validation.StringMatch(
+							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile(`^[a-zA-Z0-9]*$`),
 								"A rule name can contain any combination of alpha numeric characters.",
 							),
@@ -63,11 +63,13 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 										Set:      schema.HashString,
 									},
 									"blob_types": {
-										Type:         schema.TypeSet,
-										Optional:     true,
-										Elem:         &schema.Schema{Type: schema.TypeString},
-										Set:          schema.HashString,
-										ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
+										},
+										Set: schema.HashString,
 									},
 								},
 							},
