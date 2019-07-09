@@ -1103,7 +1103,7 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&blobServicesClient.Client, auth)
 	c.storageBlobServicesClient = blobServicesClient
-  
+
 	c.storage = intStor.BuildClient(accountsClient)
 }
 
