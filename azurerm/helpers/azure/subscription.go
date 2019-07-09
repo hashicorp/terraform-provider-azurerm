@@ -12,6 +12,11 @@ func SchemaSubscription(subscriptionIDOptional bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 
+		"tenant_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
 		"display_name": {
 			Type:     schema.TypeString,
 			Computed: true,
