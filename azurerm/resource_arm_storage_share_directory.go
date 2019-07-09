@@ -174,7 +174,7 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed alreadu", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed already", id.AccountName)
 		d.SetId("")
 		return nil
 	}
