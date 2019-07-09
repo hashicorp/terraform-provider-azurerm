@@ -56,7 +56,7 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 	return resourceGroup, nil
 }
 
-func (client Client) FileShareClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
+func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
 	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)

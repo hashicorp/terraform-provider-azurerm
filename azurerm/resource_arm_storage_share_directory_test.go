@@ -171,14 +171,14 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 
-		client, err := storageClient.FileShareClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
 		resp, err := client.Get(ctx, accountName, shareName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on FileShareClient: %+v", err)
+			return fmt.Errorf("Bad: Get on FileShareDirectoriesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -212,14 +212,14 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		client, err := storageClient.FileShareClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
 		resp, err := client.Get(ctx, accountName, shareName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on FileShareClient: %+v", err)
+			return fmt.Errorf("Bad: Get on FileShareDirectoriesClient: %+v", err)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
