@@ -1,28 +1,13 @@
 package azurerm
 
 import (
-	// "bytes"
-	// "crypto/rand"
-	// "encoding/base64"
 	"fmt"
 	"regexp"
-	// "io"
-	// "log"
-	// "net/url"
-	// "os"
-	// "runtime"
-	// "strings"
-	// "sync"
-
-	// "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/validation"
 
-	// "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 
-	// "github.com/Azure/azure-sdk-for-go/storage"
-	// "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
