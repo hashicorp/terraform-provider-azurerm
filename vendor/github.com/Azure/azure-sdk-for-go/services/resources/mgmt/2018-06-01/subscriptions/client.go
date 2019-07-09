@@ -1,4 +1,4 @@
-// Package subscriptions implements the Azure ARM Subscriptions service API version 2016-06-01.
+// Package subscriptions implements the Azure ARM Subscriptions service API version 2018-06-01.
 //
 // All resource groups and resources exist within subscriptions. These operation enable you get information about your
 // subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory (Azure AD) for your

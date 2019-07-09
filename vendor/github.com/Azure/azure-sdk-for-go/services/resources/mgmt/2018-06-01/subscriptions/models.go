@@ -26,7 +26,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 
 // SpendingLimit enumerates the values for spending limit.
 type SpendingLimit string
@@ -421,6 +421,8 @@ type Subscription struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 	// DisplayName - READ-ONLY; The subscription display name.
 	DisplayName *string `json:"displayName,omitempty"`
+	// TenantID - READ-ONLY; The subscription tenant ID.
+	TenantID *string `json:"tenantId,omitempty"`
 	// State - READ-ONLY; The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted. Possible values include: 'Enabled', 'Warned', 'PastDue', 'Disabled', 'Deleted'
 	State State `json:"state,omitempty"`
 	// SubscriptionPolicies - The subscription policies.
