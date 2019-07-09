@@ -6,6 +6,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading the `subscription` SDK to `2018-06-01` [GH-3811]
+* Data Source `azurerm_subscription` - support the `tenant_id` property [GH-3811]
 * `azurerm_app_service` - support for storage mounts [GH-3792]
 * `azurerm_app_service` - support for user assigned identities [GH-3637]
 * `azurerm_app_service_slot` - support for user assigned identities [GH-3637]
