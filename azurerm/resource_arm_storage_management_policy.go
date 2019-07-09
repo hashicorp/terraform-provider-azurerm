@@ -129,6 +129,9 @@ func resourceArmStorageManagementPolicyCreate(d *schema.ResourceData, meta inter
 	storageAccountId := d.Get("storage_account_id").(string)
 
 	rid, err := parseAzureResourceID(storageAccountId)
+	if err != nil {
+		return err
+	}
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
@@ -164,6 +167,9 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	storageAccountId := d.Get("storage_account_id").(string)
 
 	rid, err := parseAzureResourceID(storageAccountId)
+	if err != nil {
+		return err
+	}
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
@@ -191,6 +197,9 @@ func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta inter
 	storageAccountId := d.Get("storage_account_id").(string)
 
 	rid, err := parseAzureResourceID(storageAccountId)
+	if err != nil {
+		return err
+	}
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
