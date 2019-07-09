@@ -5,6 +5,7 @@ import (
 	// "crypto/rand"
 	// "encoding/base64"
 	"fmt"
+	"regexp"
 	// "io"
 	// "log"
 	// "net/url"
@@ -50,6 +51,10 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							validation.StringMatch(
+								regexp.MustCompile(`^[a-zA-Z0-9]*$`),
+								"A rule name can contain any combination of alpha numeric characters.",
+							),
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -77,6 +82,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
+										ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
 									},
 								},
 							},
