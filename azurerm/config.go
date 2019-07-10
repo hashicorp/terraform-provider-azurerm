@@ -16,7 +16,6 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
@@ -390,6 +389,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.devTestLabs = devtestlabs.BuildClient(o)
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
+	client.eventhub = eventhub.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -397,7 +397,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerIoTHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
@@ -642,23 +641,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	eventHubsClient := eventHubSvc.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&eventHubsClient.Client, auth)
-
-	groupsClient := eventHubSvc.NewConsumerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&groupsClient.Client, auth)
-
-	namespacesClient := eventHubSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	c.eventhub = &eventhub.Client{
-		ConsumerGroupClient: groupsClient,
-		EventHubsClient:     eventHubsClient,
-		NamespacesClient:    namespacesClient,
-	}
 }
 
 func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
