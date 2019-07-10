@@ -19,7 +19,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	logicSvc "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
@@ -29,8 +28,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	managementgroupsSvc "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
@@ -389,6 +386,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.eventhub = eventhub.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
+	client.logic = logic.BuildClient(o)
+	client.logAnalytics = loganalytics.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -397,13 +396,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
-	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
 	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerMSIClient(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
-	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 	client.registerManagementGroupClients(endpoint, auth)
@@ -650,15 +647,6 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
-func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workflowsClient := logicSvc.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workflowsClient.Client, auth)
-
-	c.logic = &logic.Client{
-		WorkflowsClient: workflowsClient,
-	}
-}
-
 func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
 	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
 	c.configureClient(&groupsClient.Client, auth)
@@ -827,23 +815,6 @@ func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId stri
 	c.notificationHubs = &notificationhub.Client{
 		HubsClient:       notificationHubsClient,
 		NamespacesClient: namespacesClient,
-	}
-}
-
-func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workspacesClient.Client, auth)
-
-	solutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(endpoint, subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
-	c.configureClient(&solutionsClient.Client, auth)
-
-	linkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&linkedServicesClient.Client, auth)
-
-	c.logAnalytics = &loganalytics.Client{
-		LinkedServicesClient: linkedServicesClient,
-		SolutionsClient:      solutionsClient,
-		WorkspacesClient:     workspacesClient,
 	}
 }
 
