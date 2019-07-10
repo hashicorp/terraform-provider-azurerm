@@ -145,6 +145,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_monitor_action_group":                   dataSourceArmMonitorActionGroup(),
 			"azurerm_monitor_diagnostic_categories":          dataSourceArmMonitorDiagnosticCategories(),
 			"azurerm_monitor_log_profile":                    dataSourceArmMonitorLogProfile(),
+			"azurerm_mssql_elasticpool":                      dataSourceArmMsSqlElasticpool(),
 			"azurerm_network_interface":                      dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                 dataSourceArmNetworkSecurityGroup(),
 			"azurerm_network_watcher":                        dataSourceArmNetworkWatcher(),
