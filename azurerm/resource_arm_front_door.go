@@ -29,111 +29,152 @@ func resourceArmFrontDoor() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateFrontDoorName,
+			},
+
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default: true,
 			},
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"backend_pools": {
-				Type:     schema.TypeList,
+			"routing_rule": {
+				Type:     schema.TypeList, 
+				MaxItems: 100,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"backends": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"address": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"backend_host_header": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"enabled_state": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.Enabled),
-											string(frontdoor.Disabled),
-										}, false),
-										Default: string(frontdoor.Enabled),
-									},
-									"http_port": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"https_port": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"priority": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"health_probe_settings": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
 						"id": {
 							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"load_balancing_settings": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
+							Computed: true,
 						},
 						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
-						"resource_state": {
-							Type:     schema.TypeString,
+						"enabled": {
+							Type:     schema.TypeBool,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.PolicyResourceStateCreating),
-								string(frontdoor.PolicyResourceStateEnabling),
-								string(frontdoor.PolicyResourceStateEnabled),
-								string(frontdoor.PolicyResourceStateDisabling),
-								string(frontdoor.PolicyResourceStateDisabled),
-								string(frontdoor.PolicyResourceStateDeleting),
-							}, false),
-							Default: string(frontdoor.PolicyResourceStateCreating),
+							Default: true,
+						},
+						"accepted_protocols": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 2,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(frontdoor.HTTP), 
+									string(frontdoor.HTTPS),
+								}, false),
+								Default: string(frontdoor.HTTP),
+							},
+						},
+						"patterns_to_match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 25,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"frontend_endpoints": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 100,
+							Elem: &schema.Schema{
+								Type:     schema.TypeString,
+							},
+						},
+						"redirect_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"custom_fragment": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"custom_host": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"custom_path": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"redirect_protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.RedirectProtocolHTTPOnly),
+											string(frontdoor.RedirectProtocolHTTPSOnly),
+											string(frontdoor.RedirectProtocolMatchRequest),
+										}, false),
+									},
+									"redirect_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.Found ),
+											string(frontdoor.Moved ),
+											string(frontdoor.PermanentRedirect),
+											string(frontdoor.TemporaryRedirect),
+										}, false),
+									},
+								},
+							},
+						},
+						"forwarding_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"backend_pool_name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"cache_use_dynamic_compression": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default: false,
+									},
+									"cache_query_parameter_strip_directive": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.StripAll),
+											string(frontdoor.StripNone),
+										}, false),
+										Default: string(frontdoor.StripNone),
+									},
+									"custom_forwarding_path": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"forwarding_protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.HTTPOnly),
+											string(frontdoor.HTTPSOnly),
+											string(frontdoor.MatchRequest),
+										}, false),
+										Default: string(frontdoor.MatchRequest),
+									},
+								},
+							},
 						},
 					},
 				},
 			},
-
 			"backend_pools_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -141,115 +182,52 @@ func resourceArmFrontDoor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enforce_certificate_name_check": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeBool,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.Enabled),
-								string(frontdoor.Disabled),
-							}, false),
-							Default: string(frontdoor.Enabled),
+							Default: true,
 						},
 					},
 				},
 			},
-
-			"enabled_state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(frontdoor.Enabled),
-					string(frontdoor.Disabled),
-				}, false),
-				Default: string(frontdoor.Enabled),
-			},
-
-			"friendly_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"frontend_endpoints": {
+			"load_balancing_setting": {
 				Type:     schema.TypeList,
+				MaxItems: 5000,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"host_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
+							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
-						"resource_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.PolicyResourceStateCreating),
-								string(frontdoor.PolicyResourceStateEnabling),
-								string(frontdoor.PolicyResourceStateEnabled),
-								string(frontdoor.PolicyResourceStateDisabling),
-								string(frontdoor.PolicyResourceStateDisabled),
-								string(frontdoor.PolicyResourceStateDeleting),
-							}, false),
-							Default: string(frontdoor.PolicyResourceStateCreating),
-						},
-						"session_affinity_enabled_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.Enabled),
-								string(frontdoor.Disabled),
-							}, false),
-							Default: string(frontdoor.Enabled),
-						},
-						"session_affinity_ttl_seconds": {
+						"sample_size": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Default: 4,
 						},
-						"web_application_firewall_policy_link": {
-							Type:     schema.TypeList,
+						"successful_samples_required": {
+							Type:     schema.TypeInt,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
+							Default: 2,
 						},
 					},
 				},
 			},
-
-			"health_probe_settings": {
+			"health_probe_setting": {
 				Type:     schema.TypeList,
+				MaxItems: 5000,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"interval_in_seconds": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
+							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default: "/",
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -260,162 +238,140 @@ func resourceArmFrontDoor() *schema.Resource {
 							}, false),
 							Default: string(frontdoor.HTTP),
 						},
-						"resource_state": {
-							Type:     schema.TypeString,
+						"interval_in_seconds": {
+							Type:     schema.TypeInt,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.PolicyResourceStateCreating),
-								string(frontdoor.PolicyResourceStateEnabling),
-								string(frontdoor.PolicyResourceStateEnabled),
-								string(frontdoor.PolicyResourceStateDisabling),
-								string(frontdoor.PolicyResourceStateDisabled),
-								string(frontdoor.PolicyResourceStateDeleting),
-							}, false),
-							Default: string(frontdoor.PolicyResourceStateCreating),
+							Default: 120,
 						},
 					},
 				},
 			},
-
-			"load_balancing_settings": {
+			"backend_pool": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				MaxItems: 50,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"additional_latency_milliseconds": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
+						"backend": {
+							Type:     schema.TypeList,
+							MaxItems: 100,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default: true,
+									},
+									"address": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"http_port": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"https_port": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"weight": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"priority": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+								},
+							},
 						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
+							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
-						"resource_state": {
+						"health_probe_settings_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.PolicyResourceStateCreating),
-								string(frontdoor.PolicyResourceStateEnabling),
-								string(frontdoor.PolicyResourceStateEnabled),
-								string(frontdoor.PolicyResourceStateDisabling),
-								string(frontdoor.PolicyResourceStateDisabled),
-								string(frontdoor.PolicyResourceStateDeleting),
-							}, false),
-							Default: string(frontdoor.PolicyResourceStateCreating),
 						},
-						"sample_size": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"successful_samples_required": {
-							Type:     schema.TypeInt,
+						"load_balancing_settings_name": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
 					},
 				},
 			},
-
-			"resource_state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(frontdoor.PolicyResourceStateCreating),
-					string(frontdoor.PolicyResourceStateEnabling),
-					string(frontdoor.PolicyResourceStateEnabled),
-					string(frontdoor.PolicyResourceStateDisabling),
-					string(frontdoor.PolicyResourceStateDisabled),
-					string(frontdoor.PolicyResourceStateDeleting),
-				}, false),
-				Default: string(frontdoor.PolicyResourceStateCreating),
-			},
-
-			"routing_rules": {
+			"frontend_endpoint": {
 				Type:     schema.TypeList,
+				MaxItems: 100,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"accepted_protocols": {
+						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.HTTP),
-								string(frontdoor.HTTPS),
-							}, false),
-							Default: string(frontdoor.HTTP),
+							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
-						"enabled_state": {
+						"host_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.Enabled),
-								string(frontdoor.Disabled),
-							}, false),
-							Default: string(frontdoor.Enabled),
 						},
-						"frontend_endpoints": {
+						"session_affinity_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default: true,
+						},
+						"session_affinity_ttl_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"web_application_firewall_policy_link_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"custom_https_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"id": {
+									"certificate_source": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.CertificateSourceAzureKeyVault),
+											string(frontdoor.CertificateSourceFrontDoor),
+										}, false),
+										Default: string(frontdoor.CertificateSourceFrontDoor),
+									},
+									// NOTE: None of these attributes are valid if
+									//       certificate_source is set to FrontDoor
+									"azure_key_vault_certificate_secret_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"azure_key_vault_certificate_secret_version": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"azure_key_vault_certificate_vault_id": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
 								},
 							},
 						},
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"patterns_to_match": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"resource_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.PolicyResourceStateCreating),
-								string(frontdoor.PolicyResourceStateEnabling),
-								string(frontdoor.PolicyResourceStateEnabled),
-								string(frontdoor.PolicyResourceStateDisabling),
-								string(frontdoor.PolicyResourceStateDisabled),
-								string(frontdoor.PolicyResourceStateDeleting),
-							}, false),
-							Default: string(frontdoor.PolicyResourceStateCreating),
-						},
 					},
 				},
 			},
 
+			"friendly_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"tags": tagsSchema(),
-
-			"cname": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
