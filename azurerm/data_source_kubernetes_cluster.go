@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -140,6 +140,12 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
+						},
+
+						"node_taints": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -624,6 +630,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.MaxPods != nil {
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+		}
+
+		if profile.NodeTaints != nil {
+			agentPoolProfile["node_taints"] = *profile.NodeTaints
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

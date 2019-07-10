@@ -475,6 +475,30 @@ func TestAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	config := testAccDataSourceAzureRMKubernetesCluster_nodeTaints(ri, clientId, clientSecret, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "agent_pool_profile.1.node_taints.0", "key=value:NoSchedule"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	r := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
@@ -657,6 +681,18 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(rInt int, clientId string, clientSecret string, location string) string {
 	r := testAccAzureRMKubernetesCluster_autoscaleWithAvailabilityZones(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_nodeTaints(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_nodeTaints(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 

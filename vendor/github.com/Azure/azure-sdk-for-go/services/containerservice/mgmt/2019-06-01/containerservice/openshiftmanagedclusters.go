@@ -93,7 +93,7 @@ func (client OpenShiftManagedClustersClient) CreateOrUpdatePreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client OpenShiftManagedClustersClient) DeletePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,7 +266,7 @@ func (client OpenShiftManagedClustersClient) GetPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -340,7 +340,7 @@ func (client OpenShiftManagedClustersClient) ListPreparer(ctx context.Context) (
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -460,7 +460,7 @@ func (client OpenShiftManagedClustersClient) ListByResourceGroupPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -575,7 +575,7 @@ func (client OpenShiftManagedClustersClient) UpdateTagsPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-30-preview"
+	const APIVersion = "2019-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
