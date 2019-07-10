@@ -53,7 +53,6 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
 		},
 	}
 }
