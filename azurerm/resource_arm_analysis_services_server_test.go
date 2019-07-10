@@ -60,7 +60,7 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 					testCheckAzureRMAnalysisServicesServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "prod"),
+					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "prod"),
 				),
 			},
 		},
@@ -210,7 +210,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestass%d"
+  name                = "acctestASS%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
@@ -226,7 +226,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestass%d"
+  name                = "acctestASS%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
@@ -246,14 +246,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestass%d"
+  name                = "acctestASS%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
 
   tags = {
 	label = "test1"
-	env   = "prod"
+	ENV   = "prod"
   }
 }
 `, rInt, location, rInt)
@@ -267,7 +267,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
+  name                		= "acctestASS%d"
   location            		= "${azurerm_resource_group.test.location}"
   resource_group_name 		= "${azurerm_resource_group.test.name}"
   sku 				  		= "B1"
@@ -294,7 +294,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
+  name                		= "acctestASS%d"
   location            		= "${azurerm_resource_group.test.location}"
   resource_group_name 		= "${azurerm_resource_group.test.name}"
   sku 				  		= "B1"
@@ -313,7 +313,7 @@ resource "azurerm_analysis_services_server" "test" {
 //}
 //
 //resource "azurerm_analysis_services_server" "test" {
-//  name                		= "acctestass%d"
+//  name                		= "acctestASS%d"
 //  location            		= "${azurerm_resource_group.test.location}"
 //  resource_group_name 		= "${azurerm_resource_group.test.name}"
 //  sku 				  		= "B1"
