@@ -54,7 +54,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
+				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
