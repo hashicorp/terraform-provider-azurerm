@@ -407,6 +407,11 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	routingRules := d.Get("routing_rules").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
+	// Validate config settings are valid
+	if err := azure.ValidateFrontdoor(d); err != nil {
+		return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
