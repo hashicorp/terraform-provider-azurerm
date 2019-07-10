@@ -340,6 +340,7 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/valida
 github.com/terraform-providers/terraform-provider-azuread/version
 # github.com/tombuildsstuff/giovanni v0.2.0
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories
+github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
