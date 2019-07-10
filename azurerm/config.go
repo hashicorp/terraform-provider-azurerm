@@ -27,8 +27,6 @@ import (
 	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	iotHubSvc "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
@@ -39,7 +37,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	privateDnsSvc "github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	iotdps "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -390,6 +387,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.hdinsight = hdinsight.BuildClient(o)
+	client.iothub = iothub.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -397,8 +396,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
-	client.registerIoTHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
 	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
@@ -641,39 +638,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	applicationsClient := hdinsightSvc.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&applicationsClient.Client, auth)
-
-	clustersClient := hdinsightSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&clustersClient.Client, auth)
-
-	configurationsClient := hdinsightSvc.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&configurationsClient.Client, auth)
-
-	c.hdinsight = &hdinsight.Client{
-		ApplicationsClient:   applicationsClient,
-		ClustersClient:       clustersClient,
-		ConfigurationsClient: configurationsClient,
-	}
-}
-func (c *ArmClient) registerIoTHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	iotClient := iotHubSvc.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotClient.Client, auth)
-
-	iotDpsClient := iotdps.NewIotDpsResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotDpsClient.Client, auth)
-
-	iotDpsCertificateClient := iotdps.NewDpsCertificateClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotDpsCertificateClient.Client, auth)
-
-	c.iothub = &iothub.Client{
-		ResourceClient:       iotClient,
-		DPSResourceClient:    iotDpsClient,
-		DPSCertificateClient: iotDpsCertificateClient,
-	}
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
