@@ -1185,7 +1185,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 
 	// admin password isn't returned, so let's look it up
 	if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
-		values["admin_password"] := v.(string)
+		values["admin_password"] = v.(string)
 	}
 
 	return []interface{}{values}
