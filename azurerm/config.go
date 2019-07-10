@@ -28,7 +28,6 @@ import (
 	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
 	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	iotHubSvc "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
@@ -390,6 +389,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.devSpace = devspace.BuildClient(o)
 	client.devTestLabs = devtestlabs.BuildClient(o)
 	client.dns = dns.BuildClient(o)
+	client.eventGrid = eventgrid.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -397,7 +397,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerIoTHubClients(endpoint, c.SubscriptionID, auth)
@@ -643,23 +642,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	domainsClient := eventGridSvc.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&domainsClient.Client, auth)
-
-	eventSubscriptionsClient := eventGridSvc.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&eventSubscriptionsClient.Client, auth)
-
-	topicsClient := eventGridSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&topicsClient.Client, auth)
-
-	c.eventGrid = &eventgrid.Client{
-		DomainsClient:            domainsClient,
-		EventSubscriptionsClient: eventSubscriptionsClient,
-		TopicsClient:             topicsClient,
-	}
 }
 
 func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
