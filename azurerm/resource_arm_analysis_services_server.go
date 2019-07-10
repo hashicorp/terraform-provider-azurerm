@@ -113,13 +113,13 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resGroup, name)
+		server, err := client.GetDetails(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -142,27 +142,27 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	analysisServicesServer := analysisservices.Server{
 		Name:             &name,
 		Location:         &location,
-		Sku:              expandAnalysisServicesServerSku(sku),
+		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
 		Tags:             expandTags(tags),
 	}
 
-	future, err := client.Create(ctx, resGroup, name, analysisServicesServer)
+	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	server, err := client.GetDetails(ctx, resGroup, name)
+	server, err := client.GetDetails(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
 	if server.ID == nil {
-		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resGroup)
+		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*server.ID)
@@ -179,10 +179,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	server, err := client.GetDetails(ctx, resGroup, name)
+	server, err := client.GetDetails(ctx, resourceGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(server.Response) {
@@ -193,26 +193,26 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 
 	if location := server.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenAnalysisServicesServerSku(server.Sku))
+	d.Set("sku", *server.Sku.Name)
 
 	if serverProps := server.ServerProperties; serverProps != nil {
-		d.Set("admin_users", *flattenAnalysisServicesServerAdminUsers(server.AsAdministrators))
-
-		//if serverProps.BackupBlobContainerURI != nil {
-		//	d.Set("backup_blob_container_uri", *serverProps.BackupBlobContainerURI)
-		//}
+		if serverProps.AsAdministrators == nil || serverProps.AsAdministrators.Members == nil {
+			d.Set("admin_users", []string{})
+		} else {
+			d.Set("admin_users", *serverProps.AsAdministrators.Members)
+		}
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
 		d.Set("enable_power_bi_service", enablePowerBi)
 		d.Set("ipv4_firewall_rule", fwRules)
 
-		d.Set("querypool_connection_mode", flattenAnalysisServicesServerQuerypoolConnectionMode(serverProps))
+		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
 	}
 
 	flattenAndSetTags(d, server.Tags)
@@ -227,13 +227,13 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resGroup, name)
+		server, err := client.GetDetails(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -253,27 +253,27 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
-		Sku:                     expandAnalysisServicesServerSku(sku),
+		Sku:                     &analysisservices.ResourceSku{Name: &sku},
 		Tags:                    expandTags(tags),
 		ServerMutableProperties: serverProperties,
 	}
 
-	future, err := client.Update(ctx, resGroup, name, analysisServicesServer)
+	future, err := client.Update(ctx, resourceGroup, name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	server, err := client.GetDetails(ctx, resGroup, name)
+	server, err := client.GetDetails(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
 	if server.ID == nil {
-		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resGroup)
+		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*server.ID)
@@ -324,30 +324,18 @@ func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
 	return validation.StringInSlice(connectionModes, true)
 }
 
-func expandAnalysisServicesServerSku(sku string) *analysisservices.ResourceSku {
-	return &analysisservices.ResourceSku{
-		Name: &sku,
-	}
-}
-
-func flattenAnalysisServicesServerSku(sku *analysisservices.ResourceSku) string {
-	return *sku.Name
-}
-
 func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
 	serverProperties := analysisservices.ServerProperties{AsAdministrators: adminUsers}
 
-	//if backupBlobContainerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
-	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
-	//}
-
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
-	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
-		serverProperties.QuerypoolConnectionMode = *connectionMode
+	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
+		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
 	}
+
+	return nil
 
 	return &serverProperties
 }
@@ -357,15 +345,9 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 
 	serverProperties := analysisservices.ServerMutableProperties{AsAdministrators: adminUsers}
 
-	//if backupBlobContainerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
-	//	serverProperties.BackupBlobContainerURI = backupBlobContainerUri.(*string)
-	//}
-
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
-	if connectionMode := expandAnalysisServicesServerQuerypoolConnectionMode(d); connectionMode != nil {
-		serverProperties.QuerypoolConnectionMode = *connectionMode
-	}
+	serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string))
 
 	return &serverProperties
 }
@@ -381,15 +363,6 @@ func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisser
 	}
 
 	return &analysisservices.ServerAdministrators{Members: &members}
-}
-
-func expandAnalysisServicesServerQuerypoolConnectionMode(d *schema.ResourceData) *analysisservices.ConnectionMode {
-	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
-		connMode := analysisservices.ConnectionMode(querypoolConnectionMode.(string))
-		return &connMode
-	}
-
-	return nil
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
@@ -415,14 +388,6 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	return &firewallSettings
 }
 
-func flattenAnalysisServicesServerAdminUsers(serverAdministrators *analysisservices.ServerAdministrators) *[]string {
-	if serverAdministrators == nil || serverAdministrators.Members == nil {
-		return &[]string{}
-	}
-
-	return serverAdministrators.Members
-}
-
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
 	if serverProperties.IPV4FirewallSettings == nil {
 		return nil, nil
@@ -441,9 +406,4 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 	}
 
 	return firewallSettings.EnablePowerBIService, fwRules
-}
-
-func flattenAnalysisServicesServerQuerypoolConnectionMode(serverProperties *analysisservices.ServerProperties) *string {
-	connMode := string(serverProperties.QuerypoolConnectionMode)
-	return &connMode
 }
