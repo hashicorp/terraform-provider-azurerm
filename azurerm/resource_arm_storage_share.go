@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
@@ -33,7 +34,6 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validateArmStorageShareName,
 			},
 
-			// TODO: deprecate the Resource Group Name
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"storage_account_name": {
@@ -50,6 +50,7 @@ func resourceArmStorageShare() *schema.Resource {
 			},
 
 			// TODO: support for MetaData and ACL's
+			"metadata": storage.MetaDataSchema(),
 
 			"url": {
 				Type:     schema.TypeString,
@@ -66,7 +67,8 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	shareName := d.Get("name").(string)
 	quota := d.Get("quota").(int)
 
-	metaData := make(map[string]string)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := storage.ExpandMetaData(metaDataRaw)
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
@@ -146,6 +148,10 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("url", client.GetResourceID(id.AccountName, id.ShareName))
 	d.Set("quota", props.ShareQuota)
 
+	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error flattening `metadata`: %+v", err)
+	}
+
 	// Deprecated: remove in 2.0
 	d.Set("resource_group_name", resourceGroup)
 
@@ -184,6 +190,19 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		log.Printf("[DEBUG] Updated the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+	}
+
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := storage.ExpandMetaData(metaDataRaw)
+
+		if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, metaData); err != nil {
+			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
 	}
 
 	return resourceArmStorageShareRead(d, meta)

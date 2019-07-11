@@ -47,6 +47,7 @@ The following arguments are supported:
 
 * `quota` - (Optional) The maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5 TB (5120 GB). Default is 5120.
 
+* `metadata` - (Optional) A mapping of MetaData for this File Share.
 
 ## Attributes Reference
 
