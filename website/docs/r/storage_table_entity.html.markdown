@@ -66,7 +66,7 @@ Changing this forces a new resource to be created.
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Storage Table Entity.
+* `id` - The ID of the Entity within the Table in the Storage Account.
 
 ## Import
 
