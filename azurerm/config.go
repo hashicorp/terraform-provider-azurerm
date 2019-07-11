@@ -29,10 +29,6 @@ import (
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
-	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
-	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
@@ -388,6 +384,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.privateDns = privatedns.BuildClient(o)
+	client.recoveryServices = recoveryservices.BuildClient(o)
+	client.redis = redis.BuildClient(o)
+	client.relay = relay.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -398,9 +397,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
-	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
-	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
-	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, auth)
@@ -766,49 +762,6 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&watchersClient.Client, auth)
 	c.watcherClient = watchersClient
-}
-
-func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	vaultsClient := recoveryservicesSvc.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&vaultsClient.Client, auth)
-
-	protectedItemsClient := backupSvc.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&protectedItemsClient.Client, auth)
-
-	protectionPoliciesClient := backupSvc.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&protectionPoliciesClient.Client, auth)
-
-	c.recoveryServices = &recoveryservices.Client{
-		ProtectedItemsClient:     protectedItemsClient,
-		ProtectionPoliciesClient: protectionPoliciesClient,
-		VaultsClient:             vaultsClient,
-	}
-}
-
-func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	cacheClient := redisSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&cacheClient.Client, auth)
-
-	firewallRuleClient := redisSvc.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&firewallRuleClient.Client, auth)
-
-	patchSchedulesClient := redisSvc.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&patchSchedulesClient.Client, auth)
-
-	c.redis = &redis.Client{
-		Client:               cacheClient,
-		FirewallRulesClient:  firewallRuleClient,
-		PatchSchedulesClient: patchSchedulesClient,
-	}
-}
-
-func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	namespacesClient := relaySvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	c.relay = &relay.Client{
-		NamespacesClient: namespacesClient,
-	}
 }
 
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
