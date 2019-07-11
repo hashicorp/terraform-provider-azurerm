@@ -144,7 +144,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 	})
 }
 
-func TestUnitAzureRMVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
+func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -174,7 +174,7 @@ func TestUnitAzureRMVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing
 	})
 }
 
-func TestUnitAzureRMVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
+func TestAccAzureRMVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
