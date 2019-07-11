@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table_entity"
 sidebar_current: "docs-azurerm-resource-storage-table-entity"
 description: |-
-  Manage an Azure Storage Table Entity.
+  Manages an Entity within a Table in an Azure Storage Account.
 ---
 
 # azurerm_storage_table_entity
