@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table"
-sidebar_current: "docs-azurerm-resource-storage-table"
+sidebar_current: "docs-azurerm-resource-storage-table-x"
 description: |-
   Manages a Azure Storage Table.
 ---

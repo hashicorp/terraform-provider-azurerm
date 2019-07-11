@@ -116,7 +116,7 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 
 		tableName := rs.Primary.Attributes["table_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-		partitionKey := rs.Primary.Attributes["parititon_key"]
+		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
 		storageClient := testAccProvider.Meta().(*ArmClient).storage
@@ -133,8 +133,9 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		}
 
 		input := entities.GetEntityInput{
-			PartitionKey: partitionKey,
-			RowKey:       rowKey,
+			PartitionKey:  partitionKey,
+			RowKey:        rowKey,
+			MetaDataLevel: entities.NoMetaData,
 		}
 		resp, err := client.Get(ctx, accountName, tableName, input)
 		if err != nil {
@@ -155,7 +156,7 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 			continue
 		}
 
-		tableName := rs.Primary.Attributes["share_name"]
+		tableName := rs.Primary.Attributes["table_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
@@ -206,6 +207,9 @@ resource "azurerm_storage_table_entity" "test" {
   
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
+  entity = {
+    foo = "bar"
+  }
 }
 `, template, rInt, rInt)
 }
@@ -221,6 +225,9 @@ resource "azurerm_storage_table_entity" "test" {
 	
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
+  entity = {
+    foo = "bar"
+  }
 }
 `, template, rInt, rInt)
 }
@@ -236,6 +243,10 @@ resource "azurerm_storage_table_entity" "test" {
 	
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
+  entity = {
+	foo = "bar"
+	test = "updated"
+  }
 }
 `, template, rInt, rInt)
 }

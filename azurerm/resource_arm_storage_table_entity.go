@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
@@ -15,8 +14,7 @@ func resourceArmStorageTableEntity() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageTableEntityCreateUpdate,
 		Read:   resourceArmStorageTableEntityRead,
-		// TODO Remove this
-		// Update: resourceArmStorageTableEntityCreateUpdate,
+		Update: resourceArmStorageTableEntityCreateUpdate,
 		Delete: resourceArmStorageTableEntityDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,15 +41,12 @@ func resourceArmStorageTableEntity() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"metadata_level": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(entities.NoMetaData),
-					string(entities.MinimalMetaData),
-					string(entities.FullMetaData),
-				}, false),
+			"entity": {
+				Type:     schema.TypeMap,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -97,6 +92,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
+		Entity:       d.Get("entity").(map[string]interface{}),
 	}
 
 	if _, err := client.InsertOrMerge(ctx, accountName, tableName, input); err != nil {
@@ -134,11 +130,12 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 	}
 
 	input := entities.GetEntityInput{
-		PartitionKey: id.PartitionKey,
-		RowKey:       id.RowKey,
+		PartitionKey:  id.PartitionKey,
+		RowKey:        id.RowKey,
+		MetaDataLevel: entities.NoMetaData,
 	}
 
-	_, err = client.Get(ctx, id.AccountName, id.TableName, input)
+	result, err := client.Get(ctx, id.AccountName, id.TableName, input)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, *resourceGroup, err)
 	}
@@ -147,6 +144,7 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 	d.Set("table_name", id.TableName)
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
+	d.Set("entity", flattenEntity(result.Entity))
 
 	return nil
 }
@@ -185,4 +183,13 @@ func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+// The api returns extra information that we already have. We'll remove it here before setting it in state.
+func flattenEntity(entity map[string]interface{}) map[string]interface{} {
+	delete(entity, "PartitionKey")
+	delete(entity, "RowKey")
+	delete(entity, "Timestamp")
+
+	return entity
 }
