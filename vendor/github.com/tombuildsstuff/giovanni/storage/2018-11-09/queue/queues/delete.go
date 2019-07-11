@@ -1,8 +1,9 @@
-package containers
+package queues
 
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -10,31 +11,34 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
 )
 
-// Delete marks the specified container for deletion.
-// The container and any blobs contained within it are later deleted during garbage collection.
-func (client Client) Delete(ctx context.Context, accountName, containerName string) (result autorest.Response, err error) {
+// Delete deletes the specified Queue within the specified Storage Account
+func (client Client) Delete(ctx context.Context, accountName, queueName string) (result autorest.Response, err error) {
 	if accountName == "" {
-		return result, validation.NewError("containers.Client", "Delete", "`accountName` cannot be an empty string.")
+		return result, validation.NewError("queues.Client", "Delete", "`accountName` cannot be an empty string.")
 	}
-	if containerName == "" {
-		return result, validation.NewError("containers.Client", "Delete", "`containerName` cannot be an empty string.")
+	if queueName == "" {
+		return result, validation.NewError("queues.Client", "Delete", "`queueName` cannot be an empty string.")
+	}
+	if strings.ToLower(queueName) != queueName {
+		return result, validation.NewError("queues.Client", "Delete", "`queueName` must be a lower-cased string.")
 	}
 
-	req, err := client.DeletePreparer(ctx, accountName, containerName)
+	req, err := client.DeletePreparer(ctx, accountName, queueName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "Delete", resp, "Failure sending request")
+		result = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -42,13 +46,9 @@ func (client Client) Delete(ctx context.Context, accountName, containerName stri
 }
 
 // DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, accountName string, containerName string) (*http.Request, error) {
+func (client Client) DeletePreparer(ctx context.Context, accountName string, queueName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("path", "container"),
+		"queueName": autorest.Encode("path", queueName),
 	}
 
 	headers := map[string]interface{}{
@@ -58,9 +58,8 @@ func (client Client) DeletePreparer(ctx context.Context, accountName string, con
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/xml; charset=utf-8"),
 		autorest.AsDelete(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
+		autorest.WithBaseURL(endpoints.GetQueueEndpoint(client.BaseURI, accountName)),
+		autorest.WithPathParameters("/{queueName}", pathParameters),
 		autorest.WithHeaders(headers))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -78,8 +77,9 @@ func (client Client) DeleteResponder(resp *http.Response) (result autorest.Respo
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
 		autorest.ByClosing())
 	result = autorest.Response{Response: resp}
+
 	return
 }
