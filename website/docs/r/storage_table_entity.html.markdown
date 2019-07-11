@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table_entity"
 sidebar_current: "docs-azurerm-resource-storage-table-entity"
 description: |-
-  Manages a Azure Storage Table Entity.
+  Manages an Entity within a Table in an Azure Storage Account.
 ---
 
 # azurerm_storage_table_entity
 
-Manages a Azure Storage Table Entity.
+Manages an Entity within a Table in an Azure Storage Account.
 
 ## Example Usage
 
@@ -66,11 +66,11 @@ Changing this forces a new resource to be created.
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Storage Table Entity.
+* `id` - The ID of the Entity within the Table in the Storage Account.
 
 ## Import
 
-Storage Table Entities can be imported using the `resource id`, e.g.
+Entities within a Table in an Azure Storage Account can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_table_entity.entity1 https://example.table.core.windows.net/table1(PartitionKey='samplepartition',RowKey='samplerow')
