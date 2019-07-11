@@ -25,20 +25,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
-	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
-	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
-	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	servicefabricSvc "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -387,6 +380,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.recoveryServices = recoveryservices.BuildClient(o)
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
+	client.search = search.BuildClient(o)
+	client.securityCenter = securitycenter.BuildClient(o)
+	client.servicebus = servicebus.BuildClient(o)
+	client.serviceFabric = servicefabric.BuildClient(o)
+	client.scheduler = scheduler.BuildClient(o)
+	client.signalr = signalr.BuildClient(o)
+	client.trafficManager = trafficmanager.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -398,15 +398,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
-	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
-	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, auth)
-	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
-	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
-	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
-	client.registerSignalRClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
-	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
@@ -791,98 +784,6 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.providersClient = providersClient
 }
 
-func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := schedulerSvc.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
-	c.configureClient(&jobCollectionsClient.Client, auth)
-
-	jobsClient := schedulerSvc.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
-	c.configureClient(&jobsClient.Client, auth)
-
-	c.scheduler = &scheduler.Client{
-		JobCollectionsClient: jobCollectionsClient,
-		JobsClient:           jobsClient,
-	}
-}
-
-func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	searchAdminKeysClient := searchSvc.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&searchAdminKeysClient.Client, auth)
-
-	servicesClient := searchSvc.NewServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&servicesClient.Client, auth)
-
-	c.search = &search.Client{
-		AdminKeysClient: searchAdminKeysClient,
-		ServicesClient:  servicesClient,
-	}
-}
-
-func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ascLocation := "Global"
-
-	contactsClient := securitySvc.NewContactsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&contactsClient.Client, auth)
-
-	pricingsClient := securitySvc.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&pricingsClient.Client, auth)
-
-	workspaceSettingsClient := securitySvc.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&workspaceSettingsClient.Client, auth)
-
-	advancedThreatProtectionClient := securitySvc.NewAdvancedThreatProtectionClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&advancedThreatProtectionClient.Client, auth)
-
-	c.securityCenter = &securitycenter.Client{
-		ContactsClient:                 contactsClient,
-		PricingClient:                  pricingsClient,
-		WorkspaceClient:                workspaceSettingsClient,
-		AdvancedThreatProtectionClient: advancedThreatProtectionClient,
-	}
-}
-
-func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	queuesClient := servicebusSvc.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&queuesClient.Client, auth)
-
-	namespacesClient := servicebusSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	topicsClient := servicebusSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&topicsClient.Client, auth)
-
-	subscriptionsClient := servicebusSvc.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subscriptionsClient.Client, auth)
-
-	subscriptionRulesClient := servicebusSvc.NewRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subscriptionRulesClient.Client, auth)
-
-	c.servicebus = &servicebus.Client{
-		QueuesClient:            queuesClient,
-		NamespacesClient:        namespacesClient,
-		TopicsClient:            topicsClient,
-		SubscriptionsClient:     subscriptionsClient,
-		SubscriptionRulesClient: subscriptionRulesClient,
-	}
-}
-
-func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	clustersClient := servicefabricSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&clustersClient.Client, auth)
-
-	c.serviceFabric = &servicefabric.Client{
-		ClustersClient: clustersClient,
-	}
-}
-
-func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	client := signalrSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&client.Client, auth)
-
-	c.signalr = &signalr.Client{
-		Client: client,
-	}
-}
-
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
@@ -915,23 +816,6 @@ func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId stri
 	transformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&transformationsClient.Client, auth)
 	c.streamAnalyticsTransformationsClient = transformationsClient
-}
-
-func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	endpointsClient := trafficmanagerSvc.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
-	c.configureClient(&endpointsClient.Client, auth)
-
-	geographicalHierarchiesClient := trafficmanagerSvc.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&geographicalHierarchiesClient.Client, auth)
-
-	profilesClient := trafficmanagerSvc.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&profilesClient.Client, auth)
-
-	c.trafficManager = &trafficmanager.Client{
-		EndpointsClient:              endpointsClient,
-		GeographialHierarchiesClient: geographicalHierarchiesClient,
-		ProfilesClient:               profilesClient,
-	}
 }
 
 func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
