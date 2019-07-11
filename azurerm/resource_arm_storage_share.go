@@ -132,6 +132,12 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 
 	props, err := client.GetProperties(ctx, id.AccountName, id.ShareName)
 	if err != nil {
+		if utils.ResponseWasNotFound(props.Response) {
+			log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountName, *resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error retrieving File Share %q (Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, *resourceGroup, err)
 	}
 
