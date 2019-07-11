@@ -1237,25 +1237,6 @@ func (c *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, r
 	return &blobClient, true, nil
 }
 
-func (c *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	fileClient := storageClient.GetFileService()
-	return &fileClient, true, nil
-}
-
 func (c *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
 	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
