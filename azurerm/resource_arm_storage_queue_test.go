@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
@@ -55,7 +56,7 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageQueue_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +64,7 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageQueue_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageQueueExists(resourceName),
 				),
@@ -116,30 +117,31 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		}
 
 		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", name)
-		}
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error locating Resource Group: %s", err)
 		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", accountName)
 		}
 
-		queueReference := queueClient.GetQueueReference(name)
-		exists, err := queueReference.Exists()
+		client, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		if !exists {
-			return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, storageAccountName)
+		metaData, err := client.GetMetaData(ctx, accountName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(metaData.Response) {
+				return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
+			}
+
+			return fmt.Errorf("Bad: error retrieving Storage Queue %q (storage account: %q): %s", name, accountName, err)
 		}
 
 		return nil
@@ -153,37 +155,67 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", name)
-		}
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error locating Resource Group: %s", err)
 		}
-		if !accountExists {
+
+		if resourceGroup == nil {
 			return nil
 		}
 
-		queueReference := queueClient.GetQueueReference(name)
-		exists, err := queueReference.Exists()
+		client, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		if exists {
-			return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) still exists", name, storageAccountName)
+		metaData, err := client.GetMetaData(ctx, accountName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(metaData.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Unexpected error getting MetaData for Queue %q: %s", name, err)
 		}
+
+		return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) still exists", name, accountName)
 	}
 
 	return nil
 }
 
 func testAccAzureRMStorageQueue_basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+`, template, rInt)
+}
+
+func testAccAzureRMStorageQueue_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageQueue_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "import" {
+  name                 = "${azurerm_storage_queue.test.name}"
+  resource_group_name  = "${azurerm_storage_queue.test.resource_group_name}"
+  storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageQueue_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -202,23 +234,5 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-}
-`, rInt, location, rString, rInt)
-}
-
-func testAccAzureRMStorageQueue_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageQueue_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_queue" "import" {
-  name                 = "${azurerm_storage_queue.test.name}"
-  resource_group_name  = "${azurerm_storage_queue.test.resource_group_name}"
-  storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
-}
-`, template)
+`, rInt, location, rString)
 }

@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_queue"
 sidebar_current: "docs-azurerm-resource-storage-queue"
 description: |-
-  Manages a Azure Storage Queue.
+  Manages a Queue within an Azure Storage Account.
 ---
 
 # azurerm_storage_queue
 
-Manage an Azure Storage Queue.
+Manages a Queue within an Azure Storage Account.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "example-resources"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -39,11 +39,10 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage queue. Must be unique within the storage account the queue is located.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage queue. Changing this forces a new resource to be created.
-
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage queue.
  Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage queue.
 
 ## Attributes Reference
 
