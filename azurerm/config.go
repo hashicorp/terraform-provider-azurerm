@@ -20,15 +20,12 @@ import (
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	managementgroupsSvc "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -388,6 +385,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.iothub = iothub.BuildClient(o)
 	client.logic = logic.BuildClient(o)
 	client.logAnalytics = loganalytics.BuildClient(o)
+	client.media = media.BuildClient(o)
+	client.msi = msi.BuildClient(o)
+	client.managementGroups = managementgroup.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -396,14 +396,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
-	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
-	client.registerMSIClient(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
-	client.registerManagementGroupClients(endpoint, auth)
 	client.registerPrivateDNSClient(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
@@ -458,15 +455,6 @@ func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId strin
 	ca := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ca.Client, auth)
 	c.cosmosAccountsClient = ca
-}
-
-func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	mediaServicesClient := mediaSvc.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mediaServicesClient.Client, auth)
-
-	c.media = &media.Client{
-		ServicesClient: mediaServicesClient,
-	}
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -647,19 +635,6 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
-func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
-	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
-	c.configureClient(&groupsClient.Client, auth)
-
-	subscriptionClient := managementgroupsSvc.NewSubscriptionsClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionClient.Client, auth)
-
-	c.managementGroups = &managementgroup.Client{
-		GroupsClient:       groupsClient,
-		SubscriptionClient: subscriptionClient,
-	}
-}
-
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&agc.Client, auth)
@@ -692,15 +667,6 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
 	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
-}
-
-func (c *ArmClient) registerMSIClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	userAssignedIdentitiesClient := msiSvc.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
-
-	c.msi = &msi.Client{
-		UserAssignedIdentitiesClient: userAssignedIdentitiesClient,
-	}
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
