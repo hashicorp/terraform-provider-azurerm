@@ -93,11 +93,13 @@ func (client Client) GetPropertiesResponder(resp *http.Response) (result GetProp
 		result.MetaData = metadata.ParseFromHeaders(resp.Header)
 
 		quotaRaw := resp.Header.Get("x-ms-share-quota")
-		quota, e := strconv.Atoi(quotaRaw)
-		if e != nil {
-			return result, fmt.Errorf("Error converting %q to an integer: %s", quotaRaw, err)
+		if quotaRaw != "" {
+			quota, e := strconv.Atoi(quotaRaw)
+			if e != nil {
+				return result, fmt.Errorf("Error converting %q to an integer: %s", quotaRaw, err)
+			}
+			result.ShareQuota = quota
 		}
-		result.ShareQuota = quota
 	}
 
 	err = autorest.Respond(
