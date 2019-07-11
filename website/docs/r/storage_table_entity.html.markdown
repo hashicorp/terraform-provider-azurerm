@@ -70,7 +70,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Import
 
-Storage Table Entities can be imported using the `resource id`, e.g.
+Entities within a Table in an Azure Storage Account can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_table_entity.entity1 https://example.table.core.windows.net/table1(PartitionKey='samplepartition',RowKey='samplerow')
