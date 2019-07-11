@@ -84,7 +84,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		existing, err := client.GetProperties(ctx, *resourceGroup, shareName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existance of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)
 			}
 		}
 
