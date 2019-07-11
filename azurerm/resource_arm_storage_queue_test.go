@@ -259,7 +259,7 @@ resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
-  metadata {
+  metadata = {
     hello = "world"
   }
 }
@@ -275,7 +275,7 @@ resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
-  metadata {
+  metadata = {
     hello = "world"
     rick  = "morty"
   }

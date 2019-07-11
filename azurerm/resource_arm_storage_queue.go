@@ -152,7 +152,7 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting MetaData for Queue %q (Storage Account %q): %s", id.QueueName, id.AccountName, err)
 	}
 
-	return resourceArmStorageQueueRead(d, metaDataRaw)
+	return resourceArmStorageQueueRead(d, meta)
 }
 
 func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
