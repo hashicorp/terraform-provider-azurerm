@@ -41,16 +41,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			// TODO: switch to using the common deprecated RG name function
-			"resource_group_name": func() *schema.Schema {
-				s := azure.SchemaResourceGroupName()
-				s.Required = false
-				s.ForceNew = false
-				s.Optional = true
-				s.Computed = true
-				s.Deprecated = "This is no longer used and will be removed in 2.0"
-				return s
-			}(),
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"metadata": storage.MetaDataSchema(),
 
