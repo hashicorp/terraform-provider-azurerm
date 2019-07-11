@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
@@ -22,24 +23,28 @@ func resourceArmStorageTableEntity() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"table_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageTableName,
 			},
 			"storage_account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"partition_key": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"row_key": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"entity": {
 				Type:     schema.TypeMap,
@@ -74,8 +79,8 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 
 	if requireResourcesToBeImported {
 		input := entities.GetEntityInput{
-			PartitionKey: partitionKey,
-			RowKey:       rowKey,
+			PartitionKey:  partitionKey,
+			RowKey:        rowKey,
 			MetaDataLevel: entities.NoMetaData,
 		}
 		existing, err := client.Get(ctx, accountName, tableName, input)
@@ -146,7 +151,9 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 	d.Set("table_name", id.TableName)
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
-	d.Set("entity", flattenEntity(result.Entity))
+	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {
+		return fmt.Errorf("Error setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, *resourceGroup, err)
+	}
 
 	return nil
 }

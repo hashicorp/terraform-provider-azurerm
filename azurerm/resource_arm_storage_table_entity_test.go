@@ -208,7 +208,7 @@ resource "azurerm_storage_table_entity" "test" {
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
-    foo = "bar"
+    Foo = "Bar"
   }
 }
 `, template, rInt, rInt)
@@ -226,7 +226,7 @@ resource "azurerm_storage_table_entity" "test" {
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
-    foo = "bar"
+    Foo = "Bar"
   }
 }
 `, template, rInt, rInt)
@@ -244,8 +244,8 @@ resource "azurerm_storage_table_entity" "test" {
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
-	foo = "bar"
-	test = "updated"
+	Foo = "Bar"
+	Test = "Updated"
   }
 }
 `, template, rInt, rInt)

@@ -3,44 +3,44 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table_entity"
 sidebar_current: "docs-azurerm-resource-storage-table-entity"
 description: |-
-  Manage an Azure Storage Table Entity.
+  Manages a Azure Storage Table Entity.
 ---
 
 # azurerm_storage_table_entity
 
-Manage an Azure Storage Table Entity.
+Manages a Azure Storage Table Entity.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "azuretest"
+resource "azurerm_resource_group" "example" {
+  name     = "azureexample"
   location = "westus"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "azureteststorage1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+resource "azurerm_storage_account" "example" {
+  name                     = "azureexamplestorage1"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_table" "test" {
-  name                 = "mysampletable"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+resource "azurerm_storage_table" "example" {
+  name                 = "myexampletable"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  storage_account_name = "${azurerm_storage_account.example.name}"
 }
 
-resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+resource "azurerm_storage_table_entity" "example" {
+  storage_account_name = "${azurerm_storage_account.example.name}"
+  table_name           = "${azurerm_storage_table.example.name}"
   
-  partition_key = "samplepartition"
-  row_key       = "samplerow"
+  partition_key = "examplepartition"
+  row_key       = "exmamplerow"
 
   entity = {
-    sample = "entity"
+    example = "sample"
   }
 }
 ```
