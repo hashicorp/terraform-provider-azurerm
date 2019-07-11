@@ -46,10 +46,10 @@ import (
 	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	policySvc "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -1036,10 +1036,14 @@ func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId strin
 	workspaceSettingsClient := securitySvc.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
 	c.configureClient(&workspaceSettingsClient.Client, auth)
 
+	advancedThreatProtectionClient := securitySvc.NewAdvancedThreatProtectionClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&advancedThreatProtectionClient.Client, auth)
+
 	c.securityCenter = &securitycenter.Client{
-		ContactsClient:  contactsClient,
-		PricingClient:   pricingsClient,
-		WorkspaceClient: workspaceSettingsClient,
+		ContactsClient:                 contactsClient,
+		PricingClient:                  pricingsClient,
+		WorkspaceClient:                workspaceSettingsClient,
+		AdvancedThreatProtectionClient: advancedThreatProtectionClient,
 	}
 }
 
@@ -1231,25 +1235,6 @@ func (c *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, r
 
 	blobClient := storageClient.GetBlobService()
 	return &blobClient, true, nil
-}
-
-func (c *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	fileClient := storageClient.GetFileService()
-	return &fileClient, true, nil
 }
 
 func (c *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {

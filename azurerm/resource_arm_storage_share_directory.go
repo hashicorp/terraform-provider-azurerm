@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
@@ -23,19 +24,22 @@ func resourceArmStorageShareDirectory() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageShareDirectoryName,
 			},
 			"share_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"storage_account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"metadata": storage.MetaDataSchema(),
@@ -59,7 +63,7 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group: %s", err)
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, accountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
@@ -105,7 +109,7 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group: %s", err)
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
@@ -136,7 +140,7 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
 	}
@@ -176,7 +180,7 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
 	}

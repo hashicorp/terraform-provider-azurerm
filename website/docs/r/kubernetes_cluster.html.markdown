@@ -141,6 +141,7 @@ A `agent_pool_profile` block supports the following:
 
 ~> **NOTE:** A route table should be configured on this Subnet.
 
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 ---
 
 A `azure_active_directory` block supports the following:

@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
 
@@ -57,7 +58,7 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 	return resourceGroup, nil
 }
 
-func (client Client) FileShareClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
+func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
 	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -65,6 +66,18 @@ func (client Client) FileShareClient(ctx context.Context, resourceGroup, account
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
 	directoriesClient := directories.New()
+	directoriesClient.Client.Authorizer = storageAuth
+	return &directoriesClient, nil
+}
+
+func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accountName string) (*shares.Client, error) {
+	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	directoriesClient := shares.New()
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }

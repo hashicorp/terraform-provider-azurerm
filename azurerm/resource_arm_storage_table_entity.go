@@ -60,6 +60,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	tableName := d.Get("table_name").(string)
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
+	entity := d.Get("entity").(map[string]interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
@@ -75,6 +76,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 		input := entities.GetEntityInput{
 			PartitionKey: partitionKey,
 			RowKey:       rowKey,
+			MetaDataLevel: entities.NoMetaData,
 		}
 		existing, err := client.Get(ctx, accountName, tableName, input)
 		if err != nil {
@@ -92,7 +94,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       entity,
 	}
 
 	if _, err := client.InsertOrMerge(ctx, accountName, tableName, input); err != nil {
