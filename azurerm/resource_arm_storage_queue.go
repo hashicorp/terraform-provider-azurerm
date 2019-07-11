@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -17,6 +18,7 @@ func resourceArmStorageQueue() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageQueueCreate,
 		Read:   resourceArmStorageQueueRead,
+		Update: resourceArmStorageQueueUpdate,
 		Delete: resourceArmStorageQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -39,10 +41,20 @@ func resourceArmStorageQueue() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			// TODO: deprecate me
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO: switch to using the common deprecated RG name function
+			"resource_group_name": func() *schema.Schema {
+				s := azure.SchemaResourceGroupName()
+				s.Required = false
+				s.ForceNew = false
+				s.Optional = true
+				s.Computed = true
+				s.Deprecated = "This is no longer used and will be removed in 2.0"
+				return s
+			}(),
 
-			// TODO: MetaData & properties
+			"metadata": storage.MetaDataSchema(),
+
+			// TODO: properties
 		},
 	}
 }
@@ -83,8 +95,8 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	queueName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 
-	// TODO: support for MetaData
-	metaData := make(map[string]string)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := storage.ExpandMetaData(metaDataRaw)
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
@@ -117,6 +129,39 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	d.SetId(resourceID)
 
 	return resourceArmStorageQueueRead(d, meta)
+}
+
+func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error {
+	storageClient := meta.(*ArmClient).storage
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := queues.ParseResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error locating Resource Group: %s", err)
+	}
+
+	if resourceGroup == nil {
+		return fmt.Errorf("Error determine Resource Group for Storage Account %q: %s", id.AccountName, err)
+	}
+
+	client, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := storage.ExpandMetaData(metaDataRaw)
+
+	if _, err := client.SetMetaData(ctx, id.AccountName, id.QueueName, metaData); err != nil {
+		return fmt.Errorf("Error setting MetaData for Queue %q (Storage Account %q): %s", id.QueueName, id.AccountName, err)
+	}
+
+	return resourceArmStorageQueueRead(d, metaDataRaw)
 }
 
 func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
@@ -159,7 +204,9 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("resource_group_name", *resourceGroup)
 
-	// TODO: support for MetaData
+	if err := d.Set("metadata", storage.FlattenMetaData(metaData.MetaData)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %s", err)
+	}
 
 	return nil
 }

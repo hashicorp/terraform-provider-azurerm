@@ -108,6 +108,43 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
+	resourceName := "azurerm_storage_queue.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageQueue_metaData(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageQueueExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageQueue_metaDataUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageQueueExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -196,7 +233,6 @@ func testAccAzureRMStorageQueue_basic(rInt int, rString string, location string)
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, template, rInt)
@@ -209,10 +245,42 @@ func testAccAzureRMStorageQueue_requiresImport(rInt int, rString string, locatio
 
 resource "azurerm_storage_queue" "import" {
   name                 = "${azurerm_storage_queue.test.name}"
-  resource_group_name  = "${azurerm_storage_queue.test.resource_group_name}"
   storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageQueue_metaData(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  metadata {
+    hello = "world"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMStorageQueue_metaDataUpdated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  metadata {
+    hello = "world"
+    rick  = "morty"
+  }
+}
+`, template, rInt)
 }
 
 func testAccAzureRMStorageQueue_template(rInt int, rString string, location string) string {
