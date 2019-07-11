@@ -22,7 +22,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
@@ -30,13 +29,11 @@ import (
 	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	privateDnsSvc "github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	policySvc "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
@@ -388,6 +385,9 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.media = media.BuildClient(o)
 	client.msi = msi.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
+	client.notificationHubs = notificationhub.BuildClient(o)
+	client.policy = policy.BuildClient(o)
+	client.privateDns = privatedns.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
@@ -398,10 +398,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
-	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
-	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
-	client.registerPrivateDNSClient(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -771,28 +768,6 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.watcherClient = watchersClient
 }
 
-func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	namespacesClient := notificationHubsSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	notificationHubsClient := notificationHubsSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&notificationHubsClient.Client, auth)
-
-	c.notificationHubs = &notificationhub.Client{
-		HubsClient:       notificationHubsClient,
-		NamespacesClient: namespacesClient,
-	}
-}
-
-func (c *ArmClient) registerPrivateDNSClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	privateZonesClient := privateDnsSvc.NewPrivateZonesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&privateZonesClient.Client, auth)
-
-	c.privateDns = &privatedns.Client{
-		PrivateZonesClient: privateZonesClient,
-	}
-}
-
 func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	vaultsClient := recoveryservicesSvc.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
@@ -1014,23 +989,6 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
-}
-
-func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	assignmentsClient := policySvc.NewAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&assignmentsClient.Client, auth)
-
-	definitionsClient := policySvc.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&definitionsClient.Client, auth)
-
-	setDefinitionsClient := policySvc.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&setDefinitionsClient.Client, auth)
-
-	c.policy = &policy.Client{
-		AssignmentsClient:    assignmentsClient,
-		DefinitionsClient:    definitionsClient,
-		SetDefinitionsClient: setDefinitionsClient,
-	}
 }
 
 var (
