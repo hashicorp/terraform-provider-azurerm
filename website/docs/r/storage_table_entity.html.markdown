@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_table_entity
 
-Manage an Azure Storage Table Entity.
+Manages an Entity within a Table in an Azure Storage Account.
 
 ## Example Usage
 
