@@ -875,7 +875,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `props` was nil", name)
 		}
 		storageProfile := props.StorageProfile
-		if storageProfile != nil {
+		if storageProfile == nil {
 			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `storageProfile` was nil", name)
 		}
 
