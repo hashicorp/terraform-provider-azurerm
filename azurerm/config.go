@@ -920,22 +920,3 @@ func (c *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, 
 	tableClient := storageClient.GetTableService()
 	return &tableClient, true, nil
 }
-
-func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	queueClient := storageClient.GetQueueService()
-	return &queueClient, true, nil
-}
