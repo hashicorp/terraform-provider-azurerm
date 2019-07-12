@@ -32,7 +32,7 @@ func resourceArmStorageTableEntity() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validateArmStorageAccountName,
 			},
 			"partition_key": {
 				Type:         schema.TypeString,

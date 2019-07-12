@@ -12,6 +12,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
 )
 
 type Client struct {
@@ -94,6 +95,7 @@ func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountNam
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
 }
+
 func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accountName string) (*entities.Client, error) {
 	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
 	if err != nil {
@@ -104,6 +106,18 @@ func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accou
 	entitiesClient := entities.New()
 	entitiesClient.Client.Authorizer = storageAuth
 	return &entitiesClient, nil
+}
+
+func (client Client) TablesClient(ctx context.Context, resourceGroup, accountName string) (*tables.Client, error) {
+	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
+	tablesClient := tables.New()
+	tablesClient.Client.Authorizer = storageAuth
+	return &tablesClient, nil
 }
 
 func (client Client) findAccountKey(ctx context.Context, resourceGroup, accountName string) (*string, error) {
