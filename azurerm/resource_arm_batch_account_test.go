@@ -302,7 +302,7 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
 data "azuread_service_principal" "test" {
-  display_name = "Microsoft Azure Batch"
+	display_name = "Microsoft Azure Batch"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -337,13 +337,6 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_role_assignment" "contribrole" {
-  scope                = "/subscriptions/%s"
-  role_definition_name = "Contributor"
-  principal_id         = "${data.azuread_service_principal.test.object_id}"
-}
-  
-
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -356,5 +349,5 @@ resource "azurerm_batch_account" "test" {
     url = "${azurerm_key_vault.test.vault_uri}"
   }
 }
-`, rInt, location, batchAccountSuffix, tenantID, tenantID, subscriptionID, batchAccountSuffix)
+`, rInt, location, batchAccountSuffix, tenantID, tenantID, batchAccountSuffix)
 }
