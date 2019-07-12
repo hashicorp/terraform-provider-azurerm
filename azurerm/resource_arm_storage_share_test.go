@@ -319,7 +319,7 @@ resource "azurerm_storage_share" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
-  metadata {
+  metadata = {
     hello = "world"
   }
 }
@@ -336,7 +336,7 @@ resource "azurerm_storage_share" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
-  metadata {
+  metadata = {
     hello = "world"
     happy = "birthday"
   }
