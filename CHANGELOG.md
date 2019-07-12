@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_mssql_elasticpool` [GH-3824]
 * **New Resource:** `azurerm_api_management_backend` [GH-3676]
 * **New Resource:** `azurerm_storage_share_directory` [GH-3802]
+* **New Resource:** `azurerm_storage_table_entity` [GH-3831]
 
 IMPROVEMENTS:
 
