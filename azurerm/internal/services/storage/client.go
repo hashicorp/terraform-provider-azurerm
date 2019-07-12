@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
 
 type Client struct {
@@ -79,6 +80,18 @@ func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accoun
 	directoriesClient := shares.New()
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
+}
+
+func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accountName string) (*entities.Client, error) {
+	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
+	entitiesClient := entities.New()
+	entitiesClient.Client.Authorizer = storageAuth
+	return &entitiesClient, nil
 }
 
 func (client Client) findAccountKey(ctx context.Context, resourceGroup, accountName string) (*string, error) {
