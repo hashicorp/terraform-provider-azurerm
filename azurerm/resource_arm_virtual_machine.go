@@ -849,7 +849,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	azureRMLockByName(name, virtualMachineResourceName)
 	defer azureRMUnlockByName(name, virtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, resGroup, name, compute.InstanceView)
+	virtualMachine, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
@@ -872,11 +872,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
-			return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `props` was nil", name)
+			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `props` was nil", name)
 		}
 		storageProfile := props.StorageProfile
 		if storageProfile != nil {
-			return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `storageProfile` was nil", name)
+			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `storageProfile` was nil", name)
 		}
 
 		if deleteOsDisk {
