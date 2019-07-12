@@ -3,17 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	azauto "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -151,45 +150,45 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	id, err := parseStorageContainerID(d.Id(), armClient.environment)
+	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
 	if err != nil {
 		return err
 	}
 	if resourceGroup == nil {
-		log.Printf("Cannot locate Resource Group for Storage Account %q (presuming it's gone) - removing from state", id.storageAccountName)
+		log.Printf("Cannot locate Resource Group for Storage Account %q (presuming it's gone) - removing from state", id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing container %q from state", id.storageAccountName, d.Id())
+		log.Printf("[DEBUG] Storage account %q not found, removing container %q from state", id.AccountName, d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	var container *storage.Container
 	listParams := storage.ListContainersParameters{
-		Prefix:  id.containerName,
+		Prefix:  id.ContainerName,
 		Timeout: 90,
 	}
 
 	for {
 		resp, err := blobClient.ListContainers(listParams)
 		if err != nil {
-			return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.containerName, err)
+			return fmt.Errorf("Failed to retrieve storage resp in account %q: %s", id.ContainerName, err)
 		}
 
 		for _, c := range resp.Containers {
-			if c.Name == id.containerName {
+			if c.Name == id.ContainerName {
 				container = &c
 				break
 			}
@@ -203,13 +202,13 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if container == nil {
-		log.Printf("[INFO] Storage container %q does not exist in account %q, removing from state...", id.containerName, id.storageAccountName)
+		log.Printf("[INFO] Storage container %q does not exist in account %q, removing from state...", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", id.containerName)
-	d.Set("storage_account_name", id.storageAccountName)
+	d.Set("name", id.ContainerName)
+	d.Set("storage_account_name", id.AccountName)
 	d.Set("resource_group_name", resourceGroup)
 
 	// for historical reasons, "private" above is an empty string in the API
@@ -239,34 +238,34 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	id, err := parseStorageContainerID(d.Id(), armClient.environment)
+	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
 	if err != nil {
 		return err
 	}
 	if resourceGroup == nil {
-		log.Printf("Cannot locate Resource Group for Storage Account %q (presuming it's gone) - removing from state", id.storageAccountName)
+		log.Printf("Cannot locate Resource Group for Storage Account %q (presuming it's gone) - removing from state", id.AccountName)
 		return nil
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[INFO] Storage Account %q doesn't exist so the container won't exist", id.storageAccountName)
+		log.Printf("[INFO] Storage Account %q doesn't exist so the container won't exist", id.AccountName)
 		return nil
 	}
 
-	log.Printf("[INFO] Deleting storage container %q in account %q", id.containerName, id.storageAccountName)
-	reference := blobClient.GetContainerReference(id.containerName)
+	log.Printf("[INFO] Deleting storage container %q in account %q", id.ContainerName, id.AccountName)
+	reference := blobClient.GetContainerReference(id.ContainerName)
 	deleteOptions := &storage.DeleteContainerOptions{}
 	if _, err := reference.DeleteIfExists(deleteOptions); err != nil {
-		return fmt.Errorf("Error deleting storage container %q from storage account %q: %s", id.containerName, id.storageAccountName, err)
+		return fmt.Errorf("Error deleting storage container %q from storage account %q: %s", id.ContainerName, id.AccountName, err)
 	}
 
 	return nil
@@ -282,31 +281,4 @@ func checkContainerIsCreated(reference *storage.Container) func() *resource.Retr
 
 		return nil
 	}
-}
-
-type storageContainerId struct {
-	storageAccountName string
-	containerName      string
-}
-
-func parseStorageContainerID(input string, environment azauto.Environment) (*storageContainerId, error) {
-	uri, err := url.Parse(input)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
-	}
-
-	// remove the leading `/`
-	segments := strings.Split(strings.TrimPrefix(uri.Path, "/"), "/")
-	if len(segments) < 1 {
-		return nil, fmt.Errorf("Expected number of segments in the path to be < 1 but got %d", len(segments))
-	}
-
-	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".blob.%s", environment.StorageEndpointSuffix), "", 1)
-	containerName := segments[0]
-
-	id := storageContainerId{
-		storageAccountName: storageAccountName,
-		containerName:      containerName,
-	}
-	return &id, nil
 }
