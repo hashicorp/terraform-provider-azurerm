@@ -15,11 +15,10 @@ import (
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,9 +26,9 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
 				),
 			},
 			{
@@ -48,7 +47,6 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -62,7 +60,7 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
 				),
 			},
 			{
@@ -75,14 +73,10 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 
 func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	at1 := "private"
-	at2 := "container"
-	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
-	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -90,17 +84,17 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initconfig,
+				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "private"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", at1),
+					testCheckAzureRMStorageContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", "private"),
 				),
 			},
 			{
-				Config: updateconfig,
+				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "container"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", at2),
+					testCheckAzureRMStorageContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", "container"),
 				),
 			},
 			{
@@ -113,11 +107,9 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
-	var c storage.Container
-
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -125,10 +117,10 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test", &c),
-					testAccARMStorageContainerDisappears("azurerm_storage_container.test", &c),
+					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test"),
+					testAccARMStorageContainerDisappears("azurerm_storage_container.test"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -138,11 +130,10 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 
 func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -150,9 +141,9 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_root(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "$root"),
 				),
 			},
@@ -165,7 +156,7 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Container) resource.TestCheckFunc {
+func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -206,7 +197,6 @@ func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Cont
 		for _, container := range containers.Containers {
 			if container.Name == name {
 				found = true
-				*c = container
 			}
 		}
 
@@ -218,7 +208,7 @@ func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Cont
 	}
 }
 
-func testAccARMStorageContainerDisappears(resourceName string, c *storage.Container) resource.TestCheckFunc {
+func testAccARMStorageContainerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -230,8 +220,9 @@ func testAccARMStorageContainerDisappears(resourceName string, c *storage.Contai
 
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		name := rs.Primary.Attributes["name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", c.Name)
+			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
 		}
 
 		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
@@ -239,11 +230,11 @@ func testAccARMStorageContainerDisappears(resourceName string, c *storage.Contai
 			return err
 		}
 		if !accountExists {
-			log.Printf("[INFO]Storage Account %q doesn't exist so the container won't exist", storageAccountName)
+			log.Printf("[INFO] Storage Account %q doesn't exist so the container won't exist", storageAccountName)
 			return nil
 		}
 
-		reference := blobClient.GetContainerReference(c.Name)
+		reference := blobClient.GetContainerReference(name)
 		options := &storage.DeleteContainerOptions{}
 		_, err = reference.DeleteIfExists(options)
 		return err
