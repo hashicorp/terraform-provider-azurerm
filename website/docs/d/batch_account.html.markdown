@@ -58,7 +58,7 @@ The following attributes are exported:
 
 ---
 
-A `key_vault_reference` block have the following proporties:
+A `key_vault_reference` block have the following properties:
 
 * `id` - The Azure identifier of the Azure KeyVault reference.
 
