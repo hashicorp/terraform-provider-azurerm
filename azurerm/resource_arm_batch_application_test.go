@@ -24,7 +24,7 @@ func TestAccAzureRMBatchApplication_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchApplication_basic(ri, rs, location),
+				Config: testAccAzureRMBatchApplication_template(ri, rs, location, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchApplicationExists(resourceName),
 				),
@@ -33,6 +33,35 @@ func TestAccAzureRMBatchApplication_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBatchApplication_update(t *testing.T) {
+	resourceName := "azurerm_batch_application.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	displayName := fmt.Sprintf("TestAccDisplayName-%d", ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBatchApplication_template(ri, rs, location, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchApplicationExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMBatchApplication_template(ri, rs, location, fmt.Sprintf(`display_name = "%s"`, displayName)),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "display_name", displayName),
+				),
 			},
 		},
 	})
@@ -88,7 +117,7 @@ func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBatchApplication_basic(rInt int, rString string, location string) string {
+func testAccAzureRMBatchApplication_template(rInt int, rString string, location string, displayName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -114,7 +143,9 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_application" "test" {
   name                = "acctestbatchapp-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
+	account_name        = "${azurerm_batch_account.test.name}"
+	%s
 }
-`, rInt, location, rString, rString, rInt)
+`, rInt, location, rString, rString, rInt, displayName)
 }
+

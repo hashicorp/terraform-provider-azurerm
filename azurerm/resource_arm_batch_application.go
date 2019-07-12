@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"regexp"
 	"fmt"
 	"log"
 
@@ -27,6 +28,7 @@ func resourceArmBatchApplication() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validateAzureRMBatchApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -35,6 +37,7 @@ func resourceArmBatchApplication() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 
 			"allow_updates": {
@@ -46,11 +49,13 @@ func resourceArmBatchApplication() *schema.Resource {
 			"default_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validateAzureRMBatchApplicationVersion,
 			},
 
 			"display_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validateAzureRMBatchApplicationDisplayName,
 			},
 		},
 	}
@@ -181,4 +186,54 @@ func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func validateAzureRMBatchApplicationName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[-_\da-zA-Z]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q can contain any combination of alphanumeric characters, hyphens, and underscores: %q", k, value))
+	}
+
+	if 1 > len(value) {
+		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
+	}
+
+	if len(value) > 64 {
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
+	}
+
+	return warnings, errors
+}
+
+func validateAzureRMBatchApplicationVersion(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[-._\da-zA-Z]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q can contain any combination of alphanumeric characters, hyphens, underscores, and periods: %q", k, value))
+	}
+
+	if 1 > len(value) {
+		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
+	}
+
+	if len(value) > 64 {
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
+	}
+
+	return warnings, errors
+}
+
+func validateAzureRMBatchApplicationDisplayName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if 1 > len(value) {
+		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
+	}
+
+	if len(value) > 1024 {
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 1024 characters: %q %d", k, value, len(value)))
+	}
+
+	return warnings, errors
 }
