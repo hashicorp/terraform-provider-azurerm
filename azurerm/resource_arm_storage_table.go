@@ -60,7 +60,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 	client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client: %s", err)
+		return fmt.Errorf("Error building Table Client: %s", err)
 	}
 
 	id := client.GetResourceID(accountName, tableName)
@@ -108,7 +108,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	client, err := storageClient.TablesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client: %s", err)
+		return fmt.Errorf("Error building Table Client: %s", err)
 	}
 
 	exists, err := client.Exists(ctx, id.AccountName, id.TableName)
@@ -155,7 +155,7 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 
 	client, err := storageClient.TablesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client: %s", err)
+		return fmt.Errorf("Error building Table Client: %s", err)
 	}
 
 	log.Printf("[INFO] Deleting Table %q in Storage Account %q", id.TableName, id.AccountName)

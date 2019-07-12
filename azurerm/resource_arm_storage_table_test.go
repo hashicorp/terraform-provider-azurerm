@@ -121,7 +121,7 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
 		props, err := client.Exists(ctx, accountName, tableName)
@@ -160,7 +160,7 @@ func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) res
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
 		props, err := client.Exists(ctx, accountName, tableName)
@@ -202,7 +202,7 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
 		props, err := client.Exists(ctx, accountName, tableName)
