@@ -25,7 +25,7 @@ resource "azurerm_public_ip_prefix" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  prefix_length   = 31
+  prefix_length = 31
 
   tags = {
     environment = "Production"

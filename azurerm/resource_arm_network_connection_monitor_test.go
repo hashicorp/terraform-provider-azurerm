@@ -523,7 +523,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -662,9 +662,9 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   destination {
-		address            = "terraform.io"
-		virtual_machine_id = "${azurerm_virtual_machine.src.id}"
-		port               = 80
+    address            = "terraform.io"
+    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    port               = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -689,7 +689,7 @@ resource "azurerm_network_connection_monitor" "import" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
