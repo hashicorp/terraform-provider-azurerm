@@ -33,7 +33,7 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_storage_share_directory" "test" {
-  name                 = "example-"
+  name                 = "example"
   share_name           = "${azurerm_storage_share.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }

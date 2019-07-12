@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
@@ -33,7 +35,6 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validateArmStorageShareName,
 			},
 
-			// TODO: deprecate the Resource Group Name
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"storage_account_name": {
@@ -49,7 +50,44 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 5120),
 			},
 
-			// TODO: support for MetaData and ACL's
+			"metadata": storage.MetaDataSchema(),
+
+			"acl": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 64),
+						},
+						"access_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"expiry": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"permissions": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 
 			"url": {
 				Type:     schema.TypeString,
@@ -66,7 +104,11 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	shareName := d.Get("name").(string)
 	quota := d.Get("quota").(int)
 
-	metaData := make(map[string]string)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := storage.ExpandMetaData(metaDataRaw)
+
+	aclsRaw := d.Get("acl").(*schema.Set).List()
+	acls := expandStorageShareACLs(aclsRaw)
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
@@ -100,6 +142,10 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	if _, err := client.Create(ctx, accountName, shareName, input); err != nil {
 		return fmt.Errorf("Error creating Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)
+	}
+
+	if _, err := client.SetACL(ctx, accountName, shareName, acls); err != nil {
+		return fmt.Errorf("Error setting ACL's for Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -141,10 +187,23 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error retrieving File Share %q (Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, *resourceGroup, err)
 	}
 
+	acls, err := client.GetACL(ctx, id.AccountName, id.ShareName)
+	if err != nil {
+		return fmt.Errorf("Error retrieving ACL's for File Share %q (Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, *resourceGroup, err)
+	}
+
 	d.Set("name", id.ShareName)
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("url", client.GetResourceID(id.AccountName, id.ShareName))
 	d.Set("quota", props.ShareQuota)
+
+	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error flattening `metadata`: %+v", err)
+	}
+
+	if err := d.Set("acl", flattenStorageShareACLs(acls)); err != nil {
+		return fmt.Errorf("Error flattening `acl`: %+v", err)
+	}
 
 	// Deprecated: remove in 2.0
 	d.Set("resource_group_name", resourceGroup)
@@ -186,6 +245,32 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[DEBUG] Updated the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
 	}
 
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := storage.ExpandMetaData(metaDataRaw)
+
+		if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, metaData); err != nil {
+			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+	}
+
+	if d.HasChange("acl") {
+		log.Printf("[DEBUG] Updating the ACL's for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+
+		aclsRaw := d.Get("acl").(*schema.Set).List()
+		acls := expandStorageShareACLs(aclsRaw)
+
+		if _, err := client.SetACL(ctx, id.AccountName, id.ShareName, acls); err != nil {
+			return fmt.Errorf("Error updating ACL's for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+	}
+
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -219,6 +304,50 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
+}
+
+func expandStorageShareACLs(input []interface{}) []shares.SignedIdentifier {
+	results := make([]shares.SignedIdentifier, 0)
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		policies := vals["access_policy"].([]interface{})
+		policy := policies[0].(map[string]interface{})
+
+		identifier := shares.SignedIdentifier{
+			Id: vals["id"].(string),
+			AccessPolicy: shares.AccessPolicy{
+				Start:      policy["start"].(string),
+				Expiry:     policy["expiry"].(string),
+				Permission: policy["permissions"].(string),
+			},
+		}
+		results = append(results, identifier)
+	}
+
+	return results
+}
+
+func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
+	result := make([]interface{}, 0)
+
+	for _, v := range input.SignedIdentifiers {
+		output := map[string]interface{}{
+			"id": v.Id,
+			"access_policy": []interface{}{
+				map[string]interface{}{
+					"start":       v.AccessPolicy.Start,
+					"expiry":      v.AccessPolicy.Expiry,
+					"permissions": v.AccessPolicy.Permission,
+				},
+			},
+		}
+
+		result = append(result, output)
+	}
+
+	return result
 }
 
 // Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx

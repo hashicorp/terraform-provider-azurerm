@@ -91,6 +91,80 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_metaData(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_metaData(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageShare_metaDataUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageShare_acl(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_acl(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageShare_aclUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -223,32 +297,107 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
+%s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
+  name                 = "testshare%s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`, rInt, location, rString)
+`, template, rString)
 }
 
+func testAccAzureRMStorageShare_metaData(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  metadata {
+    hello = "world"
+  }
+}
+`, template, rString)
+}
+
+func testAccAzureRMStorageShare_metaDataUpdated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  metadata {
+    hello = "world"
+    happy = "birthday"
+  }
+}
+`, template, rString)
+}
+
+func testAccAzureRMStorageShare_acl(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "rwd"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, template, rString)
+}
+
+func testAccAzureRMStorageShare_aclUpdated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  acl {
+    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "rwd"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "rwd"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, template, rString)
+}
 func testAccAzureRMStorageShare_requiresImport(rInt int, rString string, location string) string {
 	template := testAccAzureRMStorageShare_basic(rInt, rString, location)
 	return fmt.Sprintf(`
@@ -263,14 +412,28 @@ resource "azurerm_storage_share" "import" {
 }
 
 func testAccAzureRMStorageShare_updateQuota(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+  quota                = 5
+}
+`, template, rString)
+}
+
+func testAccAzureRMStorageShare_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
+  name                     = "acctestacc%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -279,13 +442,6 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "staging"
   }
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  quota                = 5
 }
 `, rInt, location, rString)
 }
