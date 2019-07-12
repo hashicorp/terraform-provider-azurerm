@@ -277,7 +277,7 @@ resource "azurerm_storage_queue" "test" {
 
   metadata = {
     hello = "world"
-    rick  = "morty"
+    rick  = "M0rty"
   }
 }
 `, template, rInt)

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -38,7 +37,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validateArmStorageAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
@@ -113,7 +112,7 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if _, err := client.Create(ctx, accountName, accountName, metaData); err != nil {
+	if _, err := client.Create(ctx, accountName, queueName, metaData); err != nil {
 		return fmt.Errorf("Error creating Queue %q (Account %q): %+v", queueName, accountName, err)
 	}
 
