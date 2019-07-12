@@ -148,4 +148,3 @@ resource "azurerm_batch_application" "test" {
 }
 `, rInt, location, rString, rString, rInt, displayName)
 }
-

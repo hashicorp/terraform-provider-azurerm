@@ -1,9 +1,9 @@
 package azurerm
 
 import (
-	"regexp"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -25,18 +25,18 @@ func resourceArmBatchApplication() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 
@@ -47,14 +47,14 @@ func resourceArmBatchApplication() *schema.Resource {
 			},
 
 			"default_version": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validateAzureRMBatchApplicationVersion,
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validateAzureRMBatchApplicationDisplayName,
 			},
 		},
