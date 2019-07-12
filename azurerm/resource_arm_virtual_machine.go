@@ -4,18 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/url"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"golang.org/x/net/context"
 )
 
@@ -868,6 +868,8 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
 	if deleteOsDisk || deleteDataDisks {
+		storageClient := meta.(*ArmClient).storage
+
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
 			return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `props` was nil", name)
@@ -888,7 +890,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 			}
 
 			if osDisk.Vhd != nil {
-				if err = resourceArmVirtualMachineDeleteVhd(osDisk.Vhd, meta); err != nil {
+				if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
 					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
@@ -913,7 +915,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 				}
 
 				if disk.Vhd != nil {
-					if err = resourceArmVirtualMachineDeleteVhd(disk.Vhd, meta); err != nil {
+					if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
 						return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
@@ -928,7 +930,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteVhd(vhd *compute.VirtualHardDisk, meta interface{}) error {
+func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, vhd *compute.VirtualHardDisk) error {
 	if vhd == nil {
 		return fmt.Errorf("`vhd` was nil`")
 	}
@@ -937,49 +939,29 @@ func resourceArmVirtualMachineDeleteVhd(vhd *compute.VirtualHardDisk, meta inter
 	}
 
 	uri := *vhd.URI
-
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-	environment := armClient.environment
-
-	vhdURL, err := url.Parse(uri)
+	id, err := blobs.ParseResourceID(uri)
 	if err != nil {
-		return fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
+		return fmt.Errorf("Error parsing %q: %s", uri, err)
 	}
 
-	blobDomainSuffix := environment.StorageEndpointSuffix
-	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
-		return fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
-	}
-
-	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
-	storageAccountName := strings.Split(vhdURL.Host, ".")[0]
-	path := strings.Split(strings.TrimPrefix(vhdURL.Path, "/"), "/")
-	containerName := path[0]
-	blobName := path[1]
-
-	resourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q (Disk %q)!", id.AccountName, uri)
 	}
 
-	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
+		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	if !saExists {
-		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, resourceGroupName)
-		return nil
+	input := blobs.DeleteInput{
+		DeleteSnapshots: false,
 	}
-
-	log.Printf("[INFO] Deleting VHD blob %s", blobName)
-	container := blobClient.GetContainerReference(containerName)
-	blob := container.GetBlobReference(blobName)
-	options := &storage.DeleteBlobOptions{}
-	err = blob.Delete(options)
-	if err != nil {
-		return fmt.Errorf("Error deleting VHD blob: %+v", err)
+	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, *resourceGroup, err)
 	}
 
 	return nil

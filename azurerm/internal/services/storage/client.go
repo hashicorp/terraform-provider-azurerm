@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -58,6 +59,18 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 	}
 
 	return resourceGroup, nil
+}
+
+func (client Client) BlobsClient(ctx context.Context, resourceGroup, accountName string) (*blobs.Client, error) {
+	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	blobsClient := blobs.New()
+	blobsClient.Client.Authorizer = storageAuth
+	return &blobsClient, nil
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
