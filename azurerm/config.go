@@ -167,6 +167,7 @@ type ArmClient struct {
 
 	// Batch
 	batchAccountClient     batch.AccountClient
+	batchApplicationClient batch.ApplicationClient
 	batchCertificateClient batch.CertificateClient
 	batchPoolClient        batch.PoolClient
 
@@ -452,6 +453,10 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchAccount.Client, auth)
 	c.batchAccountClient = batchAccount
+
+	batchApplicationClient := batch.NewApplicationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchApplicationClient.Client, auth)
+	c.batchApplicationClient = batchApplicationClient
 
 	batchCertificateClient := batch.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchCertificateClient.Client, auth)
