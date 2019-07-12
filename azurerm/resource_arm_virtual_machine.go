@@ -27,6 +27,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 		Read:   resourceArmVirtualMachineRead,
 		Update: resourceArmVirtualMachineCreateUpdate,
 		Delete: resourceArmVirtualMachineDelete,
+		// TODO: use a custom importer so that `delete_os_disk_on_termination` and `delete_data_disks_on_termination` are set
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -848,61 +849,78 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	azureRMLockByName(name, virtualMachineResourceName)
 	defer azureRMUnlockByName(name, virtualMachineResourceName)
 
+	virtualMachine, err := client.Get(ctx, resGroup, name, compute.InstanceView)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for deletion of Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	// delete OS Disk if opted in
-	if deleteOsDisk := d.Get("delete_os_disk_on_termination").(bool); deleteOsDisk {
-		log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", name)
+	deleteOsDisk := d.Get("delete_os_disk_on_termination").(bool)
+	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
-		osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
-		if err != nil {
-			return fmt.Errorf("Error expanding OS Disk: %s", err)
+	if deleteOsDisk || deleteDataDisks {
+		props := virtualMachine.VirtualMachineProperties
+		if props == nil {
+			return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `props` was nil", name)
+		}
+		storageProfile := props.StorageProfile
+		if storageProfile != nil {
+			return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `storageProfile` was nil", name)
 		}
 
-		if osDisk.Vhd != nil {
-			if osDisk.Vhd.URI != nil {
-				if err = resourceArmVirtualMachineDeleteVhd(*osDisk.Vhd.URI, meta); err != nil {
+		if deleteOsDisk {
+			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", name)
+			osDisk := storageProfile.OsDisk
+			if osDisk == nil {
+				return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `osDisk` was nil", name)
+			}
+			if osDisk.Vhd == nil && osDisk.ManagedDisk == nil {
+				return fmt.Errorf("Unable to determine OS Disk Type to Delete it for Virtual Machine %q", name)
+			}
+
+			if osDisk.Vhd != nil {
+				if err = resourceArmVirtualMachineDeleteVhd(osDisk.Vhd, meta); err != nil {
 					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 				}
-			}
-		} else if osDisk.ManagedDisk != nil {
-			if osDisk.ManagedDisk.ID != nil {
-				if err = resourceArmVirtualMachineDeleteManagedDisk(*osDisk.ManagedDisk.ID, meta); err != nil {
+			} else if osDisk.ManagedDisk != nil {
+				if err = resourceArmVirtualMachineDeleteManagedDisk(osDisk.ManagedDisk, meta); err != nil {
 					return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
 				}
 			}
-		} else {
-			return fmt.Errorf("Unable to locate OS managed disk properties from %s", name)
-		}
-	}
-
-	// delete Data disks if opted in
-	if deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool); deleteDataDisks {
-		log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %s", name)
-
-		disks, err := expandAzureRmVirtualMachineDataDisk(d)
-		if err != nil {
-			return fmt.Errorf("Error expanding Data Disks: %s", err)
 		}
 
-		for _, disk := range disks {
-			if disk.Vhd != nil {
-				if err = resourceArmVirtualMachineDeleteVhd(*disk.Vhd.URI, meta); err != nil {
-					return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
+		// delete Data disks if opted in
+		if deleteDataDisks {
+			log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %q", name)
+
+			dataDisks := storageProfile.DataDisks
+			if dataDisks == nil {
+				return fmt.Errorf("Error deleting Data Disks for Virtual Machine %q: `dataDisks` was nil", name)
+			}
+
+			for _, disk := range *dataDisks {
+				if disk.Vhd == nil && disk.ManagedDisk == nil {
+					return fmt.Errorf("Unable to determine Data Disk Type to Delete it for Virtual Machine %q / Disk %q", name, *disk.Name)
 				}
-			} else if disk.ManagedDisk != nil {
-				if err = resourceArmVirtualMachineDeleteManagedDisk(*disk.ManagedDisk.ID, meta); err != nil {
-					return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
+
+				if disk.Vhd != nil {
+					if err = resourceArmVirtualMachineDeleteVhd(disk.Vhd, meta); err != nil {
+						return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
+					}
+				} else if disk.ManagedDisk != nil {
+					if err = resourceArmVirtualMachineDeleteManagedDisk(disk.ManagedDisk, meta); err != nil {
+						return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
+					}
 				}
-			} else {
-				return fmt.Errorf("Unable to locate data managed disk properties from %s", name)
 			}
 		}
 	}
@@ -910,7 +928,16 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
+func resourceArmVirtualMachineDeleteVhd(vhd *compute.VirtualHardDisk, meta interface{}) error {
+	if vhd == nil {
+		return fmt.Errorf("`vhd` was nil`")
+	}
+	if vhd.URI == nil {
+		return fmt.Errorf("`vhd.URI` was nil`")
+	}
+
+	uri := *vhd.URI
+
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 	environment := armClient.environment
@@ -958,7 +985,15 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta interface{}) error {
+func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParameters, meta interface{}) error {
+	if disk == nil {
+		return fmt.Errorf("`disk` was nil`")
+	}
+	if disk.ID == nil {
+		return fmt.Errorf("`disk.ID` was nil`")
+	}
+	managedDiskID := *disk.ID
+
 	client := meta.(*ArmClient).diskClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -971,11 +1006,11 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	return nil
