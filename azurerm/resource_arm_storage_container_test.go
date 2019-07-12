@@ -298,6 +298,83 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "import" {
+  name                  = "${azurerm_storage_container.test.name}"
+  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
+  container_access_type = "${azurerm_storage_container.test.container_access_type}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, template, accessType)
+}
+
+func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "$root"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_template(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, rInt, location, rString)
+}
+
 func TestValidateArmStorageContainerName(t *testing.T) {
 	validNames := []string{
 		"valid-name",
@@ -326,102 +403,4 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
 	}
-}
-
-func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-`, rInt, location, rString)
-}
-
-func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_container" "import" {
-  name                  = "${azurerm_storage_container.test.name}"
-  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
-  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
-  container_access_type = "${azurerm_storage_container.test.container_access_type}"
-}
-`, template)
-}
-
-func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "%s"
-}
-`, rInt, location, rString, accessType)
-}
-
-func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "$root"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-`, rInt, location, rString)
 }
