@@ -55,7 +55,6 @@ The following attributes are exported:
 * `tags` - A map of tags assigned to the Batch account.
 
 ~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
-<<<<<<< HEAD
 
 ---
 
@@ -66,5 +65,3 @@ A `key_vault_reference` block have the following proporties:
 * `url` - The HTTPS URL of the Azure KeyVault reference.
 
 ---
-=======
->>>>>>> upstream/master
