@@ -20,10 +20,9 @@ import (
 
 func resourceArmContainerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmContainerGroupCreate,
-		CustomizeDiff: checkVirtualNetworkCompatibility,
-		Read:          resourceArmContainerGroupRead,
-		Delete:        resourceArmContainerGroupDelete,
+		Create: resourceArmContainerGroupCreate,
+		Read:   resourceArmContainerGroupRead,
+		Delete: resourceArmContainerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -485,14 +484,15 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
+	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
+	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
 	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
 		if strings.ToLower(OSType) != "linux" {
 			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
 		}
-		networkProfileConfig := &containerinstance.ContainerGroupNetworkProfile{
+		containerGroup.ContainerGroupProperties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
 			ID: &networkProfileID,
 		}
-		containerGroup.ContainerGroupProperties.NetworkProfile = networkProfileConfig
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
@@ -516,17 +516,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	d.SetId(*read.ID)
 
 	return resourceArmContainerGroupRead(d, meta)
-}
-
-// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
-// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
-func checkVirtualNetworkCompatibility(d *schema.ResourceDiff, _ interface{}) (err error) {
-	osType := d.Get("os_type").(string)
-	networkProfileID := d.Get("network_profile_id")
-	if strings.ToLower(osType) != "linux" && networkProfileID.(string) != "" {
-		err = fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
-	}
-	return
 }
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
