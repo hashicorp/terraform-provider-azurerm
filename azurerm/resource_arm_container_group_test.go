@@ -358,7 +358,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-
 	config := testAccAzureRMContainerGroup_virtualNetwork(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
