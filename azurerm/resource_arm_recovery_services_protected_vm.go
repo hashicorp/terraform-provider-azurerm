@@ -117,11 +117,17 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
+	// Due to issue reported in PR https://github.com/terraform-providers/terraform-provider-azurerm/pull/3822
+	// Azure API, at the time, returned invalid state of the resource when backup_policy_id is updated
+	// Adding a graceful 15 seconds delay prior to the next call to Azure management seem to allow the API to correct itself
+	// and report back the correct status
+	time.Sleep(15 * time.Second)
 
 	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName)
 	if err != nil {
 		return err
 	}
+
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
