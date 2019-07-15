@@ -475,6 +475,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
+
+			// Doc Links
+			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
 		}
 
 		config, err := builder.Build()

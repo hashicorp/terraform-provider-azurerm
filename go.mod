@@ -8,7 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/hashicorp/go-azure-helpers v0.4.1
+	github.com/hashicorp/go-azure-helpers v0.5.0
 	github.com/hashicorp/go-getter v1.3.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1
