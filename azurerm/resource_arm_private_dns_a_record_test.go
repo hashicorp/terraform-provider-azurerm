@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
