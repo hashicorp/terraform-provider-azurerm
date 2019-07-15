@@ -21,9 +21,9 @@ import (
 
 func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectedVmCreateUpdate,
+		Create: resourceArmRecoveryServicesProtectedVmCreate,
 		Read:   resourceArmRecoveryServicesProtectedVmRead,
-		Update: resourceArmRecoveryServicesProtectedVmCreateUpdate,
+		Update: resourceArmRecoveryServicesProtectedVmUpdate,
 		Delete: resourceArmRecoveryServicesProtectedVmDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -63,7 +63,15 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRecoveryServicesProtectedVmCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceArmRecoveryServicesProtectedVmCreateUpdate(d, true, meta)
+}
+
+func resourceArmRecoveryServicesProtectedVmUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceArmRecoveryServicesProtectedVmCreateUpdate(d, false, meta)
+}
+
+func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, create bool, meta interface{}) error {
 	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -117,13 +125,8 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
-	// Due to issue reported in PR https://github.com/terraform-providers/terraform-provider-azurerm/pull/3822
-	// Azure API, at the time, returned invalid state of the resource when backup_policy_id is updated
-	// Adding a graceful 15 seconds delay prior to the next call to Azure management seem to allow the API to correct itself
-	// and report back the correct status
-	time.Sleep(15 * time.Second)
 
-	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName)
+	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName, policyId, create)
 	if err != nil {
 		return err
 	}
@@ -201,14 +204,14 @@ func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta i
 		}
 	}
 
-	if _, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, false, vaultName, resourceGroup, containerName, protectedItemName); err != nil {
+	if _, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, false, vaultName, resourceGroup, containerName, protectedItemName, "", false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsGroupClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string) (backup.ProtectedItemResource, error) {
+func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedItemsGroupClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
@@ -222,8 +225,23 @@ func resourceArmRecoveryServicesProtectedVmWaitForState(client backup.ProtectedI
 				}
 
 				return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			} else if !newResource && policyId != "" {
+				if properties := resp.Properties; properties != nil {
+					if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
+						if v := vm.PolicyID; v != nil {
+							if strings.Replace(*v, "Subscriptions", "subscriptions", 1) != policyId {
+								return resp, "NotFound", nil
+							}
+						} else {
+							return resp, "Error", fmt.Errorf("Error reading policy ID attribute nil on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+						}
+					} else {
+						return resp, "Error", fmt.Errorf("Error reading properties on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+					}
+				} else {
+					return resp, "Error", fmt.Errorf("Error reading properties on empty Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+				}
 			}
-
 			return resp, "Found", nil
 		},
 	}
