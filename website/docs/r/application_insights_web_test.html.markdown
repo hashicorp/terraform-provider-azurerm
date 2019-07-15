@@ -6,7 +6,7 @@ description: |-
   Manages an Application Insights WebTest.
 ---
 
-# azurerm_application_insights_web_tests
+# azurerm_application_insights_web_test
 
 Manages an Application Insights WebTest.
 
