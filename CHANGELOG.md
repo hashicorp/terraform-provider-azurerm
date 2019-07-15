@@ -11,8 +11,10 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v31.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-3786]
+* dependencies: upgrading to `v0.5.0` of `github.com/hashicorp/go-azure-helpers` [GH-3850]
 * dependencies: upgrading the `containerservice` SDK to `2019-02-01` [GH-3787]
 * dependencies: upgrading the `subscription` SDK to `2018-06-01` [GH-3811]
+* authentication: showing a more helpful error when attempting to use the Azure CLI authentication when logged in as a Service Principal [GH-3850]
 * Data Source `azurerm_subscription` - support the `tenant_id` property [GH-3811]
 * `azurerm_app_service` - support for storage mounts [GH-3792]
 * `azurerm_app_service` - support for user assigned identities [GH-3637]
