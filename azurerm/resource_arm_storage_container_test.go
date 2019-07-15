@@ -2,15 +2,14 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
@@ -164,44 +163,29 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
-		}
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
-		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 
-		containers, err := blobClient.ListContainers(storage.ListContainersParameters{
-			Prefix:  name,
-			Timeout: 90,
-		})
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error listing Storage Container %q containers (storage account: %q) : %+v", name, storageAccountName, err)
+			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		if len(containers.Containers) == 0 {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)
-		}
-
-		var found bool
-		for _, container := range containers.Containers {
-			if container.Name == name {
-				found = true
+		resp, err := client.GetProperties(ctx, accountName, containerName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, *resourceGroup)
 			}
-		}
 
-		if !found {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)
+			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
 		}
 
 		return nil
@@ -215,29 +199,27 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
-		}
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
-		}
-		if !accountExists {
-			log.Printf("[INFO] Storage Account %q doesn't exist so the container won't exist", storageAccountName)
-			return nil
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 
-		reference := blobClient.GetContainerReference(name)
-		options := &storage.DeleteContainerOptions{}
-		_, err = reference.DeleteIfExists(options)
-		return err
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+		if err != nil {
+			return fmt.Errorf("Error building Containers Client: %s", err)
+		}
+
+		if _, err := client.Delete(ctx, accountName, containerName); err != nil {
+			return fmt.Errorf("Error deleting Container %q (Account %q): %s", containerName, accountName, err)
+		}
+
+		return nil
 	}
 }
 
@@ -247,42 +229,33 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
-		}
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			//If we can't get keys then the blob can't exist
-			return nil
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
-		if !accountExists {
+
+		if resourceGroup == nil {
 			return nil
 		}
 
-		containers, err := blobClient.ListContainers(storage.ListContainersParameters{
-			Prefix:  name,
-			Timeout: 90,
-		})
-
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		var found bool
-		for _, container := range containers.Containers {
-			if container.Name == name {
-				found = true
+		props, err := client.GetProperties(ctx, accountName, containerName)
+		if err != nil {
+			if utils.ResponseWasNotFound(props.Response) {
+				return nil
 			}
-		}
 
-		if found {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) still exist", name, storageAccountName)
+			return fmt.Errorf("Error retrieving Container %q in Storage Account %q: %s", containerName, accountName, err)
 		}
 	}
 
