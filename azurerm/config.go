@@ -167,6 +167,7 @@ type ArmClient struct {
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
 	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
+	sqlFailoverGroupsClient				 sql.FailoverGroupsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
@@ -495,6 +496,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
+
+	sqlFailoverClient := sql.NewFailoverGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sqlFailoverClient.Client, auth)
+	c.sqlFailoverGroupsClient = sqlFailoverClient
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
