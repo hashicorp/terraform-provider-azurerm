@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
 const blobStorageAccountDefaultAccessTier = "Hot"
@@ -411,6 +412,67 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validateAzureRMStorageAccountTags,
 			},
+
+			"queue_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cors_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 5,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"allowed_origins": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"exposed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"allowed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"allowed_methods": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											Elem: &schema.Schema{
+												Type: schema.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													"DELETE",
+													"GET",
+													"HEAD",
+													"MERGE",
+													"POST",
+													"OPTIONS",
+													"PUT"}, false),
+											},
+										},
+									},
+									"max_age_in_seconds": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -566,7 +628,70 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
 	}
 
+	if val, ok := d.GetOk("queue_properties"); ok {
+		storageClient := meta.(*ArmClient).storage
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error locating Resource Group: %s", err)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, expandQueueProperties(val.([]interface{}))); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
+}
+
+func expandQueueProperties(input []interface{}) queues.StorageServiceProperties {
+	properties := queues.StorageServiceProperties{}
+	if len(input) == 0 {
+		return properties
+	}
+
+	attrs := input[0].(map[string]interface{})
+
+	corsRuleList := attrs["cors_rule"].([]interface{})
+	if len(corsRuleList) > 0 {
+		corsRuleAttr := corsRuleList[0].(map[string]interface{})
+		corsRule := queues.CorsRule{}
+
+		allowedOrigins := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
+			allowedOrigins = append(allowedOrigins, item.(string))
+		}
+		corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
+
+		exposedHeaders := make([]string, 0)
+		for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
+			allowedOrigins = append(exposedHeaders, item.(string))
+		}
+		corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
+
+		allowedHeaders := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
+			allowedOrigins = append(allowedHeaders, item.(string))
+		}
+		corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
+
+		allowedMethods := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
+			allowedMethods = append(allowedMethods, item.(string))
+		}
+		corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
+
+		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+		properties.Cors.CorsRule = corsRule
+	}
+
+	return properties
 }
 
 // resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
@@ -872,6 +997,26 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	flattenAndSetTags(d, resp.Tags)
 
+	storageClient := meta.(*ArmClient).storage
+
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error locating Resource Group: %s", err)
+	}
+
+	queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
+	queueProps, err := queueClient.GetServiceProperties(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+	}
+	if err := d.Set("queue_properties", flattenQueueProperties(queueProps.StorageServiceProperties)); err != nil {
+		return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+	}
+
 	return nil
 }
 
@@ -1057,6 +1202,39 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
+}
+
+func flattenQueueProperties(input queues.StorageServiceProperties) []interface{} {
+	queueProperties := make(map[string]interface{})
+
+	if input.Cors != nil {
+		queueProperties["cors_rule"] = flattenCorsRule(input.Cors.CorsRule)
+
+	}
+	return []interface{}{queueProperties}
+}
+
+func flattenCorsRule(input queues.CorsRule) []interface{} {
+	corsRule := make(map[string]interface{})
+
+	corsRule["allowed_origins"] = flattenCorsProperty(input.AllowedOrigins)
+	corsRule["allowed_methods"] = flattenCorsProperty(input.AllowedMethods)
+	corsRule["allowed_headers"] = flattenCorsProperty(input.AllowedHeaders)
+	corsRule["exposed_headers"] = flattenCorsProperty(input.ExposedHeaders)
+	corsRule["max_age_in_seconds"] = input.MaxAgeInSeconds
+
+	return []interface{}{corsRule}
+}
+
+func flattenCorsProperty(input string) []interface{} {
+	results := make([]interface{}, 0, len(input))
+
+	origins := strings.Split(input, ",")
+	for _, origin := range origins {
+		results = append(results, origin)
+	}
+
+	return results
 }
 
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {

@@ -43,8 +43,6 @@ func resourceArmStorageQueue() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"metadata": storage.MetaDataSchema(),
-
-			// TODO: properties
 		},
 	}
 }
