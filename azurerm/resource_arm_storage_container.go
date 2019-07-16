@@ -65,7 +65,6 @@ func resourceArmStorageContainer() *schema.Resource {
 				Computed: true,
 			},
 
-			// TODO: deprecate and remove both of these in 2.0
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 			"properties": {
 				Type:       schema.TypeMap,
