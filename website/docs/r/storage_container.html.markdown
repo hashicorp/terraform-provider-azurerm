@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
+* `metadata` - (Optional) A mapping of MetaData for this Container.
+
 * `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage container. This field is no longer used and will be removed in 2.0. 
 
 ## Attributes Reference
@@ -56,7 +58,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Container.
 
-* `has_immutability_policy` - Is there an Immutibility Policy configured on this Storage Container?
+* `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
 

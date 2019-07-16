@@ -105,7 +105,46 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_metaData(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageContainer_metaDataUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
@@ -118,8 +157,8 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test"),
-					testAccARMStorageContainerDisappears("azurerm_storage_container.test"),
+					testCheckAzureRMStorageContainerExists(resourceName),
+					testAccARMStorageContainerDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -302,6 +341,43 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "%s"
 }
 `, template, accessType)
+}
+
+func testAccAzureRMStorageContainer_metaData(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_metaDataUpdated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+
+  metadata = {
+    hello = "world"
+    panda = "pops"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {

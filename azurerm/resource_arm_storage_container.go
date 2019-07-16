@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
@@ -52,10 +53,9 @@ func resourceArmStorageContainer() *schema.Resource {
 				}, false),
 			},
 
-			// TODO: support for MetaData
-			//"metadata": storage.SchemaMetaData(),
-			// TODO: support for ACL's, Legal Holds and Immutibility Policies
+			"metadata": storage.MetaDataSchema(),
 
+			// TODO: support for ACL's, Legal Holds and Immutability Policies
 			"has_immutability_policy": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -85,8 +85,8 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	accessLevelRaw := d.Get("container_access_type").(string)
 	accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 
-	// TODO: support for MetaData
-	metaData := map[string]string{}
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := storage.ExpandMetaData(metaDataRaw)
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
@@ -160,7 +160,16 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, *resourceGroup)
 	}
 
-	// TODO: metadata
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, *resourceGroup)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := storage.ExpandMetaData(metaDataRaw)
+
+		if _, err := client.SetMetaData(ctx, id.AccountName, id.ContainerName, metaData); err != nil {
+			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, *resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, *resourceGroup)
+	}
 
 	return resourceArmStorageContainerRead(d, meta)
 }
@@ -205,6 +214,10 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resourceGroup)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+
+	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
 
 	if err := d.Set("properties", flattenStorageContainerProperties(props)); err != nil {
 		return fmt.Errorf("Error setting `properties`: %+v", err)
