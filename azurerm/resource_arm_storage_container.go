@@ -117,7 +117,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		MetaData:    metaData,
 	}
 	if _, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, err)
+		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, *resourceGroup, err)
 	}
 
 	d.SetId(id)
