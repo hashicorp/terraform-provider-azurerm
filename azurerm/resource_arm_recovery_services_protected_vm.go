@@ -21,9 +21,9 @@ import (
 
 func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectedVmCreate,
+		Create: resourceArmRecoveryServicesProtectedVmCreateUpdate,
 		Read:   resourceArmRecoveryServicesProtectedVmRead,
-		Update: resourceArmRecoveryServicesProtectedVmUpdate,
+		Update: resourceArmRecoveryServicesProtectedVmCreateUpdate,
 		Delete: resourceArmRecoveryServicesProtectedVmDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -54,7 +54,6 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -63,15 +62,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesProtectedVmCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmRecoveryServicesProtectedVmCreateUpdate(d, true, meta)
-}
-
-func resourceArmRecoveryServicesProtectedVmUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmRecoveryServicesProtectedVmCreateUpdate(d, false, meta)
-}
-
-func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, create bool, meta interface{}) error {
+func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -126,7 +117,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName, policyId, create)
+	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName, policyId, d.IsNewResource())
 	if err != nil {
 		return err
 	}

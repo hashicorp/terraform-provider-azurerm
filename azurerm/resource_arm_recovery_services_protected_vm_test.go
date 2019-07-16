@@ -370,6 +370,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
 func testAccAzureRMRecoveryServicesProtectedVm_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_recovery_services_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -448,10 +449,10 @@ func testAccAzureRMRecoveryServicesProtectedVm_withVault(rInt int, location stri
 %[1]s
 
 resource "azurerm_recovery_services_vault" "test" {
-		name                = "acctest-%[2]d"
-		location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		sku                 = "Standard"
+  name                = "acctest-%[2]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 `, testAccAzureRMRecoveryServicesProtectedVm_basePolicyTest(rInt, location), rInt)
 }
@@ -494,7 +495,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test_change_backup" {
   }
 
   retention_daily {
-    count = 55
+    count = 15
   }
 }
 `, testAccAzureRMRecoveryServicesProtectedVm_withFirstPolicy(rInt, location), rInt)
@@ -506,50 +507,50 @@ func testAccAzureRMRecoveryServicesProtectedVm_withVM(rInt int, location string)
 %[1]s
 
 resource "azurerm_virtual_machine" "test" {
-		name                  = "acctestvm-%[2]d"
-		location              = "${azurerm_resource_group.test.location}"
-		resource_group_name   = "${azurerm_resource_group.test.name}"
-		vm_size               = "Standard_A0"
-		network_interface_ids = ["${azurerm_network_interface.test.id}"]
-		delete_os_disk_on_termination    = true
+  name                  = "acctestvm-%[2]d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  vm_size               = "Standard_A0"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  delete_os_disk_on_termination    = true
 
-		storage_image_reference {
-			publisher = "Canonical"
-			offer     = "UbuntuServer"
-			sku       = "16.04-LTS"
-			version   = "latest"
-		}
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
 
-		storage_os_disk {
-			name              = "acctest-osdisk"
-			managed_disk_type = "Standard_LRS"
-			caching           = "ReadWrite"
-			create_option     = "FromImage"
-		}
+  storage_os_disk {
+    name              = "acctest-osdisk"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+  }
 
-		storage_data_disk {
-			name              = "acctest-datadisk"
-			managed_disk_id   = "${azurerm_managed_disk.test.id}"
-			managed_disk_type = "Standard_LRS"
-			disk_size_gb      = "${azurerm_managed_disk.test.disk_size_gb}"
-			create_option     = "Attach"
-			lun               = 0
-		}
+  storage_data_disk {
+    name              = "acctest-datadisk"
+    managed_disk_id   = "${azurerm_managed_disk.test.id}"
+    managed_disk_type = "Standard_LRS"
+    disk_size_gb      = "${azurerm_managed_disk.test.disk_size_gb}"
+    create_option     = "Attach"
+    lun               = 0
+  }
 
-		os_profile {
-			computer_name  = "acctest"
-			admin_username = "vmadmin"
-			admin_password = "Password123!@#"
-		}
+  os_profile {
+    computer_name  = "acctest"
+    admin_username = "vmadmin"
+    admin_password = "Password123!@#"
+  }
 
-		os_profile_linux_config {
-			disable_password_authentication = false
-		}
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 
-		boot_diagnostics {
-			enabled     = true
-			storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
-		}
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
+  }
 }
 `, testAccAzureRMRecoveryServicesProtectedVm_withSecondPolicy(rInt, location), rInt)
 }
