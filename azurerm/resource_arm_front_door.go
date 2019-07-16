@@ -377,11 +377,20 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if err := azure.ValidateFrontdoor(d); err != nil {
+		return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+return nil
+
+
 	client := meta.(*ArmClient).frontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group").(string)
+
 
 	if requireResourcesToBeImported {
 		resp, err := client.Get(ctx, resourceGroup, name)
