@@ -44,6 +44,27 @@ The following arguments are supported:
 
 * `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage table.
 
+* `acl` - (Optional) One or more `acl` blocks as defined below.
+
+---
+
+A `acl` block supports the following:
+
+* `id` - (Required) The ID which should be used for this Shared Identifier.
+
+* `access_policy` - (Required) An `access_policy` block as defined below.
+
+---
+
+A `access_policy` block supports the following: 
+
+* `expiry` - (Required) The ISO8061 UTC time at which this Access Policy should be valid until.
+
+* `permissions` - (Required) The permissions which should associated with this Shared Identifier.
+
+* `start` - (Required) The ISO8061 UTC time at which this Access Policy should be valid from.
+
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
