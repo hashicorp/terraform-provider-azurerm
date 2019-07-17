@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/validation"
@@ -50,7 +49,7 @@ func SchemaAppServiceBackup() *schema.Schema {
 							"frequency_interval": {
 								Type:         schema.TypeInt,
 								Required:     true,
-								ValidateFunc: validateFrequencyInterval,
+								ValidateFunc: validation.IntBetween(0, 1000),
 							},
 
 							"frequency_unit": {
@@ -72,7 +71,7 @@ func SchemaAppServiceBackup() *schema.Schema {
 								Type:         schema.TypeInt,
 								Optional:     true,
 								Default:      30,
-								ValidateFunc: validateRetentionPeriod,
+								ValidateFunc: validation.IntBetween(0, 9999999),
 							},
 
 							"start_time": {
@@ -87,24 +86,6 @@ func SchemaAppServiceBackup() *schema.Schema {
 			},
 		},
 	}
-}
-
-func validateFrequencyInterval(val interface{}, key string) (warns []string, errs []error) {
-	v := val.(int)
-
-	if v < 0 || v > 1000 {
-		errs = append(errs, fmt.Errorf("%q must be between 0 and 1000 inclusive, got: %d", key, v))
-	}
-	return
-}
-
-func validateRetentionPeriod(val interface{}, key string) (warns []string, errs []error) {
-	v := val.(int)
-
-	if v < 0 || v > 9999999 {
-		errs = append(errs, fmt.Errorf("%q must be between 0 and 9999999 inclusive, got: %d", key, v))
-	}
-	return
 }
 
 func ExpandAppServiceBackup(input []interface{}) *web.BackupRequest {
