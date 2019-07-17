@@ -164,11 +164,16 @@ func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}
 
 func flattenAzureRmPrivateDnsARecords(records *[]privatedns.ARecord) []string {
 	results := make([]string, 0)
+	if records == nil {
+		return results
+	}
 
-	if records != nil {
-		for _, record := range *records {
-			results = append(results, *record.Ipv4Address)
+	for _, record := range *records {
+		if record.Ipv4Address == nil {
+			continue
 		}
+
+		results = append(results, *record.Ipv4Address)
 	}
 
 	return results
