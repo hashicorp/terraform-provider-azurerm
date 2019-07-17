@@ -37,6 +37,7 @@ IMPROVEMENTS:
 * `azurerm_storage_share` - support for configuring ACL's [GH-3830]
 * `azurerm_storage_share` - support for configuring MetaData [GH-3830]
 * `azurerm_storage_table` - switching to use github.com/tombuildsstuff/giovanni [GH-3834]
+* `azurerm_storage_table` - support for configuring ACL's [GH-3847]
 * `azurerm_traffic_manager_endpoint` - supper for `custom_header` and `subnet` properties [GH-3655]
 * `azurerm_virtual_machine` - switching over to use the github.com/tombuildsstuff/giovanni Storage SDK [GH-3838]
 * `azurerm_virtual_machine` - looking up the data disks attached to the Virtual Machine when optionally deleting them upon deletion rather than parsing them from the config [GH-3838]
