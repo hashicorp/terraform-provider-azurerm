@@ -31,9 +31,6 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "metadata.test", "value1"),
-					resource.TestCheckResourceAttr(resourceName, "metadata.test2", "value2"),
 				),
 			},
 			{
@@ -79,7 +76,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,7 +84,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 					testCheckAzureRMStorageBlobDisappears(resourceName),
@@ -100,7 +97,8 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 
 func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	rs1 := strings.ToLower(acctest.RandString(11))
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -116,15 +114,13 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, sourceBlob.Name(), testLocation())
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageBlob_blockSource(ri, rs, sourceBlob.Name(), location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.source", storage.BlobTypeBlock, sourceBlob.Name()),
 				),
@@ -193,10 +189,11 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
+func TestAccAzureRMStorageBlob_sourceUri(t *testing.T) {
 	resourceName := "azurerm_storage_blob.destination"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -212,15 +209,13 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := testAccAzureRMStorageBlob_source_uri(ri, rs, sourceBlob.Name(), testLocation())
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageBlob_sourceUri(ri, rs, sourceBlob.Name(), location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
 				),
@@ -239,6 +234,8 @@ func TestAccAzureRMStorageBlobBlock_blockContentType(t *testing.T) {
 	resourceName := "azurerm_storage_blob.source"
 	ri := tf.AccRandTimeInt()
 	rs1 := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -254,8 +251,8 @@ func TestAccAzureRMStorageBlobBlock_blockContentType(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/plain")
-	updateConfig := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/vnd.terraform.acctest.tmpfile")
+	config := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, location, sourceBlob.Name(), "text/plain")
+	updateConfig := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, location, sourceBlob.Name(), "text/vnd.terraform.acctest.tmpfile")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -291,10 +288,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
@@ -332,10 +326,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
@@ -366,10 +357,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
@@ -460,6 +448,135 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMStorageBlob_basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name = "herpderp1.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+
+  type = "page"
+  size = 5120
+
+  metadata = {
+    test  = "value1"
+    test2 = "value2"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageBlob_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "import" {
+  name                   = "${azurerm_storage_blob.test.name}"
+  resource_group_name    = "${azurerm_storage_blob.test.resource_group_name}"
+  storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
+  storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
+  type                   = "${azurerm_storage_blob.test.type}"
+  size                   = "${azurerm_storage_blob.test.size}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageBlob_blockSource(rInt int, rString string, sourceBlobName string, location string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "source" {
+  name = "source.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+
+  type        = "block"
+  source      = "%s"
+  parallelism = 4
+  attempts    = 2
+}
+`, template, sourceBlobName)
+}
+
+func testAccAzureRMStorageBlobPage_source(rInt int, rString string, sourceBlobName string, location string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "source" {
+  name = "source.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.source.name}"
+
+  type        = "page"
+  source      = "%s"
+  parallelism = 3
+  attempts    = 3
+}
+`, template, sourceBlobName)
+}
+
+func testAccAzureRMStorageBlob_sourceUri(rInt int, rString string, sourceBlobName string, location string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "source" {
+  name = "source.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+
+  type        = "block"
+  source      = "%s"
+  parallelism = 4
+  attempts    = 2
+}
+
+resource "azurerm_storage_blob" "destination" {
+  name                   = "destination.vhd"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  source_uri             = "${azurerm_storage_blob.source.url}"
+  type                   = "block"
+}
+`, template, sourceBlobName)
+}
+
+func testAccAzureRMStorageBlobPage_blockContentType(rInt int, rString, location string, sourceBlobName, contentType string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name = "source.vhd"
+
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+
+  type         = "page"
+  source       = "%s"
+  content_type = "%s"
+  parallelism  = 3
+  attempts     = 3
+}
+`, template, sourceBlobName, contentType)
+}
+
+func testAccAzureRMStorageBlob_template(rInt int, rString, location, accessLevel string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -482,213 +599,7 @@ resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
+  container_access_type = "%s"
 }
-
-resource "azurerm_storage_blob" "test" {
-  name = "herpderp1.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-
-  type = "page"
-  size = 5120
-
-  metadata = {
-    test  = "value1"
-    test2 = "value2"
-  }
-}
-`, rInt, location, rString)
-}
-
-func testAccAzureRMStorageBlob_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageBlob_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_blob" "import" {
-  name                   = "${azurerm_storage_blob.test.name}"
-  resource_group_name    = "${azurerm_storage_blob.test.resource_group_name}"
-  storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
-  storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
-  type                   = "${azurerm_storage_blob.test.type}"
-  size                   = "${azurerm_storage_blob.test.size}"
-}
-`, template)
-}
-
-func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, sourceBlobName string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "source" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "source" {
-  name                  = "source"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.source.name}"
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_blob" "source" {
-  name = "source.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.source.name}"
-  storage_container_name = "${azurerm_storage_container.source.name}"
-
-  type        = "block"
-  source      = "%s"
-  parallelism = 4
-  attempts    = 2
-}
-`, rInt, location, rString, sourceBlobName)
-}
-
-func testAccAzureRMStorageBlobPage_source(rInt int, rString string, sourceBlobName string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "source" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "source" {
-  name                  = "source"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.source.name}"
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_blob" "source" {
-  name = "source.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.source.name}"
-  storage_container_name = "${azurerm_storage_container.source.name}"
-
-  type        = "page"
-  source      = "%s"
-  parallelism = 3
-  attempts    = 3
-}
-`, rInt, location, rString, sourceBlobName)
-}
-
-func testAccAzureRMStorageBlob_source_uri(rInt int, rString string, sourceBlobName string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "source" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "source" {
-  name                  = "source"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.source.name}"
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_blob" "source" {
-  name = "source.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.source.name}"
-  storage_container_name = "${azurerm_storage_container.source.name}"
-
-  type        = "block"
-  source      = "%s"
-  parallelism = 4
-  attempts    = 2
-}
-
-resource "azurerm_storage_blob" "destination" {
-  name                   = "destination.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.source.name}"
-  storage_container_name = "${azurerm_storage_container.source.name}"
-  source_uri             = "${azurerm_storage_blob.source.url}"
-  type                   = "block"
-}
-`, rInt, location, rString, sourceBlobName)
-}
-
-func testAccAzureRMStorageBlobPage_blockContentType(rInt int, rString, location string, sourceBlobName, contentType string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "source" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "source" {
-  name                  = "source"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.source.name}"
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_blob" "source" {
-  name = "source.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.source.name}"
-  storage_container_name = "${azurerm_storage_container.source.name}"
-
-  type         = "page"
-  source       = "%s"
-  content_type = "%s"
-  parallelism  = 3
-  attempts     = 3
-}
-`, rInt, location, rString, sourceBlobName, contentType)
+`, rInt, location, rString, accessLevel)
 }
