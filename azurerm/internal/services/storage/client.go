@@ -26,6 +26,8 @@ type Client struct {
 // NOTE: this temporarily diverges from the other clients until we move this client in here
 // once we have this, can take an Options like everything else
 func BuildClient(accountsClient storage.AccountsClient) *Client {
+	// TODO: switch Storage Containers to using the storage.BlobContainersClient
+	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
 		accountsClient: accountsClient,
 	}
