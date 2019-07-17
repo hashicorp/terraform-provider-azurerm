@@ -28,7 +28,8 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"zone_name": {
 				Type:     schema.TypeString,
@@ -162,7 +163,7 @@ func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}
 }
 
 func flattenAzureRmPrivateDnsARecords(records *[]privatedns.ARecord) []string {
-	results := make([]string, 0, len(*records))
+	results := make([]string, 0)
 
 	if records != nil {
 		for _, record := range *records {
