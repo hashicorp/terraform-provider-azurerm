@@ -3,6 +3,7 @@ package azure
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
@@ -27,6 +28,9 @@ func ValidateBackendPoolRoutingRuleName(i interface{}, k string) (_ []string, er
 func ValidateFrontdoor(d *schema.ResourceData) error {
 	routingRules := d.Get("routing_rule").([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
+	backendPools := d.Get("backend_pool").([]interface{})
+	loadBalancingSettings:= d.Get("backend_pool_load_balancing").([]interface{})
+	healthProbeSettings:= d.Get("backend_pool_health_probe").([]interface{})
 
 	// if len(routingRules) == 0 {
 	// 	return nil
@@ -35,10 +39,9 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 	if len(configFrontendEndpoints) == 0 {
 		return fmt.Errorf(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
 	}
-
-	// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
-	// start routing rule validation
+	
 	if routingRules != nil {
+		// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
 		for _, rr := range routingRules {
 			routingRule := rr.(map[string]interface{})
 			routingRuleName := routingRule["name"]
@@ -47,41 +50,124 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 			redirectConfig := routingRule["redirect_configuration"].([]interface{})
 			forwardConfig := routingRule["forwarding_configuration"].([]interface{})
 
-			// 1. validate that only one type of redirect configuration is set per routing rule
+			// Check 1. validate that only one configuration type is defined per routing rule
 			if len(redirectConfig) == 1 && len(forwardConfig) == 1 {
 				return fmt.Errorf(`"routing_rule":%q is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per routing rule`, routingRuleName)
 			}
 
-			// 2. validate that each routing rule frontend_endpoints are actually defined in the resource schema
-			if rrFrontends := routingRule["frontend_endpoints"].([]interface{}); len(rrFrontends) > 0 {
+			// Check 2. validate that each routing rule frontend_endpoints are actually defined in the resource schema
+			if routingRuleFrontends := routingRule["frontend_endpoints"].([]interface{}); len(routingRuleFrontends) > 0 {
 
-				for _, rrFrontend := range rrFrontends {
+				for _, routingRuleFrontend := range routingRuleFrontends {
 					// Get the name of the frontend defined in the routing rule
-					frontendsName := rrFrontend.(string)
+					routingRulefrontendName := routingRuleFrontend.(string)
 					found = false
 
 					// Loop over all of the defined frontend endpoints in the config 
 					// seeing if we find the routing rule frontend in the list
 					for _, configFrontendEndpoint := range configFrontendEndpoints {
-						cFrontend := configFrontendEndpoint.(map[string]interface{})
-						configFrontendName := cFrontend["name"]
-						if( frontendsName == configFrontendName){
+						configFrontend := configFrontendEndpoint.(map[string]interface{})
+						configFrontendName := configFrontend["name"]
+						if( routingRulefrontendName == configFrontendName){
 							found = true
 							break
 						}
 					}
 
 					if !found {
-						return fmt.Errorf(`"routing_rule":%q "frontend_endpoints":%q was not found in the configuration file. verify you have the "frontend_endpoint":%q defined in the configuration file`, routingRuleName, frontendsName, frontendsName)
+						return fmt.Errorf(`"routing_rule":%q "frontend_endpoints":%q was not found in the configuration file. verify you have the "frontend_endpoint":%q defined in the configuration file`, routingRuleName, routingRulefrontendName, routingRulefrontendName)
 					}
 				}
 			} else {
 				return fmt.Errorf(`"routing_rule": %q must have at least one "frontend_endpoints" defined`, routingRuleName)
 			}
+		}
+	}
 
-		} // end routing rule validation
+	// Verify backend pool load balancing settings and health probe settings are defined in the resource schema
+	if backendPools != nil {
+		
+		for _, bp := range backendPools {
+			backendPool := bp.(map[string]interface{})
+			backendPoolName := backendPool["name"]
+			backendPoolLoadBalancingName := backendPool["load_balancing_name"]
+			backendPoolHealthProbeName := backendPool["health_probe_name"]
+			found := false
 
-	} // end routing rule nil check
+			// Verify backend pool load balancing settings name exists
+			for _, lbs := range loadBalancingSettings{
+				loadBalancing := lbs.(map[string]interface{})
+				loadBalancingName := loadBalancing["name"]
+
+				if loadBalancingName == backendPoolLoadBalancingName {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf(`"backend_pool":%q "load_balancing_name":%q was not found in the configuration file. verify you have the "backend_pool_load_balancing":%q defined in the configuration file`, backendPoolName, backendPoolLoadBalancingName, backendPoolLoadBalancingName)
+			}
+
+			found = false
+
+			// Verify health probe settings name exists
+			for _, hps := range healthProbeSettings{
+				healthProbe := hps.(map[string]interface{})
+				healthProbeName := healthProbe["name"]
+
+				if healthProbeName == backendPoolHealthProbeName {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf(`"backend_pool":%q "health_probe_name":%q was not found in the configuration file. verify you have the "backend_pool_health_probe":%q defined in the configuration file`, backendPoolName, backendPoolHealthProbeName, backendPoolHealthProbeName)
+			}
+			
+		}
+	} else {
+		return fmt.Errorf(`"backend_pool": must have at least one "backend" defined`)
+	}
+
+	// Verify frontend endpoints custom https configuration is valid if defined
+	for _, configFrontendEndpoint := range configFrontendEndpoints {
+		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
+			FrontendName := configFrontend["name"]
+			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0  { 
+				customHttpsConfiguration := chc[0].(map[string]interface{})
+				certificateSource := customHttpsConfiguration["certificate_source"]
+				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
+					if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
+						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
+					}
+				} else {
+					if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
+						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
+					}
+				}
+			}
+		}
+	}
 
 	return nil
+}
+
+func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, MatchAllKeys bool) bool {
+	certificateSecretName := customHttpsConfiguration["azure_key_vault_certificate_secret_name"]
+	certificateSecretVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"]
+	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
+
+	if MatchAllKeys {
+		if certificateSecretName != "" && certificateSecretVersion  != ""  && certificateVaultId  != "" {
+			return true
+		}
+	} else {
+		if certificateSecretName != "" || certificateSecretVersion  != ""  || certificateVaultId  != "" {
+			return true
+		}
+	}
+	
+	return false
 }

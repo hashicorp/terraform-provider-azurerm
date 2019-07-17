@@ -54,7 +54,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"enabled": {
@@ -81,11 +81,12 @@ func resourceArmFrontDoor() *schema.Resource {
 							MaxItems: 25,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+								Default: "/*",
 							},
 						},
 						"frontend_endpoints": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 100,
 							Elem: &schema.Schema{
 								Type:     schema.TypeString,
@@ -175,21 +176,11 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
-			"backend_pools_settings": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enforce_certificate_name_check": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default: true,
-						},
-					},
-				},
+			"enforce_backend_pools_certificate_name_check": {
+				Type:     schema.TypeBool,
+				Required: true,
 			},
-			"load_balancing_setting": {
+			"backend_pool_load_balancing": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
 				Optional: true,
@@ -213,7 +204,7 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
-			"health_probe_setting": {
+			"backend_pool_health_probe": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
 				Optional: true,
@@ -265,23 +256,28 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"address": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 									"http_port": {
 										Type:     schema.TypeInt,
-										Optional: true,
+										Required: true,
+										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"https_port": {
 										Type:     schema.TypeInt,
-										Optional: true,
+										Required: true,
+										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"weight": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										ValidateFunc: validation.IntBetween(1, 1000),
+										Default: 50,
 									},
 									"priority": {
 										Type:     schema.TypeInt,
-										Optional: true,
+										Required: true,
+										ValidateFunc: validation.IntBetween(1, 5),
 									},
 								},
 							},
@@ -291,11 +287,11 @@ func resourceArmFrontDoor() *schema.Resource {
 							Required: true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
-						"health_probe_settings_name": {
+						"health_probe_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"load_balancing_settings_name": {
+						"load_balancing_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -315,7 +311,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 						"host_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 						"session_affinity_enabled": {
 							Type:     schema.TypeBool,
