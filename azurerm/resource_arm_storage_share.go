@@ -123,7 +123,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	id := client.GetResourceID(accountName, shareName)
 
 	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, *resourceGroup, shareName)
+		existing, err := client.GetProperties(ctx, accountName, shareName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)

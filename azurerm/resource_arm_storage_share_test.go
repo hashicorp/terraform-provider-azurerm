@@ -216,8 +216,7 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
-		_, err = client.GetProperties(ctx, accountName, shareName)
-		if err != nil {
+		if _, err = client.GetProperties(ctx, accountName, shareName); err != nil {
 			return fmt.Errorf("Bad: Share %q (Storage Account: %q) does not exist", shareName, accountName)
 		}
 
