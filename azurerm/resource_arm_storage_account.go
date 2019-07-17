@@ -688,7 +688,10 @@ func expandQueueProperties(input []interface{}) queues.StorageServiceProperties 
 
 		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
 
-		properties.Cors.CorsRule = corsRule
+		cors := &queues.Cors{
+			CorsRule: corsRule,
+		}
+		properties.Cors = cors
 	}
 
 	return properties
