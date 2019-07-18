@@ -684,6 +684,7 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_queueProperties(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_queuePropertiesUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -692,6 +693,17 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
 				),
@@ -1413,6 +1425,73 @@ resource "azurerm_storage_account" "testsa" {
 			allowed_headers    = ["x-tempo-*"]
 			allowed_methods    = ["GET", "PUT"]
 			max_age_in_seconds = "500"
+		}
+
+		logging {
+			version               = "1.0"
+			delete                = true
+			read                  = true
+			write                 = true
+			retention_policy_days = 7
+		}
+
+		hour_metrics {
+			version               = "1.0"
+			enabled               = false
+			retention_policy_days = 7
+		}
+
+		minute_metrics {
+			version               = "1.0"
+			enabled               = false
+			retention_policy_days = 7
+		}
+	}
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_queuePropertiesUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+	queue_properties {
+		cors_rule {
+			allowed_origins    = ["http://www.example.com"]
+			exposed_headers    = ["x-tempo-*", "x-method-*"]
+			allowed_headers    = ["*"]
+			allowed_methods    = ["GET"]
+			max_age_in_seconds = "300"
+		}
+		logging {
+			version               = "1.0"
+			delete                = true
+			read                  = true
+			write                 = true
+			retention_policy_days = 7
+		}
+
+		hour_metrics {
+			version               = "1.0"
+			enabled               = false
+			retention_policy_days = 7
+		}
+
+		minute_metrics {
+			version               = "1.0"
+			enabled               = false
+			retention_policy_days = 7
 		}
 	}
 }

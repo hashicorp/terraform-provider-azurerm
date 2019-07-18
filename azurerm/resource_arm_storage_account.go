@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -417,12 +418,14 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cors_rule": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 5,
+							MaxItems: 1,
+							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"allowed_origins": {
@@ -466,6 +469,97 @@ func resourceArmStorageAccount() *schema.Resource {
 										Type:         schema.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+							},
+						},
+						"logging": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+										ForceNew:     true,
+									},
+									"delete": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"read": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"write": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+										ForceNew:     true,
+									},
+								},
+							},
+						},
+						"hour_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+										ForceNew:     true,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+										ForceNew:     true,
+									},
+								},
+							},
+						},
+						"minute_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+										ForceNew:     true,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+										ForceNew:     true,
 									},
 								},
 							},
@@ -647,44 +741,101 @@ func expandQueueProperties(input []interface{}) queues.StorageServiceProperties 
 
 	attrs := input[0].(map[string]interface{})
 
-	corsRuleList := attrs["cors_rule"].([]interface{})
-	if len(corsRuleList) > 0 {
-		corsRuleAttr := corsRuleList[0].(map[string]interface{})
-		corsRule := queues.CorsRule{}
-
-		allowedOrigins := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
-			allowedOrigins = append(allowedOrigins, item.(string))
-		}
-		corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
-
-		exposedHeaders := make([]string, 0)
-		for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
-			exposedHeaders = append(exposedHeaders, item.(string))
-		}
-		corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
-
-		allowedHeaders := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
-			allowedHeaders = append(allowedHeaders, item.(string))
-		}
-		corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
-
-		allowedMethods := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
-			allowedMethods = append(allowedMethods, item.(string))
-		}
-		corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
-
-		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
-
-		cors := &queues.Cors{
-			CorsRule: corsRule,
-		}
-		properties.Cors = cors
-	}
+	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
+	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
+	properties.MinuteMetrics = expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+	properties.HourMetrics = expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
 
 	return properties
+}
+
+func expandQueuePropertiesMetrics(input []interface{}) *queues.MetricsConfig {
+	if len(input) == 0 {
+		return &queues.MetricsConfig{}
+	}
+
+	metricsAttr := input[0].(map[string]interface{})
+	metrics := &queues.MetricsConfig{
+		Version: metricsAttr["version"].(string),
+		Enabled: metricsAttr["enabled"].(bool),
+	}
+
+	if v, ok := metricsAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			metrics.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	return metrics
+}
+
+func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
+	if len(input) == 0 {
+		return &queues.LoggingConfig{}
+	}
+
+	loggingAttr := input[0].(map[string]interface{})
+	logging := &queues.LoggingConfig{
+		Version: loggingAttr["version"].(string),
+		Delete:  loggingAttr["delete"].(bool),
+		Read:    loggingAttr["read"].(bool),
+		Write:   loggingAttr["write"].(bool),
+	}
+
+	if v, ok := loggingAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			logging.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	return logging
+
+}
+
+func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
+	if len(input) == 0 {
+		return &queues.Cors{}
+	}
+
+	corsRuleAttr := input[0].(map[string]interface{})
+	corsRule := queues.CorsRule{}
+
+	allowedOrigins := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
+		allowedOrigins = append(allowedOrigins, item.(string))
+	}
+	corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
+
+	exposedHeaders := make([]string, 0)
+	for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
+		exposedHeaders = append(exposedHeaders, item.(string))
+	}
+	corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
+
+	allowedHeaders := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
+		allowedHeaders = append(allowedHeaders, item.(string))
+	}
+	corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
+
+	allowedMethods := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
+		allowedMethods = append(allowedMethods, item.(string))
+	}
+	corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
+
+	corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+	cors := &queues.Cors{
+		CorsRule: corsRule,
+	}
+	return cors
 }
 
 // resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
@@ -860,6 +1011,14 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		d.SetPartial("enable_advanced_threat_protection")
+	}
+
+	if d.HasChange("queue_properties") {
+		queueClient := meta.(*ArmClient).storage.QueuesClient
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, expandQueueProperties(d.Get("queue_properties").([]interface{}))); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		}
 	}
 
 	d.Partial(false)
@@ -1193,7 +1352,25 @@ func flattenQueueProperties(input queues.StorageServiceProperties) []interface{}
 
 	if cors := input.Cors; cors != nil {
 		if cors.CorsRule.AllowedOrigins != "" {
-			queueProperties["cors_rule"] = flattenCorsRule(input.Cors.CorsRule)
+			queueProperties["cors_rule"] = flattenQueuePropertiesCorsRule(input.Cors.CorsRule)
+		}
+	}
+
+	if logging := input.Logging; logging != nil {
+		if logging.Version != "" {
+			queueProperties["logging"] = flattenQueuePropertiesLogging(*logging)
+		}
+	}
+
+	if hourMetrics := input.HourMetrics; hourMetrics != nil {
+		if hourMetrics.Version != "" {
+			queueProperties["hour_metrics"] = flattenQueuePropertiesMetrics(*hourMetrics)
+		}
+	}
+
+	if minuteMetrics := input.MinuteMetrics; minuteMetrics != nil {
+		if minuteMetrics.Version != "" {
+			queueProperties["minute_metrics"] = flattenQueuePropertiesMetrics(*minuteMetrics)
 		}
 	}
 
@@ -1203,7 +1380,20 @@ func flattenQueueProperties(input queues.StorageServiceProperties) []interface{}
 	return []interface{}{queueProperties}
 }
 
-func flattenCorsRule(input queues.CorsRule) []interface{} {
+func flattenQueuePropertiesMetrics(input queues.MetricsConfig) []interface{} {
+	metrics := make(map[string]interface{})
+
+	metrics["version"] = input.Version
+	metrics["enabled"] = input.Enabled
+
+	if input.RetentionPolicy.Enabled {
+		metrics["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{metrics}
+}
+
+func flattenQueuePropertiesCorsRule(input queues.CorsRule) []interface{} {
 	corsRule := make(map[string]interface{})
 
 	corsRule["allowed_origins"] = flattenCorsProperty(input.AllowedOrigins)
@@ -1213,6 +1403,21 @@ func flattenCorsRule(input queues.CorsRule) []interface{} {
 	corsRule["max_age_in_seconds"] = input.MaxAgeInSeconds
 
 	return []interface{}{corsRule}
+}
+
+func flattenQueuePropertiesLogging(input queues.LoggingConfig) []interface{} {
+	logging := make(map[string]interface{})
+
+	logging["version"] = input.Version
+	logging["delete"] = input.Delete
+	logging["read"] = input.Read
+	logging["write"] = input.Write
+
+	if input.RetentionPolicy.Enabled {
+		logging["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{logging}
 }
 
 func flattenCorsProperty(input string) []interface{} {

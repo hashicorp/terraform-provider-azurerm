@@ -113,6 +113,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `queue_properties` - (Optional) A Queue Property block as defined below.
+
 ---
 
 * `custom_domain` supports the following:
@@ -141,6 +143,18 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+
+---
+
+`queue_properties` supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `logging` - (Optional) A `logging` block as defined below.
+
+* `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
+
+* `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
 
 ## Attributes Reference
 
