@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-x"
 description: |-
   Manages a ServiceBus Subscription.
 ---
@@ -22,9 +22,9 @@ resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }

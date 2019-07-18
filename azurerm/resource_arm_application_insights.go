@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
@@ -31,9 +32,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"application_type": {
 				Type:             schema.TypeString,
@@ -69,7 +70,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -91,7 +92,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	applicationType := d.Get("application_type").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
@@ -131,7 +132,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -156,7 +157,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
@@ -171,7 +172,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

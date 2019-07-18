@@ -2,23 +2,22 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,9 +25,9 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
 				),
 			},
 			{
@@ -40,16 +39,17 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageContainer_update(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
+func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 
-	ri := acctest.RandInt()
+	resourceName := "azurerm_storage_container.test"
+
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	at1 := "private"
-	at2 := "container"
-	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
-	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,17 +57,81 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initconfig,
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", at1),
+					testCheckAzureRMStorageContainerExists(resourceName),
 				),
 			},
 			{
-				Config: updateconfig,
+				Config:      testAccAzureRMStorageContainer_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_container"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageContainer_update(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "private"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", at2),
+					testCheckAzureRMStorageContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", "private"),
+				),
+			},
+			{
+				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "container"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", "container"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_metaData(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageContainer_metaDataUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
 				),
 			},
 			{
@@ -80,11 +144,10 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
-	var c storage.Container
-
-	ri := acctest.RandInt()
+	resourceName := "azurerm_storage_container.test"
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -92,10 +155,10 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test", &c),
-					testAccARMStorageContainerDisappears("azurerm_storage_container.test", &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
+					testAccARMStorageContainerDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -105,11 +168,10 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 
 func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
-	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,9 +179,9 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageContainer_root(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					testCheckAzureRMStorageContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "$root"),
 				),
 			},
@@ -132,88 +194,71 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) resource.TestCheckFunc {
+func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
-		}
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
-		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 
-		containers, err := blobClient.ListContainers(storage.ListContainersParameters{
-			Prefix:  name,
-			Timeout: 90,
-		})
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error listing Storage Container %q containers (storage account: %q) : %+v", name, storageAccountName, err)
+			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		if len(containers.Containers) == 0 {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)
-		}
-
-		var found bool
-		for _, container := range containers.Containers {
-			if container.Name == name {
-				found = true
-				*c = container
+		resp, err := client.GetProperties(ctx, accountName, containerName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, *resourceGroup)
 			}
-		}
 
-		if !found {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)
+			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func testAccARMStorageContainerDisappears(name string, c *storage.Container) resource.TestCheckFunc {
+func testAccARMStorageContainerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", c.Name)
-		}
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
-		}
-		if !accountExists {
-			log.Printf("[INFO]Storage Account %q doesn't exist so the container won't exist", storageAccountName)
-			return nil
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 
-		reference := blobClient.GetContainerReference(c.Name)
-		options := &storage.DeleteContainerOptions{}
-		_, err = reference.DeleteIfExists(options)
-		return err
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+		if err != nil {
+			return fmt.Errorf("Error building Containers Client: %s", err)
+		}
+
+		if _, err := client.Delete(ctx, accountName, containerName); err != nil {
+			return fmt.Errorf("Error deleting Container %q (Account %q): %s", containerName, accountName, err)
+		}
+
+		return nil
 	}
 }
 
@@ -223,46 +268,151 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
-		}
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		containerName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			//If we can't get keys then the blob can't exist
-			return nil
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
-		if !accountExists {
+
+		if resourceGroup == nil {
 			return nil
 		}
 
-		containers, err := blobClient.ListContainers(storage.ListContainersParameters{
-			Prefix:  name,
-			Timeout: 90,
-		})
-
+		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		var found bool
-		for _, container := range containers.Containers {
-			if container.Name == name {
-				found = true
+		props, err := client.GetProperties(ctx, accountName, containerName)
+		if err != nil {
+			if utils.ResponseWasNotFound(props.Response) {
+				return nil
 			}
-		}
 
-		if found {
-			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) still exist", name, storageAccountName)
+			return fmt.Errorf("Error retrieving Container %q in Storage Account %q: %s", containerName, accountName, err)
 		}
 	}
 
 	return nil
+}
+
+func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "import" {
+  name                  = "${azurerm_storage_container.test.name}"
+  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
+  container_access_type = "${azurerm_storage_container.test.container_access_type}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, template, accessType)
+}
+
+func testAccAzureRMStorageContainer_metaData(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_metaDataUpdated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+
+  metadata = {
+    hello = "world"
+    panda = "pops"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "$root"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_template(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, rInt, location, rString)
 }
 
 func TestValidateArmStorageContainerName(t *testing.T) {
@@ -293,88 +443,4 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
 	}
-}
-
-func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-`, rInt, location, rString)
-}
-
-func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "%s"
-}
-`, rInt, location, rString, accessType)
-}
-
-func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "$root"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-`, rInt, location, rString)
 }

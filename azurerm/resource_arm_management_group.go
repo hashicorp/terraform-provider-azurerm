@@ -5,10 +5,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,8 +56,8 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 	armTenantID := meta.(*ArmClient).tenantId
 
@@ -64,9 +65,24 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	if groupId == "" {
 		groupId = uuid.New().String()
 	}
+
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
+	}
+
+	recurse := false
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Management Group %q: %s", groupId, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
+		}
 	}
 
 	log.Printf("[INFO] Creating Management Group %q", groupId)
@@ -96,7 +112,6 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", groupId, err)
 	}
 
-	recurse := false
 	resp, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Management Group %q: %+v", groupId, err)
@@ -141,7 +156,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -188,8 +203,8 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())

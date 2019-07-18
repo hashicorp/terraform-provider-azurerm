@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -38,8 +38,13 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,7 +67,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationDscNodeConfigurationClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.DscNodeConfigurationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -95,13 +100,13 @@ func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) e
 	return nil
 }
 
-func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -112,7 +117,7 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Node Configuration: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationDscNodeConfigurationClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.DscNodeConfigurationClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

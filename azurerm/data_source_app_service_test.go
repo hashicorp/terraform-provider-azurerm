@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,6 +21,8 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 				Config: testAccDataSourceAppService_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "app_service_plan_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "possible_outbound_ip_addresses"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 				),
 			},
@@ -30,7 +32,7 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +52,7 @@ func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +71,7 @@ func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) 
 
 func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -88,7 +90,7 @@ func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +109,7 @@ func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -117,9 +119,12 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 			{
 				Config: testAccDataSourceAppService_connectionStrings(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.name", "First"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.type", "Custom"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.name", "Second"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.type", "PostgreSQL"),
 				),
 			},
 		},
@@ -128,7 +133,7 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -148,7 +153,7 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,7 +172,7 @@ func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -178,6 +183,26 @@ func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 				Config: testAccDataSourceAppService_minTls(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "site_config.0.min_tls_version", "1.1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMAppService_basicWindowsContainer(t *testing.T) {
+	dataSourceName := "data.azurerm_app_service.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppService_basicWindowsContainer(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "site_config.0.windows_fx_version", "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
+					resource.TestCheckResourceAttr(dataSourceName, "app_settings.DOCKER_REGISTRY_SERVER_URL", "https://mcr.microsoft.com"),
 				),
 			},
 		},
@@ -282,6 +307,18 @@ data "azurerm_app_service" "test" {
 
 func testAccDataSourceAppService_minTls(rInt int, location string) string {
 	config := testAccAzureRMAppService_minTls(rInt, location, "1.1")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service" "test" {
+  name                = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+}
+`, config)
+}
+
+func testAccDataSourceAppService_basicWindowsContainer(rInt int, location string) string {
+	config := testAccAzureRMAppService_basicWindowsContainer(rInt, location)
 	return fmt.Sprintf(`
 %s
 

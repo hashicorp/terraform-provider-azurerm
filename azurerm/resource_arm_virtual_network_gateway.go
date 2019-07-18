@@ -6,12 +6,13 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,9 +37,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"type": {
 				Type:             schema.TypeString,
@@ -79,18 +80,15 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewaySkuTierBasic),
-					string(network.VirtualNetworkGatewaySkuTierStandard),
-					string(network.VirtualNetworkGatewaySkuTierHighPerformance),
-					string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
-					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
-					string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
-					string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
-					string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
-				}, true),
+				// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
+				// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
+				// validators validateArmVirtualNetworkGatewayPolicyBasedVpnSku, validateArmVirtualNetworkGatewayRouteBasedVpnSku
+				// and validateArmVirtualNetworkGatewayExpressRouteSku.
+				ValidateFunc: validation.Any(
+					validateArmVirtualNetworkGatewayPolicyBasedVpnSku(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSku(),
+					validateArmVirtualNetworkGatewayExpressRouteSku(),
+				),
 			},
 
 			"ip_configuration": {
@@ -273,8 +271,22 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Virtual Network Gateway %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties, err := getArmVirtualNetworkGatewayProperties(d)
@@ -332,7 +344,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
@@ -356,13 +368,11 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
-		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+		if err := d.Set("vpn_client_configuration", flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+		if err := d.Set("bgp_settings", flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 	}
@@ -448,6 +458,10 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 
 func expandArmVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.BgpSettings {
 	bgpSets := d.Get("bgp_settings").([]interface{})
+	if len(bgpSets) == 0 {
+		return nil
+	}
+
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
@@ -624,18 +638,13 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	if cfg == nil {
 		return []interface{}{}
 	}
-
 	flat := make(map[string]interface{})
 
-	addressSpace := make([]interface{}, 0)
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		if prefixes := pool.AddressPrefixes; prefixes != nil {
-			for _, addr := range *prefixes {
-				addressSpace = append(addressSpace, addr)
-			}
-		}
+		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+	} else {
+		flat["address_space"] = []interface{}{}
 	}
-	flat["address_space"] = addressSpace
 
 	rootCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRootCertificates; certs != nil {
@@ -751,6 +760,9 @@ func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFun
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 	}, true)
 }
 

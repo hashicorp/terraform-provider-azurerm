@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,10 +49,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "acctestpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {

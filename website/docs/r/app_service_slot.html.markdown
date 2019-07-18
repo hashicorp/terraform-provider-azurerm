@@ -51,7 +51,7 @@ resource "azurerm_app_service" "test" {
     dotnet_framework_version = "v4.0"
   }
 
-  app_settings {
+  app_settings = {
     "SOME_KEY" = "some-value"
   }
 
@@ -73,7 +73,7 @@ resource "azurerm_app_service_slot" "test" {
     dotnet_framework_version = "v4.0"
   }
 
-  app_settings {
+  app_settings = {
     "SOME_KEY" = "some-value"
   }
 
@@ -182,26 +182,44 @@ The following arguments are supported:
 
 `site_config` supports the following:
 
-* `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
+
+* `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
+
+* `cors` - (Optional) A `cors` block as defined below.
+
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
+
 * `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service Slot. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
+
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
-* `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined below.
-* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7` and `1.8`.
+
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
+
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
+
+* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11`.
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
+
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
+
 * `php_version` - (Optional) The version of PHP to use in this App Service Slot. Possible values are `5.5`, `5.6`, `7.0`, `7.1` and `7.2`.
+
 * `python_version` - (Optional) The version of Python to use in this App Service Slot. Possible values are `2.7` and `3.4`.
+
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
+
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO` and `VSTSRM`
+
 * `use_32_bit_worker_process` - (Optional) Should the App Service Slot run in 32 bit mode, rather than 64 bit mode?
 
 ~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans.
@@ -212,17 +230,29 @@ The following arguments are supported:
 
 ---
 
-`ip_restriction` supports the following:
+A `cors` block supports the following:
+
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+* `support_credentials` - (Optional) Are credentials supported?
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+
+---
+
+Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
-
-`identity` supports the following:
-
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
-
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
 
 ## Attributes Reference
 
@@ -231,6 +261,15 @@ The following attributes are exported:
 * `id` - The ID of the App Service Slot.
 
 * `default_site_hostname` - The Default Hostname associated with the App Service Slot - such as `mysite.azurewebsites.net`
+
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
 
 ## Import
 

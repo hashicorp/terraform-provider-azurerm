@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,6 +15,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 		Create: resourceArmMySQLConfigurationCreate,
 		Read:   resourceArmMySQLConfigurationRead,
 		Delete: resourceArmMySQLConfigurationDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -25,12 +27,13 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"value": {
@@ -51,7 +54,6 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-
 	value := d.Get("value").(string)
 
 	properties := mysql.Configuration{
@@ -62,19 +64,19 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for create/update of MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Configuration %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read MySQL Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
 	}
 
 	d.SetId(*read.ID)

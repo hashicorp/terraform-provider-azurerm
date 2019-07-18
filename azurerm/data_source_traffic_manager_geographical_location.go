@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -21,7 +21,7 @@ func dataSourceArmTrafficManagerGeographicalLocation() *schema.Resource {
 }
 
 func dataSourceArmTrafficManagerGeographicalLocationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerGeographialHierarchiesClient
+	client := meta.(*ArmClient).trafficManager.GeographialHierarchiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	results, err := client.GetDefault(ctx)

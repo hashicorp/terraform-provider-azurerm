@@ -3,11 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +41,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 
 func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -61,9 +63,40 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_batch_account.test"
+	ri := tf.AccRandTimeInt()
+
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBatchAccount_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMBatchAccount_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_batch_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -98,12 +131,39 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
+func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
+	resourceName := "azurerm_batch_account.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+
+	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID, subscriptionID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "UserSubscription"),
+				),
+			},
+		},
+	})
+}
+
+func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		batchAccount := rs.Primary.Attributes["name"]
@@ -119,7 +179,7 @@ func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", batchAccount, resourceGroup)
 		}
 
 		return nil
@@ -154,44 +214,57 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 func testAccAzureRMBatchAccount_basic(rInt int, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
 }
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
 }
 `, rInt, location, batchAccountSuffix)
+}
+
+func testAccAzureRMBatchAccount_requiresImport(rInt int, batchAccountSuffix string, location string) string {
+	template := testAccAzureRMBatchAccount_basic(rInt, batchAccountSuffix, location)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "import" {
+  name                 = "${azurerm_batch_account.test.name}"
+  resource_group_name  = "${azurerm_batch_account.test.resource_group_name}"
+  location             = "${azurerm_batch_account.test.location}"
+  pool_allocation_mode = "${azurerm_batch_account.test.pool_allocation_mode}"
+}
+`, template)
 }
 
 func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  }
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
-	storage_account_id   = "${azurerm_storage_account.test.id}"	
-	
-	tags {
-		env = "test"
-	}
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
+
+  tags = {
+    env = "test"
+  }
 }
 `, rInt, location, rString, rString)
 }
@@ -199,29 +272,82 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa%s2"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "testaccsa%s2"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
-	storage_account_id   = "${azurerm_storage_account.test.id}"
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
 
-	tags {
-		env 	= "test"
-		version = "2"
-  	}
+  tags = {
+    env     = "test"
+    version = "2"
+  }
 }
 `, rInt, location, rString, rString)
+}
+
+func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string, subscriptionID string) string {
+	return fmt.Sprintf(`
+data "azuread_service_principal" "test" {
+	display_name = "Microsoft Azure Batch"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "batchkv%s"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  tenant_id                       = "%s"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azuread_service_principal.test.object_id}"
+   
+    secret_permissions = [
+  	  "get",
+  	  "list",
+  	  "set",
+  	  "delete"
+    ]
+   
+  }
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  
+  pool_allocation_mode = "UserSubscription"
+  
+  key_vault_reference {
+    id  = "${azurerm_key_vault.test.id}"
+    url = "${azurerm_key_vault.test.vault_uri}"
+  }
+}
+`, rInt, location, batchAccountSuffix, tenantID, tenantID, batchAccountSuffix)
 }

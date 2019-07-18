@@ -6,7 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,9 +45,9 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"managed_image_id": {
 				Type:     schema.TypeString,
@@ -61,8 +63,8 @@ func resourceArmSharedImageVersion() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							StateFunc:        azure.NormalizeLocation,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
 						"regional_replica_count": {
@@ -92,9 +94,22 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	imageName := d.Get("image_name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_shared_image_version", *existing.ID)
+		}
+	}
 
 	targetRegions := expandSharedImageVersionTargetRegions(d)
 	tags := d.Get("tags").(map[string]interface{})
@@ -166,7 +181,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
@@ -250,7 +265,7 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			output := make(map[string]interface{})
 
 			if v.Name != nil {
-				output["name"] = azureRMNormalizeLocation(*v.Name)
+				output["name"] = azure.NormalizeLocation(*v.Name)
 			}
 
 			if v.RegionalReplicaCount != nil {

@@ -6,10 +6,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,9 +41,9 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateArmStorageAccountName,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
@@ -47,6 +52,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
 				Default: string(storage.Storage),
@@ -143,6 +149,19 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 			},
 
+			"is_hns_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"enable_advanced_threat_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"network_rules": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -164,17 +183,30 @@ func resourceArmStorageAccount() *schema.Resource {
 							},
 							Set: schema.HashString,
 						},
+
 						"ip_rules": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
 						"virtual_network_subnet_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
+						},
+
+						"default_action": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.DefaultActionAllow),
+								string(storage.DefaultActionDeny),
+							}, false),
 						},
 					},
 				},
@@ -195,7 +227,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -205,7 +247,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -215,13 +267,77 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"secondary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -272,7 +388,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
 							}, true),
@@ -323,24 +439,38 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
-	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
-	accountKind := d.Get("account_kind").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	if requireResourcesToBeImported {
+		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
+		}
+	}
+
+	accountKind := d.Get("account_kind").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
+	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
-
-	networkRules := expandStorageAccountNetworkRules(d)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -361,7 +491,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         networkRules,
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
+			IsHnsEnabled:           &isHnsEnabled,
 		},
 	}
 
@@ -381,8 +512,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage and StorageV2 accounts
-	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) {
+	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
+	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) || accountKind == string(storage.FileStorage) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
@@ -390,10 +521,20 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
+	} else {
+		if isHnsEnabled {
+			return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
+		}
+	}
+
+	// AccountTier must be Premium for FileStorage
+	if accountKind == string(storage.FileStorage) {
+		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
+			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
 	}
 
 	// Create
-	ctx := meta.(*ArmClient).StopContext
 	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
@@ -403,7 +544,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
 
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
 	}
@@ -415,6 +556,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
+	advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
+		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+			IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
+		},
+	}
+
+	if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
+		return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -424,6 +575,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -519,17 +672,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
 	}
 
 	if d.HasChange("custom_domain") {
-		customDomain := expandStorageAccountCustomDomain(d)
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: customDomain,
+				CustomDomain: expandStorageAccountCustomDomain(d),
 			},
 		}
 
@@ -555,10 +706,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
-
 		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
+			Identity: expandAzureRmStorageAccountIdentity(d),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -567,11 +716,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("network_rules") {
-		networkRules := expandStorageAccountNetworkRules(d)
-
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: networkRules,
+				NetworkRuleSet: expandStorageAccountNetworkRules(d),
 			},
 		}
 
@@ -582,6 +729,21 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
+	if d.HasChange("enable_advanced_threat_protection") {
+
+		opts := security.AdvancedThreatProtectionSetting{
+			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
+			},
+		}
+
+		if _, err := advancedThreatProtectionClient.Create(ctx, d.Id(), opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("enable_advanced_threat_protection")
+	}
+
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
@@ -589,6 +751,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := parseAzureResourceID(d.Id())
@@ -598,7 +761,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := client.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -616,7 +779,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
 
@@ -629,6 +792,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
@@ -662,43 +826,27 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("secondary_connection_string", scs)
 		}
 
-		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			d.Set("primary_blob_endpoint", endpoints.Blob)
-			d.Set("primary_queue_endpoint", endpoints.Queue)
-			d.Set("primary_table_endpoint", endpoints.Table)
-			d.Set("primary_file_endpoint", endpoints.File)
-
-			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
-			d.Set("primary_blob_connection_string", pscs)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
+			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if endpoints := props.SecondaryEndpoints; endpoints != nil {
-			if blob := endpoints.Blob; blob != nil {
-				d.Set("secondary_blob_endpoint", blob)
-				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-					*blob, *resp.Name, *accessKeys[1].Value)
-				d.Set("secondary_blob_connection_string", sscs)
-			} else {
-				d.Set("secondary_blob_endpoint", "")
-				d.Set("secondary_blob_connection_string", "")
-			}
+		var primaryBlobConnectStr string
+		if v := props.PrimaryEndpoints; v != nil {
+			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		}
+		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 
-			if endpoints.Queue != nil {
-				d.Set("secondary_queue_endpoint", endpoints.Queue)
-			} else {
-				d.Set("secondary_queue_endpoint", "")
-			}
-
-			if endpoints.Table != nil {
-				d.Set("secondary_table_endpoint", endpoints.Table)
-			} else {
-				d.Set("secondary_table_endpoint", "")
-			}
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
+			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		networkRules := props.NetworkRuleSet
-		if networkRules != nil {
+		var secondaryBlobConnectStr string
+		if v := props.SecondaryEndpoints; v != nil {
+			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		}
+		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
+
+		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
@@ -711,6 +859,15 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
+	}
+
+	advancedThreatProtectionSetting, err := advancedThreatProtectionClient.Get(ctx, d.Id())
+	if err != nil {
+		return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+	}
+
+	if atpp := advancedThreatProtectionSetting.AdvancedThreatProtectionProperties; atpp != nil {
+		d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -729,7 +886,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
@@ -785,8 +942,8 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 	name := domain["name"].(string)
 	useSubDomain := domain["use_subdomain"].(bool)
 	return &storage.CustomDomain{
-		Name:         utils.String(name),
-		UseSubDomain: utils.Bool(useSubDomain),
+		Name:             utils.String(name),
+		UseSubDomainName: utils.Bool(useSubDomain),
 	}
 }
 
@@ -809,13 +966,15 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	}
 
 	networkRule := networkRules[0].(map[string]interface{})
-	networkRuleSet := &storage.NetworkRuleSet{}
+	networkRuleSet := &storage.NetworkRuleSet{
+		IPRules:             expandStorageAccountIPRules(networkRule),
+		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
+		Bypass:              expandStorageAccountBypass(networkRule),
+	}
 
-	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
-	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
-	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	// Default Access is disabled when network rules are set.
-	networkRuleSet.DefaultAction = storage.DefaultActionDeny
+	if v := networkRule["default_action"]; v != nil {
+		networkRuleSet.DefaultAction = storage.DefaultAction(v.(string))
+	}
 
 	return networkRuleSet
 }
@@ -872,6 +1031,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
+	networkRules["default_action"] = string(input.DefaultAction)
 
 	return []interface{}{networkRules}
 }
@@ -962,4 +1122,93 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 
 	return []interface{}{result}
+}
+
+func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
+	var endpoint string
+	if blobEndpoint != nil {
+		endpoint = *blobEndpoint
+	}
+
+	var name string
+	if acctName != nil {
+		name = *acctName
+	}
+
+	var key string
+	if acctKey != nil {
+		key = *acctKey
+	}
+
+	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
+}
+
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *schema.ResourceData, primary *storage.Endpoints) error {
+	if primary == nil {
+		return fmt.Errorf("primary endpoints should not be empty")
+	}
+
+	if err := setEndpointAndHost(d, "primary", primary.Blob, "blob"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Dfs, "dfs"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.File, "file"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Queue, "queue"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "primary", primary.Web, "web"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *schema.ResourceData, secondary *storage.Endpoints) error {
+	if secondary == nil {
+		return nil
+	}
+
+	if err := setEndpointAndHost(d, "secondary", secondary.Blob, "blob"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Dfs, "dfs"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.File, "file"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Queue, "queue"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Table, "table"); err != nil {
+		return err
+	}
+	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointType *string, typeString string) error {
+	var endpoint, host string
+	if v := endpointType; v != nil {
+		endpoint = *v
+
+		u, err := url.Parse(*v)
+		if err != nil {
+			return fmt.Errorf("invalid %s endpoint for parsing: %q", typeString, *v)
+		}
+		host = u.Host
+	}
+
+	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
+	return nil
 }

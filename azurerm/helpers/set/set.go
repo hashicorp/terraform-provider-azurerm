@@ -33,3 +33,11 @@ func ToSliceInt32P(set *schema.Set) *[]int32 {
 
 	return &slice
 }
+
+func FromStringSlice(slice []string) *schema.Set {
+	set := &schema.Set{F: schema.HashString}
+	for _, v := range slice {
+		set.Add(v)
+	}
+	return set
+}

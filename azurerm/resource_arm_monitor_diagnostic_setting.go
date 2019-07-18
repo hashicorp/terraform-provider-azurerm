@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -160,6 +161,19 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 
 	name := d.Get("name").(string)
 	actualResourceId := d.Get("target_resource_id").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, actualResourceId, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", name, actualResourceId, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.ID)
+		}
+	}
 
 	logsRaw := d.Get("log").(*schema.Set).List()
 	logs := expandMonitorDiagnosticsSettingsLogs(logsRaw)

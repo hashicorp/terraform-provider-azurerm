@@ -6,14 +6,15 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -21,7 +22,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "metrics.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "6"),
 				),
 			},
 		},
@@ -33,7 +34,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 	rs := acctest.RandString(8)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -51,7 +52,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 func testAccDataSourceArmMonitorDiagnosticCategories_appService(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -82,7 +83,7 @@ data "azurerm_monitor_diagnostic_categories" "test" {
 func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 
@@ -93,7 +94,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

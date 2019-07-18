@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -30,7 +32,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:     schema.TypeString,
@@ -62,7 +64,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectedItemsClient
+	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -86,6 +88,19 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		if err2 != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_protected_vm", *existing.ID)
+		}
+	}
 
 	item := backup.ProtectedItemResource{
 		Tags: expandTags(tags),
@@ -114,7 +129,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectedItemsClient
+	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -158,7 +173,7 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectedItemsClient
+	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

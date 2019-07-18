@@ -22,6 +22,7 @@ resource "azurerm_signalr_service" "example" {
   name                = "tfex-signalr"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name     = "Free_F1"
     capacity = 1
@@ -64,6 +65,14 @@ The following attributes are exported:
 * `public_port` - The publicly accessible port of the SignalR service which is designed for browser/client use.
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
+
+* `primary_access_key` - The primary access key for the SignalR service.
+
+* `primary_connection_string` - The primary connection string for the SignalR service.
+
+* `secondary_access_key` - The secondary access key for the SignalR service.
+
+* `secondary_connection_string` - The secondary connection string for the SignalR service.
 
 ## Import
 

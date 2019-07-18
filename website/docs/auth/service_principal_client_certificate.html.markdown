@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via a Service Principal and a Client Certificate"
-sidebar_current: "docs-azurerm-authentication-service-principal-client-certificate"
+sidebar_current: "docs-azurerm-guide-authentication-service-principal-client-certificate"
 description: |-
   This guide will cover how to use a Service Principal (Shared Account) with a Client Certificate as authentication for the Azure Provider.
 
@@ -100,12 +100,12 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.20.0` is the version of the Azure Provider that you'd like to use:
+The following Provider block can be specified - where `1.21.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.20.0"
+  version = "=1.28.0"
 }
 ```
 
@@ -125,7 +125,7 @@ variable "client_certificate_password" {}
 
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.20.0"
+  version = "=1.28.0"
 
   subscription_id             = "00000000-0000-0000-0000-000000000000"
   client_id                   = "00000000-0000-0000-0000-000000000000"

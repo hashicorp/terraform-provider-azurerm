@@ -29,9 +29,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -83,17 +81,17 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "imported-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "imported-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
-    contents = "${base64encode(file("certificate-to-import.pfx"))}"
+    contents = "${filebase64("certificate-to-import.pfx")}"
     password = ""
   }
 
@@ -132,40 +130,66 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "create","delete","deleteissuers",
-      "get","getissuers","import","list",
-      "listissuers","managecontacts","manageissuers",
-      "setissuers","update",
+      "create",
+      "delete",
+      "deleteissuers",
+      "get",
+      "getissuers",
+      "import",
+      "list",
+      "listissuers",
+      "managecontacts",
+      "manageissuers",
+      "setissuers",
+      "update",
     ]
 
     key_permissions = [
-      "backup","create","decrypt","delete","encrypt","get",
-      "import","list","purge","recover","restore","sign",
-      "unwrapKey","update","verify","wrapKey",
+      "backup",
+      "create",
+      "decrypt",
+      "delete",
+      "encrypt",
+      "get",
+      "import",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "sign",
+      "unwrapKey",
+      "update",
+      "verify",
+      "wrapKey",
     ]
 
     secret_permissions = [
-      "backup","delete","get","list","purge","recover","restore","set",
+      "backup",
+      "delete",
+      "get",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "set",
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "generated-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "generated-cert"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -196,7 +220,7 @@ resource "azurerm_key_vault_certificate" "test" {
     x509_certificate_properties {
       # Server Authentication = 1.3.6.1.5.5.7.3.1
       # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = [ "1.3.6.1.5.5.7.3.1" ]
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
 
       key_usage = [
         "cRLSign",
@@ -225,7 +249,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Certificate. Changing this forces a new resource to be created.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 

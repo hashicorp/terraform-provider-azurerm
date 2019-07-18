@@ -56,7 +56,7 @@ func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error unmarshalling JSON for Custom Trigger %q: %+v", name, err)
 	}
 
-	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body); err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_trigger_custom"); err != nil {
 		return err
 	}
 

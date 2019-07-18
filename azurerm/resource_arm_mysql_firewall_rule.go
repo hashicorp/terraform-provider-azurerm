@@ -6,6 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,6 +17,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 		Read:   resourceArmMySqlFirewallRuleRead,
 		Update: resourceArmMySqlFirewallRuleCreateUpdate,
 		Delete: resourceArmMySqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -26,12 +29,13 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"start_ip_address": {
@@ -59,6 +63,19 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mysql_firewall_rule", *existing.ID)
+		}
+	}
+
 	properties := mysql.FirewallRule{
 		FirewallRuleProperties: &mysql.FirewallRuleProperties{
 			StartIPAddress: utils.String(startIPAddress),
@@ -68,16 +85,16 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting onf create/update future for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for MySQL Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read MySQL Firewall Rule %q (Gesource Group %q) ID", name, resourceGroup)

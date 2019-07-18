@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -43,7 +46,7 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:     schema.TypeString,
@@ -276,7 +279,7 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	policyName := d.Get("name").(string)
@@ -293,6 +296,19 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		return fmt.Errorf("Error generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
+		if err2 != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_protection_policy_vm", *existing.ID)
+		}
+	}
 
 	policy := backup.ProtectionPolicyResource{
 		Tags: expandTags(tags),
@@ -325,7 +341,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -405,7 +421,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

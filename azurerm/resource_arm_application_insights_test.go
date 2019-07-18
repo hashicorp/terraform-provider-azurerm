@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -120,7 +120,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -146,7 +146,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -172,7 +172,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,7 +198,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -223,7 +223,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+	conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -248,12 +248,12 @@ func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -262,7 +262,7 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+		conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

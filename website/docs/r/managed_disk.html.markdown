@@ -26,7 +26,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -48,7 +48,7 @@ resource "azurerm_managed_disk" "source" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -62,7 +62,7 @@ resource "azurerm_managed_disk" "copy" {
   source_resource_id   = "${azurerm_managed_disk.source.id}"
   disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -89,10 +89,12 @@ The following arguments are supported:
  * `Empty` - Create an empty managed disk.
  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
+ * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
 
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
 
-* `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
+* `source_resource_id` - (Optional) ID of an existing managed disk to copy `create_option` is `Copy`
+    or the recovery point to restore when `create_option` is `Restore`
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 

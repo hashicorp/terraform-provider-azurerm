@@ -5,10 +5,12 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
+	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +34,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:     schema.TypeString,
@@ -73,6 +75,19 @@ func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Database %q (Server %q / Resource Group %q): %s", name, serverName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mariadb_database", *existing.ID)
+		}
+	}
 
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)

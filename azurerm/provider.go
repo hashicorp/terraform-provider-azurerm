@@ -380,6 +380,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_server":                                                      resourceArmPostgreSQLServer(),
 			"azurerm_postgresql_virtual_network_rule":                                        resourceArmPostgreSQLVirtualNetworkRule(),
 			"azurerm_private_dns_zone":                                                       resourceArmPrivateDnsZone(),
+			"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 			"azurerm_public_ip":                                                              resourceArmPublicIp(),
 			"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
 			"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),

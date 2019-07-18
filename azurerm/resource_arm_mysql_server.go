@@ -8,7 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,20 +21,22 @@ func resourceArmMySqlServer() *schema.Resource {
 		Read:   resourceArmMySqlServerRead,
 		Update: resourceArmMySqlServerUpdate,
 		Delete: resourceArmMySqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -197,7 +201,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
@@ -206,6 +210,19 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mysql_server", *existing.ID)
+		}
+	}
 
 	sku := expandMySQLServerSku(d)
 	storageProfile := expandMySQLStorageProfile(d)
@@ -322,7 +339,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("administrator_login", resp.AdministratorLogin)

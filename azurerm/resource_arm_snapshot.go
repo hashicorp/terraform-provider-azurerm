@@ -8,6 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +31,9 @@ func resourceArmSnapshot() *schema.Resource {
 				ValidateFunc: validateSnapshotName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"create_option": {
 				Type:     schema.TypeString,
@@ -80,9 +82,22 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_snapshot", *existing.ID)
+		}
+	}
 
 	properties := compute.Snapshot{
 		Location: utils.String(location),
@@ -119,16 +134,16 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting on create/update future for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -162,7 +177,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SnapshotProperties; props != nil {

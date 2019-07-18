@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

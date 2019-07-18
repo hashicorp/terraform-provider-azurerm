@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,6 +63,20 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetByScope(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Management Lock %q (Scope %q): %s", name, scope, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_management_lock", *existing.ID)
+		}
+	}
+
 	lockLevel := d.Get("lock_level").(string)
 	notes := d.Get("notes").(string)
 

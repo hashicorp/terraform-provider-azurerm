@@ -1,7 +1,6 @@
 // Package cdn implements the Azure ARM Cdn service API version 2017-10-12.
 //
-// Use these APIs to manage Azure CDN resources through the Azure Resource Manager. You must make sure that requests
-// made to these resources are secure.
+// Cdn Management Client
 package cdn
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
@@ -26,6 +25,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -60,6 +60,16 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 // Parameters:
 // checkNameAvailabilityInput - input to check.
 func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAvailabilityInput CheckNameAvailabilityInput) (result CheckNameAvailabilityOutput, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckNameAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: checkNameAvailabilityInput,
 			Constraints: []validation.Constraint{{Target: "checkNameAvailabilityInput.Name", Name: validation.Null, Rule: true, Chain: nil},
@@ -130,6 +140,16 @@ func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (re
 // Parameters:
 // checkNameAvailabilityInput - input to check.
 func (client BaseClient) CheckNameAvailabilityWithSubscription(ctx context.Context, checkNameAvailabilityInput CheckNameAvailabilityInput) (result CheckNameAvailabilityOutput, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckNameAvailabilityWithSubscription")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: checkNameAvailabilityInput,
 			Constraints: []validation.Constraint{{Target: "checkNameAvailabilityInput.Name", Name: validation.Null, Rule: true, Chain: nil},
@@ -205,6 +225,16 @@ func (client BaseClient) CheckNameAvailabilityWithSubscriptionResponder(resp *ht
 // Parameters:
 // validateProbeInput - input to check.
 func (client BaseClient) ValidateProbe(ctx context.Context, validateProbeInput ValidateProbeInput) (result ValidateProbeOutput, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ValidateProbe")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: validateProbeInput,
 			Constraints: []validation.Constraint{{Target: "validateProbeInput.ProbeURL", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {

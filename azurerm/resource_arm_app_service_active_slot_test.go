@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 	resourceName := "azurerm_app_service_active_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceActiveSlot_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +31,7 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 
 func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 	resourceName := "azurerm_app_service_active_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceActiveSlot_update(ri, testLocation())
 	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, testLocation())
 

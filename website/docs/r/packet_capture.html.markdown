@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_packet_capture"
-sidebar_current: "docs-azurerm-resource-network-packet-capture"
+sidebar_current: "docs-azurerm-resource-packet-capture"
 description: |-
   Configures Packet Capturing against a Virtual Machine using a Network Watcher.
 
@@ -10,6 +10,8 @@ description: |-
 # azurerm_packet_capture
 
 Configures Packet Capturing against a Virtual Machine using a Network Watcher.
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_network_connection_monitor` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 ## Example Usage
 
@@ -47,7 +49,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

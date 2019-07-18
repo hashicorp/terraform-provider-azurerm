@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"math"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -11,15 +10,16 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMsSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlElasticPoolCreate,
+		Create: resourceArmMsSqlElasticPoolCreateUpdate,
 		Read:   resourceArmMsSqlElasticPoolRead,
-		Update: resourceArmMsSqlElasticPoolCreate,
+		Update: resourceArmMsSqlElasticPoolCreateUpdate,
 		Delete: resourceArmMsSqlElasticPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -33,9 +33,9 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -159,13 +159,24 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"max_size_gb"},
+				ValidateFunc:  validation.IntAtLeast(0),
+			},
+
+			"max_size_gb": {
+				Type:          schema.TypeFloat,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"max_size_bytes"},
+				ValidateFunc:  validate.FloatAtLeast(0),
 			},
 
 			"zone_redundant": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
 			},
 
 			"tags": tagsSchema(),
@@ -173,80 +184,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
-			name, _ := diff.GetOk("sku.0.name")
-			capacity, _ := diff.GetOk("sku.0.capacity")
-			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
-			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
-
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
-
-				if capacity.(int) > 24 {
-					return fmt.Errorf("GeneralPurpose pricing tier only supports upto 24 vCores")
-				}
-
-				if capacity.(int) < 1 {
-					return fmt.Errorf("GeneralPurpose pricing tier must have a minimum of 1 vCores")
-				}
-
-				switch {
-				case capacity.(int) == 1:
-				case capacity.(int) == 2:
-				case capacity.(int) == 4:
-				case capacity.(int) == 8:
-				case capacity.(int) == 16:
-				case capacity.(int) == 24:
-				default:
-					return fmt.Errorf("GeneralPurpose pricing tier must have a capacity of 1, 2, 4, 8, 16, or 24 vCores")
-				}
-			}
-
-			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				if capacity.(int) > 80 {
-					return fmt.Errorf("BusinessCritical pricing tier only supports upto 80 vCores")
-				}
-
-				if capacity.(int) < 2 {
-					return fmt.Errorf("BusinessCritical pricing tier must have a minimum of 2 vCores")
-				}
-
-				switch {
-				case capacity.(int) == 1:
-				case capacity.(int) == 2:
-				case capacity.(int) == 4:
-				case capacity.(int) == 8:
-				case capacity.(int) == 16:
-				case capacity.(int) == 24:
-				case capacity.(int) == 32:
-				case capacity.(int) == 40:
-				case capacity.(int) == 80:
-				default:
-					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
-				}
-			}
-
-			// Additional checks based of SKU type...
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				// vCore based
-				if maxCapacity.(float64) > float64(capacity.(int)) {
-					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity value")
-				}
-
-				if minCapacity.(float64) > maxCapacity.(float64) {
-					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings minCapacity value")
-				}
-			} else {
-				// DTU based
-				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
-					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as their maxCapacity")
-				}
-
-				if minCapacity.(float64) != math.Trunc(minCapacity.(float64)) {
-					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as their minCapacity")
-				}
-
-				if minCapacity.(float64) < 0.0 {
-					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs per_database_settings min_capacity must be equal to or greater than zero")
-				}
+			if err := azure.MSSQLElasticPoolValidateSKU(diff); err != nil {
+				return err
 			}
 
 			return nil
@@ -254,16 +193,30 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).msSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for MsSQL ElasticPool creation.")
+	log.Printf("[INFO] preparing arguments for MSSQL ElasticPool creation.")
 
 	elasticPoolName := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Elastic Pool %q (MSSQL Server %q / Resource Group %q): %s", elasticPoolName, serverName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -275,6 +228,21 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
 		},
+	}
+
+	if v, ok := d.GetOkExists("zone_redundant"); ok {
+		elasticPool.ElasticPoolProperties.ZoneRedundant = utils.Bool(v.(bool))
+	}
+
+	if d.HasChange("max_size_gb") {
+		if v, ok := d.GetOk("max_size_gb"); ok {
+			maxSizeBytes := v.(float64) * 1073741824
+			elasticPool.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
+		}
+	} else {
+		if v, ok := d.GetOk("max_size_bytes"); ok {
+			elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
@@ -321,7 +289,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("server_name", serverName)
@@ -331,7 +299,14 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if properties := resp.ElasticPoolProperties; properties != nil {
-		d.Set("max_size_bytes", properties.MaxSizeBytes)
+		// Basic tier does not return max_size_bytes, so we need to skip setting this
+		// value if the pricing tier is equal to Basic
+		if tier, ok := d.GetOk("sku.0.tier"); ok {
+			if !strings.EqualFold(tier.(string), "Basic") {
+				d.Set("max_size_gb", float64(*properties.MaxSizeBytes/int64(1073741824)))
+				d.Set("max_size_bytes", properties.MaxSizeBytes)
+			}
+		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
 		//todo remove in 2.0
@@ -425,11 +400,6 @@ func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 
 func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
 	elasticPoolProperty := map[string]interface{}{}
-
-	if maxSizeBytes := resp.MaxSizeBytes; maxSizeBytes != nil {
-		elasticPoolProperty["max_size_bytes"] = *maxSizeBytes
-	}
-
 	elasticPoolProperty["state"] = string(resp.State)
 
 	if date := resp.CreationDate; date != nil {

@@ -4,12 +4,13 @@ AzureRM Terraform Provider
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+- Slack workspace: [Terraform on Azure](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
 
 General Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.11.x (to build the provider plugin)
+-	[Go](https://golang.org/doc/install) 1.12.x (to build the provider plugin)
 
 Windows Specific Requirements
 -----------------------------
@@ -73,7 +74,7 @@ Further [usage documentation is available on the Terraform website](https://www.
 Developing the Provider
 ---------------------------
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.12+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
@@ -107,3 +108,9 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_TEST_LOCATION_ALT`
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+
+Crosscompiling
+--------------
+```sh
+GOOS=windows GOARCH=amd64 make build
+```

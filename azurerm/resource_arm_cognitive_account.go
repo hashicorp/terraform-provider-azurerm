@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -32,9 +33,9 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				ValidateFunc: validate.CognitiveServicesAccountName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -53,12 +54,15 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"ComputerVision",
 					"ContentModerator",
 					"CustomSpeech",
+					"CustomVision.Prediction",
+					"CustomVision.Training",
 					"Emotion",
 					"Face",
 					"LUIS",
 					"Recommendations",
 					"SpeakerRecognition",
 					"Speech",
+					"SpeechServices",
 					"SpeechTranslation",
 					"TextAnalytics",
 					"TextTranslation",
@@ -76,17 +80,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.F0),
-								string(cognitiveservices.S0),
-								string(cognitiveservices.S1),
-								string(cognitiveservices.S2),
-								string(cognitiveservices.S3),
-								string(cognitiveservices.S4),
-								string(cognitiveservices.S5),
-								string(cognitiveservices.S6),
-								string(cognitiveservices.P0),
-								string(cognitiveservices.P1),
-								string(cognitiveservices.P2),
+								"F0", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 							}, false),
 						},
 
@@ -109,12 +103,24 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
 
 func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitiveAccountsClient
+	client := meta.(*ArmClient).cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -133,13 +139,13 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountCreateParameters{
-		Kind:       cognitiveservices.Kind(kind),
+		Kind:       utils.String(kind),
 		Location:   utils.String(location),
 		Sku:        sku,
 		Properties: &cognitiveServicesPropertiesStruct{},
@@ -161,7 +167,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitiveAccountsClient
+	client := meta.(*ArmClient).cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -189,7 +195,7 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitiveAccountsClient
+	client := meta.(*ArmClient).cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -201,6 +207,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["accounts"]
 
 	resp, err := client.GetProperties(ctx, resourceGroup, name)
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -215,10 +222,10 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
+	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
@@ -226,13 +233,28 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("endpoint", props.Endpoint)
 	}
 
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
+	}
+
+	d.Set("primary_access_key", keys.Key1)
+
+	d.Set("secondary_access_key", keys.Key2)
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
 func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitiveAccountsClient
+	client := meta.(*ArmClient).cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -258,7 +280,7 @@ func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
 	sku := skus[0].(map[string]interface{})
 
 	return &cognitiveservices.Sku{
-		Name: cognitiveservices.SkuName(sku["name"].(string)),
+		Name: utils.String(sku["name"].(string)),
 		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
 	}
 }
@@ -268,10 +290,13 @@ func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"name": string(input.Name),
-			"tier": string(input.Tier),
-		},
+	m := map[string]interface{}{
+		"tier": string(input.Tier),
 	}
+
+	if v := input.Name; v != nil {
+		m["name"] = *v
+	}
+
+	return []interface{}{m}
 }

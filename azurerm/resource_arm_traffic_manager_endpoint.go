@@ -5,17 +5,20 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerEndpointCreate,
+		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
-		Update: resourceArmTrafficManagerEndpointCreate,
+		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -34,7 +37,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"type": {
 				Type:     schema.TypeString,
@@ -89,8 +92,8 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				StateFunc:        azureRMNormalizeLocation,
-				DiffSuppressFunc: azureRMSuppressLocationDiff,
+				StateFunc:        azure.NormalizeLocation,
+				DiffSuppressFunc: azure.SuppressLocationDiff,
 			},
 
 			"min_child_endpoints": {
@@ -108,12 +111,58 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"custom_header": {
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+					},
+				},
+			},
+
+			"subnet": {
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"first": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+						"last": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+						"scope": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 32),
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
 
@@ -123,13 +172,24 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", *existing.ID)
+		}
+	}
+
 	params := trafficmanager.Endpoint{
 		Name:               &name,
 		Type:               &fullEndpointType,
 		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
 	}
-
-	ctx := meta.(*ArmClient).StopContext
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
 		return err
@@ -149,7 +209,7 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -193,13 +253,57 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
+		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			return fmt.Errorf("Error setting `subnet`: %s", err)
+		}
+		if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+			return fmt.Errorf("Error setting `custom_header`: %s", err)
+		}
 	}
-
 	return nil
 }
 
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, subnet := range *input {
+		flatSubnet := make(map[string]interface{}, 3)
+		if subnet.First != nil {
+			flatSubnet["first"] = *subnet.First
+		}
+		if subnet.Last != nil {
+			flatSubnet["last"] = *subnet.Last
+		}
+		if subnet.Scope != nil {
+			flatSubnet["scope"] = int(*subnet.Scope)
+		}
+		result = append(result, flatSubnet)
+	}
+	return result
+}
+
+func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, header := range *input {
+		flatHeader := make(map[string]interface{}, 2)
+		if header.Name != nil {
+			flatHeader["name"] = *header.Name
+		}
+		if header.Value != nil {
+			flatHeader["value"] = *header.Value
+		}
+		result = append(result, flatHeader)
+	}
+	return result
+}
+
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -235,7 +339,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
 		endpointProps.TargetResourceID = utils.String(resourceId)
-		//TODO? Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error. Remove if/when no longer necessary
+		//NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
 		}
@@ -265,6 +369,37 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
 		mci64 := int64(minChildEndpoints)
 		endpointProps.MinChildEndpoints = &mci64
+	}
+
+	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnet := range d.Get("subnet").([]interface{}) {
+		subnetBlock := subnet.(map[string]interface{})
+		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Last:  utils.String(subnetBlock["last"].(string)),
+			})
+		} else {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Scope: utils.Int32(int32(subnetBlock["scope"].(int))),
+			})
+		}
+	}
+	if len(subnetSlice) > 0 {
+		endpointProps.Subnets = &subnetSlice
+	}
+
+	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	for _, header := range d.Get("custom_header").([]interface{}) {
+		headerBlock := header.(map[string]interface{})
+		headerSlice = append(headerSlice, trafficmanager.EndpointPropertiesCustomHeadersItem{
+			Name:  utils.String(headerBlock["name"].(string)),
+			Value: utils.String(headerBlock["value"].(string)),
+		})
+	}
+	if len(headerSlice) > 0 {
+		endpointProps.CustomHeaders = &headerSlice
 	}
 
 	return &endpointProps

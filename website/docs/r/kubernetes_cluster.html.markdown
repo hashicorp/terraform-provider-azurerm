@@ -36,12 +36,20 @@ resource "azurerm_kubernetes_cluster" "test" {
     os_disk_size_gb = 30
   }
 
+  agent_pool_profile {
+    name            = "pool2"
+    count           = 1
+    vm_size         = "Standard_D2_v2"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
+  }
+
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -65,9 +73,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as documented below.
+* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as defined below.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
+* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
+
+-> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
 
@@ -85,12 +95,17 @@ The following arguments are supported:
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
+* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **Note:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 A `addon_profile` block supports the following:
 
+* `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
 * `http_application_routing` - (Optional) A `http_application_routing` block.
 * `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
@@ -99,16 +114,34 @@ A `addon_profile` block supports the following:
 A `agent_pool_profile` block supports the following:
 
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
+
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
+
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent.
+ 
+* `availability_zones` - (Optional)  Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+
+* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
+
+* `min_count` - (Optional) Minimum number of nodes for auto-scaling 
+
+* `max_count` - (Optional) Maximum number of nodes for auto-scaling
+
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
+
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
+
+* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
+
+~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A route table should be configured on this Subnet.
 
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 ---
 
 A `azure_active_directory` block supports the following:
@@ -117,7 +150,7 @@ A `azure_active_directory` block supports the following:
 
 * `server_app_id` - (Required) The Server ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
 
-* `server_app_secret` - (Required) The Client Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
 
@@ -133,7 +166,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) One or more `ssh_key` blocks. Changing this forces a new resource to be created.
+* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed.  Changing this forces a new resource to be created.
 
 ---
 
@@ -143,13 +176,15 @@ A `network_profile` block supports the following:
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set.
 
-* `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). This field can only be set when `network_plugin` is set to `azure`. Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
 
-* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+* `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
+
+* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
-* `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+* `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
 
@@ -165,9 +200,34 @@ A `oms_agent` block supports the following:
 
 ---
 
+A `aci_connector_linux` block supports the following:
+
+* `enabled` - (Required) Is the virtual node addon enabled?
+
+* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
+
+-> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+
+```
+resource "azurerm_subnet" "virtual" {
+  
+  ...
+
+  delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+```
+
+---
+
 A `role_based_access_control` block supports the following:
 
-* `azure_active_directory` - (Required) An `azure_active_directory` block. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
 
 * `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
@@ -40,7 +40,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -64,9 +64,39 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_virtual_network.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestVirtualNetwork_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_virtual_network"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -79,7 +109,7 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -93,19 +123,19 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestVirtualNetworkExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualNetworkName := rs.Primary.Attributes["name"]
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
@@ -122,7 +152,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(name string) resource.TestCheck
 }
 
 func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -171,6 +201,19 @@ resource "azurerm_dev_test_virtual_network" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestVirtualNetwork_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_virtual_network" "import" {
+  name                = "${azurerm_dev_test_virtual_network.test.name}"
+  lab_name            = "${azurerm_dev_test_virtual_network.test.lab_name}"
+  resource_group_name = "${azurerm_dev_test_virtual_network.test.resource_group_name}"
+}
+`, template)
+}
+
 func testAccAzureRMDevTestVirtualNetwork_subnets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -190,7 +233,7 @@ resource "azurerm_dev_test_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   subnet {
-    use_public_ip_address           = "Allow"
+    use_public_ip_address           = "Deny"
     use_in_virtual_machine_creation = "Allow"
   }
 }

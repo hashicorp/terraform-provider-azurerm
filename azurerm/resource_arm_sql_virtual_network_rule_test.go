@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +20,7 @@ import (
 */
 func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
-	preConfig := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
-	postConfig := testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,7 +28,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
@@ -41,11 +40,39 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_virtual_network_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlVirtualNetworkRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_virtual_network_rule"),
 			},
 		},
 	})
@@ -58,7 +85,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
 	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
@@ -95,7 +122,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,7 +149,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -146,7 +173,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	is still applied since the endpoint validation will be set to false.
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -171,7 +198,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName1 := "azurerm_sql_virtual_network_rule.rule1"
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -320,11 +347,11 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 /*
 	Test Check function to assert if a rule exists or not.
 */
-func testCheckAzureRMSqlVirtualNetworkRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -381,12 +408,12 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 /*
 	Test Check function to assert if that a rule gets deleted.
 */
-func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -463,6 +490,19 @@ resource "azurerm_sql_virtual_network_rule" "test" {
   ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+func testAccAzureRMSqlVirtualNetworkRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_virtual_network_rule" "import" {
+  name                                 = "${azurerm_sql_virtual_network_rule.test.name}"
+  resource_group_name                  = "${azurerm_sql_virtual_network_rule.test.resource_group_name}"
+  server_name                          = "${azurerm_sql_virtual_network_rule.test.server_name}"
+  subnet_id                            = "${azurerm_sql_virtual_network_rule.test.subnet_id}"
+  ignore_missing_vnet_service_endpoint = "${azurerm_sql_virtual_network_rule.test.ignore_missing_vnet_service_endpoint}"
+}
+`, testAccAzureRMSqlVirtualNetworkRule_basic(rInt, location))
 }
 
 /*

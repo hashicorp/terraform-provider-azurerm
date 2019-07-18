@@ -8,6 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +32,9 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -39,14 +42,14 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(operationalinsights.Free),
+					string(operationalinsights.PerGB2018),
 					string(operationalinsights.PerNode),
 					string(operationalinsights.Premium),
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
-					string(operationalinsights.Unlimited),
-					string(operationalinsights.PerGB2018),
+					string("Unlimited"), // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"retention_in_days": {
@@ -84,14 +87,27 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
+	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics workspace creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_log_analytics_workspace", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuName := d.Get("sku").(string)
 	sku := &operationalinsights.Sku{
 		Name: operationalinsights.SkuNameEnum(skuName),
@@ -136,7 +152,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
+	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -157,7 +173,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("workspace_id", resp.CustomerID)
@@ -180,7 +196,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
+	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

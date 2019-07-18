@@ -6,21 +6,22 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by it's nature)
 
-func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals)
+func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals)
+func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(logicAppId)
@@ -54,8 +55,17 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
 
+	resourceId := fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name)
+
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		if _, hasExisting := vs[name]; hasExisting {
+			return tf.ImportAsExistsError(resourceName, resourceId)
+		}
+	}
+
 	vs[name] = vals
 	definition[propertyName] = vs
 
@@ -73,7 +83,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	}
 
 	if d.IsNewResource() {
-		d.SetId(fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name))
+		d.SetId(resourceId)
 	}
 
 	return nil
@@ -88,7 +98,7 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", logicAppName, resourceGroup, kind, name)
@@ -145,7 +155,7 @@ func retrieveLogicAppTrigger(meta interface{}, resourceGroup, logicAppName, name
 }
 
 func retrieveLogicAppComponent(meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)

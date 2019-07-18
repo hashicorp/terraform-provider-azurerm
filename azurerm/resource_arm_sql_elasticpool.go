@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -31,9 +32,9 @@ func resourceArmSqlElasticPool() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -90,9 +91,22 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_elasticpool", *existing.ID)
+		}
+	}
 
 	elasticPool := sql.ElasticPool{
 		Name:                  &name,
@@ -115,7 +129,7 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -138,13 +152,13 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Sql Elastic Pool %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("server_name", serverName)
 

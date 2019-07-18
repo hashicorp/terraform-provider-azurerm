@@ -14,16 +14,19 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetCreate,
-		Read:   resourceArmVirtualMachineScaleSetRead,
-		Update: resourceArmVirtualMachineScaleSetCreate,
-		Delete: resourceArmVirtualMachineScaleSetDelete,
+		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Read:          resourceArmVirtualMachineScaleSetRead,
+		Update:        resourceArmVirtualMachineScaleSetCreateUpdate,
+		Delete:        resourceArmVirtualMachineScaleSetDelete,
+		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
+		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -37,11 +40,11 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -713,6 +716,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 						},
 
+						"provision_after_extensions": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
+						},
+
 						"settings": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -739,17 +752,31 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {
@@ -900,7 +927,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", resp.Zones)
 
@@ -1299,13 +1326,21 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						config["primary"] = *properties.Primary
 					}
 
-					if properties.PublicIPAddressConfiguration != nil {
-						publicIpInfo := properties.PublicIPAddressConfiguration
+					if publicIpInfo := properties.PublicIPAddressConfiguration; publicIpInfo != nil {
 						publicIpConfigs := make([]map[string]interface{}, 0, 1)
 						publicIpConfig := make(map[string]interface{})
-						publicIpConfig["name"] = *publicIpInfo.Name
-						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+						if publicIpName := publicIpInfo.Name; publicIpName != nil {
+							publicIpConfig["name"] = *publicIpName
+						}
+						if publicIpProperties := publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties; publicIpProperties != nil {
+							if dns := publicIpProperties.DNSSettings; dns != nil {
+								publicIpConfig["domain_name_label"] = *dns.DomainNameLabel
+							}
+							if timeout := publicIpProperties.IdleTimeoutInMinutes; timeout != nil {
+								publicIpConfig["idle_timeout"] = *timeout
+							}
+							publicIpConfigs = append(publicIpConfigs, publicIpConfig)
+						}
 						config["public_ip_address_configuration"] = publicIpConfigs
 					}
 
@@ -1391,7 +1426,9 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
-		l["lun"] = *disk.Lun
+		if v := disk.Lun; v != nil {
+			l["lun"] = *v
+		}
 
 		result[i] = l
 	}
@@ -1448,6 +1485,14 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 			if properties.AutoUpgradeMinorVersion != nil {
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
+
+			provisionAfterExtensions := make([]interface{}, 0)
+			if properties.ProvisionAfterExtensions != nil {
+				for _, provisionAfterExtension := range *properties.ProvisionAfterExtensions {
+					provisionAfterExtensions = append(provisionAfterExtensions, provisionAfterExtension)
+				}
+			}
+			e["provision_after_extensions"] = schema.NewSet(schema.HashString, provisionAfterExtensions)
 
 			if settings := properties.Settings; settings != nil {
 				settingsVal := settings.(map[string]interface{})
@@ -1550,6 +1595,10 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		if v, ok := m["provision_after_extensions"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -2134,6 +2183,18 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		if u := config["auto_upgrade_minor_version"]; u != nil {
 			upgrade := u.(bool)
 			extension.VirtualMachineScaleSetExtensionProperties.AutoUpgradeMinorVersion = &upgrade
+		}
+
+		if a := config["provision_after_extensions"]; a != nil {
+			provision_after_extensions := config["provision_after_extensions"].(*schema.Set).List()
+			if len(provision_after_extensions) > 0 {
+				var provisionAfterExtensions []string
+				for _, a := range provision_after_extensions {
+					str := a.(string)
+					provisionAfterExtensions = append(provisionAfterExtensions, str)
+				}
+				extension.VirtualMachineScaleSetExtensionProperties.ProvisionAfterExtensions = &provisionAfterExtensions
+			}
 		}
 
 		if s := config["settings"].(string); s != "" {

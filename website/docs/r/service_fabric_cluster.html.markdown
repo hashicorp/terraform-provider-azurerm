@@ -65,9 +65,13 @@ The following arguments are supported:
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
-* `azure_active_directory` - (Optional) `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
-* `certificate` - (Optional) A `certificate` block as defined below.
+* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below. Conflicts with `certificate`.
+
+* `certificate` - (Optional) A `certificate` block as defined below. Conflicts with `certificate_common_names`.
+
+* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
 * `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
@@ -83,15 +87,43 @@ The following arguments are supported:
 
 A `azure_active_directory` block supports the following:
 
-* `tenant_id` - (Required) The TenantID of the Azure Active Directory resource.
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID.
 
-* `cluster_application_id` - (Required) The GUID of the cluster application.
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID.
 
-* `client_application_id` - (Required) The GUID of the client application.
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application.
+
+---
+
+A `certificate_common_names` block supports the following:
+
+* `common_names` - (Required) A `common_names` block as defined below.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `common_names` block supports the following:
+
+* `certificate_common_name` - (Required) The common or subject name of the certificate.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 
 A `certificate` block supports the following:
+
+* `thumbprint` - (Required) The Thumbprint of the Certificate.
+
+* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
@@ -135,6 +167,10 @@ A `node_type` block supports the following:
 
 * `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
 
+* `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
+
+* `capacities` - (Optional) The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has.
+
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
 * `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
@@ -148,6 +184,8 @@ A `node_type` block supports the following:
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
+
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
 
 ---
 

@@ -1,12 +1,12 @@
-resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group_name}"
-  location = "${var.resource_group_location}"
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
+  location = "${var.location}"
 }
 
-resource "azurerm_automation_account" "account" {
-  name                = "tfex-automation-account"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+resource "azurerm_automation_account" "example" {
+  name                = "${var.prefix}-autoacc"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name = "Basic"
@@ -14,20 +14,20 @@ resource "azurerm_automation_account" "account" {
 }
 
 resource "azurerm_automation_schedule" "one-time" {
-  name                    = "tfex-automation_schedule-one_time"
-  resource_group_name     = "${azurerm_resource_group.rg.name}"
-  automation_account_name = "${azurerm_automation_account.account.name}"
+  name                    = "${var.prefix}-one-time"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
   frequency               = "OneTime"
 
-  //defaults start_time to now + 7 min
+  // The start_time defaults to now + 7 min
 }
 
 resource "azurerm_automation_schedule" "hour" {
-  name                    = "tfex-automation_schedule-hour"
-  resource_group_name     = "${azurerm_resource_group.rg.name}"
-  automation_account_name = "${azurerm_automation_account.account.name}"
+  name                    = "${var.prefix}-hour"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
   frequency               = "Hour"
   interval                = 2
 
-  //timezone defaults to UTC
+  // Timezone defaults to UTC
 }

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,7 +45,7 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -95,7 +95,7 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMAvailabilitySet_withTags(ri, location)
 	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri, location)
@@ -133,7 +133,7 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -160,7 +160,7 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -184,12 +184,12 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]
@@ -203,7 +203,7 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 		resp, err := client.Get(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", availSetName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
@@ -213,12 +213,12 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]
@@ -306,7 +306,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -326,7 +326,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

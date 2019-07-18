@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_notification_hub.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMNotificationHubBasic(rInt, location)
 

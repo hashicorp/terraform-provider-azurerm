@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -46,6 +47,16 @@ func NewServiceAssociationLinkClientWithBaseURI(baseURI string, subscriptionID s
 // virtualNetworkName - the name of the virtual network.
 // subnetName - the name of the subnet.
 func (client ServiceAssociationLinkClient) Delete(ctx context.Context, resourceGroupName string, virtualNetworkName string, subnetName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceAssociationLinkClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, virtualNetworkName, subnetName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ServiceAssociationLinkClient", "Delete", nil, "Failure preparing request")

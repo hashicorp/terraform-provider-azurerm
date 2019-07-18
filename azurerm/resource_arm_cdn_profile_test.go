@@ -2,67 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_cdn_profile", &resource.Sweeper{
-		Name: "azurerm_cdn_profile",
-		F:    testSweepCDNProfiles,
-	})
-}
-
-func testSweepCDNProfiles(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).cdnProfilesClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the CDN Profiles..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on CDN Profiles: %+v", err)
-	}
-
-	for _, profile := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*profile.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["profiles"]
-
-		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -92,7 +42,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +66,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMCdnProfile_withTags(ri, location)
 	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri, location)
@@ -158,7 +108,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfileNonStandardCasing(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -183,7 +133,7 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
 	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
@@ -212,7 +162,7 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -238,7 +188,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -262,12 +212,12 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -276,7 +226,7 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+		conn := testAccProvider.Meta().(*ArmClient).cdn.ProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -293,7 +243,7 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+	conn := testAccProvider.Meta().(*ArmClient).cdn.ProfilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -361,7 +311,7 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
 
-  tags {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -382,7 +332,7 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

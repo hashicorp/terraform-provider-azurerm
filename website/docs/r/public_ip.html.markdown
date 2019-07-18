@@ -19,12 +19,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acceptanceTestPublicIp1"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "acceptanceTestPublicIp1"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -44,11 +44,11 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Public IP. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
--> **Note** Public IP Standard SKUs require `public_ip_address_allocation` to be set to `static`.
+-> **Note** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
 
 -> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
 
-* `public_ip_address_allocation` - (Required) Defines whether the IP address is static or dynamic. Options are Static or Dynamic.
+* `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
 
@@ -61,6 +61,10 @@ The following arguments are supported:
 * `domain_name_label` - (Optional) Label for the Domain Name. Will be used to make up the FQDN.  If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system.
 
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
+
+* `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
+
+-> **Please Note**: Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -77,7 +81,7 @@ The following attributes are exported:
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
 
-* `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone
+* `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
 
 ## Import

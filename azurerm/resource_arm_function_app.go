@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,9 +34,14 @@ func resourceArmFunctionApp() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
+
+			"kind": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
@@ -121,7 +128,7 @@ func resourceArmFunctionApp() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.SystemAssigned),
+								string(web.ManagedServiceIdentityTypeSystemAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -144,6 +151,11 @@ func resourceArmFunctionApp() *schema.Resource {
 			},
 
 			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -182,6 +194,11 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"linux_fx_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -215,6 +232,20 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
 	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+		}
+	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
@@ -229,8 +260,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -266,7 +296,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -276,12 +306,12 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -301,7 +331,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -433,8 +463,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", resp.Kind)
+
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -443,6 +475,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
@@ -608,6 +641,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -630,6 +667,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.WebSocketsEnabled != nil {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
+	}
+
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
 	results = append(results, result)

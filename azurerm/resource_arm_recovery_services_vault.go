@@ -5,6 +5,9 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -34,9 +37,9 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tagsSchema(),
 
@@ -54,7 +57,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -63,6 +66,19 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 	tags := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Vault %q (resource group %q)", name, resourceGroup)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_services_vault", *existing.ID)
+		}
+	}
 
 	//build vault struct
 	vault := recoveryservices.Vault{
@@ -86,7 +102,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -112,7 +128,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -125,7 +141,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
+	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

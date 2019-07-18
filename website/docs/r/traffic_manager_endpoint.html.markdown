@@ -43,7 +43,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -109,6 +109,27 @@ The following arguments are supported:
     and defaults to `1`.
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
+
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below
+
+* `subnet` - (Optional) One or more `subnet` blocks as defined below
+
+---
+A `custom_header` block supports the following:
+
+* `name` - (Required) The name of the custom header.
+
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol. 
+
+A `subnet` block supports the following:
+
+* `first` - (Required) The First IP....
+
+* `last` - (Optional) The Last IP...
+
+* `scope` - (Optional) The Scope...
+
+-> **NOTE:** One and only one of either `last` (in case of IP range) or `scope` (in case of CIDR) must be specified.
 
 ## Attributes Reference
 

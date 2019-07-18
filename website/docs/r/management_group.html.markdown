@@ -15,10 +15,23 @@ Manages a Management Group.
 ```hcl
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_management_group" "test" {
+resource "azurerm_management_group" "example_parent" {
+  display_name = "ParentGroup"
+
   subscription_ids = [
-    "${data.azurerm_subscription.current.id}",
+    "${data.azurerm_subscription.current.subscription_id}",
   ]
+}
+
+resource "azurerm_management_group" "example_child" {
+  display_name               = "ChildGroup"
+  parent_management_group_id = "${azurerm_management_group.example_parent.id}"
+
+  subscription_ids = [
+    "${data.azurerm_subscription.current.subscription_id}",
+  ]
+
+  # other subscription IDs can go here
 }
 ```
 
@@ -32,7 +45,7 @@ The following arguments are supported:
 
 * `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.
 
-* `subscription_ids` - (Optional) A list of Subscription ID's which should be assigned to the Management Group.
+* `subscription_ids` - (Optional) A list of Subscription GUIDs which should be assigned to the Management Group.
 
 ## Attributes Reference
 

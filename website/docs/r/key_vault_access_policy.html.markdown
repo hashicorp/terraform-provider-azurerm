@@ -12,7 +12,7 @@ Manages a Key Vault Access Policy.
 
 ~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
--> **NOTE:** Azure permits a maximum of 16 Access Policies per Key Vault - [more information can be found in this document](https://docs.microsoft.com/en-us/azure/key-vault/key-vault-secure-your-key-vault#data-plane-access-control).
+-> **NOTE:** Azure permits a maximum of 1024 Access Policies per Key Vault - [more information can be found in this document](https://docs.microsoft.com/en-us/azure/key-vault/key-vault-secure-your-key-vault#data-plane-access-control).
 
 ## Example Usage
 
@@ -27,22 +27,19 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   tenant_id = "22222222-2222-2222-2222-222222222222"
 
   enabled_for_disk_encryption = true
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"
@@ -61,10 +58,15 @@ resource "azurerm_key_vault_access_policy" "test" {
 
 The following arguments are supported:
 
-* `vault_name` - (Required) Specifies the name of the Key Vault resource. Changing this
+* `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this
     forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+-> **NOTE:** At this time the Key Vault `<->` Key Vault Access Policy associations need to be configured using the field `key_vault_id` or using both fields `vault_name` and `resource_group_name`. These fields are now deprecated and will be removed in favour of `key_vault_id` in the next major version (2.0) of the AzureRM Provider.
+
+* `vault_name` - (Required / **Deprecated**) Specifies the name of the Key Vault resource. Changing this
+    forces a new resource to be created.
+
+* `resource_group_name` - (Required / **Deprecated**) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
@@ -79,8 +81,8 @@ The following arguments are supported:
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
-    the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
-    `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
+    the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
+    `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
 * `key_permissions` - (Required) List of key permissions, must be one or more from
     the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, 
@@ -88,6 +90,8 @@ The following arguments are supported:
 
 * `secret_permissions` - (Required) List of secret permissions, must be one or more
     from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
+
+* `storage_permissions` - (Optional) List of storage permissions, must be one or more from the following: `backup`, `delete`, `deletesas`, `get`, `getsas`, `list`, `listsas`, `purge`, `recover`, `regeneratekey`, `restore`, `set`, `setsas` and `update`.
 
 ## Attributes Reference
 

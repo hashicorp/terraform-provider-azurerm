@@ -2,68 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func init() {
-	resource.AddTestSweepers("azurerm_sql_server", &resource.Sweeper{
-		Name: "azurerm_sql_server",
-		F:    testSweepSQLServer,
-	})
-}
-
-func testSweepSQLServer(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).sqlServersClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the SQL Servers..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on SQL Servers: %+v", err)
-	}
-
-	for _, server := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*server.Name, *server.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*server.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["servers"]
-
-		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMSqlServer_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +20,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 				),
@@ -85,10 +34,36 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlServer_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_server"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +85,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
@@ -144,12 +119,12 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		sqlServerName := rs.Primary.Attributes["name"]
@@ -201,12 +176,12 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -242,6 +217,21 @@ resource "azurerm_sql_server" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMSqlServer_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_server" "import" {
+  name                         = "${azurerm_sql_server.test.name}"
+  resource_group_name          = "${azurerm_sql_server.test.resource_group_name}"
+  location                     = "${azurerm_sql_server.test.location}"
+  version                      = "${azurerm_sql_server.test.version}"
+  administrator_login          = "${azurerm_sql_server.test.administrator_login}"
+  administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+}
+`, testAccAzureRMSqlServer_basic(rInt, location))
+}
+
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -257,7 +247,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "staging"
     database    = "test"
   }
@@ -280,7 +270,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

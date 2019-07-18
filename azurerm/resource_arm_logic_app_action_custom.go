@@ -56,7 +56,7 @@ func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error unmarshalling JSON for Custom Action %q: %+v", name, err)
 	}
 
-	if err := resourceLogicAppActionUpdate(d, meta, logicAppId, name, body); err != nil {
+	if err := resourceLogicAppActionUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_action_custom"); err != nil {
 		return err
 	}
 

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,7 +38,7 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 
 			"phone": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -54,10 +56,23 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 }
 
 func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).securityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Security Center Contact: %+v", err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_security_center_contact", *existing.ID)
+		}
+	}
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
@@ -103,7 +118,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).securityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
@@ -130,7 +145,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSecurityCenterContactDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).securityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName

@@ -7,7 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,9 +33,9 @@ func resourceArmSignalRService() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -79,22 +81,59 @@ func resourceArmSignalRService() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	sku := d.Get("sku").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_signalr_service", *existing.ID)
+		}
+	}
 
 	parameters := &signalr.CreateParameters{
 		Location: utils.String(location),
@@ -123,7 +162,7 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -143,10 +182,15 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err = d.Set("sku", flattenSignalRServiceSku(resp.Sku)); err != nil {
@@ -160,13 +204,18 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("server_port", properties.ServerPort)
 	}
 
+	d.Set("primary_access_key", keys.PrimaryKey)
+	d.Set("primary_connection_string", keys.PrimaryConnectionString)
+	d.Set("secondary_access_key", keys.SecondaryKey)
+	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
 func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalRClient
+	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

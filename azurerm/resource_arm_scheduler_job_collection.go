@@ -7,6 +7,9 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -39,9 +42,9 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tagsSchema(),
 
@@ -121,15 +124,28 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobCollectionsClient
+	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_scheduler_job_collection", *existing.ID)
+		}
+	}
 
 	collection := scheduler.JobCollectionDefinition{
 		Location: utils.String(location),
@@ -164,7 +180,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobCollectionsClient
+	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -191,7 +207,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	d.Set("name", collection.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	flattenAndSetTags(d, collection.Tags)
 
@@ -211,7 +227,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobCollectionsClient
+	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

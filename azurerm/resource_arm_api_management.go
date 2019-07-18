@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,7 +22,7 @@ var apimBackendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Sec
 var apimFrontendProtocolSsl3 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-var apimTripleDesChipers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+var apimTripleDesCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
 
 func resourceArmApiManagementService() *schema.Resource {
 	return &schema.Resource{
@@ -29,21 +30,17 @@ func resourceArmApiManagementService() *schema.Resource {
 		Read:   resourceArmApiManagementServiceRead,
 		Update: resourceArmApiManagementServiceCreateUpdate,
 		Delete: resourceArmApiManagementServiceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementServiceName,
-			},
+			"name": azure.SchemaApiManagementName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"public_ip_addresses": {
 				Type:     schema.TypeList,
@@ -127,7 +124,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -178,7 +175,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // todo remove in 2.0 ?
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -198,9 +195,18 @@ func resourceArmApiManagementService() *schema.Resource {
 							Default:  false,
 						},
 						"disable_triple_des_chipers": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true, // todo remove in 2.0
+							Deprecated:    "This field has been deprecated in favour of the `disable_triple_des_ciphers` property to correct the spelling. it will be removed in version 2.0 of the provider",
+							ConflictsWith: []string{"security.0.disable_triple_des_ciphers"},
+						},
+						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							// Default:       false, // todo remove in 2.0
+							Computed:      true, // todo remove in 2.0
+							ConflictsWith: []string{"security.0.disable_triple_des_chipers"},
 						},
 						"disable_frontend_ssl30": {
 							Type:     schema.TypeBool,
@@ -260,6 +266,83 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"policy": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"xml_content": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ConflictsWith:    []string{"policy.0.xml_link"},
+							DiffSuppressFunc: suppress.XmlDiff,
+						},
+
+						"xml_link": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"policy.0.xml_content"},
+						},
+					},
+				},
+			},
+
+			"sign_in": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"sign_up": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"terms_of_service": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"consent_required": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"text": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 
 			"gateway_url": {
@@ -291,7 +374,7 @@ func resourceArmApiManagementService() *schema.Resource {
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementServiceClient
+	client := meta.(*ArmClient).apiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
@@ -312,7 +395,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmApiManagementSku(d)
@@ -370,11 +453,48 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
+	signInSettingsRaw := d.Get("sign_in").([]interface{})
+	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
+	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
+		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	signUpSettingsRaw := d.Get("sign_up").([]interface{})
+	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
+	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
+		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policiesRaw := d.Get("policy").([]interface{})
+	policy, err := expandApiManagementPolicies(policiesRaw)
+	if err != nil {
+		return err
+	}
+
+	if d.HasChange("policy") {
+		// remove the existing policy
+		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
+			if !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		// then add the new one, if it exists
+		if policy != nil {
+			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy); err != nil {
+				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmApiManagementServiceRead(d, meta)
 }
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementServiceClient
+	client := meta.(*ArmClient).apiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -396,11 +516,31 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policy, err := policyClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(policy.Response) {
+			return fmt.Errorf("Error retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
@@ -437,13 +577,25 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
+	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+		return fmt.Errorf("Error setting `sign_in`: %+v", err)
+	}
+
+	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+		return fmt.Errorf("Error setting `sign_up`: %+v", err)
+	}
+
 	flattenAndSetTags(d, resp.Tags)
+
+	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
+		return fmt.Errorf("Error setting `policy`: %+v", err)
+	}
 
 	return nil
 }
 
 func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementServiceClient
+	client := meta.(*ArmClient).apiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -633,7 +785,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-		location := azureRMNormalizeLocation(config["location"].(string))
+		location := azure.NormalizeLocation(config["location"].(string))
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
@@ -656,7 +808,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {
@@ -749,7 +901,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	frontendProtocolSsl3 := false
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
-	tripleDesChipers := false
+	tripleDesCiphers := false
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -759,7 +911,13 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolSsl3 = v["disable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["disable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["disable_frontend_tls11"].(bool)
-		tripleDesChipers = v["disable_triple_des_chipers"].(bool)
+		//tripleDesCiphers = v["disable_triple_des_ciphers"].(bool) //restore in 2.0
+	}
+
+	if c, ok := d.GetOkExists("security.0.disable_triple_des_ciphers"); ok {
+		tripleDesCiphers = c.(bool)
+	} else if c, ok := d.GetOkExists("security.0.disable_triple_des_chipers"); ok {
+		tripleDesCiphers = c.(bool)
 	}
 
 	return map[string]*string{
@@ -769,7 +927,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
 		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesChipers:      utils.String(strconv.FormatBool(tripleDesChipers)),
+		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
 	}
 }
 
@@ -782,7 +940,8 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesChipers)
+	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // todo remove in 2.0
+	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 
 	return []interface{}{output}
 }
@@ -861,4 +1020,167 @@ func parseApiManagementNilableDictionary(input map[string]*string, key string) b
 	}
 
 	return val
+}
+
+func expandApiManagementSignInSettings(input []interface{}) apimanagement.PortalSigninSettings {
+	enabled := false
+
+	if len(input) > 0 {
+		vs := input[0].(map[string]interface{})
+		enabled = vs["enabled"].(bool)
+	}
+
+	return apimanagement.PortalSigninSettings{
+		PortalSigninSettingProperties: &apimanagement.PortalSigninSettingProperties{
+			Enabled: utils.Bool(enabled),
+		},
+	}
+}
+
+func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings) []interface{} {
+	enabled := false
+
+	if props := input.PortalSigninSettingProperties; props != nil {
+		if props.Enabled != nil {
+			enabled = *props.Enabled
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+		},
+	}
+}
+
+func expandApiManagementSignUpSettings(input []interface{}) apimanagement.PortalSignupSettings {
+	if len(input) == 0 {
+		return apimanagement.PortalSignupSettings{
+			PortalSignupSettingsProperties: &apimanagement.PortalSignupSettingsProperties{
+				Enabled: utils.Bool(false),
+				TermsOfService: &apimanagement.TermsOfServiceProperties{
+					ConsentRequired: utils.Bool(false),
+					Enabled:         utils.Bool(false),
+					Text:            utils.String(""),
+				},
+			},
+		}
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	props := apimanagement.PortalSignupSettingsProperties{
+		Enabled: utils.Bool(vs["enabled"].(bool)),
+	}
+
+	termsOfServiceRaw := vs["terms_of_service"].([]interface{})
+	if len(termsOfServiceRaw) > 0 {
+		termsOfServiceVs := termsOfServiceRaw[0].(map[string]interface{})
+		props.TermsOfService = &apimanagement.TermsOfServiceProperties{
+			Enabled:         utils.Bool(termsOfServiceVs["enabled"].(bool)),
+			ConsentRequired: utils.Bool(termsOfServiceVs["consent_required"].(bool)),
+			Text:            utils.String(termsOfServiceVs["text"].(string)),
+		}
+	}
+
+	return apimanagement.PortalSignupSettings{
+		PortalSignupSettingsProperties: &props,
+	}
+}
+
+func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings) []interface{} {
+	enabled := false
+	termsOfService := make([]interface{}, 0)
+
+	if props := input.PortalSignupSettingsProperties; props != nil {
+		if props.Enabled != nil {
+			enabled = *props.Enabled
+		}
+
+		if tos := props.TermsOfService; tos != nil {
+			output := make(map[string]interface{})
+
+			if tos.Enabled != nil {
+				output["enabled"] = *tos.Enabled
+			}
+
+			if tos.ConsentRequired != nil {
+				output["consent_required"] = *tos.ConsentRequired
+			}
+
+			if tos.Text != nil {
+				output["text"] = *tos.Text
+			}
+
+			termsOfService = append(termsOfService, output)
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":          enabled,
+			"terms_of_service": termsOfService,
+		},
+	}
+}
+
+func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyContract, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	vs := input[0].(map[string]interface{})
+	xmlContent := vs["xml_content"].(string)
+	xmlLink := vs["xml_link"].(string)
+
+	if xmlContent != "" {
+		return &apimanagement.PolicyContract{
+			PolicyContractProperties: &apimanagement.PolicyContractProperties{
+				ContentFormat: apimanagement.XML,
+				PolicyContent: utils.String(xmlContent),
+			},
+		}, nil
+	}
+
+	if xmlLink != "" {
+		return &apimanagement.PolicyContract{
+			PolicyContractProperties: &apimanagement.PolicyContractProperties{
+				ContentFormat: apimanagement.XMLLink,
+				PolicyContent: utils.String(xmlLink),
+			},
+		}, nil
+	}
+
+	return nil, fmt.Errorf("Either `xml_content` or `xml_link` should be set if the `policy` block is defined.")
+}
+
+func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
+	xmlContent := ""
+	if props := input.PolicyContractProperties; props != nil {
+		if props.PolicyContent != nil {
+			xmlContent = *props.PolicyContent
+		}
+	}
+
+	// if there's no policy assigned, we set this to an empty list
+	if xmlContent == "" {
+		return []interface{}{}
+	}
+
+	output := map[string]interface{}{
+		"xml_content": xmlContent,
+		"xml_link":    "",
+	}
+
+	// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+	// as such we need to retrieve this value from the state if it's present
+	if existing, ok := d.GetOk("policy"); ok {
+		existingVs := existing.([]interface{})
+		if len(existingVs) > 0 {
+			existingV := existingVs[0].(map[string]interface{})
+			output["xml_link"] = existingV["xml_link"].(string)
+		}
+	}
+
+	return []interface{}{output}
 }

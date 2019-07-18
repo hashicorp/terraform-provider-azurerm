@@ -65,11 +65,11 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 	})
 }
 
-func testCheckAzureRMActiveDirectoryServicePrincipalExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).servicePrincipalsClient
