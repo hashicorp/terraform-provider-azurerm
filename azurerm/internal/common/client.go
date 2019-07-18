@@ -19,6 +19,7 @@ type ClientOptions struct {
 	KeyVaultAuthorizer         autorest.Authorizer
 	ResourceManagerAuthorizer  autorest.Authorizer
 	ResourceManagerEndpoint    string
+	StorageAuthorizer          autorest.Authorizer
 	SubscriptionId             string
 	PartnerId                  string
 	PollingDuration            time.Duration

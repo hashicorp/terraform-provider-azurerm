@@ -629,17 +629,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		storageClient := meta.(*ArmClient).storage
-
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, storageAccountName)
-		if err != nil {
-			return fmt.Errorf("Error locating Resource Group: %s", err)
-		}
-
-		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, storageAccountName)
-		if err != nil {
-			return fmt.Errorf("Error building Queues Client: %s", err)
-		}
+		queueClient := meta.(*ArmClient).storage.QueuesClient
 
 		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, expandQueueProperties(val.([]interface{}))); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
@@ -670,13 +660,13 @@ func expandQueueProperties(input []interface{}) queues.StorageServiceProperties 
 
 		exposedHeaders := make([]string, 0)
 		for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
-			allowedOrigins = append(exposedHeaders, item.(string))
+			exposedHeaders = append(exposedHeaders, item.(string))
 		}
 		corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
 
 		allowedHeaders := make([]string, 0)
 		for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
-			allowedOrigins = append(allowedHeaders, item.(string))
+			allowedHeaders = append(allowedHeaders, item.(string))
 		}
 		corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
 
@@ -1000,24 +990,15 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	flattenAndSetTags(d, resp.Tags)
 
-	storageClient := meta.(*ArmClient).storage
-
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, name)
-	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
-	}
-
-	queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
-	}
-
+	queueClient := meta.(*ArmClient).storage.QueuesClient
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
 	}
-	if err := d.Set("queue_properties", flattenQueueProperties(queueProps.StorageServiceProperties)); err != nil {
-		return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+	if flattenedQueueProps := flattenQueueProperties(queueProps.StorageServiceProperties); len(flattenedQueueProps) > 0 {
+		if err := d.Set("queue_properties", flattenedQueueProps); err != nil {
+			return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
 	}
 
 	return nil
@@ -1210,9 +1191,14 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 func flattenQueueProperties(input queues.StorageServiceProperties) []interface{} {
 	queueProperties := make(map[string]interface{})
 
-	if input.Cors != nil {
-		queueProperties["cors_rule"] = flattenCorsRule(input.Cors.CorsRule)
+	if cors := input.Cors; cors != nil {
+		if cors.CorsRule.AllowedOrigins != "" {
+			queueProperties["cors_rule"] = flattenCorsRule(input.Cors.CorsRule)
+		}
+	}
 
+	if len(queueProperties) == 0 {
+		return []interface{}{}
 	}
 	return []interface{}{queueProperties}
 }

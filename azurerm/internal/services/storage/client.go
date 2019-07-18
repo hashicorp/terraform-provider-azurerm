@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
@@ -17,6 +18,7 @@ import (
 )
 
 type Client struct {
+	QueuesClient queues.Client
 	// this is currently unexported since we only use it to look up the account key
 	// we could export/use this in the future - but there's no point it being public
 	// until that time
@@ -25,9 +27,13 @@ type Client struct {
 
 // NOTE: this temporarily diverges from the other clients until we move this client in here
 // once we have this, can take an Options like everything else
-func BuildClient(accountsClient storage.AccountsClient) *Client {
+func BuildClient(accountsClient storage.AccountsClient, options *common.ClientOptions) *Client {
+	queuesClient := queues.New()
+	options.ConfigureClient(&queuesClient.Client, options.StorageAuthorizer)
+
 	return &Client{
 		accountsClient: accountsClient,
+		QueuesClient:   queuesClient,
 	}
 }
 
@@ -95,18 +101,6 @@ func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accoun
 	directoriesClient := shares.New()
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
-}
-
-func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountName string) (*queues.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
-	if err != nil {
-		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
-	}
-
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	queuesClient := queues.New()
-	queuesClient.Client.Authorizer = storageAuth
-	return &queuesClient, nil
 }
 
 func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accountName string) (*entities.Client, error) {

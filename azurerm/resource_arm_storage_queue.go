@@ -77,7 +77,7 @@ func validateArmStorageQueueName(v interface{}, k string) (warnings []string, er
 }
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	queueClient := meta.(*ArmClient).storage.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	queueName := d.Get("name").(string)
@@ -86,22 +86,12 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := storage.ExpandMetaData(metaDataRaw)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
-	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
-	}
-
-	client, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
-	}
-
-	resourceID := client.GetResourceID(accountName, queueName)
+	resourceID := queueClient.GetResourceID(accountName, queueName)
 	if requireResourcesToBeImported {
-		existing, err := client.GetMetaData(ctx, accountName, queueName)
+		existing, err := queueClient.GetMetaData(ctx, accountName, queueName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Queue %q (Storage Account %q / Resource Group %q): %s", queueName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
 			}
 		}
 
@@ -110,7 +100,7 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if _, err := client.Create(ctx, accountName, queueName, metaData); err != nil {
+	if _, err := queueClient.Create(ctx, accountName, queueName, metaData); err != nil {
 		return fmt.Errorf("Error creating Queue %q (Account %q): %+v", queueName, accountName, err)
 	}
 
@@ -128,24 +118,10 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
-	}
-
-	if resourceGroup == nil {
-		return fmt.Errorf("Error determine Resource Group for Storage Account %q: %s", id.AccountName, err)
-	}
-
-	client, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
-	}
-
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := storage.ExpandMetaData(metaDataRaw)
 
-	if _, err := client.SetMetaData(ctx, id.AccountName, id.QueueName, metaData); err != nil {
+	if _, err := storageClient.QueuesClient.SetMetaData(ctx, id.AccountName, id.QueueName, metaData); err != nil {
 		return fmt.Errorf("Error setting MetaData for Queue %q (Storage Account %q): %s", id.QueueName, id.AccountName, err)
 	}
 
@@ -172,12 +148,7 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
-	}
-
-	metaData, err := client.GetMetaData(ctx, id.AccountName, id.QueueName)
+	metaData, err := storageClient.QueuesClient.GetMetaData(ctx, id.AccountName, id.QueueName)
 	if err != nil {
 		if utils.ResponseWasNotFound(metaData.Response) {
 			log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.QueueName)
@@ -219,12 +190,7 @@ func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
-	}
-
-	if _, err := client.Delete(ctx, id.AccountName, id.QueueName); err != nil {
+	if _, err := storageClient.QueuesClient.Delete(ctx, id.AccountName, id.QueueName); err != nil {
 		return fmt.Errorf("Error deleting Storage Queue %q: %s", id.QueueName, err)
 	}
 
