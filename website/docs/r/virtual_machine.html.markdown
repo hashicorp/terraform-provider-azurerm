@@ -172,6 +172,12 @@ A `boot_diagnostics` block supports the following:
 
 ---
 
+A `additional_capabilities` block supports the following:
+
+* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine?
+
+---
+
 A `identity` block supports the following:
 
 * `type` - (Required) The Managed Service Identity Type of this Virtual Machine. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` (where you can specify the Service Principal ID's) to be used by this Virtual Machine using the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
@@ -299,7 +305,7 @@ A `storage_data_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS` or `UltraSSD_LRS`.
 
 * `managed_disk_id` - (Optional) Specifies the ID of an Existing Managed Disk which should be attached to this Virtual Machine. When this field is set `create_option` must be set to `Attach`.
 

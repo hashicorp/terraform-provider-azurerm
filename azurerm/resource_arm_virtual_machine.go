@@ -645,10 +645,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 	if _, ok := d.GetOk("additional_capabilities"); ok {
-		additionalCapabilities := expandAzureRmVirtualMachineAdditionalCapabilities(d)
-		if additionalCapabilities != nil {
-			properties.AdditionalCapabilities = additionalCapabilities
-		}
+		properties.AdditionalCapabilities = expandAzureRmVirtualMachineAdditionalCapabilities(d)
 	}
 
 	if _, ok := d.GetOk("os_profile"); ok {
