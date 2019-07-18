@@ -25,7 +25,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_webtest" "test" {
+resource "azurerm_application_insights_web_test" "test" {
   name                    = "tf-test-appinsights-webtest"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
@@ -46,15 +46,15 @@ XML
 }
 
 output "webtest_id" {
-  value = "${azurerm_application_insights_webtest.test.id}"
+  value = "${azurerm_application_insights_web_test.test.id}"
 }
 
 output "webtest_provisioning_state" {
-  value = "${azurerm_application_insights_webtest.test.provisioning_state}"
+  value = "${azurerm_application_insights_web_test.test.provisioning_state}"
 }
 
 output "webtests_synthetic_id" {
-  value = "${azurerm_application_insights_webtest.test.synthetic_monitor_id}"
+  value = "${azurerm_application_insights_web_test.test.synthetic_monitor_id}"
 }
 ```
 
