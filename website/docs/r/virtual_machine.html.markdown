@@ -116,6 +116,8 @@ The following arguments are supported:
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block.
 
+* `additional_capabilities` - (Optional) A `additional_capabilities` block.
+
 * `delete_os_disk_on_termination` - (Optional) Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
 * `delete_data_disks_on_termination` - (Optional) Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
