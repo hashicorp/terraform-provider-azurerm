@@ -75,6 +75,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"custom_node_resource_group": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
 			"dns_prefix": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -574,6 +580,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create/update.")
 
 	resGroup := d.Get("resource_group_name").(string)
+	nodeResGroup := d.Get("custom_node_resource_group").(string)
 	name := d.Get("name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
@@ -636,6 +643,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 			KubernetesVersion:           utils.String(kubernetesVersion),
 			LinuxProfile:                linuxProfile,
 			NetworkProfile:              networkProfile,
+			NodeResourceGroup:           &nodeResGroup,
 			ServicePrincipalProfile:     servicePrincipalProfile,
 		},
 		Tags: expandTags(tags),
