@@ -1472,7 +1472,7 @@ resource "azurerm_storage_account" "testsa" {
 			exposed_headers    = ["x-tempo-*", "x-method-*"]
 			allowed_headers    = ["*"]
 			allowed_methods    = ["GET"]
-			max_age_in_seconds = "300"
+			max_age_in_seconds = "2000000000"
 		}
 		logging {
 			version               = "1.0"

@@ -419,6 +419,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cors_rule": {
@@ -468,7 +469,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"max_age_in_seconds": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntAtLeast(0),
+										ValidateFunc: validation.IntBetween(1, 2000000000),
 									},
 								},
 							},
@@ -1149,16 +1150,21 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	flattenAndSetTags(d, resp.Tags)
 
-	queueClient := meta.(*ArmClient).storage.QueuesClient
-	queueProps, err := queueClient.GetServiceProperties(ctx, name)
-	if err != nil {
-		return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
-	}
-	if flattenedQueueProps := flattenQueueProperties(queueProps.StorageServiceProperties); len(flattenedQueueProps) > 0 {
-		if err := d.Set("queue_properties", flattenedQueueProps); err != nil {
-			return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+	/*
+		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueProps, err := queueClient.GetServiceProperties(ctx, name)
+		if err != nil {
+			if queueProps.Response.Response != nil {
+				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+			}
 		}
-	}
+		if queueProps.Response.Response != nil {
+			if flattenedQueueProps := flattenQueueProperties(queueProps.StorageServiceProperties); len(flattenedQueueProps) > 0 {
+				if err := d.Set("queue_properties", flattenedQueueProps); err != nil {
+					return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+				}
+			}
+		}*/
 
 	return nil
 }
