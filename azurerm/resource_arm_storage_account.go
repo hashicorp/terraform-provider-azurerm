@@ -417,9 +417,9 @@ func resourceArmStorageAccount() *schema.Resource {
 			"queue_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				ForceNew: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cors_rule": {
@@ -1150,21 +1150,17 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	flattenAndSetTags(d, resp.Tags)
 
-	/*
-		queueClient := meta.(*ArmClient).storage.QueuesClient
-		queueProps, err := queueClient.GetServiceProperties(ctx, name)
-		if err != nil {
-			if queueProps.Response.Response != nil {
-				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
-			}
+	queueClient := meta.(*ArmClient).storage.QueuesClient
+	queueProps, err := queueClient.GetServiceProperties(ctx, name)
+	if err != nil {
+		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
+			return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
 		}
-		if queueProps.Response.Response != nil {
-			if flattenedQueueProps := flattenQueueProperties(queueProps.StorageServiceProperties); len(flattenedQueueProps) > 0 {
-				if err := d.Set("queue_properties", flattenedQueueProps); err != nil {
-					return fmt.Errorf("Error flattening `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
-				}
-			}
-		}*/
+	}
+
+	if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+		return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+	}
 
 	return nil
 }
@@ -1353,7 +1349,11 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	return virtualNetworks
 }
 
-func flattenQueueProperties(input queues.StorageServiceProperties) []interface{} {
+func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
+	if input.Response.Response == nil {
+		return []interface{}{}
+	}
+
 	queueProperties := make(map[string]interface{})
 
 	if cors := input.Cors; cors != nil {

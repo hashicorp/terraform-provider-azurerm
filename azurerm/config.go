@@ -807,7 +807,6 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
 
-	// Come here
 	c.storage = intStor.BuildClient(accountsClient, options)
 }
 
