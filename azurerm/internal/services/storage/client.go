@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
@@ -22,15 +24,17 @@ type Client struct {
 	// we could export/use this in the future - but there's no point it being public
 	// until that time
 	accountsClient storage.AccountsClient
+	environment    az.Environment
 }
 
 // NOTE: this temporarily diverges from the other clients until we move this client in here
 // once we have this, can take an Options like everything else
-func BuildClient(accountsClient storage.AccountsClient) *Client {
+func BuildClient(accountsClient storage.AccountsClient, options *common.ClientOptions) *Client {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
 		accountsClient: accountsClient,
+		environment:    options.Environment,
 	}
 }
 
@@ -71,7 +75,7 @@ func (client Client) BlobsClient(ctx context.Context, resourceGroup, accountName
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	blobsClient := blobs.New()
+	blobsClient := blobs.NewWithEnvironment(client.environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
 }
@@ -83,7 +87,7 @@ func (client Client) ContainersClient(ctx context.Context, resourceGroup, accoun
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	containersClient := containers.New()
+	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
 }
@@ -95,7 +99,7 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGro
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	directoriesClient := directories.New()
+	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }
@@ -107,7 +111,7 @@ func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accoun
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	directoriesClient := shares.New()
+	directoriesClient := shares.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }
@@ -119,7 +123,7 @@ func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountNam
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
-	queuesClient := queues.New()
+	queuesClient := queues.NewWithEnvironment(client.environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
 }
@@ -131,7 +135,7 @@ func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accou
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
-	entitiesClient := entities.New()
+	entitiesClient := entities.NewWithEnvironment(client.environment)
 	entitiesClient.Client.Authorizer = storageAuth
 	return &entitiesClient, nil
 }
@@ -143,7 +147,7 @@ func (client Client) TablesClient(ctx context.Context, resourceGroup, accountNam
 	}
 
 	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
-	tablesClient := tables.New()
+	tablesClient := tables.NewWithEnvironment(client.environment)
 	tablesClient.Client.Authorizer = storageAuth
 	return &tablesClient, nil
 }

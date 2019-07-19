@@ -353,6 +353,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		PollingDuration:            60 * time.Minute,
 		SkipProviderReg:            skipProviderRegistration,
 		EnableCorrelationRequestID: true,
+		Environment:                *env,
 	}
 
 	client.apiManagement = apimanagement.BuildClient(o)
@@ -399,7 +400,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
-	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
+	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
@@ -789,7 +790,7 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.providersClient = providersClient
 }
 
-func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
@@ -798,7 +799,7 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
 
-	c.storage = intStor.BuildClient(accountsClient)
+	c.storage = intStor.BuildClient(accountsClient, options)
 }
 
 func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
