@@ -25,7 +25,19 @@ func resourceArmStorageShare() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 2,
-		MigrateState:  resourceStorageShareMigrateState,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				// this should have been applied from pre-0.12 migration system; backporting just in-case
+				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageShareStateUpgradeV0ToV1,
+				Version: 0,
+			},
+			{
+				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageShareStateUpgradeV1ToV2,
+				Version: 1,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
