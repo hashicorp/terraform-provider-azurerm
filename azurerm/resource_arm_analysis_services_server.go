@@ -335,8 +335,6 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
 	}
 
-	return nil
-
 	return &serverProperties
 }
 

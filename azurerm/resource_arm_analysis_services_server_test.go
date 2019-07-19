@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -100,30 +99,11 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 	resourceName := "azurerm_analysis_services_server.test"
 	ri := tf.AccRandTimeInt()
 
-	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings(ri, testLocation(), true, make([]map[string]string, 0))
+	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(ri, testLocation(), true)
 
-	firewallRules2 := make([]map[string]string, 1)
+	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(ri, testLocation(), false)
 
-	firewallRules2[0] = make(map[string]string)
-	firewallRules2[0]["name"] = "test1"
-	firewallRules2[0]["range_start"] = "92.123.234.11"
-	firewallRules2[0]["range_end"] = "92.123.234.12"
-
-	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings(ri, testLocation(), false, firewallRules2)
-
-	firewallRules3 := make([]map[string]string, 2)
-
-	firewallRules3[0] = make(map[string]string)
-	firewallRules3[0]["name"] = "test1"
-	firewallRules3[0]["range_start"] = "92.123.234.11"
-	firewallRules3[0]["range_end"] = "92.123.234.13"
-
-	firewallRules3[1] = make(map[string]string)
-	firewallRules3[1]["name"] = "test2"
-	firewallRules3[1]["range_start"] = "226.202.187.57"
-	firewallRules3[1]["range_end"] = "226.208.192.47"
-
-	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings(ri, testLocation(), true, firewallRules3)
+	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(ri, testLocation(), true)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -210,7 +190,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestASS%d"
+  name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
@@ -226,7 +206,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestASS%d"
+  name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
@@ -246,7 +226,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                = "acctestASS%d"
+  name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku 				  = "B1"
@@ -267,7 +247,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestASS%d"
+  name                		= "acctestass%d"
   location            		= "${azurerm_resource_group.test.location}"
   resource_group_name 		= "${azurerm_resource_group.test.name}"
   sku 				  		= "B1"
@@ -276,17 +256,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, rInt, location, rInt, connectionMode)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings(rInt int, location string, enablePowerBIService bool, ipRules []map[string]string) string {
-	ipRulesStr := make([]string, len(ipRules))
-	for i, ipRule := range ipRules {
-		ipRulesStr[i] = fmt.Sprintf(`ipv4_firewall_rule {
-  name        = "%s"
-  range_start = "%s"
-  range_end   = "%s"
-}
-`, ipRule["name"], ipRule["range_start"], ipRule["range_end"])
-	}
-
+func testAccAzureRMAnalysisServicesServer_firewallSettings1(rInt int, location string, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -294,15 +264,65 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestASS%d"
+  name                		= "acctestass%d"
   location            		= "${azurerm_resource_group.test.location}"
   resource_group_name 		= "${azurerm_resource_group.test.name}"
   sku 				  		= "B1"
   enable_power_bi_service   = %t
-
-  %s
 }
-`, rInt, location, rInt, enablePowerBIService, strings.Join(ipRulesStr, "\n"))
+`, rInt, location, rInt, enablePowerBIService)
+}
+
+func testAccAzureRMAnalysisServicesServer_firewallSettings2(rInt int, location string, enablePowerBIService bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                		= "acctestass%d"
+  location            		= "${azurerm_resource_group.test.location}"
+  resource_group_name 		= "${azurerm_resource_group.test.name}"
+  sku 				  		= "B1"
+  enable_power_bi_service   = %t
+  
+  ipv4_firewall_rule {
+    name        = "test1"
+    range_start = "92.123.234.11"
+    range_end   = "92.123.234.12"
+  }
+}
+`, rInt, location, rInt, enablePowerBIService)
+}
+
+func testAccAzureRMAnalysisServicesServer_firewallSettings3(rInt int, location string, enablePowerBIService bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                		= "acctestass%d"
+  location            		= "${azurerm_resource_group.test.location}"
+  resource_group_name 		= "${azurerm_resource_group.test.name}"
+  sku 				  		= "B1"
+  enable_power_bi_service   = %t
+  
+  ipv4_firewall_rule {
+    name        = "test1"
+    range_start = "92.123.234.11"
+    range_end   = "92.123.234.13"
+  }
+
+  ipv4_firewall_rule {
+    name        = "test2"
+    range_start = "226.202.187.57"
+    range_end   = "226.208.192.47"
+  }
+}
+`, rInt, location, rInt, enablePowerBIService)
 }
 
 //func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
@@ -313,7 +333,7 @@ resource "azurerm_analysis_services_server" "test" {
 //}
 //
 //resource "azurerm_analysis_services_server" "test" {
-//  name                		= "acctestASS%d"
+//  name                		= "acctestass%d"
 //  location            		= "${azurerm_resource_group.test.location}"
 //  resource_group_name 		= "${azurerm_resource_group.test.name}"
 //  sku 				  		= "B1"
