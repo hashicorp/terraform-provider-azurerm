@@ -368,7 +368,7 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
-	if serverProperties.IPV4FirewallSettings == nil {
+	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
 		return utils.Bool(false), make([]interface{}, 0)
 	}
 
