@@ -402,5 +402,5 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 		fwRules = append(fwRules, output)
 	}
 
-	return firewallSettings.EnablePowerBIService, fwRules
+	return enablePowerBi, fwRules
 }
