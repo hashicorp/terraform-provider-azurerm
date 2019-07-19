@@ -97,6 +97,45 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageTable_acl(t *testing.T) {
+	var table storage.Table
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageTable_acl(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName, &table),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageTable_aclUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName, &table),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -290,4 +329,86 @@ resource "azurerm_storage_table" "import" {
   storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageTable_acl(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMStorageTable_aclUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  acl {
+    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
@@ -25,6 +26,7 @@ type ClientOptions struct {
 	PollingDuration            time.Duration
 	SkipProviderReg            bool
 	EnableCorrelationRequestID bool
+	Environment                azure.Environment
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {

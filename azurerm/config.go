@@ -361,6 +361,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		PollingDuration:            60 * time.Minute,
 		SkipProviderReg:            skipProviderRegistration,
 		EnableCorrelationRequestID: true,
+		Environment:                *env,
 	}
 
 	client.apiManagement = apimanagement.BuildClient(o)
