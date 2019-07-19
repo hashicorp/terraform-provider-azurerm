@@ -174,20 +174,19 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "admin_users.0", email1),
-				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: postConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "admin_users.0", email1),
-					resource.TestCheckResourceAttr(resourceName, "admin_users.1", email2),
-				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
