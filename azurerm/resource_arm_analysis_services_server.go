@@ -59,13 +59,6 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			//"backup_blob_container_uri": {
-			//	Type:         schema.TypeString,
-			//	Optional:     true,
-			//	Sensitive:    true,
-			//	ValidateFunc: validate.URLIsHTTPOrHTTPS,
-			//},
-
 			"enable_power_bi_service": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -152,16 +145,10 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	server, err := client.GetDetails(ctx, resourceGroup, name)
-	if err != nil {
-		return err
+	_, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
+	if getDetailsErr != nil {
+		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	if server.ID == nil {
-		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*server.ID)
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
 }
@@ -185,7 +172,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Analysis Services Server %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -195,7 +182,9 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("sku", *server.Sku.Name)
+	if server.Sku != nil {
+		d.Set("sku", server.Sku.Name)
+	}
 
 	if serverProps := server.ServerProperties; serverProps != nil {
 		if serverProps.AsAdministrators == nil || serverProps.AsAdministrators.Members == nil {
@@ -206,7 +195,9 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
 		d.Set("enable_power_bi_service", enablePowerBi)
-		d.Set("ipv4_firewall_rule", fwRules)
+		if err := d.Set("ipv4_firewall_rule", fwRules); err != nil {
+			return fmt.Errorf("Error setting `ipv4_firewall_rule`: %s", err)
+		}
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
 	}
@@ -356,12 +347,8 @@ func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisser
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
-	firewallSettings := analysisservices.IPv4FirewallSettings{}
-
-	if enablePowerBi, exists := d.GetOkExists("enable_power_bi_service"); exists {
-		firewallSettings.EnablePowerBIService = utils.Bool(enablePowerBi.(bool))
-	} else {
-		firewallSettings.EnablePowerBIService = utils.Bool(false)
+	firewallSettings := analysisservices.IPv4FirewallSettings{
+		EnablePowerBIService: utils.Bool(d.Get("enable_power_bi_service").(bool)),
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rule").([]interface{})
@@ -393,13 +380,23 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 	}
 
 	fwRules = make([]interface{}, 0)
-	for _, fwRule := range *firewallSettings.FirewallRules {
-		output := make(map[string]interface{})
-		output["name"] = *fwRule.FirewallRuleName
-		output["range_start"] = *fwRule.RangeStart
-		output["range_end"] = *fwRule.RangeEnd
+	if firewallSettings.FirewallRules != nil {
+		for _, fwRule := range *firewallSettings.FirewallRules {
+			output := make(map[string]interface{})
+			if fwRule.FirewallRuleName != nil {
+				output["name"] = *fwRule.FirewallRuleName
+			}
 
-		fwRules = append(fwRules, output)
+			if fwRule.RangeStart != nil {
+				output["range_start"] = *fwRule.RangeStart
+			}
+
+			if fwRule.RangeEnd != nil {
+				output["range_end"] = *fwRule.RangeEnd
+			}
+
+			fwRules = append(fwRules, output)
+		}
 	}
 
 	return enablePowerBi, fwRules

@@ -151,17 +151,17 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 
 // ARM_ACC_EMAIL1 and ARM_ACC_EMAIL2 must be set and existing emails in the tenant's AD to work properly
 func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
-	const ArmAccEmail1 = "ARM_ACC_EMAIL1"
-	const ArmAccEmail2 = "ARM_ACC_EMAIL2"
-	if os.Getenv(ArmAccEmail1) == "" || os.Getenv(ArmAccEmail2) == "" {
-		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccEmail1, ArmAccEmail2))
+	const ArmAccAdminEmail1 = "ARM_ACCTEST_ADMIN_EMAIL1"
+	const ArmAccAdminEmail2 = "ARM_ACCTEST_ADMIN_EMAIL2"
+	if os.Getenv(ArmAccAdminEmail1) == "" || os.Getenv(ArmAccAdminEmail2) == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccAdminEmail1, ArmAccAdminEmail2))
 		return
 	}
 
 	resourceName := "azurerm_analysis_services_server.test"
 	ri := tf.AccRandTimeInt()
-	email1 := os.Getenv(ArmAccEmail1)
-	email2 := os.Getenv(ArmAccEmail2)
+	email1 := os.Getenv(ArmAccAdminEmail1)
+	email2 := os.Getenv(ArmAccAdminEmail2)
 	preAdminUsers := []string{email1}
 	postAdminUsers := []string{email1, email2}
 	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), preAdminUsers)
