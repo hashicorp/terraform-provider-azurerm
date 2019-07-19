@@ -1780,7 +1780,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-	node_resource_group = "ExampleResourceGroup"
+  node_resource_group = "acctestRGAKS-%d"
 
   agent_pool_profile {
     name    = "default"
@@ -1794,5 +1794,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
