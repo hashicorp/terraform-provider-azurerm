@@ -1326,13 +1326,21 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						config["primary"] = *properties.Primary
 					}
 
-					if properties.PublicIPAddressConfiguration != nil {
-						publicIpInfo := properties.PublicIPAddressConfiguration
+					if publicIpInfo := properties.PublicIPAddressConfiguration; publicIpInfo != nil {
 						publicIpConfigs := make([]map[string]interface{}, 0, 1)
 						publicIpConfig := make(map[string]interface{})
-						publicIpConfig["name"] = *publicIpInfo.Name
-						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+						if publicIpName := publicIpInfo.Name; publicIpName != nil {
+							publicIpConfig["name"] = *publicIpName
+						}
+						if publicIpProperties := publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties; publicIpProperties != nil {
+							if dns := publicIpProperties.DNSSettings; dns != nil {
+								publicIpConfig["domain_name_label"] = *dns.DomainNameLabel
+							}
+							if timeout := publicIpProperties.IdleTimeoutInMinutes; timeout != nil {
+								publicIpConfig["idle_timeout"] = *timeout
+							}
+							publicIpConfigs = append(publicIpConfigs, publicIpConfig)
+						}
 						config["public_ip_address_configuration"] = publicIpConfigs
 					}
 

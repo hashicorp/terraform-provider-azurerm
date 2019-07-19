@@ -145,6 +145,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_monitor_action_group":                   dataSourceArmMonitorActionGroup(),
 			"azurerm_monitor_diagnostic_categories":          dataSourceArmMonitorDiagnosticCategories(),
 			"azurerm_monitor_log_profile":                    dataSourceArmMonitorLogProfile(),
+			"azurerm_mssql_elasticpool":                      dataSourceArmMsSqlElasticpool(),
 			"azurerm_network_interface":                      dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                 dataSourceArmNetworkSecurityGroup(),
 			"azurerm_network_watcher":                        dataSourceArmNetworkWatcher(),
@@ -191,6 +192,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_api_management_api_schema":                          resourceArmApiManagementApiSchema(),
 			"azurerm_api_management_api_version_set":                     resourceArmApiManagementApiVersionSet(),
 			"azurerm_api_management_authorization_server":                resourceArmApiManagementAuthorizationServer(),
+			"azurerm_api_management_backend":                             resourceArmApiManagementBackend(),
 			"azurerm_api_management_certificate":                         resourceArmApiManagementCertificate(),
 			"azurerm_api_management_group":                               resourceArmApiManagementGroup(),
 			"azurerm_api_management_group_user":                          resourceArmApiManagementGroupUser(),
@@ -230,6 +232,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_azuread_service_principal_password":                 resourceArmActiveDirectoryServicePrincipalPassword(),
 			"azurerm_azuread_service_principal":                          resourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_batch_account":                                      resourceArmBatchAccount(),
+			"azurerm_batch_application":                                  resourceArmBatchApplication(),
 			"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
 			"azurerm_batch_pool":                                         resourceArmBatchPool(),
 			"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
@@ -335,6 +338,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_management_group":                                   resourceArmManagementGroup(),
 			"azurerm_management_lock":                                    resourceArmManagementLock(),
 			"azurerm_mariadb_database":                                   resourceArmMariaDbDatabase(),
+			"azurerm_mariadb_firewall_rule":                              resourceArmMariaDBFirewallRule(),
 			"azurerm_mariadb_server":                                     resourceArmMariaDbServer(),
 			"azurerm_media_services_account":                             resourceArmMediaServicesAccount(),
 			"azurerm_metric_alertrule":                                   resourceArmMetricAlertRule(),
@@ -375,6 +379,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_firewall_rule":                                               resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                                                      resourceArmPostgreSQLServer(),
 			"azurerm_postgresql_virtual_network_rule":                                        resourceArmPostgreSQLVirtualNetworkRule(),
+			"azurerm_private_dns_zone":                                                       resourceArmPrivateDnsZone(),
+			"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 			"azurerm_public_ip":                                                              resourceArmPublicIp(),
 			"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
 			"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),
@@ -419,7 +425,9 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_storage_container":                                                      resourceArmStorageContainer(),
 			"azurerm_storage_queue":                                                          resourceArmStorageQueue(),
 			"azurerm_storage_share":                                                          resourceArmStorageShare(),
+			"azurerm_storage_share_directory":                                                resourceArmStorageShareDirectory(),
 			"azurerm_storage_table":                                                          resourceArmStorageTable(),
+			"azurerm_storage_table_entity":                                                   resourceArmStorageTableEntity(),
 			"azurerm_stream_analytics_job":                                                   resourceArmStreamAnalyticsJob(),
 			"azurerm_stream_analytics_function_javascript_udf":                               resourceArmStreamAnalyticsFunctionUDF(),
 			"azurerm_stream_analytics_output_blob":                                           resourceArmStreamAnalyticsOutputBlob(),
@@ -469,6 +477,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
+
+			// Doc Links
+			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
 		}
 
 		config, err := builder.Build()

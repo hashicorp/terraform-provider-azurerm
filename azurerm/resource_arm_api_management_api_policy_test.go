@@ -164,6 +164,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
+
   sku {
     name     = "Developer"
     capacity = 1
@@ -181,10 +182,10 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_api_policy" "test" {
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_link              = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  xml_link            = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -195,10 +196,10 @@ func testAccAzureRMApiManagementAPIPolicy_requiresImport(rInt int, location stri
 %s
 
 resource "azurerm_api_management_api_policy" "import" {
-  api_name              = "${azurerm_api_management_api_policy.test.api_name}"
-  api_management_name   = "${azurerm_api_management_api_policy.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_api_policy.test.resource_group_name}"
-  xml_link              = "${azurerm_api_management_api_policy.test.xml_link}"
+  api_name            = "${azurerm_api_management_api_policy.test.api_name}"
+  api_management_name = "${azurerm_api_management_api_policy.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_api_policy.test.resource_group_name}"
+  xml_link            = "${azurerm_api_management_api_policy.test.xml_link}"
 }
 `, template)
 }
@@ -209,13 +210,14 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-	
+
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
+
   sku {
     name     = "Developer"
     capacity = 1
@@ -233,10 +235,11 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_api_policy" "test" {
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_content           = <<XML
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  xml_content = <<XML
 <policies>
   <inbound>
     <find-and-replace from="xyz" to="abc" />

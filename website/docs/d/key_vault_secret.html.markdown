@@ -18,7 +18,7 @@ Use this data source to access information about an existing Key Vault Secret.
 
 ```hcl
 data "azurerm_key_vault_secret" "test" {
-  name      = "secret-sauce"
+  name         = "secret-sauce"
   key_vault_id = "${data.azurerm_key_vault.existing.id}"
 }
 

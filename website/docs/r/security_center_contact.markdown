@@ -29,7 +29,7 @@ resource "azurerm_security_center_contact" "example" {
 The following arguments are supported:
 
 * `email` - (Required) The email of the Security Center Contact.
-* `phone` - (Required) The phone number of the Security Center Contact.
+* `phone` - (Optional) The phone number of the Security Center Contact.
 * `alert_notifications` - (Required) Whether to send security alerts notifications to the security contact.
 * `alerts_to_admins` - (Required) Whether to send security alerts notifications to subscription admins.
 
