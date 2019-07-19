@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -31,10 +32,6 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 	backendPools := d.Get("backend_pool").([]interface{})
 	loadBalancingSettings:= d.Get("backend_pool_load_balancing").([]interface{})
 	healthProbeSettings:= d.Get("backend_pool_health_probe").([]interface{})
-
-	// if len(routingRules) == 0 {
-	// 	return nil
-	// }
 
 	if len(configFrontendEndpoints) == 0 {
 		return fmt.Errorf(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
@@ -160,14 +157,22 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
 
 	if MatchAllKeys {
-		if certificateSecretName != "" && certificateSecretVersion  != ""  && certificateVaultId  != "" {
+		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != ""  && strings.TrimSpace(certificateVaultId.(string))  != "" {
 			return true
 		}
 	} else {
-		if certificateSecretName != "" || certificateSecretVersion  != ""  || certificateVaultId  != "" {
+		if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != ""  || strings.TrimSpace(certificateVaultId.(string)) != "" {
 			return true
 		}
 	}
 	
 	return false
+}
+
+func GetFrontDoorSubResourceId (subscriptionId string, resourceGroup string, serviceName string, resourceType string, resourceName string) string {
+	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(serviceName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
 }

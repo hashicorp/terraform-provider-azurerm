@@ -110,6 +110,10 @@ func resourceArmFrontDoor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
+									"custom_query_string": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 									"redirect_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -123,8 +127,8 @@ func resourceArmFrontDoor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.Found ),
-											string(frontdoor.Moved ),
+											string(frontdoor.Found),
+											string(frontdoor.Moved),
 											string(frontdoor.PermanentRedirect),
 											string(frontdoor.TemporaryRedirect),
 										}, false),
@@ -380,13 +384,9 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-return nil
-
-
 	client := meta.(*ArmClient).frontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
-
-
+	subscriptionId := meta.(*ArmClient).subscriptionId
 
 	if requireResourcesToBeImported {
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -400,35 +400,33 @@ return nil
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	backendPools := d.Get("backend_pools").([]interface{})
-	backendPoolsSettings := d.Get("backend_pools_settings").([]interface{})
-	enabledState := d.Get("enabled_state").(string)
-	friendlyName := d.Get("friendly_name").(string)
-	frontendEndpoints := d.Get("frontend_endpoints").([]interface{})
-	healthProbeSettings := d.Get("health_probe_settings").([]interface{})
-	loadBalancingSettings := d.Get("load_balancing_settings").([]interface{})
-	resourceState := d.Get("resource_state").(string)
-	routingRules := d.Get("routing_rules").([]interface{})
-	tags := d.Get("tags").(map[string]interface{})
+	// if subId := azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, name, resourceType, resourceName); subId == "" {
+	// 	return fmt.Errorf("Error Front Door %q (Resource Group %q): unable to creating ID for sub resource", name, resourceGroup)
+	// }
 
-	// Validate config settings are valid
-	if err := azure.ValidateFrontdoor(d); err != nil {
-		return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	friendlyName := d.Get("friendly_name").(string)
+	routingRules := d.Get("routing_rules").([]interface{})
+	loadBalancingSettings := d.Get("load_balancing_settings").([]interface{})
+	healthProbeSettings := d.Get("health_probe_settings").([]interface{})
+	backendPools := d.Get("backend_pools").([]interface{})
+	frontendEndpoints := d.Get("frontend_endpoints").([]interface{})
+	backendPoolsSettings := d.Get("backend_pools_settings").([]interface{})
+	enabledState := d.Get("enabled").(bool)
+	tags := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
+			FriendlyName:          utils.String(friendlyName),
+			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, subscriptionId, resourceGroup, name),
 			BackendPools:          expandArmFrontDoorBackendPool(backendPools),
 			BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings),
-			EnabledState:          frontdoor.EnabledState(enabledState),
-			FriendlyName:          utils.String(friendlyName),
 			FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints),
 			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings),
 			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings),
-			ResourceState:         frontdoor.ResourceState(resourceState),
-			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules),
+			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
+			
 		},
 		Tags: expandTags(tags),
 	}
@@ -658,32 +656,50 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}) *[]frontd
 	return &[]frontdoor.LoadBalancingSettingsModel{result}
 }
 
-func expandArmFrontDoorRoutingRule(input []interface{}) *[]frontdoor.RoutingRule {
+func expandArmFrontDoorRoutingRule(input []interface{}, subscriptionId string, resourceGroup, serviceName string) *[]frontdoor.RoutingRule {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
 
-	id := v["id"].(string)
-	frontendEndpoints := v["frontend_endpoints"].([]interface{})
-	acceptedProtocols := v["accepted_protocols"].(*[]frontdoor.Protocol)
-	patternsToMatch := v["patterns_to_match"].(*[]string)
-	enabledState := v["enabled_state"].(string)
-	resourceState := v["resource_state"].(string)
-	name := v["name"].(string)
+	output := make([]frontdoor.RoutingRule, 0)
 
-	result := frontdoor.RoutingRule{
-		ID:   utils.String(id),
-		Name: utils.String(name),
-		RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
-			AcceptedProtocols: acceptedProtocols,
-			EnabledState:      frontdoor.RoutingRuleEnabledState(enabledState),
-			FrontendEndpoints: expandArmFrontDoorSubResources(frontendEndpoints),
-			PatternsToMatch:   patternsToMatch,
-			ResourceState:     frontdoor.ResourceState(resourceState),
-		},
+	for _, rr := range input {
+		routingRule := rr.(map[string]interface{})
+
+		id := routingRule["id"].(string)
+		frontendEndpoints := routingRule["frontend_endpoints"].([]interface{})
+		acceptedProtocols := routingRule["accepted_protocols"].(*[]frontdoor.Protocol)
+		patternsToMatch := routingRule["patterns_to_match"].(*[]string)
+		enabled := routingRule["enabled"].(bool)
+		name := routingRule["name"].(string)
+
+		var routingConfiguration frontdoor.BasicRouteConfiguration
+
+		if rc := routingRule["redirect_configuration"].([]interface{}); rc != nil {
+			redirectConfiguration := expandArmFrontDoorRedirectConfiguration(rc)
+			routingConfiguration =  redirectConfiguration
+		} else if fc := routingRule["forwarding_configuration"].([]interface{}); fc != nil {
+			forwardingConfiguration := expandArmFrontDoorForwardingConfiguration(fc, subscriptionId, resourceGroup, serviceName)
+			routingConfiguration = forwardingConfiguration
+		}
+
+		currentRoutingRule := frontdoor.RoutingRule{
+			ID:   utils.String(id),
+			Name: utils.String(name),
+			RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
+				//ResourceState:
+				FrontendEndpoints:  expandArmFrontDoorFrontEndEndpoints(frontendEndpoints, subscriptionId, resourceGroup, serviceName),
+				AcceptedProtocols:  acceptedProtocols,
+				PatternsToMatch:    patternsToMatch,
+				EnabledState:       frontdoor.RoutingRuleEnabledState(expandArmFrontDoorEnabledState(enabled)),
+				RouteConfiguration: routingConfiguration,
+			},
+		}
+
+		output = append(output, currentRoutingRule)
 	}
-	return &[]frontdoor.RoutingRule{result}
+
+	return &output
 }
 
 func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
@@ -726,18 +742,27 @@ func expandArmFrontDoorSubResource(input []interface{}) *frontdoor.SubResource {
 	return &result
 }
 
-func expandArmFrontDoorSubResources(input []interface{}) *[]frontdoor.SubResource {
+func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId string, resourceGroup string, serviceName string) *[]frontdoor.SubResource {
 	if len(input) == 0 {
-		return nil
+		return &[]frontdoor.SubResource{}
 	}
+
+	output := make([]frontdoor.SubResource, 0)
+
 	v := input[0].(map[string]interface{})
 
-	id := v["id"].(string)
+	for _, SubResource := range v {
+		frontendEndpointName := SubResource.(string)
+		id := azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "frontendEndpoints", frontendEndpointName)
 
-	result := frontdoor.SubResource{
-		ID: utils.String(id),
+		result := frontdoor.SubResource{
+			ID: utils.String(id),
+		}
+
+		output = append(output, result)
 	}
-	return &[]frontdoor.SubResource{result}
+	
+	return &output
 }
 
 func expandArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(input []interface{}) *frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink {
@@ -753,6 +778,114 @@ func expandArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPo
 	}
 	return &result
 }
+
+func expandArmFrontDoorEnabledState(input interface{}) frontdoor.EnabledState {
+	v := input.(bool)
+	result := frontdoor.EnabledStateDisabled
+	
+	if v {
+		result = frontdoor.EnabledStateEnabled
+	}
+
+	return result
+}
+
+func expandArmFrontDoorDynamicDynamicCompression(input bool) frontdoor.DynamicCompressionEnabled {
+	result := frontdoor.DynamicCompressionEnabledDisabled
+	
+	if input {
+		result = frontdoor.DynamicCompressionEnabledEnabled
+	}
+
+	return result
+}
+
+func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
+	if len(input) == 0 {
+		return frontdoor.RedirectConfiguration{}
+	}
+	v := input[0].(map[string]interface{})
+	
+	redirectType := v["redirect_type"].(frontdoor.RedirectType)
+	redirectProtocol := v["redirect_protocol"].(frontdoor.RedirectProtocol)
+	customHost := v["custom_host"].(string)
+	customPath := v["custom_path"].(string)
+	customFragment := v["custom_fragment"].(string)
+	customQueryString := v["custom_query_string"].(string)
+
+	redirectConfiguration := frontdoor.RedirectConfiguration {
+		RedirectType:      redirectType,
+		RedirectProtocol:  redirectProtocol,
+		CustomHost:        utils.String(customHost),
+		CustomPath:        utils.String(customPath),
+		CustomFragment:    utils.String(customFragment),
+		CustomQueryString: utils.String(customQueryString),
+		OdataType:         frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorRedirectConfiguration,
+	}
+
+	return redirectConfiguration
+}
+
+func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscriptionId string, resourceGroup, serviceName string) frontdoor.ForwardingConfiguration {
+	if len(input) == 0 {
+		return frontdoor.ForwardingConfiguration{}
+	}
+	v := input[0].(map[string]interface{})
+	
+	customForwardingPath := v["custom_forwarding_path"].(string)
+	forwardingProtocol := v["forwarding_protocol"].(frontdoor.ForwardingProtocol)
+	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
+	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(frontdoor.Query)
+	backendPoolName := v["backend_pool_name"].(string)
+
+	cacheConfiguration  := &frontdoor.CacheConfiguration  {
+		QueryParameterStripDirective: cacheQueryParameterStripDirective,
+		DynamicCompression: expandArmFrontDoorDynamicDynamicCompression(cacheUseDynamicCompression),
+	}
+
+	backend := &frontdoor.SubResource{
+		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "backendPools", backendPoolName)),
+	}
+
+	forwardingConfiguration := frontdoor.ForwardingConfiguration {
+		CustomForwardingPath: utils.String(customForwardingPath),
+		ForwardingProtocol:   forwardingProtocol,
+		CacheConfiguration:   cacheConfiguration,
+		BackendPool:          backend,
+		OdataType:            frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
+	}
+
+	return forwardingConfiguration
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 func flattenArmFrontDoorBackendPool(input *[]frontdoor.BackendPool) []interface{} {
 	if input == nil {
