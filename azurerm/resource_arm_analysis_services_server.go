@@ -133,10 +133,6 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 
-	if fwSettings := serverProperties.IPV4FirewallSettings; len(*fwSettings.FirewallRules) > 0 && fwSettings.EnablePowerBIService == nil {
-		return fmt.Errorf("`enable_power_bi_service` must be set if there is at least one firewall rule")
-	}
-
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
@@ -245,10 +241,6 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	sku := d.Get("sku").(string)
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
-
-	if fwSettings := serverProperties.IPV4FirewallSettings; len(*fwSettings.FirewallRules) > 0 && fwSettings.EnablePowerBIService == nil {
-		return fmt.Errorf("`enable_power_bi_service` must be set if there is at least one firewall rule")
-	}
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -368,6 +360,8 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 
 	if enablePowerBi, exists := d.GetOkExists("enable_power_bi_service"); exists {
 		firewallSettings.EnablePowerBIService = utils.Bool(enablePowerBi.(bool))
+	} else {
+		firewallSettings.EnablePowerBIService = utils.Bool(false)
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rule").([]interface{})
@@ -388,10 +382,15 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
 	if serverProperties.IPV4FirewallSettings == nil {
-		return nil, nil
+		return utils.Bool(false), make([]interface{}, 0)
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
+
+	enablePowerBi = utils.Bool(false)
+	if firewallSettings.EnablePowerBIService != nil {
+		enablePowerBi = firewallSettings.EnablePowerBIService
+	}
 
 	fwRules = make([]interface{}, 0)
 	for _, fwRule := range *firewallSettings.FirewallRules {

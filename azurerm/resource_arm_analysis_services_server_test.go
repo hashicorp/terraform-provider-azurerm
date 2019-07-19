@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -147,40 +149,49 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 	})
 }
 
-// Currently unsure how to test it as the email addresses need to exist in the AD
-//func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
-//	resourceName := "azurerm_analysis_services_server.test"
-//	ri := tf.AccRandTimeInt()
-//	preAdminUsers := []string{"admin@domain.tld"}
-//	postAdminUsers := []string{"admin@domain.tld", "admin2@domain.tld"}
-//	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), preAdminUsers)
-//	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), postAdminUsers)
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		Providers:    testAccProviders,
-//		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: preConfig,
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-//					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "admin_users.0", preAdminUsers[0]),
-//				),
-//			},
-//			{
-//				Config: postConfig,
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-//					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "2"),
-//					resource.TestCheckResourceAttr(resourceName, "admin_users.0", postAdminUsers[0]),
-//					resource.TestCheckResourceAttr(resourceName, "admin_users.1", postAdminUsers[1]),
-//				),
-//			},
-//		},
-//	})
-//}
+// ARM_ACC_EMAIL1 and ARM_ACC_EMAIL2 must be set and existing emails in the tenant's AD to work properly
+func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
+	const ArmAccEmail1 = "ARM_ACC_EMAIL1"
+	const ArmAccEmail2 = "ARM_ACC_EMAIL2"
+	if os.Getenv(ArmAccEmail1) == "" || os.Getenv(ArmAccEmail2) == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccEmail1, ArmAccEmail2))
+		return
+	}
+
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+	email1 := os.Getenv(ArmAccEmail1)
+	email2 := os.Getenv(ArmAccEmail2)
+	preAdminUsers := []string{email1}
+	postAdminUsers := []string{email1, email2}
+	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), preAdminUsers)
+	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), postAdminUsers)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "admin_users.0", email1),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "admin_users.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "admin_users.0", email1),
+					resource.TestCheckResourceAttr(resourceName, "admin_users.1", email2),
+				),
+			},
+		},
+	})
+}
 
 func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
@@ -325,22 +336,22 @@ resource "azurerm_analysis_services_server" "test" {
 `, rInt, location, rInt, enablePowerBIService)
 }
 
-//func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
-//	return fmt.Sprintf(`
-//resource "azurerm_resource_group" "test" {
-//  name     = "acctestRG-%d"
-//  location = "%s"
-//}
-//
-//resource "azurerm_analysis_services_server" "test" {
-//  name                		= "acctestass%d"
-//  location            		= "${azurerm_resource_group.test.location}"
-//  resource_group_name 		= "${azurerm_resource_group.test.name}"
-//  sku 				  		= "B1"
-//  admin_users 				= ["%s"]
-//}
-//`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
-//}
+func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+ name     = "acctestRG-%d"
+ location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+ name                		= "acctestass%d"
+ location            		= "${azurerm_resource_group.test.location}"
+ resource_group_name 		= "${azurerm_resource_group.test.name}"
+ sku 				  		= "B1"
+ admin_users 				= ["%s"]
+}
+`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
+}
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).analysisServicesServerClient
