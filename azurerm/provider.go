@@ -451,6 +451,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network_gateway":                                                resourceArmVirtualNetworkGateway(),
 			"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 			"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
+			"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
 		},
 	}
 
