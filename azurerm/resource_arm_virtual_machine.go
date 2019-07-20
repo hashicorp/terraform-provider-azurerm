@@ -357,6 +357,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 					},
 				},
 			},
+
 			"additional_capabilities": {
 				Type:     schema.TypeList,
 				Optional: true,

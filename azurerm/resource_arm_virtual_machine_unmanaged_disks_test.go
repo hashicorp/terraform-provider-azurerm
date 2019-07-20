@@ -292,6 +292,25 @@ func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachine_additionalCapabilities(t *testing.T) {
+	var vm compute.VirtualMachine
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMVirtualMachine_additionalCapabilities(ri, testLocation())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
