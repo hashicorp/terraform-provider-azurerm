@@ -8,10 +8,11 @@ import (
 )
 
 type Client struct {
-	ProtectedItemsClient     backup.ProtectedItemsGroupClient
-	ProtectionPoliciesClient backup.ProtectionPoliciesClient
-	VaultsClient             recoveryservices.VaultsClient
-	FabricClient             func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
+	ProtectedItemsClient      backup.ProtectedItemsGroupClient
+	ProtectionPoliciesClient  backup.ProtectionPoliciesClient
+	VaultsClient              recoveryservices.VaultsClient
+	FabricClient              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
+	ProtectionContainerClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -28,6 +29,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.FabricClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient {
 		client := siterecovery.NewReplicationFabricsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
+		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
+		return client
+	}
+
+	c.ProtectionContainerClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient {
+		client := siterecovery.NewReplicationProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
 		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 		return client
 	}
