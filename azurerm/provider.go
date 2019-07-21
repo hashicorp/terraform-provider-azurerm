@@ -453,6 +453,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 			"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
 			"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
+			"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
 		},
 	}
 

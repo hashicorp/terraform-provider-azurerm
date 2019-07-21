@@ -13,6 +13,7 @@ type Client struct {
 	VaultsClient              recoveryservices.VaultsClient
 	FabricClient              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
 	ProtectionContainerClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
+	ReplicationPoliciesClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -35,6 +36,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.ProtectionContainerClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient {
 		client := siterecovery.NewReplicationProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
+		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
+		return client
+	}
+
+	c.ReplicationPoliciesClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient {
+		client := siterecovery.NewReplicationPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
 		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 		return client
 	}
