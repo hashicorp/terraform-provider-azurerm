@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func resourceArmRecoveryServicesFabric() *schema.Resource {
@@ -112,8 +111,6 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 		}
 		return fmt.Errorf("Error making Read request on recovery services fabric %q: %+v", name, err)
 	}
-
-	log.Printf("[WARN] x: %q c: %q", resp.Name, resp.Location)
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
