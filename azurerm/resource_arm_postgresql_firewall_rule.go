@@ -53,7 +53,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 }
 
 func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Firewall Rule creation.")
@@ -107,7 +107,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -139,7 +139,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

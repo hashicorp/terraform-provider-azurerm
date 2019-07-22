@@ -18,7 +18,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -61,6 +60,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -119,6 +119,7 @@ type ArmClient struct {
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
+	postgres         *postgres.Client
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
@@ -164,12 +165,6 @@ type ArmClient struct {
 	mysqlFirewallRulesClient       mysql.FirewallRulesClient
 	mysqlServersClient             mysql.ServersClient
 	mysqlVirtualNetworkRulesClient mysql.VirtualNetworkRulesClient
-
-	postgresqlConfigurationsClient      postgresql.ConfigurationsClient
-	postgresqlDatabasesClient           postgresql.DatabasesClient
-	postgresqlFirewallRulesClient       postgresql.FirewallRulesClient
-	postgresqlServersClient             postgresql.ServersClient
-	postgresqlVirtualNetworkRulesClient postgresql.VirtualNetworkRulesClient
 
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
@@ -366,6 +361,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.managementGroups = managementgroup.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
+	client.postgres = postgres.BuildClient(o)
 	client.privateDns = privatedns.BuildClient(o)
 	client.recoveryServices = recoveryservices.BuildClient(o)
 	client.redis = redis.BuildClient(o)
@@ -490,27 +486,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	mysqlVirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mysqlVirtualNetworkRulesClient.Client, auth)
 	c.mysqlVirtualNetworkRulesClient = mysqlVirtualNetworkRulesClient
-
-	// PostgreSQL
-	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlConfigClient.Client, auth)
-	c.postgresqlConfigurationsClient = postgresqlConfigClient
-
-	postgresqlDBClient := postgresql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlDBClient.Client, auth)
-	c.postgresqlDatabasesClient = postgresqlDBClient
-
-	postgresqlFWClient := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlFWClient.Client, auth)
-	c.postgresqlFirewallRulesClient = postgresqlFWClient
-
-	postgresqlSrvClient := postgresql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlSrvClient.Client, auth)
-	c.postgresqlServersClient = postgresqlSrvClient
-
-	postgresqlVNRClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlVNRClient.Client, auth)
-	c.postgresqlVirtualNetworkRulesClient = postgresqlVNRClient
 
 	// SQL Azure
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
