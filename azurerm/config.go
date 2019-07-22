@@ -167,7 +167,7 @@ type ArmClient struct {
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
 	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
-	sqlFailoverGroupsClient				 sql.FailoverGroupsClient
+	sqlFailoverGroupsClient              sql.FailoverGroupsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient

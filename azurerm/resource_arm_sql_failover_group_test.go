@@ -17,20 +17,20 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: testAccAzureRMSqlFailoverGroup_basic(ri, testLocation()),
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMSqlFailoverGroupExists(resourceName),
-        ),
-      },
-      {
-        ResourceName: resourceName,
-        ImportState: true,
-        ImportStateVerify: true,
-      },
-    },
+		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlFailoverGroup_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFailoverGroupExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
 	})
 }
 
@@ -62,7 +62,7 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
-  resourceName := "azurerm_sql_failover_group.test"
+	resourceName := "azurerm_sql_failover_group.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
