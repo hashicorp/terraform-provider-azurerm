@@ -933,7 +933,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.14.0"
 
   linux_profile {
     admin_username = "acctestuser%d"
