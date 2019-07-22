@@ -455,6 +455,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
 			"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
 			"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
+			"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
 		},
 	}
 
