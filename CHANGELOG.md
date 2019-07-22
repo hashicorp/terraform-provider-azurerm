@@ -36,18 +36,19 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for `custom_resource_group_name` [GH-3785]
 * `azurerm_kubernetes_cluster` - support for the `node_taints` property [GH-3787]
 * `azurerm_kubernetes_cluster`  - support for the `windows_profile` property [GH-3519]
+* `azurerm_recovery_services_protected_vm` - changing `backup_policy_id` no longer forces a new resource [GH-3822]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
 * `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
 * `azurerm_storage_blob` - making `metadata` a computed field [GH-3842]
 * `azurerm_storage_container` - switching to use github.com/tombuildsstuff/giovanni [GH-3857]
 * `azurerm_storage_container` - adding support for `metadata` [GH-3857]
+* `azurerm_storage_container` - can now create containers with the name `$web` [GH-3896]
 * `azurerm_storage_queue` - switching to use github.com/tombuildsstuff/giovanni [GH-3832]
 * `azurerm_storage_share` - switching to use github.com/tombuildsstuff/giovanni [GH-3828]
 * `azurerm_storage_share` - support for configuring ACL's [GH-3830]
 * `azurerm_storage_share` - support for configuring MetaData [GH-3830]
 * `azurerm_storage_table` - switching to use github.com/tombuildsstuff/giovanni [GH-3834]
-* `azurerm_recovery_services_protected_vm` - changing `backup_policy_id` no longer forces a new resource [GH-3822]
 * `azurerm_storage_table` - support for configuring ACL's [GH-3847]
 * `azurerm_traffic_manager_endpoint` - supper for `custom_header` and `subnet` properties [GH-3655]
 * `azurerm_virtual_machine` - switching over to use the github.com/tombuildsstuff/giovanni Storage SDK [GH-3838]
@@ -59,7 +60,6 @@ BUG FIXES:
 
 * `azurerm_image` - prevent crash when using `data_disk` [GH-3797]
 * `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
-* `azurerm_storage_container` - can now create containers with the name `$web` [GH-3896]
 
 ## 1.31.0 (June 28, 2019)
 
