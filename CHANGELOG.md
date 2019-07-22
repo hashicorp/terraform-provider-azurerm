@@ -33,6 +33,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
 * `azurerm_kubernetes_cluster` - support for `custom_resource_group_name` [GH-3785]
 * `azurerm_kubernetes_cluster` - support for the `node_taints` property [GH-3787]
+* `azurerm_kubernetes_cluster`  - support for the `windows_profile` property [GH-3519]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
 * `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
