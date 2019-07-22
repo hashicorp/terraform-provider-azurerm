@@ -39,6 +39,7 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - switching over to use the github.com/tombuildsstuff/giovanni Storage SDK [GH-3838]
 * `azurerm_virtual_machine` - looking up the data disks attached to the Virtual Machine when optionally deleting them upon deletion rather than parsing them from the config [GH-3838]
 * `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
+* `additional_capabilities` - support for ultra ssd disks [GH-3860]
 
 
 BUG FIXES:
