@@ -56,6 +56,7 @@ BUG FIXES:
 
 * `azurerm_image` - prevent crash when using `data_disk` [GH-3797]
 * `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
+* `azurerm_storage_container` - can now create containers with the name `$web` [GH-3896]
 
 ## 1.31.0 (June 28, 2019)
 
