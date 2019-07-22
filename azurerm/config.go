@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
@@ -43,6 +42,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
@@ -96,6 +96,7 @@ type ArmClient struct {
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
 	automation       *automation.Client
+	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	containers       *containers.Client
@@ -137,12 +138,6 @@ type ArmClient struct {
 
 	// Autoscale Settings
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
-
-	// Batch
-	batchAccountClient     batch.AccountClient
-	batchApplicationClient batch.ApplicationClient
-	batchCertificateClient batch.CertificateClient
-	batchPoolClient        batch.PoolClient
 
 	// Compute
 	availSetClient             compute.AvailabilitySetsClient
@@ -390,7 +385,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.trafficManager = trafficmanager.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
-	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
@@ -421,24 +415,6 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
 	c.servicePrincipalsClient = servicePrincipalsClient
-}
-
-func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchAccount.Client, auth)
-	c.batchAccountClient = batchAccount
-
-	batchApplicationClient := batch.NewApplicationClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchApplicationClient.Client, auth)
-	c.batchApplicationClient = batchApplicationClient
-
-	batchCertificateClient := batch.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchCertificateClient.Client, auth)
-	c.batchCertificateClient = batchCertificateClient
-
-	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchPool.Client, auth)
-	c.batchPoolClient = batchPool
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
