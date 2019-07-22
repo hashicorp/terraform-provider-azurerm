@@ -21,8 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "example-maps-account"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku = "S1"
+  sku_name            = "S1"
 
   tags = {
     environment = "Test"
@@ -38,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) The sku of the Azure Maps Account. Values available are S0, S1. Defaults to S0.
+* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `S0` and `S1`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 
@@ -51,14 +50,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 
-* `secondary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs. The second key is given to provide seemless key regeneration.
+* `secondary_access_key` - The secondary key used to authenticate and authorize access to the Maps REST APIs.
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
 
-
 ## Import
 
-API Management Services can be imported using the `resource id`, e.g.
+A Maps Account can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_maps_account.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maps/accounts/my-maps-account

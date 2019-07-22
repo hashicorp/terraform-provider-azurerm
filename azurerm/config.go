@@ -646,19 +646,6 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 	}
 }
 
-func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
-	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
-	c.configureClient(&groupsClient.Client, auth)
-
-	subscriptionClient := managementgroupsSvc.NewSubscriptionsClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionClient.Client, auth)
-
-	c.managementGroups = &managementgroup.Client{
-		GroupsClient:       groupsClient,
-		SubscriptionClient: subscriptionClient,
-	}
-}
-
 func (c *ArmClient) registerMapsClients(endpoint string, subscriptionId string, auth autorest.Authorizer) {
 	mapsAccountsClient := mapsSvc.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mapsAccountsClient.Client, auth)

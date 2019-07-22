@@ -26,7 +26,7 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku", "s0"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S0"),
 				),
 			},
 			{
@@ -41,7 +41,6 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 	resourceName := "azurerm_maps_account.test"
 	ri := tf.AccRandTimeInt()
-	sku := "s1"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,13 +48,13 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_sku(ri, testLocation(), sku),
+				Config: testAccAzureRMMapsAccount_sku(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku", sku),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S1"),
 				),
 			},
 			{
@@ -70,11 +69,7 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 func TestAccAzureRMMapsAccount_tags(t *testing.T) {
 	resourceName := "azurerm_maps_account.test"
 	ri := tf.AccRandTimeInt()
-	key := "environment"
-	value := "testing"
-
-	preConfig := testAccAzureRMMapsAccount_basic(ri, testLocation())
-	postConfig := testAccAzureRMMapsAccount_tags(ri, testLocation(), key, value)
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -82,19 +77,29 @@ func TestAccAzureRMMapsAccount_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMapsAccount_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMapsAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: postConfig,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMMapsAccount_tags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMapsAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", value),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "testing"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -109,10 +114,7 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 		}
 
 		mapsAccountName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for maps account client: %s", mapsAccountName)
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).maps.AccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -143,22 +145,15 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Maps Account still exists:\n%#v", resp.ID)
-		}
+		return fmt.Errorf("Maps Account still exists:\n%#v", resp.ID)
 	}
 
 	return nil
 
-}
-
-func accountNamePrefix() string {
-	return "accMapsAccount"
 }
 
 func testAccAzureRMMapsAccount_basic(rInt int, location string) string {
@@ -169,13 +164,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_maps_account" "test" {
-    name = "%s-%d"
-    resource_group_name = azurerm_resource_group.test.name
+  name                = "accMapsAccount-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "S0"
 }
-`, rInt, location, accountNamePrefix(), rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMMapsAccount_sku(rInt int, location string, sku string) string {
+func testAccAzureRMMapsAccount_sku(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -183,15 +179,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_maps_account" "test" {
-    name = "%s-%d"
-    resource_group_name = azurerm_resource_group.test.name
-
-    sku = "%s"
+  name                = "accMapsAccount-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "S1"
 }
-`, rInt, location, accountNamePrefix(), rInt, sku)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMMapsAccount_tags(rInt int, location string, key string, value string) string {
+func testAccAzureRMMapsAccount_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -199,12 +194,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_maps_account" "test" {
-    name = "%s-%d"
-    resource_group_name = azurerm_resource_group.test.name
+  name                = "accMapsAccount-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "S0"
 
-    tags = {
-        %s = "%s"
-    }
+  tags = {
+    environment = "testing"
+  }
 }
-`, rInt, location, accountNamePrefix(), rInt, key, value)
+`, rInt, location, rInt)
 }

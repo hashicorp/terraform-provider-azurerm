@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,23 +25,22 @@ func resourceArmMapsAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: mapsint.ValidateName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"sku": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          "S0",
-				DiffSuppressFunc: suppress.CaseDifference,
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"S0",
 					"S1",
-				}, true),
+				}, false),
 			},
 
 			"tags": tagsSchema(),
@@ -74,7 +73,6 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := globalLocation()
 	tags := d.Get("tags").(map[string]interface{})
 	sku := d.Get("sku").(string)
 
@@ -92,7 +90,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	parameters := maps.AccountCreateParameters{
-		Location: &location,
+		Location: utils.String("global"),
 		Sku: &maps.Sku{
 			Name: &sku,
 		},
@@ -141,7 +139,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(*sku.Name))
+		d.Set("sku_name", sku.Name)
 	}
 	if props := resp.Properties; props != nil {
 		d.Set("x_ms_client_id", props.XMsClientID)
@@ -149,10 +147,6 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 
 	keysResp, err := client.ListKeys(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
 		return fmt.Errorf("Error making Read Access Keys request on Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	d.Set("primary_access_key", keysResp.PrimaryKey)
@@ -179,8 +173,4 @@ func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-func globalLocation() string {
-	return "global"
 }

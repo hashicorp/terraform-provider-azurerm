@@ -25,15 +25,15 @@ output "maps_account_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Machine.
+* `name` - (Required) Specifies the name of the Maps Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Machine is located in.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Maps Account is located.
 
 ## Attributes Reference
 
-* `id` - The ID of the Maps Accuont.
+* `id` - The ID of the Maps Account.
 
-* `x_ms_client_id` - A unique identifier for the Maps Account.
+* `sku_name` - The sku of the Azure Maps Account.
 
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 
@@ -41,4 +41,3 @@ output "maps_account_id" {
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
 
-* `sku` - The sku of the Azure Maps Account.

@@ -12,22 +12,20 @@ func TestAccDataSourceAzureRMMapsAccount(t *testing.T) {
 	dataSourceName := "data.azurerm_maps_account.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
-	key := "environment"
-	value := "testing"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMapsAccount(rInt, location, key, value),
+				Config: testAccDataSourceAzureRMMapsAccount(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", value),
-					resource.TestCheckResourceAttr(dataSourceName, "sku", "s0"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "testing"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku_name", "s0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "secondary_access_key"),
@@ -37,14 +35,14 @@ func TestAccDataSourceAzureRMMapsAccount(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMMapsAccount(rInt int, location string, key string, value string) string {
-	template := testAccAzureRMMapsAccount_tags(rInt, location, key, value)
+func testAccDataSourceAzureRMMapsAccount(rInt int, location string) string {
+	template := testAccAzureRMMapsAccount_tags(rInt, location)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_maps_account" "test" {
-    name = azurerm_maps_account.test.name
-    resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_maps_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
