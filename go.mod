@@ -5,7 +5,6 @@ require (
 	github.com/Azure/go-autorest/autorest v0.3.0
 	github.com/Azure/go-autorest/autorest/adal v0.1.0
 	github.com/Azure/go-autorest/autorest/date v0.1.0
-	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/uuid v1.1.1
