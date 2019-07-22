@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMapsAccount_basic(t *testing.T) {
@@ -146,10 +147,12 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return nil
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
 
-		return fmt.Errorf("Maps Account still exists:\n%#v", resp.ID)
+			return fmt.Errorf("Error retrieving Maps Account %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
 	}
 
 	return nil
