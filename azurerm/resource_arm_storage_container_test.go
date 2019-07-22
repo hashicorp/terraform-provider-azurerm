@@ -205,6 +205,34 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_web(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_web(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "$web"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -422,6 +450,20 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
+func testAccAzureRMStorageContainer_web(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "$web"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, template)
+}
+
 func testAccAzureRMStorageContainer_template(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -448,6 +490,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		"valid-name",
 		"valid02-name",
 		"$root",
+		"$web",
 	}
 	for _, v := range validNames {
 		_, errors := validateArmStorageContainerName(v, "name")
@@ -463,6 +506,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		"invalid!",
 		"ww",
 		"$notroot",
+		"$notweb",
 		strings.Repeat("w", 65),
 	}
 	for _, v := range invalidNames {
