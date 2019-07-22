@@ -1974,7 +1974,7 @@ resource "azurerm_virtual_machine" "test" {
     winrm {
       protocol = "http"
     }
-  }
+  os_profile_windows_config {}
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
