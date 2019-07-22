@@ -112,8 +112,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsJobsClient
-	transformationsClient := meta.(*ArmClient).streamAnalyticsTransformationsClient
+	client := meta.(*ArmClient).streamanalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
@@ -206,8 +206,8 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsJobsClient
-	transformationsClient := meta.(*ArmClient).streamAnalyticsTransformationsClient
+	client := meta.(*ArmClient).streamanalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -274,7 +274,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsJobsClient
+	client := meta.(*ArmClient).streamanalytics.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

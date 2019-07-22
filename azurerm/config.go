@@ -29,7 +29,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -74,6 +73,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
@@ -128,6 +128,7 @@ type ArmClient struct {
 	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
 	storage          *intStor.Client
+	streamanalytics  *streamanalytics.Client
 	trafficManager   *trafficmanager.Client
 
 	// Authentication
@@ -238,13 +239,6 @@ type ArmClient struct {
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsagesClient
-
-	// Stream Analytics
-	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
-	streamAnalyticsJobsClient            streamanalytics.StreamingJobsClient
-	streamAnalyticsInputsClient          streamanalytics.InputsClient
-	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
-	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
@@ -382,6 +376,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.serviceFabric = servicefabric.BuildClient(o)
 	client.scheduler = scheduler.BuildClient(o)
 	client.signalr = signalr.BuildClient(o)
+	client.streamanalytics = streamanalytics.BuildClient(o)
 	client.trafficManager = trafficmanager.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
@@ -393,7 +388,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
-	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
@@ -768,28 +762,6 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.storageUsageClient = usageClient
 
 	c.storage = intStor.BuildClient(accountsClient, options)
-}
-
-func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	functionsClient := streamanalytics.NewFunctionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&functionsClient.Client, auth)
-	c.streamAnalyticsFunctionsClient = functionsClient
-
-	jobsClient := streamanalytics.NewStreamingJobsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&jobsClient.Client, auth)
-	c.streamAnalyticsJobsClient = jobsClient
-
-	inputsClient := streamanalytics.NewInputsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&inputsClient.Client, auth)
-	c.streamAnalyticsInputsClient = inputsClient
-
-	outputsClient := streamanalytics.NewOutputsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&outputsClient.Client, auth)
-	c.streamAnalyticsOutputsClient = outputsClient
-
-	transformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&transformationsClient.Client, auth)
-	c.streamAnalyticsTransformationsClient = transformationsClient
 }
 
 func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
