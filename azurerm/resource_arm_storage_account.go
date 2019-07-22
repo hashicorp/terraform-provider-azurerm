@@ -417,7 +417,6 @@ func resourceArmStorageAccount() *schema.Resource {
 			"queue_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -478,35 +477,29 @@ func resourceArmStorageAccount() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.NoEmptyStrings,
-										ForceNew:     true,
 									},
 									"delete": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"read": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"write": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 365),
-										ForceNew:     true,
 									},
 								},
 							},
@@ -515,25 +508,25 @@ func resourceArmStorageAccount() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.NoEmptyStrings,
-										ForceNew:     true,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 365),
-										ForceNew:     true,
 									},
 								},
 							},
@@ -542,25 +535,25 @@ func resourceArmStorageAccount() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.NoEmptyStrings,
-										ForceNew:     true,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 365),
-										ForceNew:     true,
 									},
 								},
 							},
@@ -726,117 +719,17 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if val, ok := d.GetOk("queue_properties"); ok {
 		queueClient := meta.(*ArmClient).storage.QueuesClient
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, expandQueueProperties(val.([]interface{}))); err != nil {
+		queueProperties, err := expandQueueProperties(val.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
+		}
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
 		}
 	}
 
 	return resourceArmStorageAccountRead(d, meta)
-}
-
-func expandQueueProperties(input []interface{}) queues.StorageServiceProperties {
-	properties := queues.StorageServiceProperties{}
-	if len(input) == 0 {
-		return properties
-	}
-
-	attrs := input[0].(map[string]interface{})
-
-	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
-	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
-	properties.MinuteMetrics = expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
-	properties.HourMetrics = expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
-
-	return properties
-}
-
-func expandQueuePropertiesMetrics(input []interface{}) *queues.MetricsConfig {
-	if len(input) == 0 {
-		return &queues.MetricsConfig{}
-	}
-
-	metricsAttr := input[0].(map[string]interface{})
-	metrics := &queues.MetricsConfig{
-		Version: metricsAttr["version"].(string),
-		Enabled: metricsAttr["enabled"].(bool),
-	}
-
-	if v, ok := metricsAttr["retention_policy_days"]; ok {
-		if days := v.(int); days > 0 {
-			metrics.RetentionPolicy = queues.RetentionPolicy{
-				Days:    days,
-				Enabled: true,
-			}
-		}
-	}
-
-	return metrics
-}
-
-func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
-	if len(input) == 0 {
-		return &queues.LoggingConfig{}
-	}
-
-	loggingAttr := input[0].(map[string]interface{})
-	logging := &queues.LoggingConfig{
-		Version: loggingAttr["version"].(string),
-		Delete:  loggingAttr["delete"].(bool),
-		Read:    loggingAttr["read"].(bool),
-		Write:   loggingAttr["write"].(bool),
-	}
-
-	if v, ok := loggingAttr["retention_policy_days"]; ok {
-		if days := v.(int); days > 0 {
-			logging.RetentionPolicy = queues.RetentionPolicy{
-				Days:    days,
-				Enabled: true,
-			}
-		}
-	}
-
-	return logging
-
-}
-
-func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
-	if len(input) == 0 {
-		return &queues.Cors{}
-	}
-
-	corsRuleAttr := input[0].(map[string]interface{})
-	corsRule := queues.CorsRule{}
-
-	allowedOrigins := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
-		allowedOrigins = append(allowedOrigins, item.(string))
-	}
-	corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
-
-	exposedHeaders := make([]string, 0)
-	for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
-		exposedHeaders = append(exposedHeaders, item.(string))
-	}
-	corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
-
-	allowedHeaders := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
-		allowedHeaders = append(allowedHeaders, item.(string))
-	}
-	corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
-
-	allowedMethods := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
-		allowedMethods = append(allowedMethods, item.(string))
-	}
-	corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
-
-	corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
-
-	cors := &queues.Cors{
-		CorsRule: corsRule,
-	}
-	return cors
 }
 
 // resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
@@ -1017,9 +910,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("queue_properties") {
 		queueClient := meta.(*ArmClient).storage.QueuesClient
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, expandQueueProperties(d.Get("queue_properties").([]interface{}))); err != nil {
+		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
+		}
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
 		}
+
+		d.SetPartial("queue_properties")
 	}
 
 	d.Partial(false)
@@ -1312,6 +1212,131 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
+func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
+	properties := queues.StorageServiceProperties{}
+	if len(input) == 0 {
+		return properties, nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+
+	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
+	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
+	minuteMetrics, err := expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+	if err != nil {
+		return properties, fmt.Errorf("Error expanding `minute_metrics`: %+v", err)
+	}
+	properties.MinuteMetrics = minuteMetrics
+	hourMetrics, err := expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+	if err != nil {
+		return properties, fmt.Errorf("Error expanding `hour_metrics`: %+v", err)
+	}
+	properties.HourMetrics = hourMetrics
+
+	return properties, nil
+}
+
+func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
+	if len(input) == 0 {
+		return &queues.MetricsConfig{}, nil
+	}
+
+	metricsAttr := input[0].(map[string]interface{})
+
+	metrics := &queues.MetricsConfig{
+		Version: metricsAttr["version"].(string),
+		Enabled: metricsAttr["enabled"].(bool),
+	}
+
+	if v, ok := metricsAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			metrics.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	if v, ok := metricsAttr["include_apis"]; ok {
+		includeAPIs := v.(bool)
+		if metrics.Enabled {
+			metrics.IncludeAPIs = &includeAPIs
+		} else {
+			if includeAPIs {
+				return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
+			}
+		}
+	}
+
+	return metrics, nil
+}
+
+func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
+	if len(input) == 0 {
+		return &queues.LoggingConfig{}
+	}
+
+	loggingAttr := input[0].(map[string]interface{})
+	logging := &queues.LoggingConfig{
+		Version: loggingAttr["version"].(string),
+		Delete:  loggingAttr["delete"].(bool),
+		Read:    loggingAttr["read"].(bool),
+		Write:   loggingAttr["write"].(bool),
+	}
+
+	if v, ok := loggingAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			logging.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	return logging
+
+}
+
+func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
+	if len(input) == 0 {
+		return &queues.Cors{}
+	}
+
+	corsRuleAttr := input[0].(map[string]interface{})
+	corsRule := queues.CorsRule{}
+
+	allowedOrigins := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
+		allowedOrigins = append(allowedOrigins, item.(string))
+	}
+	corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
+
+	exposedHeaders := make([]string, 0)
+	for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
+		exposedHeaders = append(exposedHeaders, item.(string))
+	}
+	corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
+
+	allowedHeaders := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
+		allowedHeaders = append(allowedHeaders, item.(string))
+	}
+	corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
+
+	allowedMethods := make([]string, 0)
+	for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
+		allowedMethods = append(allowedMethods, item.(string))
+	}
+	corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
+
+	corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+	cors := &queues.Cors{
+		CorsRule: corsRule,
+	}
+	return cors
+}
+
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
 	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
 		return []interface{}{}
@@ -1391,6 +1416,10 @@ func flattenQueuePropertiesMetrics(input queues.MetricsConfig) []interface{} {
 
 	metrics["version"] = input.Version
 	metrics["enabled"] = input.Enabled
+
+	if input.IncludeAPIs != nil {
+		metrics["include_apis"] = *input.IncludeAPIs
+	}
 
 	if input.RetentionPolicy.Enabled {
 		metrics["retention_policy_days"] = input.RetentionPolicy.Days

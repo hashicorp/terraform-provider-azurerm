@@ -191,6 +191,8 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 * `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
 
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
 * `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
 
 `hour_metrics` supports the following:
@@ -199,8 +201,9 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 * `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
 
 ## Attributes Reference
 

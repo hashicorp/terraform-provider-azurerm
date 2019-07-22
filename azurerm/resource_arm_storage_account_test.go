@@ -1418,35 +1418,35 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-	queue_properties {
-		cors_rule {
-			allowed_origins    = ["http://www.example.com"]
-			exposed_headers    = ["x-tempo-*"]
-			allowed_headers    = ["x-tempo-*"]
-			allowed_methods    = ["GET", "PUT"]
-			max_age_in_seconds = "500"
-		}
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
 
-		logging {
-			version               = "1.0"
-			delete                = true
-			read                  = true
-			write                 = true
-			retention_policy_days = 7
-		}
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
 
-		hour_metrics {
-			version               = "1.0"
-			enabled               = false
-			retention_policy_days = 7
-		}
+    hour_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
 
-		minute_metrics {
-			version               = "1.0"
-			enabled               = false
-			retention_policy_days = 7
-		}
-	}
+    minute_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+  }
 }
 `, rInt, location, rString)
 }
@@ -1466,34 +1466,36 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-	queue_properties {
-		cors_rule {
-			allowed_origins    = ["http://www.example.com"]
-			exposed_headers    = ["x-tempo-*", "x-method-*"]
-			allowed_headers    = ["*"]
-			allowed_methods    = ["GET"]
-			max_age_in_seconds = "2000000000"
-		}
-		logging {
-			version               = "1.0"
-			delete                = true
-			read                  = true
-			write                 = true
-			retention_policy_days = 7
-		}
+  queue_properties {
+      cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+    }
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
 
-		hour_metrics {
-			version               = "1.0"
-			enabled               = false
-			retention_policy_days = 7
-		}
+    hour_metrics {
+      version               = "1.0"
+      enabled               = true
+      retention_policy_days = 7
+      include_apis          = true
+    }
 
-		minute_metrics {
-			version               = "1.0"
-			enabled               = false
-			retention_policy_days = 7
-		}
-	}
+    minute_metrics {
+      version               = "1.0"
+      enabled               = true
+      include_apis          = false
+      retention_policy_days = 7
+    }
+  }
 }
 `, rInt, location, rString)
 }
