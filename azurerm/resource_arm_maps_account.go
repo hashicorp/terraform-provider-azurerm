@@ -38,8 +38,8 @@ func resourceArmMapsAccount() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"S0",
-					"S1",
+					"s0",
+					"s1",
 				}, false),
 			},
 
