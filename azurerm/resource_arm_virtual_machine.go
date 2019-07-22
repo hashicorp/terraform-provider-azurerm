@@ -830,8 +830,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			}
 		}
 		if err := d.Set("additional_capabilities", flattenAzureRmVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-				return fmt.Errorf("Error setting `additional_capabilities`: %#v", err)
-			}
+			return fmt.Errorf("Error setting `additional_capabilities`: %#v", err)
 		}
 
 		if profile := props.NetworkProfile; profile != nil {
