@@ -19,7 +19,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -38,6 +37,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
@@ -95,6 +95,7 @@ type ArmClient struct {
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
 	automation       *automation.Client
+	authorization    *authorization.Client
 	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
@@ -132,8 +133,6 @@ type ArmClient struct {
 	trafficManager   *trafficmanager.Client
 
 	// Authentication
-	roleAssignmentsClient   authorization.RoleAssignmentsClient
-	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
@@ -156,19 +155,22 @@ type ArmClient struct {
 	vmClient                   compute.VirtualMachinesClient
 
 	// Databases
-	mariadbDatabasesClient                   mariadb.DatabasesClient
-	mariadbFirewallRulesClient               mariadb.FirewallRulesClient
-	mariadbServersClient                     mariadb.ServersClient
-	mysqlConfigurationsClient                mysql.ConfigurationsClient
-	mysqlDatabasesClient                     mysql.DatabasesClient
-	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
-	mysqlServersClient                       mysql.ServersClient
-	mysqlVirtualNetworkRulesClient           mysql.VirtualNetworkRulesClient
-	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
-	postgresqlDatabasesClient                postgresql.DatabasesClient
-	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
-	postgresqlServersClient                  postgresql.ServersClient
-	postgresqlVirtualNetworkRulesClient      postgresql.VirtualNetworkRulesClient
+	mariadbDatabasesClient     mariadb.DatabasesClient
+	mariadbFirewallRulesClient mariadb.FirewallRulesClient
+	mariadbServersClient       mariadb.ServersClient
+
+	mysqlConfigurationsClient      mysql.ConfigurationsClient
+	mysqlDatabasesClient           mysql.DatabasesClient
+	mysqlFirewallRulesClient       mysql.FirewallRulesClient
+	mysqlServersClient             mysql.ServersClient
+	mysqlVirtualNetworkRulesClient mysql.VirtualNetworkRulesClient
+
+	postgresqlConfigurationsClient      postgresql.ConfigurationsClient
+	postgresqlDatabasesClient           postgresql.DatabasesClient
+	postgresqlFirewallRulesClient       postgresql.FirewallRulesClient
+	postgresqlServersClient             postgresql.ServersClient
+	postgresqlVirtualNetworkRulesClient postgresql.VirtualNetworkRulesClient
+
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
@@ -342,6 +344,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.apiManagement = apimanagement.BuildClient(o)
 	client.appInsights = applicationinsights.BuildClient(o)
 	client.automation = automation.BuildClient(o)
+	client.authorization = authorization.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.containers = containers.BuildClient(o)
@@ -390,13 +393,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
-	assignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&assignmentsClient.Client, auth)
-	c.roleAssignmentsClient = assignmentsClient
-
-	definitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&definitionsClient.Client, auth)
-	c.roleDefinitionsClient = definitionsClient
 
 	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&applicationsClient.Client, graphAuth)

@@ -98,7 +98,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 }
 
 func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
@@ -158,7 +158,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetByID(ctx, d.Id())
@@ -191,7 +191,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseRoleDefinitionId(d.Id())
