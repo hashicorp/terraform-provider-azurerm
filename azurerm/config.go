@@ -10,6 +10,7 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -256,6 +257,9 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+
+	// Analysis Services
+	analysisServicesServerClient analysisservices.ServersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -403,6 +407,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerAnalysisServicesClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -832,6 +837,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerAnalysisServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	analysisServicesServersClient := analysisservices.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analysisServicesServersClient.Client, auth)
+	c.analysisServicesServerClient = analysisServicesServersClient
 }
 
 var (
