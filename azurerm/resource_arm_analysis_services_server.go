@@ -145,10 +145,16 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	_, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
+	resp, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
 	if getDetailsErr != nil {
 		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
 }
@@ -213,26 +219,16 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	if requireResourcesToBeImported && d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
-		}
-
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_analysis_services_server", *server.ID)
-		}
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
 	}
 
-	sku := d.Get("sku").(string)
+	resourceGroup := id.ResourceGroup
+	name := id.Path["servers"]
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
-
+	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
@@ -249,17 +245,6 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	server, err := client.GetDetails(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if server.ID == nil {
-		return fmt.Errorf("Cannot read ID of Analysis Services Server %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*server.ID)
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
 }
