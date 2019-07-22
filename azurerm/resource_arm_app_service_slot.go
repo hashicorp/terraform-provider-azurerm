@@ -14,9 +14,9 @@ import (
 
 func resourceArmAppServiceSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSlotCreateUpdate,
+		Create: resourceArmAppServiceSlotCreate,
 		Read:   resourceArmAppServiceSlotRead,
-		Update: resourceArmAppServiceSlotCreateUpdate,
+		Update: resourceArmAppServiceSlotCreate,
 		Delete: resourceArmAppServiceSlotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -142,7 +142,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
