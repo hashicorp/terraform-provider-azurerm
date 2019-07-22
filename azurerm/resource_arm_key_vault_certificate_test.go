@@ -245,7 +245,7 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -283,7 +283,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -320,7 +320,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 
 func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

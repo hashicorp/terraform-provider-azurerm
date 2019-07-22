@@ -294,7 +294,7 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 }
 
 func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -332,7 +332,7 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -368,7 +368,7 @@ func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFu
 
 func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
