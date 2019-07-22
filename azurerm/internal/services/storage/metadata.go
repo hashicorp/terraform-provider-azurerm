@@ -16,6 +16,15 @@ func MetaDataSchema() *schema.Schema {
 	}
 }
 
+func MetaDataComputedSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validateMetaDataKeys,
+	}
+}
+
 func ExpandMetaData(input map[string]interface{}) map[string]string {
 	output := make(map[string]string)
 
