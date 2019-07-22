@@ -139,6 +139,17 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccAzureRMStorageContainer_metaDataEmpty(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -375,6 +386,23 @@ resource "azurerm_storage_container" "test" {
   metadata = {
     hello = "world"
     panda = "pops"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_metaDataEmpty(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+
+  metadata = {
   }
 }
 `, template)

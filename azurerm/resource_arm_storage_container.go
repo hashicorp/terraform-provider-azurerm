@@ -53,7 +53,7 @@ func resourceArmStorageContainer() *schema.Resource {
 				}, false),
 			},
 
-			"metadata": storage.MetaDataSchema(),
+			"metadata": storage.MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
 			"has_immutability_policy": {
