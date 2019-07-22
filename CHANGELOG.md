@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for backups [GH-3804]
 * `azurerm_app_service` - support for storage mounts [GH-3792]
 * `azurerm_app_service` - support for user assigned identities [GH-3637]
+* `azurerm_app_service_slot` - support for `auth_settings` [GH-3897]
 * `azurerm_app_service_slot` - support for user assigned identities [GH-3637]
 * `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
 * `azurerm_batch_account` - expose required properties for when `pool_allocation_mode` is `UserSubscription` [GH-3535]
