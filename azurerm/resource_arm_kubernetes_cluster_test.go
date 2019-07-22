@@ -243,17 +243,17 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.10.9"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.12.7"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.10.9"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.12.7"),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.11.5"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.13.5"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.5"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.13.5"),
 				),
 			},
 		},
@@ -1656,6 +1656,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
+  kubernetes_version = "1.13.5"
+
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1734,6 +1736,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
+  kubernetes_version = "1.13.5"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1902,6 +1905,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
+  kubernetes_version = "1.13.5"
 
   agent_pool_profile {
     name                = "pool1"
@@ -1916,6 +1920,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "%s"
     client_secret = "%s"
+  }
+
+  network_profile {
+	network_plugin     = "kubenet"
+    load_balancer_sku = "standard"
   }
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
