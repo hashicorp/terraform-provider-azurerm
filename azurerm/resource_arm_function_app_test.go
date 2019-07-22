@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -591,6 +592,45 @@ func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_builtin_logging", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_authSettings(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMFunctionApp_authSettings(ri, rs, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.runtime_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_store_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -1424,4 +1464,66 @@ resource "azurerm_function_app" "test" {
   enable_builtin_logging    = false
 }
 `, rInt, location, storage)
+}
+
+func testAccAzureRMFunctionApp_authSettings(rInt int, storage string, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  auth_settings {
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/%[4]s"
+    runtime_version               = "1.0"
+    unauthenticated_client_action = "RedirectToLoginPage"
+    token_refresh_extension_hours = 75
+    token_store_enabled           = true
+
+    additional_login_params = {
+      test_key = "test_value"
+    }
+
+    allowed_external_redirect_urls = [
+      "https://terra.form",
+    ]
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, storage, tenantID)
 }
