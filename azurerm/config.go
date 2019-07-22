@@ -15,7 +15,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -55,9 +54,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
-	cosmos "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
@@ -115,6 +115,7 @@ type ArmClient struct {
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
+	mariadb          *mariadb.Client
 	media            *media.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
@@ -155,11 +156,6 @@ type ArmClient struct {
 	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
 	vmImageClient              compute.VirtualMachineImagesClient
 	vmClient                   compute.VirtualMachinesClient
-
-	// Databases
-	mariadbDatabasesClient     mariadb.DatabasesClient
-	mariadbFirewallRulesClient mariadb.FirewallRulesClient
-	mariadbServersClient       mariadb.ServersClient
 
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
@@ -351,6 +347,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.keyvault = keyvault.BuildClient(o)
 	client.logic = logic.BuildClient(o)
 	client.logAnalytics = loganalytics.BuildClient(o)
+	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
@@ -450,17 +447,6 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbDBClient.Client, auth)
-	c.mariadbDatabasesClient = mariadbDBClient
-
-	mariadbFWClient := mariadb.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbFWClient.Client, auth)
-	c.mariadbFirewallRulesClient = mariadbFWClient
-
-	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbServersClient.Client, auth)
-	c.mariadbServersClient = mariadbServersClient
 
 	// SQL Azure
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
