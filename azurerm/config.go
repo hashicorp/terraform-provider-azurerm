@@ -20,7 +20,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	logicSvc "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	mapsSvc "github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
@@ -635,15 +634,6 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient := keyVault.New()
 	c.configureClient(&keyVaultManagementClient.Client, keyVaultAuth)
 	c.keyVaultManagementClient = keyVaultManagementClient
-}
-
-func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workflowsClient := logicSvc.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workflowsClient.Client, auth)
-
-	c.logic = &logic.Client{
-		WorkflowsClient: workflowsClient,
-	}
 }
 
 func (c *ArmClient) registerMapsClients(endpoint string, subscriptionId string, auth autorest.Authorizer) {
