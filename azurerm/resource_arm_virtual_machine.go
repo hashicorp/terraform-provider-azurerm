@@ -829,7 +829,6 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error setting `boot_diagnostics`: %#v", err)
 			}
 		}
-		if profile := props.AdditionalCapabilities; profile != nil {
 		if err := d.Set("additional_capabilities", flattenAzureRmVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
 				return fmt.Errorf("Error setting `additional_capabilities`: %#v", err)
 			}
