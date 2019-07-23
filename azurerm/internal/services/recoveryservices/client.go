@@ -8,14 +8,15 @@ import (
 )
 
 type Client struct {
-	ProtectedItemsClient      backup.ProtectedItemsGroupClient
-	ProtectionPoliciesClient  backup.ProtectionPoliciesClient
-	VaultsClient              recoveryservices.VaultsClient
-	FabricClient              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
-	ProtectionContainerClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
-	ReplicationPoliciesClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
-	ContainerMappingClient    func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
-	NetworkMappingClient      func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
+	ProtectedItemsClient            backup.ProtectedItemsGroupClient
+	ProtectionPoliciesClient        backup.ProtectionPoliciesClient
+	VaultsClient                    recoveryservices.VaultsClient
+	FabricClient                    func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
+	ProtectionContainerClient       func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
+	ReplicationPoliciesClient       func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
+	ContainerMappingClient          func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
+	NetworkMappingClient            func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
+	ReplicationMigrationItemsClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -56,6 +57,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.NetworkMappingClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient {
 		client := siterecovery.NewReplicationNetworkMappingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
+		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
+		return client
+	}
+
+	c.ReplicationMigrationItemsClient = func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient {
+		client := siterecovery.NewReplicationProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
 		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 		return client
 	}
