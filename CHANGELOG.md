@@ -40,6 +40,7 @@ IMPROVEMENTS:
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
 * `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
+* `azurerm_storage_account` - support for `queue_properties` [GH-3859]
 * `azurerm_storage_blob` - making `metadata` a computed field [GH-3842]
 * `azurerm_storage_container` - switching to use github.com/tombuildsstuff/giovanni [GH-3857]
 * `azurerm_storage_container` - adding support for `metadata` [GH-3857]
@@ -54,7 +55,6 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - switching over to use the github.com/tombuildsstuff/giovanni Storage SDK [GH-3838]
 * `azurerm_virtual_machine` - looking up the data disks attached to the Virtual Machine when optionally deleting them upon deletion rather than parsing them from the config [GH-3838]
 * `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
-
 
 BUG FIXES:
 
