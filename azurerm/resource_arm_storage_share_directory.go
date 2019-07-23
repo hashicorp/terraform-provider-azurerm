@@ -63,7 +63,7 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group: %s", err)
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, accountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
@@ -109,7 +109,7 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group: %s", err)
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
@@ -140,7 +140,7 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
 	}
@@ -180,7 +180,7 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	client, err := storageClient.FileShareClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
 	}

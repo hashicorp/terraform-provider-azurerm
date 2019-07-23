@@ -68,6 +68,31 @@ func PossibleClusterProvisioningStateValues() []ClusterProvisioningState {
 	return []ClusterProvisioningState{ClusterProvisioningStateCanceled, ClusterProvisioningStateDeleting, ClusterProvisioningStateFailed, ClusterProvisioningStateInProgress, ClusterProvisioningStateSucceeded}
 }
 
+// DaysOfWeek enumerates the values for days of week.
+type DaysOfWeek string
+
+const (
+	// Friday ...
+	Friday DaysOfWeek = "Friday"
+	// Monday ...
+	Monday DaysOfWeek = "Monday"
+	// Saturday ...
+	Saturday DaysOfWeek = "Saturday"
+	// Sunday ...
+	Sunday DaysOfWeek = "Sunday"
+	// Thursday ...
+	Thursday DaysOfWeek = "Thursday"
+	// Tuesday ...
+	Tuesday DaysOfWeek = "Tuesday"
+	// Wednesday ...
+	Wednesday DaysOfWeek = "Wednesday"
+)
+
+// PossibleDaysOfWeekValues returns an array of possible values for the DaysOfWeek const type.
+func PossibleDaysOfWeekValues() []DaysOfWeek {
+	return []DaysOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
+}
+
 // DirectoryType enumerates the values for directory type.
 type DirectoryType string
 
@@ -199,6 +224,10 @@ type ApplicationGetHTTPSEndpoint struct {
 	DestinationPort *int32 `json:"destinationPort,omitempty"`
 	// PublicPort - The public port to connect to.
 	PublicPort *int32 `json:"publicPort,omitempty"`
+	// SubDomainSuffix - The subDomainSuffix of the application.
+	SubDomainSuffix *string `json:"subDomainSuffix,omitempty"`
+	// DisableGatewayAuth - The value indicates whether to disable GatewayAuth.
+	DisableGatewayAuth *bool `json:"disableGatewayAuth,omitempty"`
 }
 
 // ApplicationListResult result of the request to list cluster Applications. It contains a list of
@@ -424,6 +453,49 @@ func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar au
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// Autoscale the autoscale request parameters
+type Autoscale struct {
+	// Capacity - Parameters for load-based autoscale
+	Capacity *AutoscaleCapacity `json:"capacity,omitempty"`
+	// Recurrence - Parameters for schedule-based autoscale
+	Recurrence *AutoscaleRecurrence `json:"recurrence,omitempty"`
+}
+
+// AutoscaleCapacity the load-based autoscale request parameters
+type AutoscaleCapacity struct {
+	// MinInstanceCount - The minimum instance count of the cluster
+	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
+	// MaxInstanceCount - The maximum instance count of the cluster
+	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
+}
+
+// AutoscaleRecurrence schedule-based autoscale request parameters
+type AutoscaleRecurrence struct {
+	// TimeZone - The time zone for the autoscale schedule times
+	TimeZone *string `json:"timeZone,omitempty"`
+	// Schedule - Array of schedule-based autoscale rules
+	Schedule *[]AutoscaleSchedule `json:"schedule,omitempty"`
+}
+
+// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a
+// time and capacity
+type AutoscaleSchedule struct {
+	// Days - Days of the week for a schedule-based autoscale rule
+	Days *[]DaysOfWeek `json:"days,omitempty"`
+	// TimeAndCapacity - Time and capacity for a schedule-based autoscale rule
+	TimeAndCapacity *AutoscaleTimeAndCapacity `json:"timeAndCapacity,omitempty"`
+}
+
+// AutoscaleTimeAndCapacity time and capacity request parameters
+type AutoscaleTimeAndCapacity struct {
+	// Time - 24-hour time in the form xx:xx
+	Time *string `json:"time,omitempty"`
+	// MinInstanceCount - The minimum instance count of the cluster
+	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
+	// MaxInstanceCount - The maximum instance count of the cluster
+	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
 }
 
 // Cluster the HDInsight cluster.
@@ -1419,6 +1491,8 @@ type Role struct {
 	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
 	// TargetInstanceCount - The instance count of the cluster.
 	TargetInstanceCount *int32 `json:"targetInstanceCount,omitempty"`
+	// AutoscaleConfiguration - The autoscale configurations.
+	AutoscaleConfiguration *Autoscale `json:"autoscale,omitempty"`
 	// HardwareProfile - The hardware profile.
 	HardwareProfile *HardwareProfile `json:"hardwareProfile,omitempty"`
 	// OsProfile - The operating system profile.

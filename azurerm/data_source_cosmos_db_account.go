@@ -238,18 +238,30 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		readEndpoints := make([]string, 0)
 		if locations := props.ReadLocations; locations != nil {
 			for _, l := range *locations {
+				if l.DocumentEndpoint == nil {
+					continue
+				}
+
 				readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 			}
 		}
-		d.Set("read_endpoints", readEndpoints)
+		if err := d.Set("read_endpoints", readEndpoints); err != nil {
+			return fmt.Errorf("Error setting `read_endpoints`: %s", err)
+		}
 
 		writeEndpoints := make([]string, 0)
 		if locations := props.WriteLocations; locations != nil {
 			for _, l := range *locations {
+				if l.DocumentEndpoint == nil {
+					continue
+				}
+
 				writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 			}
 		}
-		d.Set("write_endpoints", writeEndpoints)
+		if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+			return fmt.Errorf("Error setting `write_endpoints`: %s", err)
+		}
 
 		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}

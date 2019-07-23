@@ -6,7 +6,7 @@ description: |-
   Manages an Application Insights WebTest.
 ---
 
-# azurerm_application_insights_web_tests
+# azurerm_application_insights_web_test
 
 Manages an Application Insights WebTest.
 
@@ -46,15 +46,15 @@ XML
 }
 
 output "webtest_id" {
-  value = "${azurerm_application_insights_webtest.test.id}"
+  value = "${azurerm_application_insights_web_test.test.id}"
 }
 
 output "webtest_provisioning_state" {
-  value = "${azurerm_application_insights_webtest.test.provisioning_state}"
+  value = "${azurerm_application_insights_web_test.test.provisioning_state}"
 }
 
 output "webtests_synthetic_id" {
-  value = "${azurerm_application_insights_webtest.test.synthetic_monitor_id}"
+  value = "${azurerm_application_insights_web_test.test.synthetic_monitor_id}"
 }
 ```
 
