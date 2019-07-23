@@ -315,8 +315,8 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
+    max_interval_in_seconds = 333
+    max_staleness_prefix    = 101101
   }
 
   failover_policy {
