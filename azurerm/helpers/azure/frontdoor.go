@@ -176,3 +176,47 @@ func GetFrontDoorSubResourceId (subscriptionId string, resourceGroup string, ser
 
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
 }
+
+func GetArmFrontDoorRedirectType(input string) frontdoor.RedirectType {
+	switch input {
+	case "Moved":
+		return frontdoor.Moved
+	case "PermanentRedirect":
+		return frontdoor.PermanentRedirect
+	case "TemporaryRedirect":
+		return frontdoor.TemporaryRedirect
+	default:
+		return frontdoor.Found
+	}
+}
+
+func GetArmFrontDoorRedirectProtocol(input string) frontdoor.RedirectProtocol {
+	switch input {
+	case "RedirectProtocolHTTPOnly":
+		return frontdoor.RedirectProtocolHTTPOnly
+	case "RedirectProtocolHTTPSOnly":
+		return frontdoor.RedirectProtocolHTTPSOnly
+	default:
+		return frontdoor.RedirectProtocolMatchRequest
+	}
+}
+
+func GetArmFrontDoorForwardingProtocol(input string) frontdoor.ForwardingProtocol {
+	switch input {
+	case "HTTPOnly":
+		return frontdoor.HTTPOnly
+	case "HTTPSOnly":
+		return frontdoor.HTTPSOnly
+	default:
+		return frontdoor.MatchRequest 
+	}
+}
+
+func GetArmFrontDoorQuery(input string) frontdoor.Query {
+	switch input {
+	case "StripAll":
+		return frontdoor.StripAll
+	default:
+		return frontdoor.StripNone 
+	}
+}

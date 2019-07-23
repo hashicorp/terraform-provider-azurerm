@@ -26,16 +26,16 @@ func resourceArmFrontDoor() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateFrontDoorName,
 			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default: true,
+				Default:  true,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -43,7 +43,7 @@ func resourceArmFrontDoor() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"routing_rule": {
-				Type:     schema.TypeList, 
+				Type:     schema.TypeList,
 				MaxItems: 100,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -53,14 +53,14 @@ func resourceArmFrontDoor() *schema.Resource {
 							Computed: true,
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default: true,
+							Default:  true,
 						},
 						"accepted_protocols": {
 							Type:     schema.TypeList,
@@ -69,7 +69,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(frontdoor.HTTP), 
+									string(frontdoor.HTTP),
 									string(frontdoor.HTTPS),
 								}, false),
 								Default: string(frontdoor.HTTP),
@@ -80,7 +80,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							Optional: true,
 							MaxItems: 25,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:    schema.TypeString,
 								Default: "/*",
 							},
 						},
@@ -89,7 +89,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							Required: true,
 							MaxItems: 100,
 							Elem: &schema.Schema{
-								Type:     schema.TypeString,
+								Type: schema.TypeString,
 							},
 						},
 						"redirect_configuration": {
@@ -116,7 +116,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"redirect_protocol": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.RedirectProtocolHTTPOnly),
 											string(frontdoor.RedirectProtocolHTTPSOnly),
@@ -125,7 +125,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"redirect_type": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Found),
 											string(frontdoor.Moved),
@@ -147,9 +147,9 @@ func resourceArmFrontDoor() *schema.Resource {
 										Required: true,
 									},
 									"cache_use_dynamic_compression": {
-										Type:     schema.TypeString,
+										Type:     schema.TypeBool,
 										Optional: true,
-										Default: false,
+										Default:  false,
 									},
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
@@ -162,7 +162,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
@@ -191,24 +191,24 @@ func resourceArmFrontDoor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default: 4,
+							Default:  4,
 						},
 						"successful_samples_required": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default: 2,
+							Default:  2,
 						},
 						"additional_latency_milliseconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default: 2,
+							Default:  2,
 						},
 					},
 				},
@@ -220,14 +220,14 @@ func resourceArmFrontDoor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default: "/",
+							Default:  "/",
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -241,7 +241,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"interval_in_seconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default: 120,
+							Default:  120,
 						},
 					},
 				},
@@ -261,31 +261,31 @@ func resourceArmFrontDoor() *schema.Resource {
 									"enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default: true,
+										Default:  true,
 									},
 									"address": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
 									"http_port": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"https_port": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"weight": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 1000),
-										Default: 50,
+										Default:      50,
 									},
 									"priority": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 5),
 									},
 									"host_header": {
@@ -296,8 +296,8 @@ func resourceArmFrontDoor() *schema.Resource {
 							},
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
@@ -318,8 +318,8 @@ func resourceArmFrontDoor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"host_name": {
@@ -329,7 +329,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"session_affinity_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default: true,
+							Default:  true,
 						},
 						"session_affinity_ttl_seconds": {
 							Type:     schema.TypeInt,
@@ -431,7 +431,6 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, subscriptionId, resourceGroup, name),
 			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, subscriptionId, resourceGroup, name),
 			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
-			
 		},
 		Tags: expandTags(tags),
 	}
@@ -571,7 +570,7 @@ func expandArmFrontDoorBackendPools(input []interface{}, subscriptionId string, 
 
 		output = append(output, result)
 	}
-	
+
 	return &output
 }
 
@@ -586,12 +585,12 @@ func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 		backend := be.(map[string]interface{})
 
 		address := backend["address"].(string)
-		httpPort := backend["http_port"].(int32)
-		httpsPort := backend["https_port"].(int32)
-		enabled := backend["enabled"].(bool)
-		priority := backend["priority"].(int32)
-		weight := backend["weight"].(int32)
 		hostHeader := backend["host_header"].(string)
+		enabled := backend["enabled"].(bool)
+		httpPort := int32(backend["http_port"].(int))
+		httpsPort := int32(backend["https_port"].(int))
+		priority := int32(backend["priority"].(int))
+		weight := int32(backend["weight"].(int))
 
 		result := frontdoor.Backend{
 			Address:           utils.String(address),
@@ -618,7 +617,6 @@ func expandArmFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnab
 }
 
 func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool) *frontdoor.BackendPoolsSettings {
-
 	enforceCheck := frontdoor.EnforceCertificateNameCheckEnabledStateDisabled
 
 	if enforceCertificateNameCheck {
@@ -644,7 +642,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 
 		hostName := frontendEndpoint["host_name"].(string)
 		isSessionAffinityEnabled := frontendEndpoint["session_affinity_enabled"].(bool)
-		sessionAffinityTtlSeconds := frontendEndpoint["session_affinity_ttl_seconds"].(int32)
+		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		name := frontendEndpoint["name"].(string)
 		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "frontendEndpoints", name))
@@ -662,12 +660,12 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 				// ResourceState:
 				// CustomHTTPSProvisioningState:
 				// CustomHTTPSProvisioningSubstate:
-				CustomHTTPSConfiguration:     expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
-				HostName:                     utils.String(hostName),
-				SessionAffinityEnabledState:  sessionAffinityEnabled,
-				SessionAffinityTTLSeconds:    utils.Int32(sessionAffinityTtlSeconds),
+				CustomHTTPSConfiguration:    expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
+				HostName:                    utils.String(hostName),
+				SessionAffinityEnabledState: sessionAffinityEnabled,
+				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
 				// WebApplicationFirewallPolicyLink:
-				
+
 			},
 		}
 
@@ -684,8 +682,8 @@ func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.
 
 	v := input[0].(map[string]interface{})
 	certSource := v["certificate_source"].(string)
-	
-	result := frontdoor.CustomHTTPSConfiguration {
+
+	result := frontdoor.CustomHTTPSConfiguration{
 		ProtocolType: frontdoor.ServerNameIndication,
 	}
 
@@ -696,11 +694,11 @@ func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.
 
 		result.CertificateSource = frontdoor.CertificateSourceAzureKeyVault
 		result.KeyVaultCertificateSourceParameters = &frontdoor.KeyVaultCertificateSourceParameters{
-			Vault: &frontdoor.KeyVaultCertificateSourceParametersVault {
+			Vault: &frontdoor.KeyVaultCertificateSourceParametersVault{
 				ID: utils.String(vaultId),
 			},
-			SecretName: utils.String(vaultSecret),
-			SecretVersion:utils.String(vaultVersion),
+			SecretName:    utils.String(vaultSecret),
+			SecretVersion: utils.String(vaultVersion),
 		}
 	} else {
 		result.CertificateSource = frontdoor.CertificateSourceFrontDoor
@@ -719,14 +717,14 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptio
 
 	output := make([]frontdoor.HealthProbeSettingsModel, 0)
 
-	for _,hps := range input {
+	for _, hps := range input {
 		v := hps.(map[string]interface{})
 
 		path := v["path"].(string)
 		protocol := v["protocol"].(string)
-		intervalInSeconds := v["interval_in_seconds"].(int32)
+		intervalInSeconds := int32(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
-	
+
 		result := frontdoor.HealthProbeSettingsModel{
 			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "healthProbeSettings", name)),
 			Name: utils.String(name),
@@ -748,15 +746,15 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 		return &[]frontdoor.LoadBalancingSettingsModel{}
 	}
 
-	output := make([]frontdoor.LoadBalancingSettingsModel,0)
+	output := make([]frontdoor.LoadBalancingSettingsModel, 0)
 
 	for _, lbs := range input {
 		loadBalanceSetting := lbs.(map[string]interface{})
 
 		name := loadBalanceSetting["name"].(string)
-		sampleSize := loadBalanceSetting["sample_size"].(int32)
-		successfulSamplesRequired := loadBalanceSetting["successful_samples_required"].(int32)
-		additionalLatencyMilliseconds := loadBalanceSetting["additional_latency_milliseconds"].(int32)
+		sampleSize := int32(loadBalanceSetting["sample_size"].(int))
+		successfulSamplesRequired := int32(loadBalanceSetting["successful_samples_required"].(int))
+		additionalLatencyMilliseconds := int32(loadBalanceSetting["additional_latency_milliseconds"].(int))
 		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "loadBalancingSettings", name))
 
 		result := frontdoor.LoadBalancingSettingsModel{
@@ -771,7 +769,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 
 		output = append(output, result)
 	}
-	
+
 	return &output
 }
 
@@ -788,18 +786,22 @@ func expandArmFrontDoorRoutingRule(input []interface{}, subscriptionId string, r
 		id := routingRule["id"].(string)
 		frontendEndpoints := routingRule["frontend_endpoints"].([]interface{})
 		acceptedProtocols := routingRule["accepted_protocols"].([]interface{})
-		patternsToMatch := routingRule["patterns_to_match"].(*[]string)
+		ptm := routingRule["patterns_to_match"].([]interface{})
 		enabled := routingRule["enabled"].(bool)
 		name := routingRule["name"].(string)
 
+		patternsToMatch := make([]string, 0)
+
+		for _, p := range ptm {
+			patternsToMatch = append(patternsToMatch, p.(string))
+		}
+
 		var routingConfiguration frontdoor.BasicRouteConfiguration
 
-		if rc := routingRule["redirect_configuration"].([]interface{}); rc != nil {
-			redirectConfiguration := expandArmFrontDoorRedirectConfiguration(rc)
-			routingConfiguration =  redirectConfiguration
-		} else if fc := routingRule["forwarding_configuration"].([]interface{}); fc != nil {
-			forwardingConfiguration := expandArmFrontDoorForwardingConfiguration(fc, subscriptionId, resourceGroup, serviceName)
-			routingConfiguration = forwardingConfiguration
+		if rc := routingRule["redirect_configuration"].([]interface{}); len(rc) != 0 {
+			routingConfiguration = expandArmFrontDoorRedirectConfiguration(rc)
+		} else if fc := routingRule["forwarding_configuration"].([]interface{}); len(fc) != 0 {
+			routingConfiguration = expandArmFrontDoorForwardingConfiguration(fc, subscriptionId, resourceGroup, serviceName)
 		}
 
 		currentRoutingRule := frontdoor.RoutingRule{
@@ -809,7 +811,7 @@ func expandArmFrontDoorRoutingRule(input []interface{}, subscriptionId string, r
 				//ResourceState:
 				FrontendEndpoints:  expandArmFrontDoorFrontEndEndpoints(frontendEndpoints, subscriptionId, resourceGroup, serviceName),
 				AcceptedProtocols:  expandArmFrontDoorAcceptedProtocols(acceptedProtocols),
-				PatternsToMatch:    patternsToMatch,
+				PatternsToMatch:    &patternsToMatch,
 				EnabledState:       frontdoor.RoutingRuleEnabledState(expandArmFrontDoorEnabledState(enabled)),
 				RouteConfiguration: routingConfiguration,
 			},
@@ -826,12 +828,12 @@ func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Proto
 		return &[]frontdoor.Protocol{}
 	}
 
-	output := make([]frontdoor.Protocol,0)
+	output := make([]frontdoor.Protocol, 0)
 
-	for _,ap := range input {
+	for _, ap := range input {
 		result := frontdoor.HTTPS
 
-		if ap.(frontdoor.Protocol) == frontdoor.HTTP {
+		if ap.(string) == fmt.Sprintf("%s", frontdoor.HTTP) {
 			result = frontdoor.HTTP
 		}
 
@@ -854,10 +856,10 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId str
 		return &[]frontdoor.SubResource{}
 	}
 
-	v := input[0].(map[string]interface{})
+	//v := input.(map[string]interface{})
 	output := make([]frontdoor.SubResource, 0)
 
-	for _, SubResource := range v {
+	for _, SubResource := range input {
 		result := *expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "frontendEndpoints", SubResource.(string))
 		output = append(output, result)
 	}
@@ -867,7 +869,7 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId str
 
 func expandArmFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
 	result := frontdoor.EnabledStateDisabled
-	
+
 	if enabled {
 		result = frontdoor.EnabledStateEnabled
 	}
@@ -880,17 +882,17 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 		return frontdoor.RedirectConfiguration{}
 	}
 	v := input[0].(map[string]interface{})
-	
-	redirectType := v["redirect_type"].(frontdoor.RedirectType)
-	redirectProtocol := v["redirect_protocol"].(frontdoor.RedirectProtocol)
+
+	redirectType := v["redirect_type"].(string)
+	redirectProtocol := v["redirect_protocol"].(string)
 	customHost := v["custom_host"].(string)
 	customPath := v["custom_path"].(string)
 	customFragment := v["custom_fragment"].(string)
 	customQueryString := v["custom_query_string"].(string)
 
-	redirectConfiguration := frontdoor.RedirectConfiguration {
-		RedirectType:      redirectType,
-		RedirectProtocol:  redirectProtocol,
+	redirectConfiguration := frontdoor.RedirectConfiguration{
+		RedirectType:      azure.GetArmFrontDoorRedirectType(redirectType),
+		RedirectProtocol:  azure.GetArmFrontDoorRedirectProtocol(redirectProtocol),
 		CustomHost:        utils.String(customHost),
 		CustomPath:        utils.String(customPath),
 		CustomFragment:    utils.String(customFragment),
@@ -906,11 +908,11 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 		return frontdoor.ForwardingConfiguration{}
 	}
 	v := input[0].(map[string]interface{})
-	
+
 	customForwardingPath := v["custom_forwarding_path"].(string)
-	forwardingProtocol := v["forwarding_protocol"].(frontdoor.ForwardingProtocol)
+	forwardingProtocol := v["forwarding_protocol"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
-	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(frontdoor.Query)
+	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
 	backendPoolName := v["backend_pool_name"].(string)
 
 	useDynamicCompression := frontdoor.DynamicCompressionEnabledDisabled
@@ -919,25 +921,42 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 		useDynamicCompression = frontdoor.DynamicCompressionEnabledEnabled
 	}
 
-	cacheConfiguration  := &frontdoor.CacheConfiguration  {
-		QueryParameterStripDirective: cacheQueryParameterStripDirective,
-		DynamicCompression: useDynamicCompression,
+	cacheConfiguration := &frontdoor.CacheConfiguration{
+		QueryParameterStripDirective: azure.GetArmFrontDoorQuery(cacheQueryParameterStripDirective),
+		DynamicCompression:           useDynamicCompression,
 	}
 
 	backend := &frontdoor.SubResource{
 		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "backendPools", backendPoolName)),
 	}
 
-	forwardingConfiguration := frontdoor.ForwardingConfiguration {
-		CustomForwardingPath: utils.String(customForwardingPath),
-		ForwardingProtocol:   forwardingProtocol,
-		CacheConfiguration:   cacheConfiguration,
-		BackendPool:          backend,
-		OdataType:            frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
+	forwardingConfiguration := frontdoor.ForwardingConfiguration{
+		ForwardingProtocol: azure.GetArmFrontDoorForwardingProtocol(forwardingProtocol),
+		CacheConfiguration: cacheConfiguration,
+		BackendPool:        backend,
+		OdataType:          frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
+	}
+
+	if customForwardingPath != "" {
+		forwardingConfiguration.CustomForwardingPath = utils.String(customForwardingPath)
 	}
 
 	return forwardingConfiguration
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1098,12 +1117,12 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					result["accepted_protocols"] = string(ap)
 				}
 			}
-				result["enabled_state"] = string(properties.EnabledState)
-				result["frontend_endpoints"] = flattenArmFrontDoorSubResources(properties.FrontendEndpoints)
-				if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
-					result["patterns_to_match"] = *patternsToMatch
-				}
-				result["resource_state"] = string(properties.ResourceState)
+			result["enabled_state"] = string(properties.EnabledState)
+			result["frontend_endpoints"] = flattenArmFrontDoorSubResources(properties.FrontendEndpoints)
+			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
+				result["patterns_to_match"] = *patternsToMatch
+			}
+			result["resource_state"] = string(properties.ResourceState)
 		}
 	}
 
@@ -1161,7 +1180,7 @@ func flattenArmFrontDoorSubResources(input *[]frontdoor.SubResource) []interface
 
 	result := make(map[string]interface{})
 
-	for _,v := range *input {
+	for _, v := range *input {
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
