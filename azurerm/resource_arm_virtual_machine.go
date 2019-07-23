@@ -367,6 +367,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"ultra_ssd_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
