@@ -110,14 +110,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      5,
-							ValidateFunc: validation.IntBetween(5, 86400),
+							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      100,
-							ValidateFunc: validation.IntBetween(10, 2147483647),
+							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
 				},
@@ -371,6 +371,17 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: expandTags(tags),
+	}
+
+	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
+
+	if cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy; len(geoLocations) > 1 && cp != nil {
+		if msp := cp.MaxStalenessPrefix; msp != nil && *msp < 100000 {
+			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
+		}
+		if mis := cp.MaxIntervalInSeconds; mis != nil && *mis < 300 {
+			return fmt.Errorf("Error max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
+		}
 	}
 
 	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account)
