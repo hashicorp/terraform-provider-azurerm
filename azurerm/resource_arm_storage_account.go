@@ -431,19 +431,28 @@ func resourceArmStorageAccount() *schema.Resource {
 										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 64,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
 									},
 									"exposed_headers": {
 										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 64,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
 									},
 									"allowed_headers": {
 										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 64,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
 									},
 									"allowed_methods": {
 										Type:     schema.TypeList,
@@ -1212,6 +1221,7 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
+	var err error
 	properties := queues.StorageServiceProperties{}
 	if len(input) == 0 {
 		return properties, nil
@@ -1221,16 +1231,14 @@ func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties
 
 	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
 	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
-	minuteMetrics, err := expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+	properties.MinuteMetrics, err = expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
 	if err != nil {
 		return properties, fmt.Errorf("Error expanding `minute_metrics`: %+v", err)
 	}
-	properties.MinuteMetrics = minuteMetrics
-	hourMetrics, err := expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+	properties.HourMetrics, err = expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
 	if err != nil {
 		return properties, fmt.Errorf("Error expanding `hour_metrics`: %+v", err)
 	}
-	properties.HourMetrics = hourMetrics
 
 	return properties, nil
 }
@@ -1260,10 +1268,8 @@ func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, e
 		includeAPIs := v.(bool)
 		if metrics.Enabled {
 			metrics.IncludeAPIs = &includeAPIs
-		} else {
-			if includeAPIs {
-				return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
-			}
+		} else if includeAPIs {
+			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
 		}
 	}
 
@@ -1306,30 +1312,10 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 		corsRuleAttr := attr.(map[string]interface{})
 		corsRule := queues.CorsRule{}
 
-		allowedOrigins := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
-			allowedOrigins = append(allowedOrigins, item.(string))
-		}
-		corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
-
-		exposedHeaders := make([]string, 0)
-		for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
-			exposedHeaders = append(exposedHeaders, item.(string))
-		}
-		corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
-
-		allowedHeaders := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
-			allowedHeaders = append(allowedHeaders, item.(string))
-		}
-		corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
-
-		allowedMethods := make([]string, 0)
-		for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
-			allowedMethods = append(allowedMethods, item.(string))
-		}
-		corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
-
+		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
+		corsRule.ExposedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ",")
+		corsRule.AllowedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ",")
+		corsRule.AllowedMethods = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ",")
 		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
 
 		corsRules = append(corsRules, corsRule)
