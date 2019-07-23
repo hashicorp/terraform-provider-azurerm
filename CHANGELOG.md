@@ -30,6 +30,7 @@ IMPROVEMENTS:
 * `azurerm_batch_account` - expose required properties for when `pool_allocation_mode` is `UserSubscription` [GH-3535]
 * `azurerm_cognitive_account` - add support for `CustomVision.Training` and `CustomVision.Prediction` to the `kind` property [GH-3817]
 * `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
+* `azurerm_cosmosdb_account` - validate `max_interval_in_seconds` and `max_staleness_prefix` correctly when using more then 1 geo_location [GH-3906]
 * `azurerm_function_app` - support for `auth_settings` [GH-3893]
 * `azurerm_iothub` - support for the `file_upload` property [GH-3735]
 * `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
