@@ -18,7 +18,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/terraform-providers/terraform-provider-azuread v0.4.1-0.20190610202312-5a179146b9f9
-	github.com/tombuildsstuff/giovanni v0.2.1
+	github.com/tombuildsstuff/giovanni v0.3.0
 	golang.org/x/crypto v0.0.0-20190506204251-e1dfcc566284
 	golang.org/x/net v0.0.0-20190502183928-7f726cade0ab
 	gopkg.in/yaml.v2 v2.2.2

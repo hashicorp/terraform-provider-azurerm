@@ -1467,12 +1467,19 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   queue_properties {
-      cors_rule {
+    cors_rule {
       allowed_origins    = ["http://www.example.com"]
       exposed_headers    = ["x-tempo-*", "x-method-*"]
       allowed_headers    = ["*"]
       allowed_methods    = ["GET"]
       max_age_in_seconds = "2000000000"
+		}
+		cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
     }
     logging {
       version               = "1.0"

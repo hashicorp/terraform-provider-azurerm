@@ -424,8 +424,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"cors_rule": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 1,
-							MinItems: 1,
+							MaxItems: 5,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"allowed_origins": {
@@ -1302,37 +1301,42 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 		return &queues.Cors{}
 	}
 
-	corsRuleAttr := input[0].(map[string]interface{})
-	corsRule := queues.CorsRule{}
+	corsRules := make([]queues.CorsRule, 0)
+	for _, attr := range input {
+		corsRuleAttr := attr.(map[string]interface{})
+		corsRule := queues.CorsRule{}
 
-	allowedOrigins := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
-		allowedOrigins = append(allowedOrigins, item.(string))
+		allowedOrigins := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_origins"].([]interface{}) {
+			allowedOrigins = append(allowedOrigins, item.(string))
+		}
+		corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
+
+		exposedHeaders := make([]string, 0)
+		for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
+			exposedHeaders = append(exposedHeaders, item.(string))
+		}
+		corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
+
+		allowedHeaders := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
+			allowedHeaders = append(allowedHeaders, item.(string))
+		}
+		corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
+
+		allowedMethods := make([]string, 0)
+		for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
+			allowedMethods = append(allowedMethods, item.(string))
+		}
+		corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
+
+		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+		corsRules = append(corsRules, corsRule)
 	}
-	corsRule.AllowedOrigins = strings.Join(allowedOrigins, ",")
-
-	exposedHeaders := make([]string, 0)
-	for _, item := range corsRuleAttr["exposed_headers"].([]interface{}) {
-		exposedHeaders = append(exposedHeaders, item.(string))
-	}
-	corsRule.ExposedHeaders = strings.Join(exposedHeaders, ",")
-
-	allowedHeaders := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_headers"].([]interface{}) {
-		allowedHeaders = append(allowedHeaders, item.(string))
-	}
-	corsRule.AllowedHeaders = strings.Join(allowedHeaders, ",")
-
-	allowedMethods := make([]string, 0)
-	for _, item := range corsRuleAttr["allowed_methods"].([]interface{}) {
-		allowedMethods = append(allowedMethods, item.(string))
-	}
-	corsRule.AllowedMethods = strings.Join(allowedMethods, ",")
-
-	corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
 
 	cors := &queues.Cors{
-		CorsRule: corsRule,
+		CorsRule: corsRules,
 	}
 	return cors
 }
@@ -1382,8 +1386,10 @@ func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []int
 	queueProperties := make(map[string]interface{})
 
 	if cors := input.Cors; cors != nil {
-		if cors.CorsRule.AllowedOrigins != "" {
-			queueProperties["cors_rule"] = flattenQueuePropertiesCorsRule(input.Cors.CorsRule)
+		if len(cors.CorsRule) > 0 {
+			if cors.CorsRule[0].AllowedOrigins != "" {
+				queueProperties["cors_rule"] = flattenQueuePropertiesCorsRule(input.Cors.CorsRule)
+			}
 		}
 	}
 
@@ -1428,16 +1434,22 @@ func flattenQueuePropertiesMetrics(input queues.MetricsConfig) []interface{} {
 	return []interface{}{metrics}
 }
 
-func flattenQueuePropertiesCorsRule(input queues.CorsRule) []interface{} {
-	corsRule := make(map[string]interface{})
+func flattenQueuePropertiesCorsRule(input []queues.CorsRule) []interface{} {
+	corsRules := make([]interface{}, 0)
 
-	corsRule["allowed_origins"] = flattenCorsProperty(input.AllowedOrigins)
-	corsRule["allowed_methods"] = flattenCorsProperty(input.AllowedMethods)
-	corsRule["allowed_headers"] = flattenCorsProperty(input.AllowedHeaders)
-	corsRule["exposed_headers"] = flattenCorsProperty(input.ExposedHeaders)
-	corsRule["max_age_in_seconds"] = input.MaxAgeInSeconds
+	for _, corsRule := range input {
+		attr := make(map[string]interface{})
 
-	return []interface{}{corsRule}
+		attr["allowed_origins"] = flattenCorsProperty(corsRule.AllowedOrigins)
+		attr["allowed_methods"] = flattenCorsProperty(corsRule.AllowedMethods)
+		attr["allowed_headers"] = flattenCorsProperty(corsRule.AllowedHeaders)
+		attr["exposed_headers"] = flattenCorsProperty(corsRule.ExposedHeaders)
+		attr["max_age_in_seconds"] = corsRule.MaxAgeInSeconds
+
+		corsRules = append(corsRules, attr)
+	}
+
+	return corsRules
 }
 
 func flattenQueuePropertiesLogging(input queues.LoggingConfig) []interface{} {
