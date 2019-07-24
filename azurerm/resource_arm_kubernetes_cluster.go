@@ -416,6 +416,17 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
 						},
+
+						"load_balancer_sku": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(containerservice.Basic),
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.Basic),
+								string(containerservice.Standard),
+							}, false),
+						},
 					},
 				},
 			},
@@ -1208,9 +1219,12 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 
 	networkPolicy := config["network_policy"].(string)
 
+	loadBalancerSku := config["load_balancer_sku"].(string)
+
 	networkProfile := containerservice.NetworkProfileType{
-		NetworkPlugin: containerservice.NetworkPlugin(networkPlugin),
-		NetworkPolicy: containerservice.NetworkPolicy(networkPolicy),
+		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
+		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
+		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1263,6 +1277,10 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	if profile.LoadBalancerSku != "" {
+		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}

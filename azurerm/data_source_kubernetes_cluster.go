@@ -321,6 +321,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"load_balancer_sku": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -723,6 +728,10 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	if profile.LoadBalancerSku != "" {
+		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}
