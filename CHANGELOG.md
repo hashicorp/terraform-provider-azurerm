@@ -37,6 +37,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for `custom_resource_group_name` [GH-3785]
 * `azurerm_kubernetes_cluster` - support for the `node_taints` property [GH-3787]
 * `azurerm_kubernetes_cluster`  - support for the `windows_profile` property [GH-3519]
+* `kubernetes_cluster` - support for specifying the `load_balancer_sku` property [GH-3890]
 * `azurerm_recovery_services_protected_vm` - changing `backup_policy_id` no longer forces a new resource [GH-3822]
 * `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
 * `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
