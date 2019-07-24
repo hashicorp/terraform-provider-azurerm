@@ -452,8 +452,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	d.SetId(*resp.ID)
 
-	//return resourceArmFrontDoorRead(d, meta)
-	return nil
+	return resourceArmFrontDoorRead(d, meta)
 }
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
@@ -483,14 +482,18 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if properties := resp.Properties; properties != nil {
-		if err := d.Set("backend_pools", flattenArmFrontDoorBackendPool(properties.BackendPools)); err != nil {
+		if err := d.Set("backend_pools", flattenArmFrontDoorBackendPools(properties.BackendPools)); err != nil {
 			return fmt.Errorf("Error setting `backend_pools`: %+v", err)
 		}
-		if err := d.Set("backend_pools_settings", flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)); err != nil {
-			return fmt.Errorf("Error setting `backend_pools_settings`: %+v", err)
+		if err := d.Set("enforce_backend_pools_certificate_name_check", flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)); err != nil {
+			return fmt.Errorf("Error setting `enforce_backend_pools_certificate_name_check`: %+v", err)
 		}
 		d.Set("cname", properties.Cname)
-		d.Set("enabled_state", string(properties.EnabledState))
+		if properties.EnabledState == frontdoor.EnabledStateEnabled {
+			d.Set("enabled", true)
+		} else {
+			d.Set("enabled", false)
+		}
 		d.Set("friendly_name", properties.FriendlyName)
 		if err := d.Set("frontend_endpoint", flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints)); err != nil {
 			return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
@@ -502,7 +505,6 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `load_balancing_settings`: %+v", err)
 		}
 		d.Set("provisioning_state", properties.ProvisioningState)
-		d.Set("resource_state", string(properties.ResourceState))
 		if err := d.Set("routing_rules", flattenArmFrontDoorRoutingRule(properties.RoutingRules)); err != nil {
 			return fmt.Errorf("Error setting `routing_rules`: %+v", err)
 		}
@@ -891,8 +893,8 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 	customQueryString := v["custom_query_string"].(string)
 
 	redirectConfiguration := frontdoor.RedirectConfiguration{
-		RedirectType:      azure.GetArmFrontDoorRedirectType(redirectType),
-		RedirectProtocol:  azure.GetArmFrontDoorRedirectProtocol(redirectProtocol),
+		RedirectType:      frontdoor.RedirectType(redirectType),
+		RedirectProtocol:  frontdoor.RedirectProtocol(redirectProtocol),
 		CustomHost:        utils.String(customHost),
 		CustomPath:        utils.String(customPath),
 		CustomFragment:    utils.String(customFragment),
@@ -922,7 +924,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	}
 
 	cacheConfiguration := &frontdoor.CacheConfiguration{
-		QueryParameterStripDirective: azure.GetArmFrontDoorQuery(cacheQueryParameterStripDirective),
+		QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
 		DynamicCompression:           useDynamicCompression,
 	}
 
@@ -931,7 +933,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	}
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
-		ForwardingProtocol: azure.GetArmFrontDoorForwardingProtocol(forwardingProtocol),
+		ForwardingProtocol: frontdoor.ForwardingProtocol(forwardingProtocol),
 		CacheConfiguration: cacheConfiguration,
 		BackendPool:        backend,
 		OdataType:          frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
@@ -987,7 +989,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 
 
 
-func flattenArmFrontDoorBackendPool(input *[]frontdoor.BackendPool) []interface{} {
+func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -998,29 +1000,35 @@ func flattenArmFrontDoorBackendPool(input *[]frontdoor.BackendPool) []interface{
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
+
+		if name := v.Name; name != nil {
+			result["name"] = *name
+		}
+
 		if properties := v.BackendPoolProperties; properties != nil {
-			result["backends"] = flattenArmFrontDoorBackend(properties.Backends)
-			result["health_probe_settings"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings)
-			result["load_balancing_settings"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings)
-			result["resource_state"] = string(properties.ResourceState)
+			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
+			result["backend_pool_health_probe"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings)
+			result["backend_pool_load_balancing"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings)
 		}
 	}
 
 	return []interface{}{result}
 }
 
-func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) []interface{} {
+func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) bool {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := false
 
-	if enforceCertificateNameCheck := string(input.EnforceCertificateNameCheck); enforceCertificateNameCheck != "" {
-		result["enforce_certificate_name_check"] = enforceCertificateNameCheck
+	if enforceCertificateNameCheck := frontdoor.EnforceCertificateNameCheckEnabledState(input.EnforceCertificateNameCheck); enforceCertificateNameCheck != "" {
+		if enforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
+			result = true
+		}
 	}
 
-	return []interface{}{result}
+	return result
 }
 
 func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []interface{} {
@@ -1033,16 +1041,30 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
+		if name := v.Name; name != nil {
+			result["name"] = *id
+		}
 		if properties := v.FrontendEndpointProperties; properties != nil {
 			if hostName := properties.HostName; hostName != nil {
 				result["host_name"] = *hostName
 			}
-			result["resource_state"] = string(properties.ResourceState)
-			result["session_affinity_enabled_state"] = string(properties.SessionAffinityEnabledState)
+			if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != nil {
+				if sessionAffinityEnabled == SessionAffinityEnabledStateEnabled {
+					result["session_affinity_enabled"] = true
+				} else {
+					result["session_affinity_enabled"] = false
+				}
+			}
+			
 			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
 				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
 			}
-			result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
+
+			if properties.CustomHTTPSConfiguration != nil {
+				
+			}
+
+			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 		}
 	}
 	return []interface{}{result}
@@ -1140,20 +1162,29 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 			result["address"] = *address
 		}
 		if backendHostHeader := v.BackendHostHeader; backendHostHeader != nil {
-			result["backend_host_header"] = *backendHostHeader
+			result["host_header"] = *backendHostHeader
 		}
-		result["enabled_state"] = string(v.EnabledState)
+		
+		if v.EnabledState == frontdoor.Enabled  {
+			result["enabled"] = true
+		} else {
+			result["enabled"] = false
+		}
+
 		if httpPort := v.HTTPPort; httpPort != nil {
-			result["http_port"] = *httpPort
+			result["http_port"] = int(*httpPort)
 		}
+
 		if httpsPort := v.HTTPSPort; httpsPort != nil {
-			result["https_port"] = *httpsPort
+			result["https_port"] = int(*httpsPort)
 		}
+
 		if priority := v.Priority; priority != nil {
-			result["priority"] = *priority
+			result["priority"] = int(*priority)
 		}
+
 		if weight := v.Weight; weight != nil {
-			result["weight"] = *weight
+			result["weight"] = int(*weight)
 		}
 	}
 	return []interface{}{result}
