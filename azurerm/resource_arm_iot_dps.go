@@ -95,6 +95,7 @@ func resourceArmIotDPS() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 							ForceNew:     true,
+							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey)=[^;]+")
 								maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
