@@ -23,8 +23,20 @@ func resourceArmStorageTable() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		SchemaVersion: 1,
-		MigrateState:  resourceStorageTableMigrateState,
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				// this should have been applied from pre-0.12 migration system; backporting just in-case
+				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageTableStateUpgradeV0ToV1,
+				Version: 0,
+			},
+			{
+				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageTableStateUpgradeV1ToV2,
+				Version: 1,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
