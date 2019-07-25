@@ -190,6 +190,10 @@ func resourceArmFrontDoor() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -219,6 +223,10 @@ func resourceArmFrontDoor() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -295,6 +303,10 @@ func resourceArmFrontDoor() *schema.Resource {
 								},
 							},
 						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -317,6 +329,10 @@ func resourceArmFrontDoor() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"name": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -464,7 +480,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["frontDoors"]
+	name := id.Path["frontdoors"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -482,8 +498,8 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if properties := resp.Properties; properties != nil {
-		if err := d.Set("backend_pools", flattenArmFrontDoorBackendPools(properties.BackendPools)); err != nil {
-			return fmt.Errorf("Error setting `backend_pools`: %+v", err)
+		if err := d.Set("backend_pool", flattenArmFrontDoorBackendPools(properties.BackendPools)); err != nil {
+			return fmt.Errorf("Error setting `backend_pool`: %+v", err)
 		}
 		if err := d.Set("enforce_backend_pools_certificate_name_check", flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)); err != nil {
 			return fmt.Errorf("Error setting `enforce_backend_pools_certificate_name_check`: %+v", err)
@@ -498,18 +514,17 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("frontend_endpoint", flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints)); err != nil {
 			return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 		}
-		if err := d.Set("health_probe_settings", flattenArmFrontDoorHealthProbeSettingsModel(properties.HealthProbeSettings)); err != nil {
-			return fmt.Errorf("Error setting `health_probe_settings`: %+v", err)
+		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(properties.HealthProbeSettings)); err != nil {
+			return fmt.Errorf("Error setting `backend_pool_health_probe`: %+v", err)
 		}
-		if err := d.Set("load_balancing_settings", flattenArmFrontDoorLoadBalancingSettingsModel(properties.LoadBalancingSettings)); err != nil {
-			return fmt.Errorf("Error setting `load_balancing_settings`: %+v", err)
+		if err := d.Set("backend_pool_load_balancing", flattenArmFrontDoorLoadBalancingSettingsModel(properties.LoadBalancingSettings)); err != nil {
+			return fmt.Errorf("Error setting `backend_pool_load_balancing`: %+v", err)
 		}
-		d.Set("provisioning_state", properties.ProvisioningState)
-		if err := d.Set("routing_rules", flattenArmFrontDoorRoutingRule(properties.RoutingRules)); err != nil {
+		if err := d.Set("routing_rule", flattenArmFrontDoorRoutingRule(properties.RoutingRules)); err != nil {
 			return fmt.Errorf("Error setting `routing_rules`: %+v", err)
 		}
 	}
-	d.Set("type", resp.Type)
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -946,57 +961,16 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	return forwardingConfiguration
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []interface{} {
+func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[string]interface{} {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]map[string]interface{},0)
 	}
 
-	result := make(map[string]interface{})
+	output := make([]map[string]interface{},0)
 
 	for _, v := range *input {
+		result := make(map[string]interface{})
+
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1007,17 +981,19 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []interface
 
 		if properties := v.BackendPoolProperties; properties != nil {
 			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
-			result["backend_pool_health_probe"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings)
-			result["backend_pool_load_balancing"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings)
+			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "healthProbeSettings")
+			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "loadBalancingSettings")
 		}
+
+		output = append(output, result)
 	}
 
-	return []interface{}{result}
+	return output
 }
 
 func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) bool {
 	if input == nil {
-		return make([]interface{}, 0)
+		return true
 	}
 
 	result := false
@@ -1031,133 +1007,16 @@ func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettin
 	return result
 }
 
-func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	for _, v := range *input {
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
-		if name := v.Name; name != nil {
-			result["name"] = *id
-		}
-		if properties := v.FrontendEndpointProperties; properties != nil {
-			if hostName := properties.HostName; hostName != nil {
-				result["host_name"] = *hostName
-			}
-			if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != nil {
-				if sessionAffinityEnabled == SessionAffinityEnabledStateEnabled {
-					result["session_affinity_enabled"] = true
-				} else {
-					result["session_affinity_enabled"] = false
-				}
-			}
-			
-			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
-				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
-			}
-
-			if properties.CustomHTTPSConfiguration != nil {
-				
-			}
-
-			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
-		}
-	}
-	return []interface{}{result}
-}
-
-func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	for _, v := range *input {
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
-		if properties := v.HealthProbeSettingsProperties; properties != nil {
-			if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
-				result["interval_in_seconds"] = *intervalInSeconds
-			}
-			if path := properties.Path; path != nil {
-				result["path"] = *path
-			}
-			result["protocol"] = string(properties.Protocol)
-			result["resource_state"] = string(properties.ResourceState)
-		}
-	}
-
-	return []interface{}{result}
-}
-
-func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	for _, v := range *input {
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
-		if properties := v.LoadBalancingSettingsProperties; properties != nil {
-			if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
-				result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
-			}
-			result["resource_state"] = string(properties.ResourceState)
-			if sampleSize := properties.SampleSize; sampleSize != nil {
-				result["sample_size"] = *sampleSize
-			}
-			if successfulSamplesRequired := properties.SuccessfulSamplesRequired; successfulSamplesRequired != nil {
-				result["successful_samples_required"] = *successfulSamplesRequired
-			}
-		}
-	}
-	return []interface{}{result}
-}
-
-func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	for _, v := range *input {
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
-		if properties := v.RoutingRuleProperties; properties != nil {
-			if acceptedProtocols := properties.AcceptedProtocols; acceptedProtocols != nil {
-				for _, ap := range *acceptedProtocols {
-					result["accepted_protocols"] = string(ap)
-				}
-			}
-			result["enabled_state"] = string(properties.EnabledState)
-			result["frontend_endpoints"] = flattenArmFrontDoorSubResources(properties.FrontendEndpoints)
-			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
-				result["patterns_to_match"] = *patternsToMatch
-			}
-			result["resource_state"] = string(properties.ResourceState)
-		}
-	}
-
-	return []interface{}{result}
-}
-
 func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
+	output := make([]interface{},0)
+
 	for _, v := range *input {
+		result := make(map[string]interface{})
+
 		if address := v.Address; address != nil {
 			result["address"] = *address
 		}
@@ -1186,25 +1045,88 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 		if weight := v.Weight; weight != nil {
 			result["weight"] = int(*weight)
 		}
+
+		output = append(output, result)
 	}
-	return []interface{}{result}
+
+	return output
 }
 
-func flattenArmFrontDoorSubResource(input *frontdoor.SubResource) []interface{} {
+func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		if name := v.Name; name != nil {
+			result["name"] = *name
+		}
+		if properties := v.FrontendEndpointProperties; properties != nil {
+			if hostName := properties.HostName; hostName != nil {
+				result["host_name"] = *hostName
+			}
+			if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
+				if sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled {
+					result["session_affinity_enabled"] = true
+				} else {
+					result["session_affinity_enabled"] = false
+				}
+			}
+			
+			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
+				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
+			}
 
-	if id := input.ID; id != nil {
-		result["id"] = *id
+			if properties.CustomHTTPSConfiguration != nil {
+				customHttpsConfiguration := make(map[string]interface{}, 0)
+				customHttpsConfiguration["certificate_source"] = string(properties.CustomHTTPSConfiguration.CertificateSource)
+
+				if properties.CustomHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
+					kvcsp := properties.CustomHTTPSConfiguration.KeyVaultCertificateSourceParameters
+
+					customHttpsConfiguration["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
+					customHttpsConfiguration["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
+					customHttpsConfiguration["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
+				}
+
+				result["custom_https_configuration"] = customHttpsConfiguration
+			}
+
+			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
+		}
+	}
+	return []interface{}{result}
+}
+
+func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		if properties := v.HealthProbeSettingsProperties; properties != nil {
+			if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
+				result["interval_in_seconds"] = *intervalInSeconds
+			}
+			if path := properties.Path; path != nil {
+				result["path"] = *path
+			}
+			result["protocol"] = string(properties.Protocol)
+		}
 	}
 
 	return []interface{}{result}
 }
 
-func flattenArmFrontDoorSubResources(input *[]frontdoor.SubResource) []interface{} {
+func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -1215,8 +1137,90 @@ func flattenArmFrontDoorSubResources(input *[]frontdoor.SubResource) []interface
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
+		if properties := v.LoadBalancingSettingsProperties; properties != nil {
+			if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
+				result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
+			}
+			if sampleSize := properties.SampleSize; sampleSize != nil {
+				result["sample_size"] = *sampleSize
+			}
+			if successfulSamplesRequired := properties.SuccessfulSamplesRequired; successfulSamplesRequired != nil {
+				result["successful_samples_required"] = *successfulSamplesRequired
+			}
+		}
 	}
 	return []interface{}{result}
+}
+
+func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	for _, v := range *input {
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+		result["name"] = *v.Name
+		if properties := v.RoutingRuleProperties; properties != nil {
+			result["accepted_protocols"] = flattenArmFrontDoorAcceptedProtocol(properties.AcceptedProtocols)
+			result["enabled_state"] = string(properties.EnabledState)
+			result["frontend_endpoints"] = flattenArmFrontDoorFrontendEndpointsSubResources(properties.FrontendEndpoints)
+			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
+				result["patterns_to_match"] = *patternsToMatch
+			}
+		}
+	}
+
+	return []interface{}{result}
+}
+
+func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	output := make([]interface{},0)
+	for _, p := range *input {
+		output = append(output, string(p))
+	}
+
+	return []interface{}{output}
+}
+
+func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType string) string {
+	if input == nil {
+		return ""
+	}
+
+	name := ""
+
+	if id := input.ID; id != nil {
+		aid, err := parseAzureResourceID(*id)
+		if err != nil {
+			return ""
+		}
+		name = aid.Path[resourceType]
+	}
+
+	return name
+}
+
+func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	
+	output := make([]interface{},0)
+	
+	for _, v := range *input {
+		name := flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
+		output = append(output, name)
+	}
+
+	return []interface{}{output}
 }
 
 func flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(input *frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink) []interface{} {
