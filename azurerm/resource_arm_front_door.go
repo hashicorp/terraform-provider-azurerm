@@ -539,7 +539,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["frontDoors"]
+	name := id.Path["frontdoors"]
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
