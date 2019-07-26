@@ -236,7 +236,7 @@ func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_approvalRequiredError(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName)),
-					ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
+				ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
 			},
 		},
 	})
