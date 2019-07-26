@@ -396,7 +396,44 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_fileStorage(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(ri, rs, location)
 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "FileStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
+				),
+			},
+		},
+	})
+}
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -595,6 +632,86 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Allow"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtection(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_queueProperties(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_queuePropertiesUpdated(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -982,6 +1099,54 @@ resource "azurerm_storage_account" "testsa" {
 `, rInt, location, rString)
 }
 
+func testAccAzureRMStorageAccount_fileStorage(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  access_tier              = "Hot"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileStorageUpdate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
 func testAccAzureRMStorageAccount_storageV2(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
@@ -1200,4 +1365,144 @@ resource "azurerm_storage_account" "testsa" {
   }
 }
 `, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                              = "unlikely23exst2acct%s"
+  resource_group_name               = "${azurerm_resource_group.testrg.name}"
+  location                          = "${azurerm_resource_group.testrg.location}"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  enable_advanced_threat_protection = true
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                              = "unlikely23exst2acct%s"
+  resource_group_name               = "${azurerm_resource_group.testrg.name}"
+  location                          = "${azurerm_resource_group.testrg.location}"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  enable_advanced_threat_protection = false
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_queueProperties(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
+
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+
+    hour_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+
+    minute_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_queuePropertiesUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+		}
+		cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
+    }
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+
+    hour_metrics {
+      version               = "1.0"
+      enabled               = true
+      retention_policy_days = 7
+      include_apis          = true
+    }
+
+    minute_metrics {
+      version               = "1.0"
+      enabled               = true
+      include_apis          = false
+      retention_policy_days = 7
+    }
+  }
+}
+`, rInt, location, rString)
 }

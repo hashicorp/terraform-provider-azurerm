@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
@@ -93,6 +95,22 @@ The following arguments are supported:
 
 ---
 
+A `storage_account` block supports the following:
+
+* `name` - (Required) The name of the storage account identifier.
+
+* `type` - (Required) The type of storage. Possible values are `AzureBlob` and `AzureFiles`.
+
+* `account_name` - (Required) The name of the storage account.
+
+* `share_name` - (Required) The name of the file share (container name, for Blob storage).
+
+* `access_key` - (Required) The access key for the storage account.
+
+* `mount_path` - (Optional) The path to mount the storage within the site's runtime environment.
+
+---
+
 A `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String.
@@ -105,9 +123,11 @@ A `connection_string` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the App Service. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 
@@ -278,6 +298,32 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `backup` block supports the following:
+
+* `backup_name` (Required) Specifies the name for this Backup.
+
+* `enabled` - (Required) Is this Backup enabled?
+
+* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+
+* `schedule` - (Optional) A `schedule` block as defined below.
+
+---
+
+A `schedule` block supports the following:
+
+* `frequency_interval` - (Required) Sets how often the backup should be executed.
+
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
+
+* `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
+
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
+
+* `start_time` - (Optional) Sets when the schedule should start working.
 
 ## Attributes Reference
 

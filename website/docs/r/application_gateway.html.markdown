@@ -135,6 +135,8 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `identity` - (Optional) A `identity` block.
+
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
@@ -288,6 +290,14 @@ A `http_listener` block supports the following:
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
 
 ---
 

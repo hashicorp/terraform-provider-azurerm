@@ -83,11 +83,42 @@ The following arguments are supported:
 
 ---
 
+A `aci_connector_linux` block supports the following:
+
+* `enabled` - (Required) Is the virtual node addon enabled?
+
+* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
+
+-> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+
+```
+resource "azurerm_subnet" "virtual" {
+  
+  ...
+
+  delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+```
+
+---
+
 * `addon_profile` - (Optional) A `addon_profile` block.
+
+* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `linux_profile` - (Optional) A `linux_profile` block.
+
+* `windows_profile` - (Optional) A `windows_profile` block.
 
 * `network_profile` - (Optional) A `network_profile` block.
 
@@ -95,9 +126,9 @@ The following arguments are supported:
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+* `node_resource_group` - (Optional) The name of the Resource Group where the the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
--> **Note:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+-> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -119,6 +150,14 @@ A `agent_pool_profile` block supports the following:
 
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
+* `availability_zones` - (Optional)  Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+
+* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
+
+* `min_count` - (Optional) Minimum number of nodes for auto-scaling 
+
+* `max_count` - (Optional) Maximum number of nodes for auto-scaling
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent.
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
@@ -127,11 +166,13 @@ A `agent_pool_profile` block supports the following:
 
 * `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
 
-~>  **Note:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
+~> **NOTE:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A route table should be configured on this Subnet.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 
 ---
 
@@ -161,6 +202,14 @@ A `linux_profile` block supports the following:
 
 ---
 
+A `windows_profile` block supports the following:
+
+* `admin_username` - (Required) The Admin Username for Windows VMs.
+
+* `admin_password` - (Required) The Admin Password for Windows VMs.
+
+---
+
 A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
@@ -181,6 +230,10 @@ A `network_profile` block supports the following:
 
 Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
+* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
+
+~> **NOTE:** Support for using a `standard` load balancer is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` and `AKSAzureStandardLoadBalancer` for `namespace Microsoft.ContainerService`. For additional information please visit [Standard SKU LoadBalancer](https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard).
+
 ---
 
 A `oms_agent` block supports the following:
@@ -188,31 +241,6 @@ A `oms_agent` block supports the following:
 * `enabled` - (Required) Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
-
----
-
-A `aci_connector_linux` block supports the following:
-
-* `enabled` - (Required) Is the virtual node addon enabled?
-
-* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
-
--> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
-
-```
-resource "azurerm_subnet" "virtual" {
-  
-  ...
-
-  delegation {
-    name = "aciDelegation"
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-```
 
 ---
 
