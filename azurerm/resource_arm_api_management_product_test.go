@@ -344,7 +344,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Updated Product"
   subscription_required = true
   approval_required     = true
-  subscription_limit    = 1
+  subscriptions_limit    = 1
   published             = true
 }
 `, rInt, location, rInt)
