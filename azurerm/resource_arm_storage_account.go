@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	`net/http`
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -43,13 +43,12 @@ func resourceArmStorageAccount() *schema.Resource {
 							return []*schema.ResourceData{d}, nil
 						}
 					}
-					return []*schema.ResourceData{d}, fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+					return []*schema.ResourceData{d}, fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", d.Id(), err)
 				}
 
 				if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
 					d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
 				}
-
 
 				return []*schema.ResourceData{d}, nil
 			},
