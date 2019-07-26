@@ -176,3 +176,16 @@ func GetFrontDoorSubResourceId (subscriptionId string, resourceGroup string, ser
 
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontdoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
 }
+
+func GetFrontDoorBasicRouteConfigurationType (i interface{}) string {
+	_, ok := i.(frontdoor.ForwardingConfiguration )
+	if !ok {
+		_, ok := i.(frontdoor.RedirectConfiguration )
+		if !ok {
+			return ""
+		}
+		return "RedirectConfiguration"
+	} else {
+		return "ForwardingConfiguration"
+	}
+}

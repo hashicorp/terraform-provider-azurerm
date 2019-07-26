@@ -1058,6 +1058,9 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 	}
 
 	result := make(map[string]interface{})
+	customHttpsConfiguration := make([]interface{}, 0)
+	chc := make(map[string]interface{}, 0)
+
 	for _, v := range *input {
 		if id := v.ID; id != nil {
 			result["id"] = *id
@@ -1065,6 +1068,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
+
 		if properties := v.FrontendEndpointProperties; properties != nil {
 			if hostName := properties.HostName; hostName != nil {
 				result["host_name"] = *hostName
@@ -1082,19 +1086,22 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 			}
 
 			if properties.CustomHTTPSConfiguration != nil {
-				customHttpsConfiguration := make(map[string]interface{}, 0)
-				customHttpsConfiguration["certificate_source"] = string(properties.CustomHTTPSConfiguration.CertificateSource)
+				chc["certificate_source"] = string(properties.CustomHTTPSConfiguration.CertificateSource)
 
 				if properties.CustomHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
 					kvcsp := properties.CustomHTTPSConfiguration.KeyVaultCertificateSourceParameters
-
-					customHttpsConfiguration["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
-					customHttpsConfiguration["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
-					customHttpsConfiguration["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
+					chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
+					chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
+					chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
 				}
-
-				result["custom_https_configuration"] = customHttpsConfiguration
+			}  else {
+				// since FrontDoor is the default the API does not set this value (e.g. null) in Azure, 
+				// Set default value for state file
+				chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
 			}
+			
+			customHttpsConfiguration = append(customHttpsConfiguration, chc)
+			result["custom_https_configuration"] = customHttpsConfiguration
 
 			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 		}
@@ -1106,11 +1113,14 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-
 	result := make(map[string]interface{})
+
 	for _, v := range *input {
 		if id := v.ID; id != nil {
 			result["id"] = *id
+		}
+		if name :=v.Name; name != nil {
+			result["name"] = *name
 		}
 		if properties := v.HealthProbeSettingsProperties; properties != nil {
 			if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
@@ -1137,6 +1147,9 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
+		if name := v.Name; name != nil {
+			result["name"] = *name
+		}
 		if properties := v.LoadBalancingSettingsProperties; properties != nil {
 			if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
 				result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
@@ -1157,6 +1170,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 		return make([]interface{}, 0)
 	}
 
+	output := make([]interface{}, 0)
 	result := make(map[string]interface{})
 
 	for _, v := range *input {
@@ -1164,30 +1178,75 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 			result["id"] = *id
 		}
 		result["name"] = *v.Name
+
 		if properties := v.RoutingRuleProperties; properties != nil {
 			result["accepted_protocols"] = flattenArmFrontDoorAcceptedProtocol(properties.AcceptedProtocols)
-			result["enabled_state"] = string(properties.EnabledState)
+
+			if properties.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled {
+				result["enabled"] = true
+			} else {
+				result["enabled"] = false
+			}
 			result["frontend_endpoints"] = flattenArmFrontDoorFrontendEndpointsSubResources(properties.FrontendEndpoints)
 			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
 				result["patterns_to_match"] = *patternsToMatch
 			}
+
+			brc := properties.RouteConfiguration
+			if routeConfigType := azure.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
+				rc := make([]interface{}, 0)
+				c := make(map[string]interface{})
+
+				// there are only two types of Route Configuration Types
+				if routeConfigType == "ForwardingConfiguration" {
+					v := brc.(frontdoor.ForwardingConfiguration)
+	
+					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
+					c["custom_forwarding_path"] = v.CustomForwardingPath
+					c["forwarding_protocol"] = string(v.ForwardingProtocol)
+
+					cc := v.CacheConfiguration 
+					c["cache_query_parameter_strip_directive"] = string(cc.QueryParameterStripDirective)
+					if cc.DynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
+						c["cache_use_dynamic_compression"] = true
+					} else {
+						c["cache_use_dynamic_compression"] = false
+					}
+
+					rc = append(rc, c)
+					result["forwarding_configuration"] = rc
+				} else {
+					v := brc.(frontdoor.RedirectConfiguration)
+					c["custom_fragment"] = v.CustomFragment
+					c["custom_host"] = v.CustomHost
+					c["custom_path"] = v.CustomPath 
+					c["custom_query_string"] = v.CustomQueryString
+					c["redirect_protocol"] = string(v.RedirectProtocol)
+					c["redirect_type"] = string(v.RedirectType)
+
+					rc = append(rc, c)
+					result["redirect_configuration"] = rc
+				}
+			} 
 		}
 	}
 
-	return []interface{}{result}
+	output = append(output, result)
+
+	return output
 }
 
-func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []interface{} {
+func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]string, 0)
 	}
 
-	output := make([]interface{},0)
+	output := make([]string,0)
 	for _, p := range *input {
 		output = append(output, string(p))
 	}
 
-	return []interface{}{output}
+	return output
 }
 
 func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType string) string {
@@ -1208,31 +1267,17 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	return name
 }
 
-func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) []interface{} {
+func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) []string {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]string, 0)
 	}
 	
-	output := make([]interface{},0)
+	output := make([]string,0)
 	
 	for _, v := range *input {
 		name := flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
 		output = append(output, name)
 	}
 
-	return []interface{}{output}
-}
-
-func flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(input *frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	if id := input.ID; id != nil {
-		result["id"] = *id
-	}
-
-	return []interface{}{result}
+	return output
 }
