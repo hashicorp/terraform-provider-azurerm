@@ -1,4 +1,10 @@
-## 1.33.0 (Unreleased)
+## 1.32.1 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_api_management_backend` - a nil `certificates` object is sent to the api instead of an empty one [GH-3931]
+* `azurerm_api_managment_product` - Additional validation for `approval_required` [GH-3945]
+
 ## 1.32.0 (July 24, 2019)
 
 FEATURES:
