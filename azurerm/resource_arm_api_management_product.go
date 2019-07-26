@@ -119,7 +119,7 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 		properties.ProductContractProperties.ApprovalRequired = utils.Bool(approvalRequired)
 		properties.ProductContractProperties.SubscriptionsLimit = utils.Int32(int32(subscriptionsLimit))
 	} else if approvalRequired {
-		return fmt.Errorf("Unable to use `approval_required` with `subscription_required` being false and `subscriptions_limit` being less than 1")
+		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, properties, ""); err != nil {

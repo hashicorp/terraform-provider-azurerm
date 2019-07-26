@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -235,11 +236,7 @@ func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_approvalRequiredError(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName)),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+					ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
 			},
 		},
 	})
@@ -447,6 +444,7 @@ resource "azurerm_api_management_product" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   display_name          = "Test Product"
   approval_required     = true
+  subscription_required = false
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
