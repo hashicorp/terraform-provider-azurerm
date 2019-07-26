@@ -30,13 +30,13 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 	routingRules := d.Get("routing_rule").([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})
-	loadBalancingSettings:= d.Get("backend_pool_load_balancing").([]interface{})
-	healthProbeSettings:= d.Get("backend_pool_health_probe").([]interface{})
+	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
+	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
 
 	if len(configFrontendEndpoints) == 0 {
 		return fmt.Errorf(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
 	}
-	
+
 	if routingRules != nil {
 		// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
 		for _, rr := range routingRules {
@@ -60,12 +60,12 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 					routingRulefrontendName := routingRuleFrontend.(string)
 					found = false
 
-					// Loop over all of the defined frontend endpoints in the config 
+					// Loop over all of the defined frontend endpoints in the config
 					// seeing if we find the routing rule frontend in the list
 					for _, configFrontendEndpoint := range configFrontendEndpoints {
 						configFrontend := configFrontendEndpoint.(map[string]interface{})
 						configFrontendName := configFrontend["name"]
-						if( routingRulefrontendName == configFrontendName){
+						if routingRulefrontendName == configFrontendName {
 							found = true
 							break
 						}
@@ -83,7 +83,7 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 
 	// Verify backend pool load balancing settings and health probe settings are defined in the resource schema
 	if backendPools != nil {
-		
+
 		for _, bp := range backendPools {
 			backendPool := bp.(map[string]interface{})
 			backendPoolName := backendPool["name"]
@@ -92,7 +92,7 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 			found := false
 
 			// Verify backend pool load balancing settings name exists
-			for _, lbs := range loadBalancingSettings{
+			for _, lbs := range loadBalancingSettings {
 				loadBalancing := lbs.(map[string]interface{})
 				loadBalancingName := loadBalancing["name"]
 
@@ -109,7 +109,7 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 			found = false
 
 			// Verify health probe settings name exists
-			for _, hps := range healthProbeSettings{
+			for _, hps := range healthProbeSettings {
 				healthProbe := hps.(map[string]interface{})
 				healthProbeName := healthProbe["name"]
 
@@ -122,7 +122,7 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 			if !found {
 				return fmt.Errorf(`"backend_pool":%q "health_probe_name":%q was not found in the configuration file. verify you have the "backend_pool_health_probe":%q defined in the configuration file`, backendPoolName, backendPoolHealthProbeName, backendPoolHealthProbeName)
 			}
-			
+
 		}
 	} else {
 		return fmt.Errorf(`"backend_pool": must have at least one "backend" defined`)
@@ -132,7 +132,7 @@ func ValidateFrontdoor(d *schema.ResourceData) error {
 	for _, configFrontendEndpoint := range configFrontendEndpoints {
 		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
 			FrontendName := configFrontend["name"]
-			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0  { 
+			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0 {
 				customHttpsConfiguration := chc[0].(map[string]interface{})
 				certificateSource := customHttpsConfiguration["certificate_source"]
 				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
@@ -157,19 +157,19 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
 
 	if MatchAllKeys {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != ""  && strings.TrimSpace(certificateVaultId.(string))  != "" {
+		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != "" && strings.TrimSpace(certificateVaultId.(string)) != "" {
 			return true
 		}
 	} else {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != ""  || strings.TrimSpace(certificateVaultId.(string)) != "" {
+		if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != "" || strings.TrimSpace(certificateVaultId.(string)) != "" {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
-func GetFrontDoorSubResourceId (subscriptionId string, resourceGroup string, serviceName string, resourceType string, resourceName string) string {
+func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, serviceName string, resourceType string, resourceName string) string {
 	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(serviceName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
 		return ""
 	}
@@ -177,10 +177,10 @@ func GetFrontDoorSubResourceId (subscriptionId string, resourceGroup string, ser
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontdoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
 }
 
-func GetFrontDoorBasicRouteConfigurationType (i interface{}) string {
-	_, ok := i.(frontdoor.ForwardingConfiguration )
+func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
+	_, ok := i.(frontdoor.ForwardingConfiguration)
 	if !ok {
-		_, ok := i.(frontdoor.RedirectConfiguration )
+		_, ok := i.(frontdoor.RedirectConfiguration)
 		if !ok {
 			return ""
 		}

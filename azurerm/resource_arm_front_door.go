@@ -963,10 +963,10 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 
 func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[string]interface{} {
 	if input == nil {
-		return make([]map[string]interface{},0)
+		return make([]map[string]interface{}, 0)
 	}
 
-	output := make([]map[string]interface{},0)
+	output := make([]map[string]interface{}, 0)
 
 	for _, v := range *input {
 		result := make(map[string]interface{})
@@ -1012,7 +1012,7 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	output := make([]interface{},0)
+	output := make([]interface{}, 0)
 
 	for _, v := range *input {
 		result := make(map[string]interface{})
@@ -1023,8 +1023,8 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 		if backendHostHeader := v.BackendHostHeader; backendHostHeader != nil {
 			result["host_header"] = *backendHostHeader
 		}
-		
-		if v.EnabledState == frontdoor.Enabled  {
+
+		if v.EnabledState == frontdoor.Enabled {
 			result["enabled"] = true
 		} else {
 			result["enabled"] = false
@@ -1080,7 +1080,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 					result["session_affinity_enabled"] = false
 				}
 			}
-			
+
 			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
 				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
 			}
@@ -1094,12 +1094,12 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 					chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
 					chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
 				}
-			}  else {
-				// since FrontDoor is the default the API does not set this value (e.g. null) in Azure, 
+			} else {
+				// since FrontDoor is the default the API does not set this value (e.g. null) in Azure,
 				// Set default value for state file
 				chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
 			}
-			
+
 			customHttpsConfiguration = append(customHttpsConfiguration, chc)
 			result["custom_https_configuration"] = customHttpsConfiguration
 
@@ -1119,7 +1119,7 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
-		if name :=v.Name; name != nil {
+		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
 		if properties := v.HealthProbeSettingsProperties; properties != nil {
@@ -1200,12 +1200,12 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 				// there are only two types of Route Configuration Types
 				if routeConfigType == "ForwardingConfiguration" {
 					v := brc.(frontdoor.ForwardingConfiguration)
-	
+
 					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
 					c["custom_forwarding_path"] = v.CustomForwardingPath
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
-					cc := v.CacheConfiguration 
+					cc := v.CacheConfiguration
 					c["cache_query_parameter_strip_directive"] = string(cc.QueryParameterStripDirective)
 					if cc.DynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
 						c["cache_use_dynamic_compression"] = true
@@ -1219,7 +1219,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					v := brc.(frontdoor.RedirectConfiguration)
 					c["custom_fragment"] = v.CustomFragment
 					c["custom_host"] = v.CustomHost
-					c["custom_path"] = v.CustomPath 
+					c["custom_path"] = v.CustomPath
 					c["custom_query_string"] = v.CustomQueryString
 					c["redirect_protocol"] = string(v.RedirectProtocol)
 					c["redirect_type"] = string(v.RedirectType)
@@ -1227,7 +1227,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					rc = append(rc, c)
 					result["redirect_configuration"] = rc
 				}
-			} 
+			}
 		}
 	}
 
@@ -1241,7 +1241,7 @@ func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 		return make([]string, 0)
 	}
 
-	output := make([]string,0)
+	output := make([]string, 0)
 	for _, p := range *input {
 		output = append(output, string(p))
 	}
@@ -1271,9 +1271,9 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 	if input == nil {
 		return make([]string, 0)
 	}
-	
-	output := make([]string,0)
-	
+
+	output := make([]string, 0)
+
 	for _, v := range *input {
 		name := flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
 		output = append(output, name)
