@@ -28,5 +28,8 @@ func BuildClient(o *common.ClientOptions) *Client {
 	c.VirtualNetworksClient = dtl.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.VirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
 
+	c.LabSchedulesClient = dtl.NewSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.LabSchedulesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &c
 }
