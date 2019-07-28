@@ -54,7 +54,7 @@ resource "azurerm_dev_test_schedule" "sample" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`
+* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`.
 
 * `location` - (Required) The location where the schedule is created. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `task_type` - (Required) The task type of the schedule. Possible values include `LabVmsShutdownTask` and `LabVmAutoStart`.
 
-* `time_zone_id` - (Required) The time zone ID (e.g. Pacific Standard time)
+* `time_zone_id` - (Required) The time zone ID (e.g. Pacific Standard time).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
