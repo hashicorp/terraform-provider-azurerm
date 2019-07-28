@@ -305,7 +305,7 @@ resource "azurerm_api_management_logger" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   eventhub {
-    name = "${azurerm_eventhub.test.name}"
+    name              = "${azurerm_eventhub.test.name}"
     connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
   }
 }
@@ -323,7 +323,7 @@ resource "azurerm_api_management_logger" "import" {
   resource_group_name = "${azurerm_api_management_logger.test.resource_group_name}"
 
   eventhub {
-    name = "${azurerm_eventhub.test.name}"
+    name              = "${azurerm_eventhub.test.name}"
     connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
   }
 }

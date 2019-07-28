@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -85,6 +86,53 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "premium"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMKeyVault_basicNotDefined(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMKeyVault_basicClassic(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "premium"),
 				),
 			},
 			{
@@ -413,6 +461,70 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_basicNotDefined(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_basicClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
   sku {
     name = "premium"
   }
@@ -438,16 +550,13 @@ func testAccAzureRMKeyVault_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_key_vault" "import" {
   name                = "${azurerm_key_vault.test.name}"
   location            = "${azurerm_key_vault.test.location}"
   resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
   tenant_id           = "${azurerm_key_vault.test.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -510,9 +619,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -547,9 +654,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -589,9 +694,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -694,9 +797,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
@@ -738,9 +839,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -778,44 +877,43 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 %s
 }
 
 %s
+
 `, rInt, location, rInt, accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_account" "testsa%d" {
-    name                      = "testsa%s%d"
-    resource_group_name       = "${azurerm_resource_group.test.name}"
-    location                  = "${azurerm_resource_group.test.location}"
-    account_tier              = "Standard"
-    account_replication_type  = "GRS"
+  name                     = "testsa%s%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 
-    identity {
-      type = "SystemAssigned"
-    }
-	
-    tags = {
-      environment = "testing"
-    }
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "testing"
+  }
 }
 `, accountNum, rs, accountNum)
 }
 
 func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 	return fmt.Sprintf(`
-  access_policy {
-    tenant_id          = "${data.azurerm_client_config.current.tenant_id}"
-    object_id          = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
-	
-    key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
-    secret_permissions = ["get"]
-  }
+access_policy {
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
+
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  secret_permissions = ["get"]
+}
 `, accountNum)
 }

@@ -43,5 +43,5 @@ func testAccDataSourceAzureRMExpressRoute_basic(rInt int, location string) strin
 		resource_group_name = "${azurerm_resource_group.test.name}"
   		name                = "${azurerm_express_route_circuit.test.name}"
 	}
-	`, config)
+`, config)
 }

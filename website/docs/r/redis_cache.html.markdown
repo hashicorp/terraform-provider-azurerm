@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ---
 
-* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6789) - disabled by default.
+* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 

@@ -374,26 +374,26 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     head_node {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
       vm_size               = "Standard_D3_V2"
       username              = "acctestusrvm"
-      ssh_keys              = [ "${var.ssh_key}" ]
+      ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
     }
 
     zookeeper_node {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     edge_node {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
   }
 }

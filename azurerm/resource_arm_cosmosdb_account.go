@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -328,10 +329,14 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if !utils.ResponseWasNotFound(r) {
-		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/5157 is fixed
+		if !utils.ResponseWasStatusCode(r, http.StatusInternalServerError) {
+			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	} else {
+		if !utils.ResponseWasNotFound(r) {
+			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		}
 	}
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
@@ -614,20 +619,32 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 	}
 
+	readEndpoints := make([]string, 0)
 	if p := resp.ReadLocations; p != nil {
-		readEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("read_endpoints", readEndpoints)
+	}
+	if err := d.Set("read_endpoints", readEndpoints); err != nil {
+		return fmt.Errorf("Error setting `read_endpoints`: %s", err)
 	}
 
+	writeEndpoints := make([]string, 0)
 	if p := resp.WriteLocations; p != nil {
-		writeEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("write_endpoints", writeEndpoints)
+	}
+	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+		return fmt.Errorf("Error setting `write_endpoints`: %s", err)
 	}
 
 	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
