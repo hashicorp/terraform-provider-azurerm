@@ -140,6 +140,16 @@ The following arguments are supported:
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
+* `cors` - (Optional) A `cors` block as defined below.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+* `support_credentials` - (Optional) Are credentials supported?
+
 ---
 
 `identity` supports the following:
@@ -148,7 +158,7 @@ The following arguments are supported:
 
 ---
 
-A `auth_settings` block supports the following:
+An `auth_settings` block supports the following:
 
 * `enabled` - (Required) Is Authentication enabled?
 
@@ -182,7 +192,7 @@ A `auth_settings` block supports the following:
 
 ---
 
-A `active_directory` block supports the following:
+An `active_directory` block supports the following:
 
 * `client_id` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
 
