@@ -575,13 +575,13 @@ func expandArmFrontDoorBackendPools(input []interface{}, subscriptionId string, 
 		backends := backendPool["backend"].([]interface{})
 
 		result := frontdoor.BackendPool{
-			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "backendPools", backendPoolName)),
+			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "BackendPools", backendPoolName)),
 			Name: utils.String(backendPoolName),
 			BackendPoolProperties: &frontdoor.BackendPoolProperties{
 				// ResourceState
 				Backends:              expandArmFrontDoorBackend(backends),
-				LoadBalancingSettings: expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "loadBalancingSettings", backendPoolLoadBalancingName),
-				HealthProbeSettings:   expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "healthProbeSettings", backendPoolHealthProbeName),
+				LoadBalancingSettings: expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "LoadBalancingSettings", backendPoolLoadBalancingName),
+				HealthProbeSettings:   expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "HealthProbeSettings", backendPoolHealthProbeName),
 			},
 		}
 
@@ -662,7 +662,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		name := frontendEndpoint["name"].(string)
-		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "frontendEndpoints", name))
+		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "FrontendEndpoints", name))
 
 		sessionAffinityEnabled := frontdoor.SessionAffinityEnabledStateDisabled
 
@@ -743,7 +743,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptio
 		name := v["name"].(string)
 
 		result := frontdoor.HealthProbeSettingsModel{
-			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "healthProbeSettings", name)),
+			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "HealthProbeSettings", name)),
 			Name: utils.String(name),
 			HealthProbeSettingsProperties: &frontdoor.HealthProbeSettingsProperties{
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
@@ -772,7 +772,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 		sampleSize := int32(loadBalanceSetting["sample_size"].(int))
 		successfulSamplesRequired := int32(loadBalanceSetting["successful_samples_required"].(int))
 		additionalLatencyMilliseconds := int32(loadBalanceSetting["additional_latency_milliseconds"].(int))
-		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "loadBalancingSettings", name))
+		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "LoadBalancingSettings", name))
 
 		result := frontdoor.LoadBalancingSettingsModel{
 			ID:   id,
@@ -877,7 +877,7 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId str
 	output := make([]frontdoor.SubResource, 0)
 
 	for _, SubResource := range input {
-		result := *expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "frontendEndpoints", SubResource.(string))
+		result := *expandArmFrontDoorSubResource(subscriptionId, resourceGroup, serviceName, "FrontendEndpoints", SubResource.(string))
 		output = append(output, result)
 	}
 
@@ -944,7 +944,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	}
 
 	backend := &frontdoor.SubResource{
-		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "backendPools", backendPoolName)),
+		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, serviceName, "BackendPools", backendPoolName)),
 	}
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
@@ -981,8 +981,8 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[strin
 
 		if properties := v.BackendPoolProperties; properties != nil {
 			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
-			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "healthProbeSettings")
-			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "loadBalancingSettings")
+			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "HealthProbeSettings")
+			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "LoadBalancingSettings")
 		}
 
 		output = append(output, result)
@@ -1177,7 +1177,9 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
-		result["name"] = *v.Name
+		if name := v.Name; name != nil {
+			result["name"] = *name
+		}
 
 		if properties := v.RoutingRuleProperties; properties != nil {
 			result["accepted_protocols"] = flattenArmFrontDoorAcceptedProtocol(properties.AcceptedProtocols)
@@ -1197,11 +1199,11 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 				rc := make([]interface{}, 0)
 				c := make(map[string]interface{})
 
-				// there are only two types of Route Configuration Types
+				// there are only two types of Route Configuration
 				if routeConfigType == "ForwardingConfiguration" {
 					v := brc.(frontdoor.ForwardingConfiguration)
 
-					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
+					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "BackendPools")
 					c["custom_forwarding_path"] = v.CustomForwardingPath
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
@@ -1275,7 +1277,7 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 	output := make([]string, 0)
 
 	for _, v := range *input {
-		name := flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
+		name := flattenArmFrontDoorSubResource(&v, "FrontendEndpoints")
 		output = append(output, name)
 	}
 

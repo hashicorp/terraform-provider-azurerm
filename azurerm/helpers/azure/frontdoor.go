@@ -174,7 +174,7 @@ func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, serv
 		return ""
 	}
 
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontdoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
+	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
 }
 
 func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
