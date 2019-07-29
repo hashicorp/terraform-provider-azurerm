@@ -1051,7 +1051,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_policy     = "azure"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+		service_cidr       = "10.10.0.0/16"
+		load_balancer_sku  = "Basic"
   }
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)

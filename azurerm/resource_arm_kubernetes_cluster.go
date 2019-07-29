@@ -425,8 +425,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),
 								string(containerservice.Standard),
-							}, false),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, true),
+							// DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
