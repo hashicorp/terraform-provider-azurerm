@@ -29,11 +29,12 @@ func resourceArmStorageAccount() *schema.Resource {
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
 
+		MigrateState:  resourceStorageAccountMigrateState,
+		SchemaVersion: 2,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  resourceStorageAccountMigrateState,
-		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -161,7 +162,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_advanced_threat_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  false, // TODO remove this in 2.0 so we can use GetOkExists to guard the ATP client use
 			},
 
 			"network_rules": {
@@ -714,14 +715,19 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
-	advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
-		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
-		},
-	}
+	// as this is not available in all regions, and presumably off by default
+	// lets only try to set this value when true
+	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
+	if v := d.Get("enable_advanced_threat_protection").(bool); v {
+		advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
+			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+				IsEnabled: utils.Bool(v),
+			},
+		}
 
-	if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
-		return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		}
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
@@ -1047,13 +1053,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	advancedThreatProtectionSetting, err := advancedThreatProtectionClient.Get(ctx, d.Id())
+	// TODO in 2.0 switch to guarding this with d.GetOkExists()
+	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
-	}
-
-	if atpp := advancedThreatProtectionSetting.AdvancedThreatProtectionProperties; atpp != nil {
-		d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
+		msg := err.Error()
+		if !strings.Contains(msg, "No registered resource provider found for location '") {
+			if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
+				return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+	} else {
+		if atpp := atp.AdvancedThreatProtectionProperties; atpp != nil {
+			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
