@@ -426,7 +426,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								string(containerservice.Basic),
 								string(containerservice.Standard),
 							}, true),
-							// DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
