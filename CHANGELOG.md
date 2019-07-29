@@ -4,6 +4,9 @@ BUG FIXES:
 
 * `azurerm_api_management_backend` - a nil `certificates` object is sent to the api instead of an empty one [GH-3931]
 * `azurerm_api_managment_product` - Additional validation for `approval_required` [GH-3945]
+* `azurerm_storage_table` - Migrate id to new format [GH-3932]
+* `azurerm_application_gateway` Fix crash around index out of range [GH-3966]
+* `azurerm_kubernetes_cluster` - suppress case difference on `load_balancer_sku` [GH-3958]
 
 ## 1.32.0 (July 24, 2019)
 
