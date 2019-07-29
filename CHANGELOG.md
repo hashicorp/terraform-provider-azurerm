@@ -6,8 +6,8 @@ BUG FIXES:
 * `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one [GH-3931]
 * `azurerm_api_managment_product` - additional validation for `approval_required` [GH-3945]
 * `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive [GH-3958]
-* `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
 * `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions [GH-3947]
+* `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
 
 ## 1.32.0 (July 24, 2019)
 
