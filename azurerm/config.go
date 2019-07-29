@@ -93,6 +93,8 @@ type ArmClient struct {
 	environment              azure.Environment
 	skipProviderRegistration bool
 
+	isGovernmentCloud bool
+
 	StopContext context.Context
 
 	// Services
@@ -311,6 +313,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		environment:              *env,
 		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
 		skipProviderRegistration: skipProviderRegistration,
+		isGovernmentCloud:        strings.EqualFold(env.Name, "AzureUSGovernmentCloud"),
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
