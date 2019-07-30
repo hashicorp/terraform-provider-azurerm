@@ -5,6 +5,7 @@ BUG FIXES:
 * `azurerm_application_gateway` fix an index out of range crash [GH-3966]
 * `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one [GH-3931]
 * `azurerm_api_managment_product` - additional validation for `approval_required` [GH-3945]
+* `azurerm_network_ddos_protection_plan` - correctly decodes the resource ID on read/delete [GH-3975]
 * `aurerm_dev_test_virtual_network` - generate subnet IDs in the correct format [GH-3717]
 * `azurerm_iot_dps` fixed deletion issue when using a service principal [GH-3973]
 * `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive [GH-3958]
