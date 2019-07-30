@@ -12,6 +12,8 @@ BUG FIXES:
 * `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions [GH-3947]
 * `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
 * `azurerm_virtual_machine_scale_set` - the `ssh_keys` property of the `os_profile_linux_config` block now recognizes updates [GH-3837]
+* `azurerm_virtual_machine_scale_set` - changes made to the `network_profile` property should now be correctly reflected during updates [GH-3821]
+
 
 ## 1.32.0 (July 24, 2019)
 
