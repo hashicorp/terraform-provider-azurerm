@@ -8,6 +8,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive [GH-3958]
 * `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions [GH-3947]
 * `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
+* `azurerm_iot_dps` fixed deletion issue when using a service principal [GH-3973]
 
 ## 1.32.0 (July 24, 2019)
 
