@@ -130,6 +130,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
+					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
 					string(postgresql.OneZeroFullStopTwo),
