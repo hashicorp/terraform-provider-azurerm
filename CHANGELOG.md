@@ -9,6 +9,7 @@ BUG FIXES:
 * `aurerm_dev_test_virtual_network` - generate subnet IDs in the correct format [GH-3717]
 * `azurerm_iot_dps` fixed deletion issue when using a service principal [GH-3973]
 * `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive [GH-3958]
+* `azurerm_postgresql_server` - add missing support for version `11.0` [GH-3970]
 * `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions [GH-3947]
 * `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
 * `azurerm_virtual_machine_scale_set` - the `ssh_keys` property of the `os_profile_linux_config` block now recognizes updates [GH-3837]
