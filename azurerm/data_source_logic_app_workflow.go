@@ -50,7 +50,7 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 	}
 }
 func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

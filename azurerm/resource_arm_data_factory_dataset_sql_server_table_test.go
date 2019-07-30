@@ -190,7 +190,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
- 
+
   description = "test description"
   annotations = ["test1", "test2", "test3"]
   table_name  = "testTable"
@@ -200,12 +200,12 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
     foo = "test1"
     bar = "test2"
   }
- 
+
   additional_properties = {
     foo = "test1"
     bar = "test2"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
@@ -240,28 +240,28 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
- 
+
   description = "test description 2"
   annotations = ["test1", "test2"]
   table_name  = "testTable"
   folder      = "testFolder"
 
   parameters = {
-    foo = "test1"
-    bar = "test2"
+    foo  = "test1"
+    bar  = "test2"
     buzz = "test3"
   }
- 
+
   additional_properties = {
     foo = "test1"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
     description = "description"
   }
-	
+
   schema_column {
     name        = "test2"
     type        = "Byte"

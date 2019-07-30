@@ -2918,9 +2918,9 @@ type PartitionUsage struct {
 	// QuotaPeriod - READ-ONLY; The quota period used to summarize the usage values.
 	QuotaPeriod *string `json:"quotaPeriod,omitempty"`
 	// Limit - READ-ONLY; Maximum value for this metric
-	Limit *int32 `json:"limit,omitempty"`
+	Limit *int64 `json:"limit,omitempty"`
 	// CurrentValue - READ-ONLY; Current value for this metric
-	CurrentValue *int32 `json:"currentValue,omitempty"`
+	CurrentValue *int64 `json:"currentValue,omitempty"`
 }
 
 // PartitionUsagesResult the response to a list partition level usage request.
@@ -3607,9 +3607,9 @@ type Usage struct {
 	// QuotaPeriod - READ-ONLY; The quota period used to summarize the usage values.
 	QuotaPeriod *string `json:"quotaPeriod,omitempty"`
 	// Limit - READ-ONLY; Maximum value for this metric
-	Limit *int32 `json:"limit,omitempty"`
+	Limit *int64 `json:"limit,omitempty"`
 	// CurrentValue - READ-ONLY; Current value for this metric
-	CurrentValue *int32 `json:"currentValue,omitempty"`
+	CurrentValue *int64 `json:"currentValue,omitempty"`
 }
 
 // UsagesResult the response to a list usage request.

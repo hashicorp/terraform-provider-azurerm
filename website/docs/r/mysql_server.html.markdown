@@ -28,9 +28,9 @@ resource "azurerm_mysql_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
-    family = "Gen5"
+    family   = "Gen5"
     capacity = "2"
- }
+  }
 
   storage_profile {
     storage_mb            = 5120
