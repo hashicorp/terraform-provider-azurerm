@@ -199,26 +199,7 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"cors": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"allowed_origins": {
-										Type:     schema.TypeSet,
-										Required: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"support_credentials": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-								},
-							},
-						},
+						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
 			},
@@ -703,7 +684,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
-		expand := azure.ExpandAppServiceCorsSettings(corsSettings)
+		expand := azure.ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
 	}
 
@@ -735,7 +716,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
-	result["cors"] = azure.FlattenAppServiceCorsSettings(input.Cors)
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
 	results = append(results, result)
 	return results
