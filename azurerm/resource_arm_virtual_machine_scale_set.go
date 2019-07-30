@@ -1619,6 +1619,18 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+		if sshKeys, ok := m["ssh_keys"].([]interface{}); ok {
+			for _, item := range sshKeys {
+				k := item.(map[string]interface{})
+				if path, ok := k["path"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", path.(string)))
+				}
+				if data, ok := k["key_data"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", data.(string)))
+				}
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())

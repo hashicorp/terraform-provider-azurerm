@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
@@ -97,6 +97,45 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageTable_acl(t *testing.T) {
+	var table storage.Table
+
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageTable_acl(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName, &table),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageTable_aclUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName, &table),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -105,42 +144,32 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", name)
-		}
+		tableName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+		if resourceGroup == nil {
+			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
 		}
 
-		options := &storage.QueryTablesOptions{}
-		tables, err := tableClient.QueryTables(storage.MinimalMetadata, options)
+		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Error querying Storage Table %q (storage account: %q) : %+v", name, storageAccountName, err)
-		}
-		if len(tables.Tables) == 0 {
-			return fmt.Errorf("Bad: Storage Table %q (storage account: %q) does not exist", name, storageAccountName)
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		var found bool
-		for _, table := range tables.Tables {
-			if table.Name == name {
-				found = true
-				*t = table
+		props, err := client.Exists(ctx, accountName, tableName)
+		if err != nil {
+			if utils.ResponseWasNotFound(props) {
+				return fmt.Errorf("Table %q doesn't exist in Account %q!", tableName, accountName)
 			}
-		}
 
-		if !found {
-			return fmt.Errorf("Bad: Storage Table %q (storage account: %q) does not exist", name, storageAccountName)
+			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
 		}
 
 		return nil
@@ -154,28 +183,39 @@ func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) res
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
+		tableName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error finding Resource Group: %s", err)
+		}
+		if resourceGroup == nil {
 			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
 		}
 
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return err
-		}
-		if !accountExists {
-			log.Printf("[INFO]Storage Account %q doesn't exist so the table won't exist", storageAccountName)
-			return nil
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		table := tableClient.GetTableReference(t.Name)
-		timeout := uint(60)
-		options := &storage.TableOptions{}
-		return table.Delete(timeout, options)
+		props, err := client.Exists(ctx, accountName, tableName)
+		if err != nil {
+			if utils.ResponseWasNotFound(props) {
+				return fmt.Errorf("Table %q doesn't exist in Account %q so it can't be deleted!", tableName, accountName)
+			}
+
+			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
+		}
+
+		if _, err := client.Delete(ctx, accountName, tableName); err != nil {
+			return fmt.Errorf("Error deleting Table %q: %s", tableName, err)
+		}
+
+		return nil
 	}
 }
 
@@ -185,40 +225,35 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", name)
-		}
+		tableName := rs.Primary.Attributes["name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			//If we can't get keys then the table can't exist
-			return nil
+			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
-		if !accountExists {
+		if resourceGroup == nil {
 			return nil
 		}
 
-		options := &storage.QueryTablesOptions{}
-		tables, err := tableClient.QueryTables(storage.NoMetadata, options)
+		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		var found bool
-		for _, table := range tables.Tables {
-			if table.Name == name {
-				found = true
+		props, err := client.Exists(ctx, accountName, tableName)
+		if err != nil {
+			if utils.ResponseWasNotFound(props) {
+				return nil
 			}
+
+			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
 		}
 
-		if found {
-			return fmt.Errorf("Bad: Storage Table %q (storage account: %q) still exist", name, storageAccountName)
-		}
+		return fmt.Errorf("Bad: Table %q (storage account: %q) still exists", tableName, accountName)
 	}
 
 	return nil
@@ -294,4 +329,86 @@ resource "azurerm_storage_table" "import" {
   storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageTable_acl(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMStorageTable_aclUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  acl {
+    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
 }

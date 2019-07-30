@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -124,6 +125,33 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 					resource.TestCheckResourceAttr(resourceName, "tags.version", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
+	resourceName := "azurerm_batch_account.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+
+	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID, subscriptionID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "UserSubscription"),
 				),
 			},
 		},
@@ -269,4 +297,57 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, rInt, location, rString, rString)
+}
+
+func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string, subscriptionID string) string {
+	return fmt.Sprintf(`
+data "azuread_service_principal" "test" {
+	display_name = "Microsoft Azure Batch"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "batchkv%s"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  tenant_id                       = "%s"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azuread_service_principal.test.object_id}"
+   
+    secret_permissions = [
+  	  "get",
+  	  "list",
+  	  "set",
+  	  "delete"
+    ]
+   
+  }
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  
+  pool_allocation_mode = "UserSubscription"
+  
+  key_vault_reference {
+    id  = "${azurerm_key_vault.test.id}"
+    url = "${azurerm_key_vault.test.vault_uri}"
+  }
+}
+`, rInt, location, batchAccountSuffix, tenantID, tenantID, batchAccountSuffix)
 }
