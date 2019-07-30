@@ -186,7 +186,7 @@ func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["provisioningServices"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, name, resourceGroup)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -214,7 +214,7 @@ func waitForIotDPSToBeDeleted(ctx context.Context, client iothub.IotDpsResourceC
 
 func iotdpsStateStatusCodeRefreshFunc(ctx context.Context, client iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		res, err := client.Get(ctx, name, resourceGroup)
 
 		log.Printf("Retrieving IoT Device Provisioning Service %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
 
