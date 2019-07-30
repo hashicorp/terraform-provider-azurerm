@@ -140,6 +140,12 @@ func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetPublicIPName(resourceName, "TestPublicIPConfiguration"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -165,10 +171,22 @@ func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.
 				),
 			},
 			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetPublicIPName(resourceName, "TestPublicIPConfiguration"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -198,6 +216,12 @@ func TestAccAzureRMVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetIPForwarding(resourceName, true),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -270,9 +294,6 @@ func TestAccAzureRMVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) 
 func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
-	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
-	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
 	config := testAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -281,8 +302,15 @@ func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.TestCheckResourceAttr(resourceName,
-					"network_profile."+networkProfileHash+".ip_configuration.0.application_security_group_ids.#", "1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -304,6 +332,12 @@ func TestAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.
 					testCheckAzureRMVirtualMachineScaleSetAcceleratedNetworking(resourceName, true),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -311,9 +345,6 @@ func TestAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.
 func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
-	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
-	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
 	config := testAccAzureRMVirtualMachineScaleSet_basicIPForwarding(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -324,8 +355,13 @@ func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile."+networkProfileHash+".ip_forwarding", "true"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -334,9 +370,6 @@ func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
-	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
-	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
 	config := testAccAzureRMVirtualMachineScaleSet_basicDNSSettings(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -347,9 +380,13 @@ func TestAccAzureRMVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile."+networkProfileHash+".dns_settings.0.dns_servers.0", "8.8.8.8"),
-					resource.TestCheckResourceAttr(resourceName, "network_profile."+networkProfileHash+".dns_settings.0.dns_servers.1", "8.8.4.4"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -998,6 +1035,9 @@ func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -1130,6 +1170,9 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *t
 		Steps: []resource.TestStep{
 			{
 				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
 			},
 			{
 				ResourceName:            resourceName,
