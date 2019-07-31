@@ -208,7 +208,10 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
 		}
 
 		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
@@ -239,7 +242,10 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
 		}
 
 		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
@@ -269,7 +275,7 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
 		}
 		if resourceGroup == nil {
 			return nil
