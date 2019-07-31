@@ -20,7 +20,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	location := testLocation()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA", subscriptionID, ri, rs)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
 
 	config := testAccAzureRMBatchCertificatePfx(ri, rs, location)
 
@@ -69,7 +69,7 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	location := testLocation()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34", subscriptionID, ri, rs)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, ri, rs)
 
 	config := testAccAzureRMBatchCertificateCer(ri, rs, location)
 
