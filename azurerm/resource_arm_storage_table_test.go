@@ -158,13 +158,6 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
 		}
 
-		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
-		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
-		}
-
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)

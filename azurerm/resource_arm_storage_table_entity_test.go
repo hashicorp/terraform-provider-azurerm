@@ -124,10 +124,10 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q / Resource Group %q): %v", partitionKey, rowKey, tableName, accountName, *resourceGroup, err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q): %v", partitionKey, rowKey, tableName, accountName, err)
 		}
 		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q / Resource Group %q)", partitionKey, rowKey, tableName, accountName, *resourceGroup)
+			return fmt.Errorf("Unable to locate Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q)", partitionKey, rowKey, tableName, accountName)
 		}
 
 		client, err := storageClient.TableEntityClient(ctx, *resourceGroup, accountName)
