@@ -213,7 +213,6 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 
 	if resourceGroup == nil {
 		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
-		d.SetId("")
 		return nil
 	}
 
