@@ -10,7 +10,6 @@ description: |-
 
 Manage Azure FrontDoor instance.
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -19,25 +18,25 @@ The following arguments are supported:
 
 * `resource_group` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
-* `backend_pools` - (Optional) One `backend_pool` block defined below.
+* `backend_pool` - (Required) One `backend_pool` block defined below.
 
-* `backend_pools_settings` - (Optional) One `backend_pools_setting` block defined below.
+* `backend_pools_settings` - (Required) One `backend_pools_setting` block defined below.
 
-* `enabled_state` - (Optional) Operational status of the Front Door load balancer. Permitted values are 'Enabled' or 'Disabled' Defaults to `Enabled`.
+* `enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are 'true' or 'false' Defaults to `true`.
 
 * `friendly_name` - (Optional) A friendly name for the frontDoor
 
-* `frontend_endpoints` - (Optional) One `frontend_endpoint` block defined below.
+* `frontend_endpoints` - (Required) One `frontend_endpoint` block defined below.
 
-* `health_probe_settings` - (Optional) One `health_probe_setting` block defined below.
+* `health_probe_settings` - (Required) One `health_probe_setting` block defined below.
 
-* `load_balancing_settings` - (Optional) One `load_balancing_setting` block defined below.
+* `load_balancing_settings` - (Required) One `load_balancing_setting` block defined below.
 
 * `resource_state` - (Optional) Resource status of the Front Door. Defaults to `Creating`.
 
-* `routing_rules` - (Optional) One `routing_rule` block defined below.
+* `routing_rules` - (Required) One `routing_rule` block defined below.
 
 * `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
 

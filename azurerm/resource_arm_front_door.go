@@ -1056,12 +1056,15 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-
-	result := make(map[string]interface{})
+	
+	output := make([]interface{}, 0)
+	
 	customHttpsConfiguration := make([]interface{}, 0)
 	chc := make(map[string]interface{}, 0)
 
 	for _, v := range *input {
+		result := make(map[string]interface{})
+
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1105,8 +1108,11 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 
 			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 		}
+
+		output = append(output, result)
 	}
-	return []interface{}{result}
+
+	return output
 }
 
 func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
