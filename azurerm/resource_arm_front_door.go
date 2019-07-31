@@ -1059,11 +1059,10 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 	
 	output := make([]interface{}, 0)
 	
-	customHttpsConfiguration := make([]interface{}, 0)
-	chc := make(map[string]interface{}, 0)
-
 	for _, v := range *input {
 		result := make(map[string]interface{})
+		customHttpsConfiguration := make([]interface{}, 0)
+		chc := make(map[string]interface{}, 0)
 
 		if id := v.ID; id != nil {
 			result["id"] = *id
