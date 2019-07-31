@@ -181,7 +181,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s)", id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -240,7 +240,7 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s)", id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -303,7 +303,7 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s)", id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

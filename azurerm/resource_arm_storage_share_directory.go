@@ -112,7 +112,7 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s)", id.DirectoryName, id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -143,7 +143,7 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s)", id.DirectoryName, id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -183,7 +183,7 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s)", id.DirectoryName, id.ShareName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed already", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

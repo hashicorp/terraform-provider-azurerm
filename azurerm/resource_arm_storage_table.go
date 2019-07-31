@@ -160,7 +160,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s)", id.TableName, id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -212,7 +212,7 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s)", id.TableName, id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -245,7 +245,7 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s)", id.TableName, id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

@@ -135,7 +135,7 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s)", id.TableName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -181,7 +181,7 @@ func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s)", id.TableName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed already", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
