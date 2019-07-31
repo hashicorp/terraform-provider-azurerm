@@ -70,6 +70,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+
 			"thumbprint_algorithm": {
 				Type:         schema.TypeString,
 				Required:     true,
