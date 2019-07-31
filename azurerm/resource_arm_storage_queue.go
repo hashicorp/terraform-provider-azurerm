@@ -139,11 +139,10 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.QueueName, id.AccountName, err)
 	}
-
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Account %q (assuming removed) - removing from state", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Container %q (Account %s)", id.QueueName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -181,11 +180,10 @@ func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.QueueName, id.AccountName, err)
 	}
-
 	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Account %q (assuming removed) - removing from state", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Container %q (Account %s)", id.QueueName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

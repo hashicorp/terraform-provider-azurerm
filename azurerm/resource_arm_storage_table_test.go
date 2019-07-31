@@ -152,6 +152,13 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+		}
+
+		if err != nil {
 			return fmt.Errorf("Error finding Resource Group: %s", err)
 		}
 		if resourceGroup == nil {
@@ -191,10 +198,10 @@ func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) res
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
 		}
 		if resourceGroup == nil {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
+			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
 		}
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
@@ -233,7 +240,7 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
 		}
 		if resourceGroup == nil {
 			return nil
