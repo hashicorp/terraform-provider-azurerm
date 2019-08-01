@@ -102,36 +102,6 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicTenPointTwo(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicTenPointTwo(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
-		},
-	})
-}
-
 func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
@@ -487,10 +457,6 @@ func testAccAzureRMPostgreSQLServer_basicNinePointSix(rInt int, location string)
 
 func testAccAzureRMPostgreSQLServer_basicTenPointZero(rInt int, location string) string {
 	return testAccAzureRMPostgreSQLServer_basic(rInt, location, "10.0")
-}
-
-func testAccAzureRMPostgreSQLServer_basicTenPointTwo(rInt int, location string) string {
-	return testAccAzureRMPostgreSQLServer_basic(rInt, location, "10.2")
 }
 
 func testAccAzureRMPostgreSQLServer_basicEleven(rInt int, location string) string {

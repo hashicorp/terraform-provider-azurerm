@@ -133,7 +133,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-					string(postgresql.OneZeroFullStopTwo),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
