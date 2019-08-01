@@ -2,7 +2,7 @@ package maps
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
