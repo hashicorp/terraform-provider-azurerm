@@ -1176,9 +1176,10 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 	}
 
 	output := make([]interface{}, 0)
-	result := make(map[string]interface{})
 
 	for _, v := range *input {
+		result := make(map[string]interface{})
+
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1236,9 +1237,9 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 				}
 			}
 		}
-	}
 
-	output = append(output, result)
+		output = append(output, result)
+	}
 
 	return output
 }
