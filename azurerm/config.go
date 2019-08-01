@@ -16,7 +16,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	mapsSvc "github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -362,6 +361,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.keyvault = keyvault.BuildClient(o)
 	client.logic = logic.BuildClient(o)
 	client.logAnalytics = loganalytics.BuildClient(o)
+	client.maps = maps.BuildClient(o)
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
@@ -387,7 +387,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerMapsClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
