@@ -80,7 +80,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if v != "Dedicated" {
-						errs = append(errs, fmt.Errorf("%q must be 'Dedicated'", key, v))
+						errs = append(errs, fmt.Errorf("%q must be 'Dedicated', got %q", key, v))
 					}
 					return
 				},
