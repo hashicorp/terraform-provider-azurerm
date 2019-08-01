@@ -86,6 +86,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) 
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "log_analytics_workspace_id"),
+					resource.TestCheckResourceAttr(resourceName, "log_analytics_destination_type", "Dedicated"),
 					resource.TestCheckResourceAttr(resourceName, "log.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "log.782743152.category", "AuditEvent"),
 					resource.TestCheckResourceAttr(resourceName, "metric.#", "1"),
@@ -317,6 +318,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   name                       = "acctestds%d"
   target_resource_id         = "${azurerm_key_vault.test.id}"
   log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+
+  log_analytics_destination_type = "Dedicated"
 
   log {
     category = "AuditEvent"
