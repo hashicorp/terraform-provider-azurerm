@@ -3,6 +3,9 @@
 FEATURES:
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 
+IMPROVEMENTS:
+`azurerm_iot_dps` - add support for `linked_hub` #3922
+
 BUG FIXES: 
 
 * `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
