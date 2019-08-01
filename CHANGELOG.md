@@ -1,14 +1,17 @@
 ## 1.33.0 (Unreleased)
 
 FEATURES:
+
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 
 IMPROVEMENTS:
+
 `azurerm_iot_dps` - add support for `linked_hub` #3922
 
 BUG FIXES: 
 
 * `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
+* `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
 
 ## 1.32.1 (July 31, 2019)
 
