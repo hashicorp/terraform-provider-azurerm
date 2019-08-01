@@ -74,16 +74,10 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			},
 
 			"log_analytics_destination_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: false,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					if v != "Dedicated" {
-						errs = append(errs, fmt.Errorf("%q must be 'Dedicated', got %q", key, v))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringInSlice([]string{"Dedicated"}, false),
 			},
 
 			"log": {
@@ -247,9 +241,8 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		valid = true
 	}
 
-	logAnalyticsDestinationType := d.Get("log_analytics_destination_type").(string)
-	if logAnalyticsDestinationType != "" {
-		properties.DiagnosticSettings.LogAnalyticsDestinationType = utils.String(logAnalyticsDestinationType)
+	if v := d.Get("log_analytics_destination_type").(string); v != "" {
+		properties.DiagnosticSettings.LogAnalyticsDestinationType = &v
 	}
 
 	if !valid {
@@ -304,6 +297,8 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("eventhub_authorization_rule_id", resp.EventHubAuthorizationRuleID)
 	d.Set("log_analytics_workspace_id", resp.WorkspaceID)
 	d.Set("storage_account_id", resp.StorageAccountID)
+
+	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
 
 	if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Logs)); err != nil {
 		return fmt.Errorf("Error setting `log`: %+v", err)
