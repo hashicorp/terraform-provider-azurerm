@@ -385,7 +385,10 @@ func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.B
 		contract.Authorization = authorization
 	}
 	if certificate := v["certificate"]; certificate != nil {
-		contract.Certificate = utils.ExpandStringSlice(certificate.([]interface{}))
+		certificates := utils.ExpandStringSlice(certificate.([]interface{}))
+		if certificates != nil && len(*certificates) > 0 {
+			contract.Certificate = certificates
+		}
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
 		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))

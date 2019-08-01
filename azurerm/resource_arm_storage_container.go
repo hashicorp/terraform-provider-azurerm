@@ -53,7 +53,7 @@ func resourceArmStorageContainer() *schema.Resource {
 				}, false),
 			},
 
-			"metadata": storage.MetaDataSchema(),
+			"metadata": storage.MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
 			"has_immutability_policy": {
@@ -296,7 +296,8 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 
 func validateArmStorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
-	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
+
+	if !regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
 			k, value))

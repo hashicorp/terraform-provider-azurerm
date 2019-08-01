@@ -336,6 +336,26 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"windows_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"admin_username": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"admin_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
+			},
+
 			"network_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -395,6 +415,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"load_balancer_sku": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(containerservice.Basic),
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.Basic),
+								string(containerservice.Standard),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -600,24 +632,12 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-
+	windowsProfile := expandKubernetesClusterWindowsProfile(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	networkProfile := expandKubernetesClusterNetworkProfile(d)
 	addonProfiles := expandKubernetesClusterAddonProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
-
-	// we can't do this in the CustomizeDiff since the interpolations aren't evaluated at that point
-	if networkProfile != nil {
-		// ensure there's a Subnet ID attached
-		if networkProfile.NetworkPlugin == containerservice.Azure {
-			for _, profile := range agentProfiles {
-				if profile.VnetSubnetID == nil {
-					return fmt.Errorf("A `vnet_subnet_id` must be specified when the `network_plugin` is set to `azure`.")
-				}
-			}
-		}
-	}
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
@@ -639,6 +659,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 			EnableRBAC:                  utils.Bool(rbacEnabled),
 			KubernetesVersion:           utils.String(kubernetesVersion),
 			LinuxProfile:                linuxProfile,
+			WindowsProfile:              windowsProfile,
 			NetworkProfile:              networkProfile,
 			ServicePrincipalProfile:     servicePrincipalProfile,
 			NodeResourceGroup:           utils.String(nodeResourceGroup),
@@ -726,6 +747,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
+
+		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
+		if err := d.Set("windows_profile", windowsProfile); err != nil {
+			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
@@ -1114,6 +1140,26 @@ func expandKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservi
 	return &profile
 }
 
+func expandKubernetesClusterWindowsProfile(d *schema.ResourceData) *containerservice.ManagedClusterWindowsProfile {
+	profiles := d.Get("windows_profile").([]interface{})
+
+	if len(profiles) == 0 {
+		return nil
+	}
+
+	config := profiles[0].(map[string]interface{})
+
+	adminUsername := config["admin_username"].(string)
+	adminPassword := config["admin_password"].(string)
+
+	profile := containerservice.ManagedClusterWindowsProfile{
+		AdminUsername: &adminUsername,
+		AdminPassword: &adminPassword,
+	}
+
+	return &profile
+}
+
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
@@ -1143,6 +1189,25 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 	return []interface{}{values}
 }
 
+func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *schema.ResourceData) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	values := make(map[string]interface{})
+
+	if username := profile.AdminUsername; username != nil {
+		values["admin_username"] = *username
+	}
+
+	// admin password isn't returned, so let's look it up
+	if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
+		values["admin_password"] = v.(string)
+	}
+
+	return []interface{}{values}
+}
+
 func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfileType {
 	configs := d.Get("network_profile").([]interface{})
 	if len(configs) == 0 {
@@ -1155,9 +1220,12 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 
 	networkPolicy := config["network_policy"].(string)
 
+	loadBalancerSku := config["load_balancer_sku"].(string)
+
 	networkProfile := containerservice.NetworkProfileType{
-		NetworkPlugin: containerservice.NetworkPlugin(networkPlugin),
-		NetworkPolicy: containerservice.NetworkPolicy(networkPolicy),
+		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
+		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
+		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1210,6 +1278,10 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	if profile.LoadBalancerSku != "" {
+		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}

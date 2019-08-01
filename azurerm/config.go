@@ -10,11 +10,13 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	mapsSvc "github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -54,6 +56,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
@@ -115,6 +118,7 @@ type ArmClient struct {
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
+	maps             *maps.Client
 	mariadb          *mariadb.Client
 	media            *media.Client
 	mysql            *mysql.Client
@@ -227,6 +231,9 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+
+	// Analysis Services
+	analysisServicesServerClient analysisservices.ServersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -303,6 +310,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, err
 	}
 
+	// Storage Endpoints
+	storageEndpoint := env.ResourceIdentifiers.Storage
+	storageAuth, err := c.GetAuthorizationToken(sender, oauthConfig, storageEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
@@ -319,6 +333,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		KeyVaultAuthorizer:         keyVaultAuth,
 		ResourceManagerAuthorizer:  auth,
 		ResourceManagerEndpoint:    endpoint,
+		StorageAuthorizer:          storageAuth,
 		SubscriptionId:             c.SubscriptionID,
 		PartnerId:                  partnerId,
 		PollingDuration:            60 * time.Minute,
@@ -372,11 +387,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
+	client.registerMapsClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerAnalysisServicesClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -690,6 +707,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerAnalysisServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	analysisServicesServersClient := analysisservices.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analysisServicesServersClient.Client, auth)
+	c.analysisServicesServerClient = analysisServicesServersClient
 }
 
 var (

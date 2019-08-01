@@ -274,6 +274,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"windows_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"admin_username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"network_profile": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -305,6 +318,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"pod_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -418,6 +436,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
+
+		windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
+		if err := d.Set("windows_profile", windowsProfile); err != nil {
+			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
@@ -669,6 +692,19 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
+func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.ManagedClusterWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	values := make(map[string]interface{})
+
+	if username := input.AdminUsername; username != nil {
+		values["admin_username"] = *username
+	}
+
+	return []interface{}{values}
+}
+
 func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
 	values := make(map[string]interface{})
 
@@ -692,6 +728,10 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	if profile.LoadBalancerSku != "" {
+		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}

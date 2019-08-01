@@ -118,6 +118,8 @@ resource "azurerm_subnet" "virtual" {
 
 * `linux_profile` - (Optional) A `linux_profile` block.
 
+* `windows_profile` - (Optional) A `windows_profile` block.
+
 * `network_profile` - (Optional) A `network_profile` block.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -200,6 +202,14 @@ A `linux_profile` block supports the following:
 
 ---
 
+A `windows_profile` block supports the following:
+
+* `admin_username` - (Required) The Admin Username for Windows VMs.
+
+* `admin_password` - (Required) The Admin Password for Windows VMs.
+
+---
+
 A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
@@ -219,6 +229,10 @@ A `network_profile` block supports the following:
 ~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
 
 Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
+
+* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
+
+~> **NOTE:** Support for using a `standard` load balancer is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` and `AKSAzureStandardLoadBalancer` for `namespace Microsoft.ContainerService`. For additional information please visit [Standard SKU LoadBalancer](https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard).
 
 ---
 

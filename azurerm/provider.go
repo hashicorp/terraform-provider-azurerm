@@ -131,6 +131,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_firewall":                               dataSourceArmFirewall(),
 			"azurerm_image":                                  dataSourceArmImage(),
 			"azurerm_hdinsight_cluster":                      dataSourceArmHDInsightSparkCluster(),
+			"azurerm_maps_account":                           dataSourceArmMapsAccount(),
 			"azurerm_key_vault_access_policy":                dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_key_vault_key":                          dataSourceArmKeyVaultKey(),
 			"azurerm_key_vault_secret":                       dataSourceArmKeyVaultSecret(),
@@ -183,6 +184,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"azurerm_analysis_services_server":                           resourceArmAnalysisServicesServer(),
 			"azurerm_api_management":                                     resourceArmApiManagementService(),
 			"azurerm_api_management_api":                                 resourceArmApiManagementApi(),
 			"azurerm_api_management_api_operation":                       resourceArmApiManagementApiOperation(),
@@ -336,6 +338,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_managed_disk":                                       resourceArmManagedDisk(),
 			"azurerm_management_group":                                   resourceArmManagementGroup(),
 			"azurerm_management_lock":                                    resourceArmManagementLock(),
+			"azurerm_maps_account":                                       resourceArmMapsAccount(),
 			"azurerm_mariadb_database":                                   resourceArmMariaDbDatabase(),
 			"azurerm_mariadb_firewall_rule":                              resourceArmMariaDBFirewallRule(),
 			"azurerm_mariadb_server":                                     resourceArmMariaDbServer(),
