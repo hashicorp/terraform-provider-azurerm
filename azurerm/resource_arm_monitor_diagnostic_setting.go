@@ -76,7 +76,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			"log_analytics_destination_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+				ForceNew: false,
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if v != "Dedicated" {
