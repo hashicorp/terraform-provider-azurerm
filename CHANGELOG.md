@@ -1,4 +1,8 @@
 ## 1.33.0 (Unreleased)
+
+FEATURES:
+* **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+
 ## 1.32.1 (July 31, 2019)
 
 BUG FIXES: 
