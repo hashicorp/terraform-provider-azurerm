@@ -73,6 +73,19 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"log_analytics_destination_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					if v != "Dedicated" {
+						errs = append(errs, fmt.Errorf("%q must be 'Dedicated'", key, v))
+					}
+					return
+				},
+			},
+
 			"log": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -232,6 +245,11 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	if storageAccountId != "" {
 		properties.DiagnosticSettings.StorageAccountID = utils.String(storageAccountId)
 		valid = true
+	}
+
+	logAnalyticsDestinationType := d.Get("log_analytics_destination_type").(string)
+	if logAnalyticsDestinationType != "" {
+		properties.DiagnosticSettings.LogAnalyticsDestinationType = utils.String(logAnalyticsDestinationType)
 	}
 
 	if !valid {
