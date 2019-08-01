@@ -242,7 +242,11 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
-		properties.DiagnosticSettings.LogAnalyticsDestinationType = &v
+		if workspaceId != "" {
+			properties.DiagnosticSettings.LogAnalyticsDestinationType = &v
+		} else {
+			return fmt.Errorf("`log_analytics_workspace_id` must be set for `log_analytics_destination_type` to be used")
+		}
 	}
 
 	if !valid {
