@@ -3,6 +3,10 @@
 FEATURES:
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 
+BUG FIXES: 
+
+* `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
+
 ## 1.32.1 (July 31, 2019)
 
 BUG FIXES: 
