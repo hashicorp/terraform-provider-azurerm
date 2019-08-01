@@ -98,6 +98,41 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
+	resourceName := "azurerm_iot_dps.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotDPSDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotDPS_linkedHubs(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotDPSExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMIotDPS_linkedHubsUpdated(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotDPSExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).iothub.DPSResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -212,6 +247,66 @@ resource "azurerm_iot_dps" "test" {
 
   tags = {
     purpose = "testing"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotDPS_linkedHubs(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iot_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  linked_hub {
+    connection_string       = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
+    location                = "${azurerm_resource_group.test.location}"
+    allocation_weight       = 15
+    apply_allocation_policy = true
+  }
+
+  linked_hub {
+    connection_string = "HostName=test2.azure-devices.net;SharedAccessKeyName=iothubowner2;SharedAccessKey=key2"
+    location          = "${azurerm_resource_group.test.location}"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotDPS_linkedHubsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iot_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  linked_hub {
+    connection_string = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
+    location          = "${azurerm_resource_group.test.location}"
+    allocation_weight = 150
   }
 }
 `, rInt, location, rInt)
