@@ -644,7 +644,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+	conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -670,7 +670,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

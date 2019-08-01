@@ -298,7 +298,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 }
 
 func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
@@ -415,7 +415,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
@@ -563,7 +563,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -711,7 +711,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

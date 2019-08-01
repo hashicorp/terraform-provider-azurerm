@@ -45,7 +45,7 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 }
 
 func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	client := meta.(*ArmClient).postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
@@ -84,7 +84,7 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	client := meta.(*ArmClient).postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -115,7 +115,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	client := meta.(*ArmClient).postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

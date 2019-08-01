@@ -80,7 +80,7 @@ func resourceArmStreamAnalyticsStreamInputEventHub() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input EventHub creation.")
@@ -155,7 +155,7 @@ func resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -206,7 +206,7 @@ func resourceArmStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, m
 }
 
 func resourceArmStreamAnalyticsStreamInputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
