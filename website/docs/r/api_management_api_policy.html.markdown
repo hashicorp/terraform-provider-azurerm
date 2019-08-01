@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `xml_content` - (Optional) The XML Content for this Policy.
+* `xml_content` - (Optional) The XML Content for this Policy as a string. Note instead of parameter for Microsoft's PolicyFilePath. xml-content can take a file by using Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html)
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 
