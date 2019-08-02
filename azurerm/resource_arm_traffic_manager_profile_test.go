@@ -310,6 +310,35 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettings(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTrafficManagerProfile_failover(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "monitor_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "monitor_config.3418284669.interval_in_seconds", "30"),
+					resource.TestCheckResourceAttr(resourceName, "monitor_config.3418284669.timeout_in_seconds", "6"),
+					resource.TestCheckResourceAttr(resourceName, "monitor_config.3418284669.tolerated_number_of_failures", "3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -573,6 +602,35 @@ resource "azurerm_traffic_manager_profile" "test" {
 
   tags = {
     environment = "staging"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerProfile_failover(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Performance"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol                     = "https"
+    port                         = 443
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 6
+    tolerated_number_of_failures = 3
   }
 }
 `, rInt, location, rInt, rInt)

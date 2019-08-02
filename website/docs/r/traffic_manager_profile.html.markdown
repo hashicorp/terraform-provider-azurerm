@@ -39,9 +39,12 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
+    protocol                     = "http"
+    port                         = 80
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 3
   }
 
   tags = {
@@ -96,6 +99,12 @@ The `monitor_config` block supports:
 * `port` - (Required) The port number used by the monitoring checks.
 
 * `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
+
+* `interval_in_seconds` - (Optional) The interval used to check the endpoint health from a Traffic Manager probing agent. You can specify two values here: 30 seconds (normal probing) and 10 seconds (fast probing). If no values are provided, the profile sets to a default value of 30 seconds.
+
+* `timeout_in_seconds` - (Optional) The amount of time the Traffic Manager probing agent should wait before considering that check a failure when a health check probe is sent to the endpoint. If the Probing Interval is set to 30 seconds, then you can set the Timeout value between 5 and 10 seconds. If no value is specified, it uses a default value of 10 seconds. If the Probing Interval is set to 10 seconds, then you can set the Timeout value between 5 and 9 seconds. If no Timeout value is specified, it uses a default value of 9 seconds.
+
+* `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Its value can range between 0 and 9. A value of 0 means a single monitoring failure can cause that endpoint to be marked as unhealthy. If no value is specified, it uses the default value of 3.
 
 ## Attributes Reference
 
