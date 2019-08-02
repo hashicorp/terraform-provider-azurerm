@@ -7,7 +7,9 @@ FEATURES:
 
 IMPROVEMENTS:
 
-`azurerm_iot_dps` - add support for `linked_hub` #3922
+* `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
+
 
 BUG FIXES: 
 
