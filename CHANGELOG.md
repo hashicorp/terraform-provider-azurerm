@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 
 IMPROVEMENTS:
