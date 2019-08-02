@@ -172,6 +172,16 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
 	}
 
+	if id := resp.ID; id != nil {
+		roleDefinitionId, err := parseRoleDefinitionId(*id)
+		if err != nil {
+			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
+		}
+		if roleDefinitionId != nil {
+			d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
+		}
+	}
+
 	if props := resp.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
