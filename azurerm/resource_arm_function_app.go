@@ -199,6 +199,7 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
 			},
@@ -681,6 +682,12 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := azure.ExpandWebCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
 	return siteConfig
 }
 
@@ -708,6 +715,8 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
+
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
 	results = append(results, result)
 	return results
