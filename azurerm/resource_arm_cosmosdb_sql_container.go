@@ -122,7 +122,6 @@ func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Container %s (Account: %s, Database:%s): %+v", name, account, database, err)
 	}
 
