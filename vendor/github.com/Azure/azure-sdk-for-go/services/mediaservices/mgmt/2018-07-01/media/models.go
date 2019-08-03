@@ -514,13 +514,15 @@ const (
 	LiveEventEncodingTypeBasic LiveEventEncodingType = "Basic"
 	// LiveEventEncodingTypeNone ...
 	LiveEventEncodingTypeNone LiveEventEncodingType = "None"
+	// LiveEventEncodingTypePremium1080p ...
+	LiveEventEncodingTypePremium1080p LiveEventEncodingType = "Premium1080p"
 	// LiveEventEncodingTypeStandard ...
 	LiveEventEncodingTypeStandard LiveEventEncodingType = "Standard"
 )
 
 // PossibleLiveEventEncodingTypeValues returns an array of possible values for the LiveEventEncodingType const type.
 func PossibleLiveEventEncodingTypeValues() []LiveEventEncodingType {
-	return []LiveEventEncodingType{LiveEventEncodingTypeBasic, LiveEventEncodingTypeNone, LiveEventEncodingTypeStandard}
+	return []LiveEventEncodingType{LiveEventEncodingTypeBasic, LiveEventEncodingTypeNone, LiveEventEncodingTypePremium1080p, LiveEventEncodingTypeStandard}
 }
 
 // LiveEventInputProtocol enumerates the values for live event input protocol.
@@ -625,6 +627,21 @@ const (
 // PossibleOdataTypeValues returns an array of possible values for the OdataType const type.
 func PossibleOdataTypeValues() []OdataType {
 	return []OdataType{OdataTypeContentKeyPolicyPlayReadyContentKeyLocation, OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader, OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier}
+}
+
+// OdataTypeBasicClipTime enumerates the values for odata type basic clip time.
+type OdataTypeBasicClipTime string
+
+const (
+	// OdataTypeClipTime ...
+	OdataTypeClipTime OdataTypeBasicClipTime = "ClipTime"
+	// OdataTypeMicrosoftMediaAbsoluteClipTime ...
+	OdataTypeMicrosoftMediaAbsoluteClipTime OdataTypeBasicClipTime = "#Microsoft.Media.AbsoluteClipTime"
+)
+
+// PossibleOdataTypeBasicClipTimeValues returns an array of possible values for the OdataTypeBasicClipTime const type.
+func PossibleOdataTypeBasicClipTimeValues() []OdataTypeBasicClipTime {
+	return []OdataTypeBasicClipTime{OdataTypeClipTime, OdataTypeMicrosoftMediaAbsoluteClipTime}
 }
 
 // OdataTypeBasicCodec enumerates the values for odata type basic codec.
@@ -1157,15 +1174,53 @@ func (aa AacAudio) AsBasicCodec() (BasicCodec, bool) {
 	return &aa, true
 }
 
+// AbsoluteClipTime specifies the clip time as an absolute time position in the media file.  The absolute
+// time can point to a different position depending on whether the media file starts from a timestamp of
+// zero or not.
+type AbsoluteClipTime struct {
+	// Time - The time position on the timeline of the input media. It is usually specified as an ISO8601 period. e.g PT30S for 30 seconds.
+	Time *string `json:"time,omitempty"`
+	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime'
+	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AbsoluteClipTime.
+func (act AbsoluteClipTime) MarshalJSON() ([]byte, error) {
+	act.OdataType = OdataTypeMicrosoftMediaAbsoluteClipTime
+	objectMap := make(map[string]interface{})
+	if act.Time != nil {
+		objectMap["time"] = act.Time
+	}
+	if act.OdataType != "" {
+		objectMap["@odata.type"] = act.OdataType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAbsoluteClipTime is the BasicClipTime implementation for AbsoluteClipTime.
+func (act AbsoluteClipTime) AsAbsoluteClipTime() (*AbsoluteClipTime, bool) {
+	return &act, true
+}
+
+// AsClipTime is the BasicClipTime implementation for AbsoluteClipTime.
+func (act AbsoluteClipTime) AsClipTime() (*ClipTime, bool) {
+	return nil, false
+}
+
+// AsBasicClipTime is the BasicClipTime implementation for AbsoluteClipTime.
+func (act AbsoluteClipTime) AsBasicClipTime() (BasicClipTime, bool) {
+	return &act, true
+}
+
 // AccountFilter an Account Filter.
 type AccountFilter struct {
 	autorest.Response `json:"-"`
 	*FilterProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1174,15 +1229,6 @@ func (af AccountFilter) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if af.FilterProperties != nil {
 		objectMap["properties"] = af.FilterProperties
-	}
-	if af.ID != nil {
-		objectMap["id"] = af.ID
-	}
-	if af.Name != nil {
-		objectMap["name"] = af.Name
-	}
-	if af.Type != nil {
-		objectMap["type"] = af.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1411,11 +1457,11 @@ type Asset struct {
 	autorest.Response `json:"-"`
 	// AssetProperties - The resource properties.
 	*AssetProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1424,15 +1470,6 @@ func (a Asset) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.AssetProperties != nil {
 		objectMap["properties"] = a.AssetProperties
-	}
-	if a.ID != nil {
-		objectMap["id"] = a.ID
-	}
-	if a.Name != nil {
-		objectMap["name"] = a.Name
-	}
-	if a.Type != nil {
-		objectMap["type"] = a.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1655,11 +1692,11 @@ type AssetFileEncryptionMetadata struct {
 type AssetFilter struct {
 	autorest.Response `json:"-"`
 	*FilterProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1668,15 +1705,6 @@ func (af AssetFilter) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if af.FilterProperties != nil {
 		objectMap["properties"] = af.FilterProperties
-	}
-	if af.ID != nil {
-		objectMap["id"] = af.ID
-	}
-	if af.Name != nil {
-		objectMap["name"] = af.Name
-	}
-	if af.Type != nil {
-		objectMap["type"] = af.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1880,11 +1908,11 @@ func NewAssetFilterCollectionPage(getNextPage func(context.Context, AssetFilterC
 
 // AssetProperties the Asset properties.
 type AssetProperties struct {
-	// AssetID - The Asset ID.
+	// AssetID - READ-ONLY; The Asset ID.
 	AssetID *uuid.UUID `json:"assetId,omitempty"`
-	// Created - The creation date of the Asset.
+	// Created - READ-ONLY; The creation date of the Asset.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - The last modified date of the Asset.
+	// LastModified - READ-ONLY; The last modified date of the Asset.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 	// AlternateID - The alternate ID of the Asset.
 	AlternateID *string `json:"alternateId,omitempty"`
@@ -1894,27 +1922,27 @@ type AssetProperties struct {
 	Container *string `json:"container,omitempty"`
 	// StorageAccountName - The name of the storage account.
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
-	// StorageEncryptionFormat - The Asset encryption format. One of None or MediaStorageEncryption. Possible values include: 'None', 'MediaStorageClientEncryption'
+	// StorageEncryptionFormat - READ-ONLY; The Asset encryption format. One of None or MediaStorageEncryption. Possible values include: 'None', 'MediaStorageClientEncryption'
 	StorageEncryptionFormat AssetStorageEncryptionFormat `json:"storageEncryptionFormat,omitempty"`
 }
 
 // AssetStreamingLocator properties of the Streaming Locator.
 type AssetStreamingLocator struct {
-	// Name - Streaming Locator name.
+	// Name - READ-ONLY; Streaming Locator name.
 	Name *string `json:"name,omitempty"`
-	// AssetName - Asset Name.
+	// AssetName - READ-ONLY; Asset Name.
 	AssetName *string `json:"assetName,omitempty"`
-	// Created - The creation time of the Streaming Locator.
+	// Created - READ-ONLY; The creation time of the Streaming Locator.
 	Created *date.Time `json:"created,omitempty"`
-	// StartTime - The start time of the Streaming Locator.
+	// StartTime - READ-ONLY; The start time of the Streaming Locator.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - The end time of the Streaming Locator.
+	// EndTime - READ-ONLY; The end time of the Streaming Locator.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// StreamingLocatorID - StreamingLocatorId of the Streaming Locator.
+	// StreamingLocatorID - READ-ONLY; StreamingLocatorId of the Streaming Locator.
 	StreamingLocatorID *uuid.UUID `json:"streamingLocatorId,omitempty"`
-	// StreamingPolicyName - Name of the Streaming Policy used by this Streaming Locator.
+	// StreamingPolicyName - READ-ONLY; Name of the Streaming Policy used by this Streaming Locator.
 	StreamingPolicyName *string `json:"streamingPolicyName,omitempty"`
-	// DefaultContentKeyPolicyName - Name of the default ContentKeyPolicy used by this Streaming Locator.
+	// DefaultContentKeyPolicyName - READ-ONLY; Name of the default ContentKeyPolicy used by this Streaming Locator.
 	DefaultContentKeyPolicyName *string `json:"defaultContentKeyPolicyName,omitempty"`
 }
 
@@ -2330,6 +2358,82 @@ type CheckNameAvailabilityInput struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// BasicClipTime base class for specifying a clip time. Use sub classes of this class to specify the time position in
+// the media.
+type BasicClipTime interface {
+	AsAbsoluteClipTime() (*AbsoluteClipTime, bool)
+	AsClipTime() (*ClipTime, bool)
+}
+
+// ClipTime base class for specifying a clip time. Use sub classes of this class to specify the time position
+// in the media.
+type ClipTime struct {
+	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime'
+	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
+}
+
+func unmarshalBasicClipTime(body []byte) (BasicClipTime, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["@odata.type"] {
+	case string(OdataTypeMicrosoftMediaAbsoluteClipTime):
+		var act AbsoluteClipTime
+		err := json.Unmarshal(body, &act)
+		return act, err
+	default:
+		var ct ClipTime
+		err := json.Unmarshal(body, &ct)
+		return ct, err
+	}
+}
+func unmarshalBasicClipTimeArray(body []byte) ([]BasicClipTime, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	ctArray := make([]BasicClipTime, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		ct, err := unmarshalBasicClipTime(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		ctArray[index] = ct
+	}
+	return ctArray, nil
+}
+
+// MarshalJSON is the custom marshaler for ClipTime.
+func (ct ClipTime) MarshalJSON() ([]byte, error) {
+	ct.OdataType = OdataTypeClipTime
+	objectMap := make(map[string]interface{})
+	if ct.OdataType != "" {
+		objectMap["@odata.type"] = ct.OdataType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAbsoluteClipTime is the BasicClipTime implementation for ClipTime.
+func (ct ClipTime) AsAbsoluteClipTime() (*AbsoluteClipTime, bool) {
+	return nil, false
+}
+
+// AsClipTime is the BasicClipTime implementation for ClipTime.
+func (ct ClipTime) AsClipTime() (*ClipTime, bool) {
+	return &ct, true
+}
+
+// AsBasicClipTime is the BasicClipTime implementation for ClipTime.
+func (ct ClipTime) AsBasicClipTime() (BasicClipTime, bool) {
+	return &ct, true
+}
+
 // BasicCodec describes the basic properties of all codecs.
 type BasicCodec interface {
 	AsAudio() (*Audio, bool)
@@ -2535,11 +2639,11 @@ type CommonEncryptionCenc struct {
 type ContentKeyPolicy struct {
 	autorest.Response           `json:"-"`
 	*ContentKeyPolicyProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2548,15 +2652,6 @@ func (ckp ContentKeyPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ckp.ContentKeyPolicyProperties != nil {
 		objectMap["properties"] = ckp.ContentKeyPolicyProperties
-	}
-	if ckp.ID != nil {
-		objectMap["id"] = ckp.ID
-	}
-	if ckp.Name != nil {
-		objectMap["name"] = ckp.Name
-	}
-	if ckp.Type != nil {
-		objectMap["type"] = ckp.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3045,7 +3140,7 @@ func (ckpor ContentKeyPolicyOpenRestriction) AsBasicContentKeyPolicyRestriction(
 
 // ContentKeyPolicyOption represents a policy option.
 type ContentKeyPolicyOption struct {
-	// PolicyOptionID - The legacy Policy Option ID.
+	// PolicyOptionID - READ-ONLY; The legacy Policy Option ID.
 	PolicyOptionID *uuid.UUID `json:"policyOptionId,omitempty"`
 	// Name - The Policy Option description.
 	Name *string `json:"name,omitempty"`
@@ -3500,11 +3595,11 @@ type ContentKeyPolicyPlayReadyPlayRight struct {
 // ContentKeyPolicyProperties the properties of the Content Key Policy.
 type ContentKeyPolicyProperties struct {
 	autorest.Response `json:"-"`
-	// PolicyID - The legacy Policy ID.
+	// PolicyID - READ-ONLY; The legacy Policy ID.
 	PolicyID *uuid.UUID `json:"policyId,omitempty"`
-	// Created - The creation date of the Policy
+	// Created - READ-ONLY; The creation date of the Policy
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - The last modified date of the Policy
+	// LastModified - READ-ONLY; The last modified date of the Policy
 	LastModified *date.Time `json:"lastModified,omitempty"`
 	// Description - A description for the Policy.
 	Description *string `json:"description,omitempty"`
@@ -4545,7 +4640,7 @@ func (f *Filters) UnmarshalJSON(body []byte) error {
 type FilterTrackPropertyCondition struct {
 	// Property - The track property type. Possible values include: 'FilterTrackPropertyTypeUnknown', 'FilterTrackPropertyTypeType', 'FilterTrackPropertyTypeName', 'FilterTrackPropertyTypeLanguage', 'FilterTrackPropertyTypeFourCC', 'FilterTrackPropertyTypeBitrate'
 	Property FilterTrackPropertyType `json:"property,omitempty"`
-	// Value - The track proprty value.
+	// Value - The track property value.
 	Value *string `json:"value,omitempty"`
 	// Operation - The track property condition operation. Possible values include: 'Equal', 'NotEqual'
 	Operation FilterTrackPropertyCompareOperation `json:"operation,omitempty"`
@@ -5254,11 +5349,11 @@ type Job struct {
 	autorest.Response `json:"-"`
 	// JobProperties - The resource properties.
 	*JobProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5267,15 +5362,6 @@ func (j Job) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if j.JobProperties != nil {
 		objectMap["properties"] = j.JobProperties
-	}
-	if j.ID != nil {
-		objectMap["id"] = j.ID
-	}
-	if j.Name != nil {
-		objectMap["name"] = j.Name
-	}
-	if j.Type != nil {
-		objectMap["type"] = j.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -5479,23 +5565,23 @@ func NewJobCollectionPage(getNextPage func(context.Context, JobCollection) (JobC
 
 // JobError details of JobOutput errors.
 type JobError struct {
-	// Code - Error code describing the error. Possible values include: 'ServiceError', 'ServiceTransientError', 'DownloadNotAccessible', 'DownloadTransientError', 'UploadNotAccessible', 'UploadTransientError', 'ConfigurationUnsupported', 'ContentMalformed', 'ContentUnsupported'
+	// Code - READ-ONLY; Error code describing the error. Possible values include: 'ServiceError', 'ServiceTransientError', 'DownloadNotAccessible', 'DownloadTransientError', 'UploadNotAccessible', 'UploadTransientError', 'ConfigurationUnsupported', 'ContentMalformed', 'ContentUnsupported'
 	Code JobErrorCode `json:"code,omitempty"`
-	// Message - A human-readable language-dependent representation of the error.
+	// Message - READ-ONLY; A human-readable language-dependent representation of the error.
 	Message *string `json:"message,omitempty"`
-	// Category - Helps with categorization of errors. Possible values include: 'JobErrorCategoryService', 'JobErrorCategoryDownload', 'JobErrorCategoryUpload', 'JobErrorCategoryConfiguration', 'JobErrorCategoryContent'
+	// Category - READ-ONLY; Helps with categorization of errors. Possible values include: 'JobErrorCategoryService', 'JobErrorCategoryDownload', 'JobErrorCategoryUpload', 'JobErrorCategoryConfiguration', 'JobErrorCategoryContent'
 	Category JobErrorCategory `json:"category,omitempty"`
-	// Retry - Indicates that it may be possible to retry the Job. If retry is unsuccessful, please contact Azure support via Azure Portal. Possible values include: 'DoNotRetry', 'MayRetry'
+	// Retry - READ-ONLY; Indicates that it may be possible to retry the Job. If retry is unsuccessful, please contact Azure support via Azure Portal. Possible values include: 'DoNotRetry', 'MayRetry'
 	Retry JobRetry `json:"retry,omitempty"`
-	// Details - An array of details about specific errors that led to this reported error.
+	// Details - READ-ONLY; An array of details about specific errors that led to this reported error.
 	Details *[]JobErrorDetail `json:"details,omitempty"`
 }
 
 // JobErrorDetail details of JobOutput errors.
 type JobErrorDetail struct {
-	// Code - Code describing the error detail.
+	// Code - READ-ONLY; Code describing the error detail.
 	Code *string `json:"code,omitempty"`
-	// Message - A human-readable representation of the error.
+	// Message - READ-ONLY; A human-readable representation of the error.
 	Message *string `json:"message,omitempty"`
 }
 
@@ -5615,6 +5701,10 @@ type JobInputAsset struct {
 	AssetName *string `json:"assetName,omitempty"`
 	// Files - List of files. Required for JobInputHttp. Maximum of 4000 characters each.
 	Files *[]string `json:"files,omitempty"`
+	// Start - Defines a point on the timeline of the input media at which processing will start. Defaults to the beginning of the input media.
+	Start BasicClipTime `json:"start,omitempty"`
+	// End - Defines a point on the timeline of the input media at which processing will end. Defaults to the end of the input media.
+	End BasicClipTime `json:"end,omitempty"`
 	// Label - A label that is assigned to a JobInputClip, that is used to satisfy a reference used in the Transform. For example, a Transform can be authored so as to take an image file with the label 'xyz' and apply it as an overlay onto the input video before it is encoded. When submitting a Job, exactly one of the JobInputs should be the image file, and it should have the label 'xyz'.
 	Label *string `json:"label,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP'
@@ -5631,6 +5721,8 @@ func (jia JobInputAsset) MarshalJSON() ([]byte, error) {
 	if jia.Files != nil {
 		objectMap["files"] = jia.Files
 	}
+	objectMap["start"] = jia.Start
+	objectMap["end"] = jia.End
 	if jia.Label != nil {
 		objectMap["label"] = jia.Label
 	}
@@ -5675,6 +5767,73 @@ func (jia JobInputAsset) AsBasicJobInput() (BasicJobInput, bool) {
 	return &jia, true
 }
 
+// UnmarshalJSON is the custom unmarshaler for JobInputAsset struct.
+func (jia *JobInputAsset) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "assetName":
+			if v != nil {
+				var assetName string
+				err = json.Unmarshal(*v, &assetName)
+				if err != nil {
+					return err
+				}
+				jia.AssetName = &assetName
+			}
+		case "files":
+			if v != nil {
+				var files []string
+				err = json.Unmarshal(*v, &files)
+				if err != nil {
+					return err
+				}
+				jia.Files = &files
+			}
+		case "start":
+			if v != nil {
+				start, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jia.Start = start
+			}
+		case "end":
+			if v != nil {
+				end, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jia.End = end
+			}
+		case "label":
+			if v != nil {
+				var label string
+				err = json.Unmarshal(*v, &label)
+				if err != nil {
+					return err
+				}
+				jia.Label = &label
+			}
+		case "@odata.type":
+			if v != nil {
+				var odataType OdataTypeBasicJobInput
+				err = json.Unmarshal(*v, &odataType)
+				if err != nil {
+					return err
+				}
+				jia.OdataType = odataType
+			}
+		}
+	}
+
+	return nil
+}
+
 // BasicJobInputClip represents input files for a Job.
 type BasicJobInputClip interface {
 	AsJobInputAsset() (*JobInputAsset, bool)
@@ -5686,6 +5845,10 @@ type BasicJobInputClip interface {
 type JobInputClip struct {
 	// Files - List of files. Required for JobInputHttp. Maximum of 4000 characters each.
 	Files *[]string `json:"files,omitempty"`
+	// Start - Defines a point on the timeline of the input media at which processing will start. Defaults to the beginning of the input media.
+	Start BasicClipTime `json:"start,omitempty"`
+	// End - Defines a point on the timeline of the input media at which processing will end. Defaults to the end of the input media.
+	End BasicClipTime `json:"end,omitempty"`
 	// Label - A label that is assigned to a JobInputClip, that is used to satisfy a reference used in the Transform. For example, a Transform can be authored so as to take an image file with the label 'xyz' and apply it as an overlay onto the input video before it is encoded. When submitting a Job, exactly one of the JobInputs should be the image file, and it should have the label 'xyz'.
 	Label *string `json:"label,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP'
@@ -5740,6 +5903,8 @@ func (jic JobInputClip) MarshalJSON() ([]byte, error) {
 	if jic.Files != nil {
 		objectMap["files"] = jic.Files
 	}
+	objectMap["start"] = jic.Start
+	objectMap["end"] = jic.End
 	if jic.Label != nil {
 		objectMap["label"] = jic.Label
 	}
@@ -5784,12 +5949,74 @@ func (jic JobInputClip) AsBasicJobInput() (BasicJobInput, bool) {
 	return &jic, true
 }
 
+// UnmarshalJSON is the custom unmarshaler for JobInputClip struct.
+func (jic *JobInputClip) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "files":
+			if v != nil {
+				var files []string
+				err = json.Unmarshal(*v, &files)
+				if err != nil {
+					return err
+				}
+				jic.Files = &files
+			}
+		case "start":
+			if v != nil {
+				start, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jic.Start = start
+			}
+		case "end":
+			if v != nil {
+				end, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jic.End = end
+			}
+		case "label":
+			if v != nil {
+				var label string
+				err = json.Unmarshal(*v, &label)
+				if err != nil {
+					return err
+				}
+				jic.Label = &label
+			}
+		case "@odata.type":
+			if v != nil {
+				var odataType OdataTypeBasicJobInput
+				err = json.Unmarshal(*v, &odataType)
+				if err != nil {
+					return err
+				}
+				jic.OdataType = odataType
+			}
+		}
+	}
+
+	return nil
+}
+
 // JobInputHTTP represents HTTPS job input.
 type JobInputHTTP struct {
 	// BaseURI - Base URI for HTTPS job input. It will be concatenated with provided file names. If no base uri is given, then the provided file list is assumed to be fully qualified uris. Maximum length of 4000 characters.
 	BaseURI *string `json:"baseUri,omitempty"`
 	// Files - List of files. Required for JobInputHttp. Maximum of 4000 characters each.
 	Files *[]string `json:"files,omitempty"`
+	// Start - Defines a point on the timeline of the input media at which processing will start. Defaults to the beginning of the input media.
+	Start BasicClipTime `json:"start,omitempty"`
+	// End - Defines a point on the timeline of the input media at which processing will end. Defaults to the end of the input media.
+	End BasicClipTime `json:"end,omitempty"`
 	// Label - A label that is assigned to a JobInputClip, that is used to satisfy a reference used in the Transform. For example, a Transform can be authored so as to take an image file with the label 'xyz' and apply it as an overlay onto the input video before it is encoded. When submitting a Job, exactly one of the JobInputs should be the image file, and it should have the label 'xyz'.
 	Label *string `json:"label,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeJobInput', 'OdataTypeMicrosoftMediaJobInputClip', 'OdataTypeMicrosoftMediaJobInputs', 'OdataTypeMicrosoftMediaJobInputAsset', 'OdataTypeMicrosoftMediaJobInputHTTP'
@@ -5806,6 +6033,8 @@ func (jih JobInputHTTP) MarshalJSON() ([]byte, error) {
 	if jih.Files != nil {
 		objectMap["files"] = jih.Files
 	}
+	objectMap["start"] = jih.Start
+	objectMap["end"] = jih.End
 	if jih.Label != nil {
 		objectMap["label"] = jih.Label
 	}
@@ -5848,6 +6077,73 @@ func (jih JobInputHTTP) AsJobInput() (*JobInput, bool) {
 // AsBasicJobInput is the BasicJobInput implementation for JobInputHTTP.
 func (jih JobInputHTTP) AsBasicJobInput() (BasicJobInput, bool) {
 	return &jih, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for JobInputHTTP struct.
+func (jih *JobInputHTTP) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "baseUri":
+			if v != nil {
+				var baseURI string
+				err = json.Unmarshal(*v, &baseURI)
+				if err != nil {
+					return err
+				}
+				jih.BaseURI = &baseURI
+			}
+		case "files":
+			if v != nil {
+				var files []string
+				err = json.Unmarshal(*v, &files)
+				if err != nil {
+					return err
+				}
+				jih.Files = &files
+			}
+		case "start":
+			if v != nil {
+				start, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jih.Start = start
+			}
+		case "end":
+			if v != nil {
+				end, err := unmarshalBasicClipTime(*v)
+				if err != nil {
+					return err
+				}
+				jih.End = end
+			}
+		case "label":
+			if v != nil {
+				var label string
+				err = json.Unmarshal(*v, &label)
+				if err != nil {
+					return err
+				}
+				jih.Label = &label
+			}
+		case "@odata.type":
+			if v != nil {
+				var odataType OdataTypeBasicJobInput
+				err = json.Unmarshal(*v, &odataType)
+				if err != nil {
+					return err
+				}
+				jih.OdataType = odataType
+			}
+		}
+	}
+
+	return nil
 }
 
 // JobInputs describes a list of inputs to a Job.
@@ -5946,11 +6242,11 @@ type BasicJobOutput interface {
 
 // JobOutput describes all the properties of a JobOutput.
 type JobOutput struct {
-	// Error - If the JobOutput is in the Error state, it contains the details of the error.
+	// Error - READ-ONLY; If the JobOutput is in the Error state, it contains the details of the error.
 	Error *JobError `json:"error,omitempty"`
-	// State - Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
 	State JobState `json:"state,omitempty"`
-	// Progress - If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
+	// Progress - READ-ONLY; If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
 	Progress *int32 `json:"progress,omitempty"`
 	// Label - A label that is assigned to a JobOutput in order to help uniquely identify it. This is useful when your Transform has more than one TransformOutput, whereby your Job has more than one JobOutput. In such cases, when you submit the Job, you will add two or more JobOutputs, in the same order as TransformOutputs in the Transform. Subsequently, when you retrieve the Job, either through events or on a GET request, you can use the label to easily identify the JobOutput. If a label is not provided, a default value of '{presetName}_{outputIndex}' will be used, where the preset name is the name of the preset in the corresponding TransformOutput and the output index is the relative index of the this JobOutput within the Job. Note that this index is the same as the relative index of the corresponding TransformOutput within its Transform.
 	Label *string `json:"label,omitempty"`
@@ -5999,15 +6295,6 @@ func unmarshalBasicJobOutputArray(body []byte) ([]BasicJobOutput, error) {
 func (jo JobOutput) MarshalJSON() ([]byte, error) {
 	jo.OdataType = OdataTypeJobOutput
 	objectMap := make(map[string]interface{})
-	if jo.Error != nil {
-		objectMap["error"] = jo.Error
-	}
-	if jo.State != "" {
-		objectMap["state"] = jo.State
-	}
-	if jo.Progress != nil {
-		objectMap["progress"] = jo.Progress
-	}
 	if jo.Label != nil {
 		objectMap["label"] = jo.Label
 	}
@@ -6036,11 +6323,11 @@ func (jo JobOutput) AsBasicJobOutput() (BasicJobOutput, bool) {
 type JobOutputAsset struct {
 	// AssetName - The name of the output Asset.
 	AssetName *string `json:"assetName,omitempty"`
-	// Error - If the JobOutput is in the Error state, it contains the details of the error.
+	// Error - READ-ONLY; If the JobOutput is in the Error state, it contains the details of the error.
 	Error *JobError `json:"error,omitempty"`
-	// State - Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; Describes the state of the JobOutput. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
 	State JobState `json:"state,omitempty"`
-	// Progress - If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
+	// Progress - READ-ONLY; If the JobOutput is in a Processing state, this contains the Job completion percentage. The value is an estimate and not intended to be used to predict Job completion times. To determine if the JobOutput is complete, use the State property.
 	Progress *int32 `json:"progress,omitempty"`
 	// Label - A label that is assigned to a JobOutput in order to help uniquely identify it. This is useful when your Transform has more than one TransformOutput, whereby your Job has more than one JobOutput. In such cases, when you submit the Job, you will add two or more JobOutputs, in the same order as TransformOutputs in the Transform. Subsequently, when you retrieve the Job, either through events or on a GET request, you can use the label to easily identify the JobOutput. If a label is not provided, a default value of '{presetName}_{outputIndex}' will be used, where the preset name is the name of the preset in the corresponding TransformOutput and the output index is the relative index of the this JobOutput within the Job. Note that this index is the same as the relative index of the corresponding TransformOutput within its Transform.
 	Label *string `json:"label,omitempty"`
@@ -6054,15 +6341,6 @@ func (joa JobOutputAsset) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if joa.AssetName != nil {
 		objectMap["assetName"] = joa.AssetName
-	}
-	if joa.Error != nil {
-		objectMap["error"] = joa.Error
-	}
-	if joa.State != "" {
-		objectMap["state"] = joa.State
-	}
-	if joa.Progress != nil {
-		objectMap["progress"] = joa.Progress
 	}
 	if joa.Label != nil {
 		objectMap["label"] = joa.Label
@@ -6090,15 +6368,15 @@ func (joa JobOutputAsset) AsBasicJobOutput() (BasicJobOutput, bool) {
 
 // JobProperties properties of the Job.
 type JobProperties struct {
-	// Created - The UTC date and time when the Job was created, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// Created - READ-ONLY; The UTC date and time when the Job was created, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	Created *date.Time `json:"created,omitempty"`
-	// State - The current state of the job. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
+	// State - READ-ONLY; The current state of the job. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
 	State JobState `json:"state,omitempty"`
 	// Description - Optional customer supplied description of the Job.
 	Description *string `json:"description,omitempty"`
 	// Input - The inputs for the Job.
 	Input BasicJobInput `json:"input,omitempty"`
-	// LastModified - The UTC date and time when the Job was last updated, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// LastModified - READ-ONLY; The UTC date and time when the Job was last updated, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 	// Outputs - The outputs for the Job.
 	Outputs *[]BasicJobOutput `json:"outputs,omitempty"`
@@ -6111,19 +6389,10 @@ type JobProperties struct {
 // MarshalJSON is the custom marshaler for JobProperties.
 func (jp JobProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if jp.Created != nil {
-		objectMap["created"] = jp.Created
-	}
-	if jp.State != "" {
-		objectMap["state"] = jp.State
-	}
 	if jp.Description != nil {
 		objectMap["description"] = jp.Description
 	}
 	objectMap["input"] = jp.Input
-	if jp.LastModified != nil {
-		objectMap["lastModified"] = jp.LastModified
-	}
 	if jp.Outputs != nil {
 		objectMap["outputs"] = jp.Outputs
 	}
@@ -6640,7 +6909,7 @@ type ListPathsResponse struct {
 // ListStreamingLocatorsResponse the Streaming Locators associated with this Asset.
 type ListStreamingLocatorsResponse struct {
 	autorest.Response `json:"-"`
-	// StreamingLocators - The list of Streaming Locators.
+	// StreamingLocators - READ-ONLY; The list of Streaming Locators.
 	StreamingLocators *[]AssetStreamingLocator `json:"streamingLocators,omitempty"`
 }
 
@@ -6653,11 +6922,11 @@ type LiveEvent struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region of the resource.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6672,15 +6941,6 @@ func (le LiveEvent) MarshalJSON() ([]byte, error) {
 	}
 	if le.Location != nil {
 		objectMap["location"] = le.Location
-	}
-	if le.ID != nil {
-		objectMap["id"] = le.ID
-	}
-	if le.Name != nil {
-		objectMap["name"] = le.Name
-	}
-	if le.Type != nil {
-		objectMap["type"] = le.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -6762,7 +7022,7 @@ type LiveEventActionInput struct {
 
 // LiveEventEncoding the Live Event encoding.
 type LiveEventEncoding struct {
-	// EncodingType - The encoding type for Live Event.  This value is specified at creation time and cannot be updated. Possible values include: 'LiveEventEncodingTypeNone', 'LiveEventEncodingTypeBasic', 'LiveEventEncodingTypeStandard'
+	// EncodingType - The encoding type for Live Event.  This value is specified at creation time and cannot be updated. Possible values include: 'LiveEventEncodingTypeNone', 'LiveEventEncodingTypeBasic', 'LiveEventEncodingTypeStandard', 'LiveEventEncodingTypePremium1080p'
 	EncodingType LiveEventEncodingType `json:"encodingType,omitempty"`
 	// PresetName - The encoding preset name.  This value is specified at creation time and cannot be updated.
 	PresetName *string `json:"presetName,omitempty"`
@@ -6974,9 +7234,9 @@ type LiveEventProperties struct {
 	Preview *LiveEventPreview `json:"preview,omitempty"`
 	// Encoding - The Live Event encoding.
 	Encoding *LiveEventEncoding `json:"encoding,omitempty"`
-	// ProvisioningState - The provisioning state of the Live Event.
+	// ProvisioningState - READ-ONLY; The provisioning state of the Live Event.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - The resource state of the Live Event. Possible values include: 'Stopped', 'Starting', 'Running', 'Stopping', 'Deleting'
+	// ResourceState - READ-ONLY; The resource state of the Live Event. Possible values include: 'Stopped', 'Starting', 'Running', 'Stopping', 'Deleting'
 	ResourceState LiveEventResourceState `json:"resourceState,omitempty"`
 	// CrossSiteAccessPolicies - The Live Event access policies.
 	CrossSiteAccessPolicies *CrossSiteAccessPolicies `json:"crossSiteAccessPolicies,omitempty"`
@@ -6984,9 +7244,9 @@ type LiveEventProperties struct {
 	VanityURL *bool `json:"vanityUrl,omitempty"`
 	// StreamOptions - The options to use for the LiveEvent.  This value is specified at creation time and cannot be updated.
 	StreamOptions *[]StreamOptionsFlag `json:"streamOptions,omitempty"`
-	// Created - The exact time the Live Event was created.
+	// Created - READ-ONLY; The exact time the Live Event was created.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - The exact time the Live Event was last modified.
+	// LastModified - READ-ONLY; The exact time the Live Event was last modified.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
@@ -7000,7 +7260,7 @@ type LiveEventsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsCreateFuture) Result(client LiveEventsClient) (le LiveEvent, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7029,7 +7289,7 @@ type LiveEventsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsDeleteFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7052,7 +7312,7 @@ type LiveEventsResetFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsResetFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsResetFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7075,7 +7335,7 @@ type LiveEventsStartFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsStartFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsStartFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7098,7 +7358,7 @@ type LiveEventsStopFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsStopFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsStopFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7121,7 +7381,7 @@ type LiveEventsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveEventsUpdateFuture) Result(client LiveEventsClient) (le LiveEvent, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7145,11 +7405,11 @@ type LiveOutput struct {
 	autorest.Response `json:"-"`
 	// LiveOutputProperties - The Live Output properties.
 	*LiveOutputProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7158,15 +7418,6 @@ func (lo LiveOutput) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if lo.LiveOutputProperties != nil {
 		objectMap["properties"] = lo.LiveOutputProperties
-	}
-	if lo.ID != nil {
-		objectMap["id"] = lo.ID
-	}
-	if lo.Name != nil {
-		objectMap["name"] = lo.Name
-	}
-	if lo.Type != nil {
-		objectMap["type"] = lo.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -7384,13 +7635,13 @@ type LiveOutputProperties struct {
 	Hls *Hls `json:"hls,omitempty"`
 	// OutputSnapTime - The output snapshot time.
 	OutputSnapTime *int64 `json:"outputSnapTime,omitempty"`
-	// Created - The exact time the Live Output was created.
+	// Created - READ-ONLY; The exact time the Live Output was created.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - The exact time the Live Output was last modified.
+	// LastModified - READ-ONLY; The exact time the Live Output was last modified.
 	LastModified *date.Time `json:"lastModified,omitempty"`
-	// ProvisioningState - The provisioning state of the Live Output.
+	// ProvisioningState - READ-ONLY; The provisioning state of the Live Output.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - The resource state of the Live Output. Possible values include: 'LiveOutputResourceStateCreating', 'LiveOutputResourceStateRunning', 'LiveOutputResourceStateDeleting'
+	// ResourceState - READ-ONLY; The resource state of the Live Output. Possible values include: 'LiveOutputResourceStateCreating', 'LiveOutputResourceStateRunning', 'LiveOutputResourceStateDeleting'
 	ResourceState LiveOutputResourceState `json:"resourceState,omitempty"`
 }
 
@@ -7404,7 +7655,7 @@ type LiveOutputsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveOutputsCreateFuture) Result(client LiveOutputsClient) (lo LiveOutput, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7433,7 +7684,7 @@ type LiveOutputsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *LiveOutputsDeleteFuture) Result(client LiveOutputsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveOutputsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -7453,33 +7704,33 @@ type Location struct {
 
 // Metric a metric emitted by service.
 type Metric struct {
-	// Name - The metric name.
+	// Name - READ-ONLY; The metric name.
 	Name *string `json:"name,omitempty"`
-	// DisplayName - The metric display name.
+	// DisplayName - READ-ONLY; The metric display name.
 	DisplayName *string `json:"displayName,omitempty"`
-	// DisplayDescription - The metric display description.
+	// DisplayDescription - READ-ONLY; The metric display description.
 	DisplayDescription *string `json:"displayDescription,omitempty"`
-	// Unit - The metric unit. Possible values include: 'MetricUnitBytes', 'MetricUnitCount', 'MetricUnitMilliseconds'
+	// Unit - READ-ONLY; The metric unit. Possible values include: 'MetricUnitBytes', 'MetricUnitCount', 'MetricUnitMilliseconds'
 	Unit MetricUnit `json:"unit,omitempty"`
-	// AggregationType - The metric aggregation type. Possible values include: 'Average', 'Count', 'Total'
+	// AggregationType - READ-ONLY; The metric aggregation type. Possible values include: 'Average', 'Count', 'Total'
 	AggregationType MetricAggregationType `json:"aggregationType,omitempty"`
-	// Dimensions - The metric dimensions.
+	// Dimensions - READ-ONLY; The metric dimensions.
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
 }
 
 // MetricDimension a metric dimension.
 type MetricDimension struct {
-	// Name - The metric dimension name.
+	// Name - READ-ONLY; The metric dimension name.
 	Name *string `json:"name,omitempty"`
-	// DisplayName - The display name for the dimension.
+	// DisplayName - READ-ONLY; The display name for the dimension.
 	DisplayName *string `json:"displayName,omitempty"`
-	// ToBeExportedForShoebox - Whether to export metric to shoebox.
+	// ToBeExportedForShoebox - READ-ONLY; Whether to export metric to shoebox.
 	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
 }
 
 // MetricProperties metric properties.
 type MetricProperties struct {
-	// ServiceSpecification - The service specifications.
+	// ServiceSpecification - READ-ONLY; The service specifications.
 	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
@@ -8266,7 +8517,7 @@ type PresentationTimeRange struct {
 	LiveBackoffDuration *int64 `json:"liveBackoffDuration,omitempty"`
 	// Timescale - The time scale of time stamps.
 	Timescale *int64 `json:"timescale,omitempty"`
-	// ForceEndTimestamp - The indicator of forcing exsiting of end time stamp.
+	// ForceEndTimestamp - The indicator of forcing existing of end time stamp.
 	ForceEndTimestamp *bool `json:"forceEndTimestamp,omitempty"`
 }
 
@@ -8400,11 +8651,11 @@ type Provider struct {
 
 // ProxyResource the resource model definition for a ARM proxy resource.
 type ProxyResource struct {
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8423,11 +8674,11 @@ type Rectangle struct {
 
 // Resource the core properties of ARM resources.
 type Resource struct {
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8440,11 +8691,11 @@ type Service struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region of the resource.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8459,15 +8710,6 @@ func (s Service) MarshalJSON() ([]byte, error) {
 	}
 	if s.Location != nil {
 		objectMap["location"] = s.Location
-	}
-	if s.ID != nil {
-		objectMap["id"] = s.ID
-	}
-	if s.Name != nil {
-		objectMap["name"] = s.Name
-	}
-	if s.Type != nil {
-		objectMap["type"] = s.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -8689,7 +8931,7 @@ func NewServiceCollectionPage(getNextPage func(context.Context, ServiceCollectio
 
 // ServiceProperties properties of the Media Services account.
 type ServiceProperties struct {
-	// MediaServiceID - The Media Services account ID.
+	// MediaServiceID - READ-ONLY; The Media Services account ID.
 	MediaServiceID *uuid.UUID `json:"mediaServiceId,omitempty"`
 	// StorageAccounts - The storage accounts for this resource.
 	StorageAccounts *[]StorageAccount `json:"storageAccounts,omitempty"`
@@ -8697,7 +8939,7 @@ type ServiceProperties struct {
 
 // ServiceSpecification the service metric specifications.
 type ServiceSpecification struct {
-	// MetricSpecifications - List of metric specifications.
+	// MetricSpecifications - READ-ONLY; List of metric specifications.
 	MetricSpecifications *[]Metric `json:"metricSpecifications,omitempty"`
 }
 
@@ -8849,11 +9091,11 @@ type StreamingEndpoint struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region of the resource.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8868,15 +9110,6 @@ func (se StreamingEndpoint) MarshalJSON() ([]byte, error) {
 	}
 	if se.Location != nil {
 		objectMap["location"] = se.Location
-	}
-	if se.ID != nil {
-		objectMap["id"] = se.ID
-	}
-	if se.Name != nil {
-		objectMap["name"] = se.Name
-	}
-	if se.Type != nil {
-		objectMap["type"] = se.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -9120,7 +9353,7 @@ type StreamingEndpointProperties struct {
 	MaxCacheAge *int64 `json:"maxCacheAge,omitempty"`
 	// CustomHostNames - The custom host names of the StreamingEndpoint
 	CustomHostNames *[]string `json:"customHostNames,omitempty"`
-	// HostName - The StreamingEndpoint host name.
+	// HostName - READ-ONLY; The StreamingEndpoint host name.
 	HostName *string `json:"hostName,omitempty"`
 	// CdnEnabled - The CDN enabled flag.
 	CdnEnabled *bool `json:"cdnEnabled,omitempty"`
@@ -9128,17 +9361,17 @@ type StreamingEndpointProperties struct {
 	CdnProvider *string `json:"cdnProvider,omitempty"`
 	// CdnProfile - The CDN profile name.
 	CdnProfile *string `json:"cdnProfile,omitempty"`
-	// ProvisioningState - The provisioning state of the StreamingEndpoint.
+	// ProvisioningState - READ-ONLY; The provisioning state of the StreamingEndpoint.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - The resource state of the StreamingEndpoint. Possible values include: 'StreamingEndpointResourceStateStopped', 'StreamingEndpointResourceStateStarting', 'StreamingEndpointResourceStateRunning', 'StreamingEndpointResourceStateStopping', 'StreamingEndpointResourceStateDeleting', 'StreamingEndpointResourceStateScaling'
+	// ResourceState - READ-ONLY; The resource state of the StreamingEndpoint. Possible values include: 'StreamingEndpointResourceStateStopped', 'StreamingEndpointResourceStateStarting', 'StreamingEndpointResourceStateRunning', 'StreamingEndpointResourceStateStopping', 'StreamingEndpointResourceStateDeleting', 'StreamingEndpointResourceStateScaling'
 	ResourceState StreamingEndpointResourceState `json:"resourceState,omitempty"`
 	// CrossSiteAccessPolicies - The StreamingEndpoint access policies.
 	CrossSiteAccessPolicies *CrossSiteAccessPolicies `json:"crossSiteAccessPolicies,omitempty"`
-	// FreeTrialEndTime - The free trial expiration time.
+	// FreeTrialEndTime - READ-ONLY; The free trial expiration time.
 	FreeTrialEndTime *date.Time `json:"freeTrialEndTime,omitempty"`
-	// Created - The exact time the StreamingEndpoint was created.
+	// Created - READ-ONLY; The exact time the StreamingEndpoint was created.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - The exact time the StreamingEndpoint was last modified.
+	// LastModified - READ-ONLY; The exact time the StreamingEndpoint was last modified.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
@@ -9152,7 +9385,7 @@ type StreamingEndpointsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsCreateFuture) Result(client StreamingEndpointsClient) (se StreamingEndpoint, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9181,7 +9414,7 @@ type StreamingEndpointsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsDeleteFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9204,7 +9437,7 @@ type StreamingEndpointsScaleFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsScaleFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsScaleFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9227,7 +9460,7 @@ type StreamingEndpointsStartFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsStartFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsStartFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9250,7 +9483,7 @@ type StreamingEndpointsStopFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsStopFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsStopFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9273,7 +9506,7 @@ type StreamingEndpointsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *StreamingEndpointsUpdateFuture) Result(client StreamingEndpointsClient) (se StreamingEndpoint, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -9302,11 +9535,11 @@ type StreamingEntityScaleUnit struct {
 type StreamingLocator struct {
 	autorest.Response           `json:"-"`
 	*StreamingLocatorProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9315,15 +9548,6 @@ func (sl StreamingLocator) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sl.StreamingLocatorProperties != nil {
 		objectMap["properties"] = sl.StreamingLocatorProperties
-	}
-	if sl.ID != nil {
-		objectMap["id"] = sl.ID
-	}
-	if sl.Name != nil {
-		objectMap["name"] = sl.Name
-	}
-	if sl.Type != nil {
-		objectMap["type"] = sl.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -9529,15 +9753,15 @@ func NewStreamingLocatorCollectionPage(getNextPage func(context.Context, Streami
 type StreamingLocatorContentKey struct {
 	// ID - ID of Content Key
 	ID *uuid.UUID `json:"id,omitempty"`
-	// Type - Encryption type of Content Key. Possible values include: 'StreamingLocatorContentKeyTypeCommonEncryptionCenc', 'StreamingLocatorContentKeyTypeCommonEncryptionCbcs', 'StreamingLocatorContentKeyTypeEnvelopeEncryption'
+	// Type - READ-ONLY; Encryption type of Content Key. Possible values include: 'StreamingLocatorContentKeyTypeCommonEncryptionCenc', 'StreamingLocatorContentKeyTypeCommonEncryptionCbcs', 'StreamingLocatorContentKeyTypeEnvelopeEncryption'
 	Type StreamingLocatorContentKeyType `json:"type,omitempty"`
 	// LabelReferenceInStreamingPolicy - Label of Content Key as specified in the Streaming Policy
 	LabelReferenceInStreamingPolicy *string `json:"labelReferenceInStreamingPolicy,omitempty"`
 	// Value - Value of Content Key
 	Value *string `json:"value,omitempty"`
-	// PolicyName - ContentKeyPolicy used by Content Key
+	// PolicyName - READ-ONLY; ContentKeyPolicy used by Content Key
 	PolicyName *string `json:"policyName,omitempty"`
-	// Tracks - Tracks which use this Content Key
+	// Tracks - READ-ONLY; Tracks which use this Content Key
 	Tracks *[]TrackSelection `json:"tracks,omitempty"`
 }
 
@@ -9545,7 +9769,7 @@ type StreamingLocatorContentKey struct {
 type StreamingLocatorProperties struct {
 	// AssetName - Asset Name
 	AssetName *string `json:"assetName,omitempty"`
-	// Created - The creation time of the Streaming Locator.
+	// Created - READ-ONLY; The creation time of the Streaming Locator.
 	Created *date.Time `json:"created,omitempty"`
 	// StartTime - The start time of the Streaming Locator.
 	StartTime *date.Time `json:"startTime,omitempty"`
@@ -9579,11 +9803,11 @@ type StreamingPath struct {
 type StreamingPolicy struct {
 	autorest.Response          `json:"-"`
 	*StreamingPolicyProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9592,15 +9816,6 @@ func (sp StreamingPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sp.StreamingPolicyProperties != nil {
 		objectMap["properties"] = sp.StreamingPolicyProperties
-	}
-	if sp.ID != nil {
-		objectMap["id"] = sp.ID
-	}
-	if sp.Name != nil {
-		objectMap["name"] = sp.Name
-	}
-	if sp.Type != nil {
-		objectMap["type"] = sp.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -9838,7 +10053,7 @@ type StreamingPolicyPlayReadyConfiguration struct {
 
 // StreamingPolicyProperties class to specify properties of Streaming Policy
 type StreamingPolicyProperties struct {
-	// Created - Creation time of Streaming Policy
+	// Created - READ-ONLY; Creation time of Streaming Policy
 	Created *date.Time `json:"created,omitempty"`
 	// DefaultContentKeyPolicyName - Default ContentKey used by current Streaming Policy
 	DefaultContentKeyPolicyName *string `json:"defaultContentKeyPolicyName,omitempty"`
@@ -9867,11 +10082,11 @@ type SubscriptionMediaService struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region of the resource.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9886,15 +10101,6 @@ func (sms SubscriptionMediaService) MarshalJSON() ([]byte, error) {
 	}
 	if sms.Location != nil {
 		objectMap["location"] = sms.Location
-	}
-	if sms.ID != nil {
-		objectMap["id"] = sms.ID
-	}
-	if sms.Name != nil {
-		objectMap["name"] = sms.Name
-	}
-	if sms.Type != nil {
-		objectMap["type"] = sms.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -10127,11 +10333,11 @@ type TrackedResource struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region of the resource.
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -10143,15 +10349,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Location != nil {
 		objectMap["location"] = tr.Location
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -10179,11 +10376,11 @@ type Transform struct {
 	autorest.Response `json:"-"`
 	// TransformProperties - The resource properties.
 	*TransformProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource.
+	// Name - READ-ONLY; The name of the resource.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -10192,15 +10389,6 @@ func (t Transform) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if t.TransformProperties != nil {
 		objectMap["properties"] = t.TransformProperties
-	}
-	if t.ID != nil {
-		objectMap["id"] = t.ID
-	}
-	if t.Name != nil {
-		objectMap["name"] = t.Name
-	}
-	if t.Type != nil {
-		objectMap["type"] = t.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -10456,11 +10644,11 @@ func (toVar *TransformOutput) UnmarshalJSON(body []byte) error {
 
 // TransformProperties a Transform.
 type TransformProperties struct {
-	// Created - The UTC date and time when the Transform was created, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// Created - READ-ONLY; The UTC date and time when the Transform was created, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	Created *date.Time `json:"created,omitempty"`
 	// Description - An optional verbose description of the Transform.
 	Description *string `json:"description,omitempty"`
-	// LastModified - The UTC date and time when the Transform was last updated, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// LastModified - READ-ONLY; The UTC date and time when the Transform was last updated, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 	// Outputs - An array of one or more TransformOutputs that the Transform should generate.
 	Outputs *[]TransformOutput `json:"outputs,omitempty"`
@@ -10706,7 +10894,7 @@ func (vVar Video) AsBasicCodec() (BasicCodec, bool) {
 // VideoAnalyzerPreset a video analyzer preset that extracts insights (rich metadata) from both audio and
 // video, and outputs a JSON format file.
 type VideoAnalyzerPreset struct {
-	// InsightsToExtract - The type of insights to be extracted. If not set then based on the content the type will selected.  If the content is audio only then only audio insights are extracted and if it is video only. Possible values include: 'AudioInsightsOnly', 'VideoInsightsOnly', 'AllInsights'
+	// InsightsToExtract - Defines the type of insights that you want the service to generate. The allowed values are 'AudioInsightsOnly', 'VideoInsightsOnly', and 'AllInsights'. The default is AllInsights. If you set this to AllInsights and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use AudioInsightsOnly if you expect some of your inputs to be video only; or use VideoInsightsOnly if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. Possible values include: 'AudioInsightsOnly', 'VideoInsightsOnly', 'AllInsights'
 	InsightsToExtract InsightsType `json:"insightsToExtract,omitempty"`
 	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  The list of supported languages are English ('en-US' and 'en-GB'), Spanish ('es-ES' and 'es-MX'), French ('fr-FR'), Italian ('it-IT'), Japanese ('ja-JP'), Portuguese ('pt-BR'), Chinese ('zh-CN'), German ('de-DE'), Arabic ('ar-EG' and 'ar-SY'), Russian ('ru-RU'), Hindi ('hi-IN'), and Korean ('ko-KR'). If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. This language detection feature currently supports English, Chinese, French, German, Italian, Japanese, Spanish, Russian, and Portuguese. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'."
 	AudioLanguage *string `json:"audioLanguage,omitempty"`

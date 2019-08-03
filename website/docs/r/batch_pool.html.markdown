@@ -16,7 +16,7 @@ Manages an Azure Batch pool.
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch"
-  location = "%s"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -58,7 +58,8 @@ resource "azurerm_batch_pool" "test" {
 
   auto_scale {
     evaluation_interval = "PT15M"
-    formula             = <<EOF
+
+    formula = <<EOF
       startingNumberOfVMs = 1;
       maxNumberofVMs = 25;
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
@@ -68,10 +69,14 @@ EOF
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
     version   = "latest"
+  }
+
+  container_configuration {
+    type = "DockerCompatible"
   }
 
   start_task {
@@ -92,8 +97,8 @@ EOF
   }
 
   certificate {
-    id             = "${azurerm_batch_certificate.testcer.id}"
-    visibility = [ "StartTask" ]
+    id         = "${azurerm_batch_certificate.testcer.id}"
+    visibility = ["StartTask"]
   }
 }
 ```
@@ -128,10 +133,30 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
 
+* `container_configuration` - (Optional) The container configuration used in the pool's VMs.
+
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
+---
+A `storage_image_reference` block supports the following:
+
+This block provisions virtual machines in the Batch Pool from one of two sources: an Azure Platform Image (e.g. Ubuntu/Windows Server) or a Custom Image.
+
+To provision from an Azure Platform Image, the following fields are applicable:
+
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+To provision a Custom Image, the following fields are applicable:
+
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:
@@ -197,6 +222,12 @@ A `certificate` block supports the following:
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
 
 * `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
+
+---
+
+A `container_configuration` block supports the following:
+
+* `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
 ---
 

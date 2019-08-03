@@ -34,11 +34,10 @@ resource "azurerm_iothub_shared_access_policy" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
-  
+
   registry_read  = true
   registry_write = true
 }
-
 ```
 
 ## Argument Reference

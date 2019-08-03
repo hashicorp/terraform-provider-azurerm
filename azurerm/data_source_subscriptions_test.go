@@ -18,6 +18,7 @@ func TestAccDataSourceAzureRMSubscriptions_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.subscription_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.display_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.tenant_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.state"),
 				),
 			},

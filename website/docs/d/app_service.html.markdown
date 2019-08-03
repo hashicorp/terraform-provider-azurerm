@@ -111,6 +111,8 @@ A `ip_restriction` block exports the following:
 
 * `linux_fx_version` - Linux App Framework and version for the AppService.
 
+* `windows_fx_version` - Windows Container Docker Image for the AppService.
+
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode used in this App Service.

@@ -12,78 +12,31 @@ Manage as an Azure Container Group instance.
 
 ## Example Usage
 
+This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/container-instance).
+
 ```hcl
-resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_storage_account" "aci-sa" {
-  name                = "acistorageacct"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  account_tier        = "Standard"
-
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "aci-share" {
-  name = "aci-test-share"
-
-  resource_group_name  = "${azurerm_resource_group.aci-rg.name}"
-  storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-
-  quota = 50
-}
-
-resource "azurerm_container_group" "aci-helloworld" {
-  name                = "aci-hw"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
+resource "azurerm_container_group" "example" {
+  name                = "example-continst"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
 
   container {
-    name   = "hw"
-    image  = "seanmckenna/aci-hellofiles"
+    name   = "hello-world"
+    image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.5"
-    ports  = {
-      port     = 80
-      protocol = "TCP"
-    }
+
     ports {
       port     = 443
       protocol = "TCP"
-    }
-
-    environment_variables = {
-      "NODE_ENV" = "testing"
-    }
-
-    secure_environment_variables = {
-      "ACCESS_KEY" = "secure_testing"
-    }
-
-    readiness_probe {
-      exec = ["/bin/sh","-c","touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600"]
-    }
-
-    liveness_probe {
-      exec = ["cat", "/tmp/healthy"]
-    }
-
-    commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
-
-    volume {
-      name       = "logs"
-      mount_path = "/aci/logs"
-      read_only  = false
-      share_name = "${azurerm_storage_share.aci-share.name}"
-
-      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 
@@ -110,7 +63,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
@@ -122,25 +75,25 @@ The following arguments are supported:
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
-* `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
+* `dns_name_label` - (Optional) The DNS label/name for the container groups IP. Changing this forces a new resource to be created.
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below.
+* `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
-* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
+* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Managed Service Identity Type of this container group. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
+* `type` - (Required) The Managed Service Identity Type of this container group. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`. Changing this forces a new resource to be created.
 
 ---
 
@@ -154,7 +107,7 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `gpu` - (Optional) A `gpu` block as defined below.
+* `gpu` - (Optional) A `gpu` block as defined below. Changing this forces a new resource to be created.
 
 ~> **Note:** Gpu resources are currently only supported in Linux containers.
 
@@ -168,11 +121,11 @@ A `container` block supports:
 
 * `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
-* `command` - (Optional) A command line to be run on the container.
+* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
 
-* `commands` - (Optional) A list of commands which should be run on the container.
+* `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
@@ -180,45 +133,45 @@ A `container` block supports:
 
 A `diagnostics` block supports:
 
-* `log_analytics` - (Required) A `log_analytics` block as defined below.
+* `log_analytics` - (Required) A `log_analytics` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `image_registry_credential` block supports:
 
-* `username` - (Required) The username with which to connect to the registry.
+* `username` - (Required) The username with which to connect to the registry. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password with which to connect to the registry.
+* `password` - (Required) The password with which to connect to the registry. Changing this forces a new resource to be created.
 
-* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
+* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io". Changing this forces a new resource to be created.
 
 ---
 
 A `log_analytics` block supports:
 
-* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`.
+* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
 
-* `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace.
+* `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace. Changing this forces a new resource to be created.
 
-* `workspace_key` - (Required) The Workspace Key of the Log Analytics Workspace.
+* `workspace_key` - (Required) The Workspace Key of the Log Analytics Workspace. Changing this forces a new resource to be created.
 
-* `metadata` - (Optional) Any metadata required for Log Analytics.
+* `metadata` - (Optional) Any metadata required for Log Analytics. Changing this forces a new resource to be created.
 
 ---
 
 A `ports` block supports:
 
-* `port` - (Required) The port number the container will expose.
+* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
+* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 --
 
 A `gpu` block supports:
 
-* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`.
+* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The Sku which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
+* `sku` - (Required) The Sku which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
 
 ---
 

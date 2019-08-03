@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -72,7 +73,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementProductsClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
@@ -148,7 +149,6 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 				Config: testAccAzureRMApiManagementProduct_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementProductExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "approval_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Product"),
 					resource.TestCheckResourceAttr(resourceName, "product_id", "test-product"),
@@ -222,6 +222,26 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
+	resourceName := "azurerm_api_management_product.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementProduct_approvalRequiredError(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementProductExists(resourceName)),
+				ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementProductExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -234,7 +254,7 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementProductsClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
@@ -242,7 +262,7 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 				return fmt.Errorf("Bad: Product %q (API Management Service %q / Resource Group %q) does not exist", productId, serviceName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apiManagementProductsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductsClient: %+v", err)
 		}
 
 		return nil
@@ -324,6 +344,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Updated Product"
   subscription_required = true
   approval_required     = true
+  subscriptions_limit   = 1
   published             = true
 }
 `, rInt, location, rInt)
@@ -391,6 +412,40 @@ resource "azurerm_api_management_product" "test" {
   approval_required     = true
   published             = true
   subscriptions_limit   = 2
+  description           = "This is an example description"
+  terms                 = "These are some example terms and conditions"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMApiManagementProduct_approvalRequiredError(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+
+resource "azurerm_api_management_product" "test" {
+  product_id            = "test-product"
+  api_management_name   = "${azurerm_api_management.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  display_name          = "Test Product"
+  approval_required     = true
+  subscription_required = false
+  published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
 }

@@ -24,6 +24,8 @@ func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 				Config: testAccAzureRMStreamAnalyticsJob_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Test"),
 				),
 			},
 			{
@@ -106,7 +108,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -122,7 +124,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.JobsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_job" {
@@ -163,6 +165,10 @@ resource "azurerm_stream_analytics_job" "test" {
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
   streaming_units                          = 3
+
+  tags = {
+    environment = "Test"
+  }
 
   transformation_query = <<QUERY
     SELECT *

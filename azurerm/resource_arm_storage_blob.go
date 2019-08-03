@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -21,7 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/Azure/go-autorest/autorest/azure"
+	azauto "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -44,7 +45,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account_name": {
 				Type:     schema.TypeString,
@@ -74,10 +75,9 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"content_type": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Default:       "application/octet-stream",
-				ConflictsWith: []string{"source_uri"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "application/octet-stream",
 			},
 
 			"source": {
@@ -118,6 +118,7 @@ func resourceArmStorageBlob() *schema.Resource {
 			"metadata": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,
@@ -713,7 +714,7 @@ type storageBlobId struct {
 	blobName           string
 }
 
-func parseStorageBlobID(input string, environment azure.Environment) (*storageBlobId, error) {
+func parseStorageBlobID(input string, environment azauto.Environment) (*storageBlobId, error) {
 	uri, err := url.Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)

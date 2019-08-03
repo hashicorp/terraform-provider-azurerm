@@ -97,6 +97,8 @@ func (client ServerCommunicationLinksClient) CreateOrUpdatePreparer(ctx context.
 		"api-version": APIVersion,
 	}
 
+	parameters.Location = nil
+	parameters.Kind = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

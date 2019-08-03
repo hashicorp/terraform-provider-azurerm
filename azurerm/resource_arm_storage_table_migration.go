@@ -4,37 +4,91 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func resourceStorageTableMigrateState(
-	v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	switch v {
-	case 0:
-		log.Println("[INFO] Found AzureRM Storage Table State v0; migrating to v1")
-		return migrateStorageTableStateV0toV1(is, meta)
-	default:
-		return is, fmt.Errorf("Unexpected schema version: %d", v)
+// the schema schema was used for both V0 and V1
+func resourceStorageTableStateResourceV0V1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageTableName,
+			},
+			"storage_account_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageAccountName,
+			},
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+			"acl": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 64),
+						},
+						"access_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"expiry": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"permissions": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
-func migrateStorageTableStateV0toV1(is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	if is.Empty() {
-		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return is, nil
-	}
-
-	log.Printf("[DEBUG] ARM Storage Table Attributes before Migration: %#v", is.Attributes)
-
+func resourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	tableName := rawState["name"].(string)
+	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*ArmClient).environment
 
-	tableName := is.Attributes["name"]
-	storageAccountName := is.Attributes["storage_account_name"]
-	newID := fmt.Sprintf("https://%s.table.%s/%s", storageAccountName, environment.StorageEndpointSuffix, tableName)
-	is.Attributes["id"] = newID
-	is.ID = newID
+	id := rawState["id"].(string)
+	newResourceID := fmt.Sprintf("https://%s.table.%s/%s", accountName, environment.StorageEndpointSuffix, tableName)
+	log.Printf("[DEBUG] Updating ID from %q to %q", id, newResourceID)
 
-	log.Printf("[DEBUG] ARM Storage Table Attributes after State Migration: %#v", is.Attributes)
+	rawState["id"] = newResourceID
+	return rawState, nil
+}
 
-	return is, nil
+func resourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	tableName := rawState["name"].(string)
+	accountName := rawState["storage_account_name"].(string)
+	environment := meta.(*ArmClient).environment
+
+	id := rawState["id"].(string)
+	newResourceID := fmt.Sprintf("https://%s.table.%s/Tables('%s')", accountName, environment.StorageEndpointSuffix, tableName)
+	log.Printf("[DEBUG] Updating ID from %q to %q", id, newResourceID)
+
+	rawState["id"] = newResourceID
+	return rawState, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -11,7 +12,7 @@ func dataSourceArmPlatformImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPlatformImageRead,
 		Schema: map[string]*schema.Schema{
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"publisher": {
 				Type:     schema.TypeString,
@@ -40,7 +41,7 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).vmImageClient
 	ctx := meta.(*ArmClient).StopContext
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	publisher := d.Get("publisher").(string)
 	offer := d.Get("offer").(string)
 	sku := d.Get("sku").(string)
@@ -55,7 +56,7 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*latestVersion.ID)
 	if location := latestVersion.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("publisher", publisher)

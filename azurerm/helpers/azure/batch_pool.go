@@ -191,6 +191,22 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 	return output
 }
 
+// FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
+func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+
+	result := make(map[string]interface{})
+
+	if armContainerConfiguration == nil {
+		return nil
+	}
+
+	if armContainerConfiguration.Type != nil {
+		result["type"] = *armContainerConfiguration.Type
+	}
+
+	return []interface{}{result}
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -198,20 +214,50 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	storageImageRef := list[0].(map[string]interface{})
+	imageRef := &batch.ImageReference{}
 
-	storageImageRefOffer := storageImageRef["offer"].(string)
-	storageImageRefPublisher := storageImageRef["publisher"].(string)
-	storageImageRefSku := storageImageRef["sku"].(string)
-	storageImageRefVersion := storageImageRef["version"].(string)
+	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
+		storageImageRefID := storageImageRef["id"].(string)
+		imageRef.ID = &storageImageRefID
+	}
 
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
+	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
+		storageImageRefOffer := storageImageRef["offer"].(string)
+		imageRef.Offer = &storageImageRefOffer
+	}
+
+	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
+		storageImageRefPublisher := storageImageRef["publisher"].(string)
+		imageRef.Publisher = &storageImageRefPublisher
+	}
+
+	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
+		storageImageRefSku := storageImageRef["sku"].(string)
+		imageRef.Sku = &storageImageRefSku
+	}
+
+	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
+		storageImageRefVersion := storageImageRef["version"].(string)
+		imageRef.Version = &storageImageRefVersion
 	}
 
 	return imageRef, nil
+}
+
+// ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
+func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.ContainerConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	containerConfiguration := list[0].(map[string]interface{})
+	containerType := containerConfiguration["type"].(string)
+
+	containerConf := &batch.ContainerConfiguration{
+		Type: &containerType,
+	}
+
+	return containerConf, nil
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references

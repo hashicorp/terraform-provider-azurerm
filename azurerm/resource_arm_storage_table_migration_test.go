@@ -2,65 +2,88 @@ package azurerm
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-// NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
-// as we want to run this depending on the cloud we're in.
-func TestAccAzureRMStorageTableMigrateState(t *testing.T) {
-	config := testGetAzureConfig(t)
-	if config == nil {
-		t.SkipNow()
-		return
+func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
+	clouds := []azure.Environment{
+		azure.ChinaCloud,
+		azure.GermanCloud,
+		azure.PublicCloud,
+		azure.USGovernmentCloud,
 	}
 
-	client, err := getArmClient(config, false, "")
-	if err != nil {
-		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
-		return
-	}
+	for _, cloud := range clouds {
+		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-	client.StopContext = testAccProvider.StopContext()
-
-	suffix := client.environment.StorageEndpointSuffix
-
-	cases := map[string]struct {
-		StateVersion       int
-		ID                 string
-		InputAttributes    map[string]string
-		ExpectedAttributes map[string]string
-	}{
-		"v0_1_without_value": {
-			StateVersion: 0,
-			ID:           "some_id",
-			InputAttributes: map[string]string{
-				"name":                 "table1",
-				"storage_account_name": "example",
-			},
-			ExpectedAttributes: map[string]string{
-				"id": fmt.Sprintf("https://example.table.%s/table1", suffix),
-			},
-		},
-	}
-
-	for tn, tc := range cases {
-		is := &terraform.InstanceState{
-			ID:         tc.ID,
-			Attributes: tc.InputAttributes,
+		input := map[string]interface{}{
+			"id":                   "table1",
+			"name":                 "table1",
+			"storage_account_name": "account1",
 		}
-		is, err := resourceStorageTableMigrateState(tc.StateVersion, is, client)
+		meta := &ArmClient{
+			environment: cloud,
+		}
+		suffix := meta.environment.StorageEndpointSuffix
 
+		expected := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"name":                 "table1",
+			"storage_account_name": "account1",
+		}
+
+		actual, err := resourceStorageTableStateUpgradeV0ToV1(input, meta)
 		if err != nil {
-			t.Fatalf("bad: %s, err: %#v", tn, err)
+			t.Fatalf("Expected no error but got: %s", err)
 		}
 
-		for k, v := range tc.ExpectedAttributes {
-			actual := is.Attributes[k]
-			if actual != v {
-				t.Fatalf("Bad Storage Table Migrate for %q: %q\n\n expected: %q", k, actual, v)
-			}
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("Expected %+v. Got %+v. But expected them to be the same", expected, actual)
 		}
+
+		t.Logf("[DEBUG] Ok!")
+	}
+}
+
+func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
+	clouds := []azure.Environment{
+		azure.ChinaCloud,
+		azure.GermanCloud,
+		azure.PublicCloud,
+		azure.USGovernmentCloud,
+	}
+
+	for _, cloud := range clouds {
+		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
+
+		meta := &ArmClient{
+			environment: cloud,
+		}
+		suffix := meta.environment.StorageEndpointSuffix
+
+		input := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"name":                 "table1",
+			"storage_account_name": "account1",
+		}
+		expected := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.table.%s/Tables('table1')", suffix),
+			"name":                 "table1",
+			"storage_account_name": "account1",
+		}
+
+		actual, err := resourceStorageTableStateUpgradeV1ToV2(input, meta)
+		if err != nil {
+			t.Fatalf("Expected no error but got: %s", err)
+		}
+
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("Expected %+v. Got %+v. But expected them to be the same", expected, actual)
+		}
+
+		t.Logf("[DEBUG] Ok!")
 	}
 }

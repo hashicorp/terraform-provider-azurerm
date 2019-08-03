@@ -81,7 +81,7 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).devSpaceControllerClient
+		client := testAccProvider.Meta().(*ArmClient).devSpace.ControllersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		result, err := client.Get(ctx, resGroupName, ctrlName)
 
@@ -98,7 +98,7 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).devSpaceControllerClient
+	client := testAccProvider.Meta().(*ArmClient).devSpace.ControllersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -38,7 +39,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 
 			// TODO: make this case sensitive once this API bug has been fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"certificate": {
 				Type:         schema.TypeString,
@@ -85,7 +86,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 }
 
 func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchCertificateClient
+	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
@@ -147,7 +148,7 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchCertificateClient
+	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -183,7 +184,7 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchCertificateClient
+	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
@@ -234,7 +235,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchCertificateClient
+	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

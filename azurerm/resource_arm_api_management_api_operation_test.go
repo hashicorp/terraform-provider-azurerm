@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -117,7 +117,7 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 
 func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -154,7 +154,7 @@ func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T
 func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 	// TODO: once `azurerm_api_management_schema` is supported add `request.0.representation.0.schema_id`
 	resourceName := "azurerm_api_management_api_operation.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -189,7 +189,7 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiOperationsClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -230,7 +230,7 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiOperationsClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)
@@ -311,17 +311,16 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 }
-
 `, template)
 }
 
@@ -339,17 +338,16 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 }
-
 `, template)
 }
 
@@ -367,10 +365,10 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
-    
+
     header {
       name     = "X-Test-Operation"
       required = true
@@ -379,14 +377,14 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
   response {
     status_code = 200
     description = "successful operation"
-    
+
     header {
       name     = "X-Test-Operation"
       required = true
@@ -395,7 +393,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -408,7 +407,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 
@@ -426,13 +424,13 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
@@ -442,7 +440,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -455,7 +454,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 
@@ -473,13 +471,13 @@ resource "azurerm_api_management_api_operation" "test" {
   method              = "DELETE"
   url_template        = "/user1"
   description         = "This can only be done by the logged in user."
-  
+
   request {
     description = "Created user object"
 
     representation {
       content_type = "application/json"
-      type_name = "User"
+      type_name    = "User"
     }
   }
 
@@ -489,7 +487,8 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -503,7 +502,8 @@ SAMPLE
 
     representation {
       content_type = "application/json"
-      sample       = <<SAMPLE
+
+      sample = <<SAMPLE
 {
   "user": {
     "groups": [
@@ -522,7 +522,6 @@ SAMPLE
     }
   }
 }
-
 `, template)
 }
 

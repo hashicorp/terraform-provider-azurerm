@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +32,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"profile_status": {
 				Type:     schema.TypeString,
@@ -70,7 +71,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						"ttl": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(30, 999999),
+							ValidateFunc: validation.IntBetween(1, 999999),
 						},
 					},
 				},
@@ -111,16 +112,19 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntInSlice([]int{10, 30}),
+							Default:      30,
 						},
 						"timeout_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(5, 10),
+							Default:      10,
 						},
 						"tolerated_number_of_failures": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 9),
+							Default:      3,
 						},
 					},
 				},
@@ -133,7 +137,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 }
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
@@ -157,10 +161,16 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
+	props, err := getArmTrafficManagerProfileProperties(d)
+	if err != nil {
+		// There isn't any additional messaging needed for this error
+		return err
+	}
+
 	profile := trafficmanager.Profile{
 		Name:              &name,
 		Location:          &location,
-		ProfileProperties: getArmTrafficManagerProfileProperties(d),
+		ProfileProperties: props,
 		Tags:              expandTags(tags),
 	}
 
@@ -182,7 +192,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -224,7 +234,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerProfilesClient
+	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -244,12 +254,17 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanager.ProfileProperties {
+func getArmTrafficManagerProfileProperties(d *schema.ResourceData) (*trafficmanager.ProfileProperties, error) {
 	routingMethod := d.Get("traffic_routing_method").(string)
+
+	montiorConfig, err := expandArmTrafficManagerMonitorConfig(d)
+	if err != nil {
+		return nil, fmt.Errorf("Error expanding `montior_config`: %+v", err)
+	}
 	props := &trafficmanager.ProfileProperties{
 		TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(routingMethod),
 		DNSConfig:            expandArmTrafficManagerDNSConfig(d),
-		MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+		MonitorConfig:        montiorConfig,
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
@@ -257,10 +272,10 @@ func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanag
 		props.ProfileStatus = trafficmanager.ProfileStatus(s)
 	}
 
-	return props
+	return props, nil
 }
 
-func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanager.MonitorConfig {
+func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) (*trafficmanager.MonitorConfig, error) {
 	monitorSets := d.Get("monitor_config").(*schema.Set).List()
 	monitor := monitorSets[0].(map[string]interface{})
 
@@ -271,6 +286,10 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	timeout := int64(monitor["timeout_in_seconds"].(int))
 	tolerated := int64(monitor["tolerated_number_of_failures"].(int))
 
+	if interval == int64(10) && timeout == int64(10) {
+		return nil, fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+	}
+
 	return &trafficmanager.MonitorConfig{
 		Protocol:                  trafficmanager.MonitorProtocol(proto),
 		Port:                      &port,
@@ -278,7 +297,7 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 		IntervalInSeconds:         &interval,
 		TimeoutInSeconds:          &timeout,
 		ToleratedNumberOfFailures: &tolerated,
-	}
+	}, nil
 }
 
 func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DNSConfig {
