@@ -52,7 +52,6 @@ resource "azurerm_stream_analytics_output_eventhub" "example" {
     type = "Avro"
   }
 }
-
 ```
 
 ## Argument Reference

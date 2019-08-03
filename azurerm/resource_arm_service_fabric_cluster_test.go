@@ -45,6 +45,57 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_basic(ri, testLocation(), 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "http://example:80"),
+					resource.TestCheckResourceAttr(resourceName, "add_on_features.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "reverse_proxy_certificate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.is_primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(ri, testLocation(), 3, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "http://example:80"),
+					resource.TestCheckResourceAttr(resourceName, "add_on_features.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "reverse_proxy_certificate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.is_primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.1.is_primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -404,6 +455,35 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_certificateCommonNames(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "certificate_common_names.0.common_names.2962847220.certificate_common_name", "example"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_common_names.0.x509_store_name", "My"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -426,7 +506,54 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.client_application_id"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:19080"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.thumbprint", "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.x509_store_name", "My"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.cluster_application_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.client_application_id"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:19080"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.thumbprint", "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.x509_store_name", "My"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:19080"),
 				),
 			},
 			{
@@ -458,6 +585,44 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.blob_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.queue_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.table_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfig(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.storage_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.protected_account_key_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.blob_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.queue_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics_config.0.table_endpoint"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "0"),
 				),
 			},
 			{
@@ -738,8 +903,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = %d
@@ -749,6 +914,41 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 }
 `, rInt, location, rInt, count)
+}
+
+func testAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(rInt int, location string, count int, secondary_count int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
+
+  node_type {
+    name                 = "first"
+    instance_count       = %d
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+
+  node_type {
+    name                 = "second"
+    instance_count       = %d
+    is_primary           = false
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, rInt, location, rInt, count, secondary_count)
 }
 
 func testAccAzureRMServiceFabricCluster_requiresImport(rInt int, location string, count int) string {
@@ -762,8 +962,8 @@ resource "azurerm_service_fabric_cluster" "import" {
   reliability_level   = "${azurerm_service_fabric_cluster.test.reliability_level}"
   upgrade_mode        = "${azurerm_service_fabric_cluster.test.upgrade_mode}"
   vm_image            = "${azurerm_service_fabric_cluster.test.vm_image}"
-	management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
-	
+  management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
+
   node_type {
     name                 = "first"
     instance_count       = %d
@@ -790,8 +990,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode         = "Manual"
   cluster_code_version = "%[3]s"
   vm_image             = "Windows"
-	management_endpoint  = "http://example:80"
-	
+  management_endpoint  = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -818,8 +1018,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
-	add_on_features     = ["DnsService", "RepairManager"]
-	
+  add_on_features     = ["DnsService", "RepairManager"]
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -845,21 +1045,21 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -885,26 +1085,26 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   reverse_proxy_certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                        = "first"
     instance_count              = 3
@@ -931,26 +1131,26 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   client_certificate_thumbprint {
     thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     is_admin   = true
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -976,31 +1176,74 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:80"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   client_certificate_thumbprint {
     thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     is_admin   = true
-	}
-	
+  }
+
   client_certificate_thumbprint {
     thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     is_admin   = false
-	}
-	
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceFabricCluster_certificateCommonNames(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:80"
+
+  certificate_common_names {
+    common_names {
+      certificate_common_name = "example"
+    }
+
+    x509_store_name = "My"
+  }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters = {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1021,13 +1264,60 @@ resource "azurerm_resource_group" "test" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azuread_application" "test" {
-  name                       = "${azurerm_resource_group.test.name}-AAD"
-  homepage                   = "https://example:80/Explorer/index.html"
-  identifier_uris            = ["https://acctestAAD-app"]
-  reply_urls                 = ["https://acctestAAD-app"]
+resource "azuread_application" "cluster_explorer" {
+  name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
+  homepage                   = "https://example:19080/Explorer/index.html"
+  identifier_uris            = ["https://example:19080/Explorer/index.html"]
+  reply_urls                 = ["https://example:19080/Explorer/index.html"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
+
+  # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
+  # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/
+  required_resource_access {
+    resource_app_id = "00000002-0000-0000-c000-000000000000"
+
+    resource_access {
+      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6"
+      type = "Scope"
+    }
+  }
+}
+
+resource "azuread_service_principal" "cluster_explorer" {
+  application_id = "${azuread_application.cluster_explorer.application_id}"
+}
+
+resource "azuread_application" "cluster_console" {
+  name                       = "${azurerm_resource_group.test.name}-console-AAD"
+  type                       = "native"
+  reply_urls                 = ["urn:ietf:wg:oauth:2.0:oob"]
+  available_to_other_tenants = false
+  oauth2_allow_implicit_flow = true
+
+  # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
+  # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/
+  required_resource_access {
+    resource_app_id = "00000002-0000-0000-c000-000000000000"
+
+    resource_access {
+      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6"
+      type = "Scope"
+    }
+  }
+
+  required_resource_access {
+    resource_app_id = "${azuread_application.cluster_explorer.application_id}"
+
+    resource_access {
+      id   = "${azuread_application.cluster_explorer.oauth2_permissions.0.id}"
+      type = "Scope"
+    }
+  }
+}
+
+resource "azuread_service_principal" "cluster_console" {
+  application_id = "${azuread_application.cluster_console.application_id}"
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
@@ -1037,33 +1327,75 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "https://example:80"
-	
+  management_endpoint = "https://example:19080"
+
   certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
-	}
-	
+  }
+
   azure_active_directory {
     tenant_id              = "${data.azurerm_client_config.current.tenant_id}"
-    cluster_application_id = "${azuread_application.test.application_id}"
-    client_application_id  = "00000000-0000-0000-0000-000000000000"
-	}
-	
+    cluster_application_id = "${azuread_application.cluster_explorer.application_id}"
+    client_application_id  = "${azuread_application.cluster_console.application_id}"
+  }
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "EncryptAndSign"
     }
-	}
-	
+  }
+
   node_type {
-    name                 = "first"
+    name                 = "system"
     instance_count       = 3
     is_primary           = true
-    client_endpoint_port = 2020
-    http_endpoint_port   = 80
+    client_endpoint_port = 19000
+    http_endpoint_port   = 19080
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:19080"
+
+  certificate {
+    thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
+    x509_store_name = "My"
+  }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters = {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
+  node_type {
+    name                 = "system"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 19000
+    http_endpoint_port   = 19080
   }
 }
 `, rInt, location, rInt)
@@ -1091,16 +1423,51 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   diagnostics_config {
     storage_account_name       = "${azurerm_storage_account.test.name}"
     protected_account_key_name = "StorageAccountKey1"
     blob_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
     queue_endpoint             = "${azurerm_storage_account.test.primary_queue_endpoint}"
     table_endpoint             = "${azurerm_storage_account.test.primary_table_endpoint}"
-	}
-	
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(rInt int, rString, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1126,16 +1493,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   fabric_settings {
-		name = "Security"
-		
+    name = "Security"
+
     parameters = {
       "ClusterProtectionLevel" = "None"
     }
-	}
-	
+  }
+
   node_type {
     name                 = "first"
     instance_count       = 3
@@ -1161,20 +1528,20 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
-		http_endpoint_port   = 80
-		
+    http_endpoint_port   = 80
+
     application_ports {
       start_port = 20000
       end_port   = 29999
-		}
-		
+    }
+
     ephemeral_ports {
       start_port = 30000
       end_port   = 39999
@@ -1198,16 +1565,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
-	}
-	
+  }
+
   node_type {
     name                 = "second"
     instance_count       = 4
@@ -1225,6 +1592,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -1233,20 +1601,25 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
+
   node_type {
-		name                 = "first"
-		placement_properties = {
-			"HasSSD" = "true"
-		}
-		capacities = {
-			"ClientConnections" = "20000"
-			"MemoryGB" = "8"
-		}
+    name = "first"
+
+    placement_properties = {
+      "HasSSD" = "true"
+    }
+
+    capacities = {
+      "ClientConnections" = "20000"
+      "MemoryGB"          = "8"
+    }
+
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
-		http_endpoint_port   = 80
+    http_endpoint_port   = 80
   }
+
   tags = {
     Hello = "World"
   }
@@ -1268,16 +1641,16 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-	management_endpoint = "http://example:80"
-	
+  management_endpoint = "http://example:80"
+
   node_type {
     name                 = "first"
     instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
-	}
-	
+  }
+
   tags = {
     Hello = "World"
   }

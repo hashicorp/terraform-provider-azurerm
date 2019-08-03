@@ -2,10 +2,9 @@ package containers
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
@@ -16,25 +15,25 @@ type Client struct {
 	ServicesClient           containerservice.ContainerServicesClient
 }
 
-func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
+func BuildClient(o *common.ClientOptions) *Client {
 	c := Client{}
 
-	c.RegistriesClient = containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.RegistriesClient.Client, auth, partnerId, skipProviderReg)
+	c.RegistriesClient = containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.RegistriesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ReplicationsClient = containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ReplicationsClient.Client, auth, partnerId, skipProviderReg)
+	c.ReplicationsClient = containerregistry.NewReplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.ReplicationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.GroupsClient = containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.GroupsClient.Client, auth, partnerId, skipProviderReg)
+	c.GroupsClient = containerinstance.NewContainerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.GroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	// ACS
-	c.ServicesClient = containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ServicesClient.Client, auth, partnerId, skipProviderReg)
+	c.ServicesClient = containerservice.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.ServicesClient.Client, o.ResourceManagerAuthorizer)
 
 	// AKS
-	c.KubernetesClustersClient = containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.KubernetesClustersClient.Client, auth, partnerId, skipProviderReg)
+	c.KubernetesClustersClient = containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.KubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &c
 }

@@ -190,7 +190,7 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
- 
+
   description = "test description"
   annotations = ["test1", "test2", "test3"]
   table_name  = "testTable"
@@ -200,12 +200,12 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
     foo = "test1"
     bar = "test2"
   }
- 
+
   additional_properties = {
     foo = "test1"
     bar = "test2"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
@@ -240,7 +240,7 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
- 
+
   description = "test description 2"
   annotations = ["test1", "test2"]
   table_name  = "testTable"
@@ -251,17 +251,17 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
     bar  = "test2"
     buzz = "test3"
   }
- 
+
   additional_properties = {
     foo = "test1"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
     description = "description"
   }
-	
+
   schema_column {
     name        = "test2"
     type        = "Byte"

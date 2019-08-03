@@ -285,7 +285,6 @@ func testAccAzureRMVirtualMachineExtension_requiresImport(rInt int, location str
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_virtual_machine_extension" "import" {
   name                 = "${azurerm_virtual_machine_extension.test.name}"
   resource_group_name  = "${azurerm_virtual_machine_extension.test.resource_group_name}"

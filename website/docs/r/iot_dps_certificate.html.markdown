@@ -31,11 +31,11 @@ resource "azurerm_iot_dps" "example" {
 }
 
 resource "azurerm_iot_dps_certificate" "example" {
-	name                = "example"
-	resource_group_name = "${azurerm_resource_group.example.name}"
-	iot_dps_name        = "${azurerm_iot_dps.example.name}"
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  iot_dps_name        = "${azurerm_iot_dps.example.name}"
 
-	certificate_content = "${filebase64("example.cer")}"		
+  certificate_content = "${filebase64("example.cer")}"
 }
 ```
 

@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `linux_profile` - A `linux_profile` block as documented below.
 
+* `windows_profile` - A `windows_profile` block as documented below.
+
 * `network_profile` - A `network_profile` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
@@ -86,6 +88,14 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
+* `availability_zones` - The availability zones used for the nodes. 
+
+* `enable_auto_scaling` - If the auto-scaler is enabled. 
+
+* `min_count` - Minimum number of nodes for auto-scaling 
+
+* `max_count` - Maximum number of nodes for auto-scaling
+
 * `name` - The name assigned to this pool of agents.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
@@ -95,6 +105,8 @@ A `agent_pool_profile` block exports the following:
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
 ---
 
@@ -150,6 +162,12 @@ A `linux_profile` block exports the following:
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
 * `ssh_key` - An `ssh_key` block as defined below.
+
+---
+
+A `windows_profile` block exports the following:
+
+* `admin_username` - The username associated with the administrator account of the Windows VMs.
 
 ---
 

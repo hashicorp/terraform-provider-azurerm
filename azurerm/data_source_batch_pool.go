@@ -252,7 +252,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)

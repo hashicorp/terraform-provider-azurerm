@@ -18,13 +18,13 @@ data "azurerm_api_management" "example" {
   resource_group_name = "example-resources"
 }
 
-
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
   api_management_name = "${data.azurerm_api_management.example.name}"
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
   revision            = "2"
 }
+
 data "azurerm_api_management_product" "test" {
   product_id          = "my-product"
   api_management_name = "${data.azurerm_api_management.example.name}"

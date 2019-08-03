@@ -145,7 +145,6 @@ resource "azurerm_api_management_product" "test" {
   published             = true
 }
 
-
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -157,10 +156,10 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_product_api" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
 }

@@ -21,15 +21,17 @@ func resourceArmMySqlServer() *schema.Resource {
 		Read:   resourceArmMySqlServerRead,
 		Update: resourceArmMySqlServerUpdate,
 		Delete: resourceArmMySqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -193,7 +195,7 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
@@ -263,7 +265,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
@@ -313,7 +315,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -361,7 +363,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

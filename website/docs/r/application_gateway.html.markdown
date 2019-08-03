@@ -90,7 +90,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path         = "/path1/"
+    path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -104,11 +104,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                        = "${local.request_routing_rule_name}"
-    rule_type                   = "Basic"
-    http_listener_name          = "${local.listener_name}"
-    backend_address_pool_name   = "${local.backend_address_pool_name}"
-    backend_http_settings_name  = "${local.http_setting_name}"
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
   }
 }
 ```
@@ -134,6 +134,8 @@ The following arguments are supported:
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
+
+* `identity` - (Optional) A `identity` block.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
@@ -288,6 +290,14 @@ A `http_listener` block supports the following:
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
 
 ---
 

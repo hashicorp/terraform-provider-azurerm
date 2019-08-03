@@ -173,7 +173,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string)
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.InputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -189,7 +189,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string)
 }
 
 func testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_stream_input_iothub" {

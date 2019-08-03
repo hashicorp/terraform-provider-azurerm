@@ -10,65 +10,37 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	databricksSvc "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
-	datafactorySvc "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	devtestlabsSvc "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	eventHubSvc "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	logicSvc "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	mediaSvc "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	notificationHubsSvc "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
-	dnsSvc "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	eventGridSvc "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	hdinsightSvc "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	iotHubSvc "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	msiSvc "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
-	managementgroupsSvc "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
-	securitySvc "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	signalrSvc "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	iotdps "github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
-	recoveryservicesSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
-	backupSvc "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
-	redisSvc "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	relaySvc "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	policySvc "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	schedulerSvc "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
-	searchSvc "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
-	servicebusSvc "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	servicefabricSvc "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	trafficmanagerSvc "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/hashicorp/terraform/httpclient"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
@@ -78,13 +50,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
@@ -94,15 +72,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
-
-	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
-	az "github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -115,34 +88,44 @@ type ArmClient struct {
 	subscriptionId           string
 	partnerId                string
 	usingServicePrincipal    bool
-	environment              az.Environment
+	environment              azure.Environment
 	skipProviderRegistration bool
 
 	StopContext context.Context
 
 	// Services
+	analysisservices *analysisservices.Client
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
 	automation       *automation.Client
+	authorization    *authorization.Client
+	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	containers       *containers.Client
+	cosmos           *cosmos.Client
 	databricks       *databricks.Client
 	dataFactory      *datafactory.Client
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
+	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
+	keyvault         *keyvault.Client
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
+	maps             *maps.Client
+	mariadb          *mariadb.Client
 	media            *media.Client
+	mysql            *mysql.Client
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
+	postgres         *postgres.Client
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
@@ -152,24 +135,17 @@ type ArmClient struct {
 	servicebus       *servicebus.Client
 	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
+	storage          *intStor.Client
+	streamanalytics  *streamanalytics.Client
 	trafficManager   *trafficmanager.Client
-
-	// TODO: refactor
-	cosmosAccountsClient documentdb.DatabaseAccountsClient
+	web              *web.Client
 
 	// Authentication
-	roleAssignmentsClient   authorization.RoleAssignmentsClient
-	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// Autoscale Settings
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
-
-	// Batch
-	batchAccountClient     batch.AccountClient
-	batchCertificateClient batch.CertificateClient
-	batchPoolClient        batch.PoolClient
 
 	// Compute
 	availSetClient             compute.AvailabilitySetsClient
@@ -186,19 +162,6 @@ type ArmClient struct {
 	vmImageClient              compute.VirtualMachineImagesClient
 	vmClient                   compute.VirtualMachinesClient
 
-	// Databases
-	mariadbDatabasesClient                   mariadb.DatabasesClient
-	mariadbServersClient                     mariadb.ServersClient
-	mysqlConfigurationsClient                mysql.ConfigurationsClient
-	mysqlDatabasesClient                     mysql.DatabasesClient
-	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
-	mysqlServersClient                       mysql.ServersClient
-	mysqlVirtualNetworkRulesClient           mysql.VirtualNetworkRulesClient
-	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
-	postgresqlDatabasesClient                postgresql.DatabasesClient
-	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
-	postgresqlServersClient                  postgresql.ServersClient
-	postgresqlVirtualNetworkRulesClient      postgresql.VirtualNetworkRulesClient
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
@@ -217,10 +180,6 @@ type ArmClient struct {
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
-
-	// KeyVault
-	keyVaultClient           keyvault.VaultsClient
-	keyVaultManagementClient keyVault.BaseClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -269,26 +228,15 @@ type ArmClient struct {
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsagesClient
-
-	// Stream Analytics
-	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
-	streamAnalyticsJobsClient            streamanalytics.StreamingJobsClient
-	streamAnalyticsInputsClient          streamanalytics.InputsClient
-	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
-	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
-
-	// Web
-	appServicePlansClient web.AppServicePlansClient
-	appServicesClient     web.AppsClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client, c.partnerId)
 	client.Authorizer = auth
-	client.RequestInspector = azure.WithCorrelationRequestID(azure.CorrelationRequestID())
-	client.Sender = azure.BuildSender()
+	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
+	client.Sender = sender.BuildSender("AzureRM")
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 60 * time.Minute
+	client.PollingDuration = 180 * time.Minute
 }
 
 func setUserAgent(client *autorest.Client, partnerID string) {
@@ -340,7 +288,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := azure.BuildSender()
+	sender := sender.BuildSender("AzureRM")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
@@ -356,6 +304,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, err
 	}
 
+	// Storage Endpoints
+	storageEndpoint := env.ResourceIdentifiers.Storage
+	storageAuth, err := c.GetAuthorizationToken(sender, oauthConfig, storageEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
@@ -366,81 +321,78 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return keyVaultSpt, nil
 	})
 
-	client.apiManagement = apimanagement.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.automation = automation.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.cdn = cdn.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.cognitive = cognitive.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
-	client.containers = containers.BuildClient(endpoint, c.SubscriptionID, partnerId, auth, skipProviderRegistration)
+	o := &common.ClientOptions{
+		GraphAuthorizer:            graphAuth,
+		GraphEndpoint:              graphEndpoint,
+		KeyVaultAuthorizer:         keyVaultAuth,
+		ResourceManagerAuthorizer:  auth,
+		ResourceManagerEndpoint:    endpoint,
+		StorageAuthorizer:          storageAuth,
+		SubscriptionId:             c.SubscriptionID,
+		PartnerId:                  partnerId,
+		PollingDuration:            60 * time.Minute,
+		SkipProviderReg:            skipProviderRegistration,
+		EnableCorrelationRequestID: true,
+		Environment:                *env,
+	}
 
-	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
+	client.analysisservices = analysisservices.BuildClient(o)
+	client.apiManagement = apimanagement.BuildClient(o)
+	client.appInsights = applicationinsights.BuildClient(o)
+	client.automation = automation.BuildClient(o)
+	client.authorization = authorization.BuildClient(o)
+	client.cdn = cdn.BuildClient(o)
+	client.cognitive = cognitive.BuildClient(o)
+	client.containers = containers.BuildClient(o)
+	client.cosmos = cosmos.BuildClient(o)
+	client.databricks = databricks.BuildClient(o)
+	client.dataFactory = datafactory.BuildClient(o)
+	client.devSpace = devspace.BuildClient(o)
+	client.devTestLabs = devtestlabs.BuildClient(o)
+	client.dns = dns.BuildClient(o)
+	client.eventGrid = eventgrid.BuildClient(o)
+	client.eventhub = eventhub.BuildClient(o)
+	client.hdinsight = hdinsight.BuildClient(o)
+	client.iothub = iothub.BuildClient(o)
+	client.keyvault = keyvault.BuildClient(o)
+	client.logic = logic.BuildClient(o)
+	client.logAnalytics = loganalytics.BuildClient(o)
+	client.maps = maps.BuildClient(o)
+	client.mariadb = mariadb.BuildClient(o)
+	client.media = media.BuildClient(o)
+	client.mysql = mysql.BuildClient(o)
+	client.msi = msi.BuildClient(o)
+	client.managementGroups = managementgroup.BuildClient(o)
+	client.notificationHubs = notificationhub.BuildClient(o)
+	client.policy = policy.BuildClient(o)
+	client.postgres = postgres.BuildClient(o)
+	client.privateDns = privatedns.BuildClient(o)
+	client.recoveryServices = recoveryservices.BuildClient(o)
+	client.redis = redis.BuildClient(o)
+	client.relay = relay.BuildClient(o)
+	client.search = search.BuildClient(o)
+	client.securityCenter = securitycenter.BuildClient(o)
+	client.servicebus = servicebus.BuildClient(o)
+	client.serviceFabric = servicefabric.BuildClient(o)
+	client.scheduler = scheduler.BuildClient(o)
+	client.signalr = signalr.BuildClient(o)
+	client.streamanalytics = streamanalytics.BuildClient(o)
+	client.trafficManager = trafficmanager.BuildClient(o)
+	client.web = web.BuildClient(o)
+
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
-	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
-	client.registerCosmosAccountsClients(endpoint, c.SubscriptionID, auth)
-	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
-	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
-	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
-	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
-	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
-	client.registerHDInsightsClients(endpoint, c.SubscriptionID, auth)
-	client.registerIoTHubClients(endpoint, c.SubscriptionID, auth)
-	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
-	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
-	client.registerMediaServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
-	client.registerMSIClient(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
-	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
-	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth)
-	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
-	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
-	client.registerManagementGroupClients(endpoint, auth)
-	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
-	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
-	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
-	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, auth)
-	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
-	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
-	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
-	client.registerSignalRClients(endpoint, c.SubscriptionID, auth)
-	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
-	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
-	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
-	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
 }
 
-func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	apiKeysClient := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&apiKeysClient.Client, auth)
-
-	componentsClient := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&componentsClient.Client, auth)
-
-	webTestsClient := appinsights.NewWebTestsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&webTestsClient.Client, auth)
-
-	c.appInsights = &applicationinsights.Client{
-		APIKeyClient:     apiKeysClient,
-		ComponentsClient: componentsClient,
-		WebTestsClient:   webTestsClient,
-	}
-}
-
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
-	assignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&assignmentsClient.Client, auth)
-	c.roleAssignmentsClient = assignmentsClient
-
-	definitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&definitionsClient.Client, auth)
-	c.roleDefinitionsClient = definitionsClient
 
 	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&applicationsClient.Client, graphAuth)
@@ -449,35 +401,6 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
 	c.servicePrincipalsClient = servicePrincipalsClient
-}
-
-func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchAccount.Client, auth)
-	c.batchAccountClient = batchAccount
-
-	batchCertificateClient := batch.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchCertificateClient.Client, auth)
-	c.batchCertificateClient = batchCertificateClient
-
-	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&batchPool.Client, auth)
-	c.batchPoolClient = batchPool
-}
-
-func (c *ArmClient) registerCosmosAccountsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ca := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ca.Client, auth)
-	c.cosmosAccountsClient = ca
-}
-
-func (c *ArmClient) registerMediaServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	mediaServicesClient := mediaSvc.NewMediaservicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mediaServicesClient.Client, auth)
-
-	c.media = &media.Client{
-		ServicesClient: mediaServicesClient,
-	}
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -534,65 +457,7 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	c.galleryImageVersionsClient = galleryImageVersionsClient
 }
 
-func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workspacesClient := databricksSvc.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workspacesClient.Client, auth)
-
-	c.databricks = &databricks.Client{
-		WorkspacesClient: workspacesClient,
-	}
-}
-
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbDBClient.Client, auth)
-	c.mariadbDatabasesClient = mariadbDBClient
-
-	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbServersClient.Client, auth)
-	c.mariadbServersClient = mariadbServersClient
-
-	// MySQL
-	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mysqlConfigClient.Client, auth)
-	c.mysqlConfigurationsClient = mysqlConfigClient
-
-	mysqlDBClient := mysql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mysqlDBClient.Client, auth)
-	c.mysqlDatabasesClient = mysqlDBClient
-
-	mysqlFWClient := mysql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mysqlFWClient.Client, auth)
-	c.mysqlFirewallRulesClient = mysqlFWClient
-
-	mysqlServersClient := mysql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mysqlServersClient.Client, auth)
-	c.mysqlServersClient = mysqlServersClient
-
-	mysqlVirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mysqlVirtualNetworkRulesClient.Client, auth)
-	c.mysqlVirtualNetworkRulesClient = mysqlVirtualNetworkRulesClient
-
-	// PostgreSQL
-	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlConfigClient.Client, auth)
-	c.postgresqlConfigurationsClient = postgresqlConfigClient
-
-	postgresqlDBClient := postgresql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlDBClient.Client, auth)
-	c.postgresqlDatabasesClient = postgresqlDBClient
-
-	postgresqlFWClient := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlFWClient.Client, auth)
-	c.postgresqlFirewallRulesClient = postgresqlFWClient
-
-	postgresqlSrvClient := postgresql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlSrvClient.Client, auth)
-	c.postgresqlServersClient = postgresqlSrvClient
-
-	postgresqlVNRClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&postgresqlVNRClient.Client, auth)
-	c.postgresqlVirtualNetworkRulesClient = postgresqlVNRClient
 
 	// SQL Azure
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
@@ -631,27 +496,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
-func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	factoriesClient := datafactorySvc.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&factoriesClient.Client, auth)
-
-	datasetsClient := datafactorySvc.NewDatasetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&datasetsClient.Client, auth)
-
-	linkedServicesClient := datafactorySvc.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&linkedServicesClient.Client, auth)
-
-	pipelinesClient := datafactorySvc.NewPipelinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&pipelinesClient.Client, auth)
-
-	c.dataFactory = &datafactory.Client{
-		FactoriesClient:     factoriesClient,
-		DatasetClient:       datasetsClient,
-		LinkedServiceClient: linkedServicesClient,
-		PipelinesClient:     pipelinesClient,
-	}
-}
-
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&storeAccountClient.Client, auth)
@@ -672,148 +516,6 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	labsClient := devtestlabsSvc.NewLabsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&labsClient.Client, auth)
-
-	devTestPoliciesClient := devtestlabsSvc.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestPoliciesClient.Client, auth)
-
-	devTestVirtualMachinesClient := devtestlabsSvc.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestVirtualMachinesClient.Client, auth)
-
-	devTestVirtualNetworksClient := devtestlabsSvc.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
-
-	c.devTestLabs = &devtestlabs.Client{
-		LabsClient:            labsClient,
-		PoliciesClient:        devTestPoliciesClient,
-		VirtualMachinesClient: devTestVirtualMachinesClient,
-		VirtualNetworksClient: devTestVirtualNetworksClient,
-	}
-}
-
-func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&controllersClient.Client, auth)
-
-	c.devSpace = &devspace.Client{
-		ControllersClient: controllersClient,
-	}
-}
-
-func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	recordSetsClient := dnsSvc.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&recordSetsClient.Client, auth)
-
-	zonesClient := dnsSvc.NewZonesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&zonesClient.Client, auth)
-
-	c.dns = &dns.Client{
-		RecordSetsClient: recordSetsClient,
-		ZonesClient:      zonesClient,
-	}
-}
-
-func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	domainsClient := eventGridSvc.NewDomainsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&domainsClient.Client, auth)
-
-	eventSubscriptionsClient := eventGridSvc.NewEventSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&eventSubscriptionsClient.Client, auth)
-
-	topicsClient := eventGridSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&topicsClient.Client, auth)
-
-	c.eventGrid = &eventgrid.Client{
-		DomainsClient:            domainsClient,
-		EventSubscriptionsClient: eventSubscriptionsClient,
-		TopicsClient:             topicsClient,
-	}
-}
-
-func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	eventHubsClient := eventHubSvc.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&eventHubsClient.Client, auth)
-
-	groupsClient := eventHubSvc.NewConsumerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&groupsClient.Client, auth)
-
-	namespacesClient := eventHubSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	c.eventhub = &eventhub.Client{
-		ConsumerGroupClient: groupsClient,
-		EventHubsClient:     eventHubsClient,
-		NamespacesClient:    namespacesClient,
-	}
-}
-
-func (c *ArmClient) registerHDInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	applicationsClient := hdinsightSvc.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&applicationsClient.Client, auth)
-
-	clustersClient := hdinsightSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&clustersClient.Client, auth)
-
-	configurationsClient := hdinsightSvc.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&configurationsClient.Client, auth)
-
-	c.hdinsight = &hdinsight.Client{
-		ApplicationsClient:   applicationsClient,
-		ClustersClient:       clustersClient,
-		ConfigurationsClient: configurationsClient,
-	}
-}
-func (c *ArmClient) registerIoTHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	iotClient := iotHubSvc.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotClient.Client, auth)
-
-	iotDpsClient := iotdps.NewIotDpsResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotDpsClient.Client, auth)
-
-	iotDpsCertificateClient := iotdps.NewDpsCertificateClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotDpsCertificateClient.Client, auth)
-
-	c.iothub = &iothub.Client{
-		ResourceClient:       iotClient,
-		DPSResourceClient:    iotDpsClient,
-		DPSCertificateClient: iotDpsCertificateClient,
-	}
-}
-
-func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
-	keyVaultClient := keyvault.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&keyVaultClient.Client, auth)
-	c.keyVaultClient = keyVaultClient
-
-	keyVaultManagementClient := keyVault.New()
-	c.configureClient(&keyVaultManagementClient.Client, keyVaultAuth)
-	c.keyVaultManagementClient = keyVaultManagementClient
-}
-
-func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workflowsClient := logicSvc.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workflowsClient.Client, auth)
-
-	c.logic = &logic.Client{
-		WorkflowsClient: workflowsClient,
-	}
-}
-
-func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
-	groupsClient := managementgroupsSvc.NewClientWithBaseURI(endpoint)
-	c.configureClient(&groupsClient.Client, auth)
-
-	subscriptionClient := managementgroupsSvc.NewSubscriptionsClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionClient.Client, auth)
-
-	c.managementGroups = &managementgroup.Client{
-		GroupsClient:       groupsClient,
-		SubscriptionClient: subscriptionClient,
-	}
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -848,15 +550,6 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
 	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
-}
-
-func (c *ArmClient) registerMSIClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	userAssignedIdentitiesClient := msiSvc.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
-
-	c.msi = &msi.Client{
-		UserAssignedIdentitiesClient: userAssignedIdentitiesClient,
-	}
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -961,79 +654,6 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.watcherClient = watchersClient
 }
 
-func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	namespacesClient := notificationHubsSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	notificationHubsClient := notificationHubsSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&notificationHubsClient.Client, auth)
-
-	c.notificationHubs = &notificationhub.Client{
-		HubsClient:       notificationHubsClient,
-		NamespacesClient: namespacesClient,
-	}
-}
-
-func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	workspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&workspacesClient.Client, auth)
-
-	solutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(endpoint, subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
-	c.configureClient(&solutionsClient.Client, auth)
-
-	linkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&linkedServicesClient.Client, auth)
-
-	c.logAnalytics = &loganalytics.Client{
-		LinkedServicesClient: linkedServicesClient,
-		SolutionsClient:      solutionsClient,
-		WorkspacesClient:     workspacesClient,
-	}
-}
-
-func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	vaultsClient := recoveryservicesSvc.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&vaultsClient.Client, auth)
-
-	protectedItemsClient := backupSvc.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&protectedItemsClient.Client, auth)
-
-	protectionPoliciesClient := backupSvc.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&protectionPoliciesClient.Client, auth)
-
-	c.recoveryServices = &recoveryservices.Client{
-		ProtectedItemsClient:     protectedItemsClient,
-		ProtectionPoliciesClient: protectionPoliciesClient,
-		VaultsClient:             vaultsClient,
-	}
-}
-
-func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	cacheClient := redisSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&cacheClient.Client, auth)
-
-	firewallRuleClient := redisSvc.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&firewallRuleClient.Client, auth)
-
-	patchSchedulesClient := redisSvc.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&patchSchedulesClient.Client, auth)
-
-	c.redis = &redis.Client{
-		Client:               cacheClient,
-		FirewallRulesClient:  firewallRuleClient,
-		PatchSchedulesClient: patchSchedulesClient,
-	}
-}
-
-func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	namespacesClient := relaySvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	c.relay = &relay.Client{
-		NamespacesClient: namespacesClient,
-	}
-}
-
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&locksClient.Client, auth)
@@ -1061,95 +681,7 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.providersClient = providersClient
 }
 
-func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := schedulerSvc.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
-	c.configureClient(&jobCollectionsClient.Client, auth)
-
-	jobsClient := schedulerSvc.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
-	c.configureClient(&jobsClient.Client, auth)
-
-	c.scheduler = &scheduler.Client{
-		JobCollectionsClient: jobCollectionsClient,
-		JobsClient:           jobsClient,
-	}
-}
-
-func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	searchAdminKeysClient := searchSvc.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&searchAdminKeysClient.Client, auth)
-
-	servicesClient := searchSvc.NewServicesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&servicesClient.Client, auth)
-
-	c.search = &search.Client{
-		AdminKeysClient: searchAdminKeysClient,
-		ServicesClient:  servicesClient,
-	}
-}
-
-func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	ascLocation := "Global"
-
-	contactsClient := securitySvc.NewContactsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&contactsClient.Client, auth)
-
-	pricingsClient := securitySvc.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&pricingsClient.Client, auth)
-
-	workspaceSettingsClient := securitySvc.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
-	c.configureClient(&workspaceSettingsClient.Client, auth)
-
-	c.securityCenter = &securitycenter.Client{
-		ContactsClient:  contactsClient,
-		PricingClient:   pricingsClient,
-		WorkspaceClient: workspaceSettingsClient,
-	}
-}
-
-func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	queuesClient := servicebusSvc.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&queuesClient.Client, auth)
-
-	namespacesClient := servicebusSvc.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&namespacesClient.Client, auth)
-
-	topicsClient := servicebusSvc.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&topicsClient.Client, auth)
-
-	subscriptionsClient := servicebusSvc.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subscriptionsClient.Client, auth)
-
-	subscriptionRulesClient := servicebusSvc.NewRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subscriptionRulesClient.Client, auth)
-
-	c.servicebus = &servicebus.Client{
-		QueuesClient:            queuesClient,
-		NamespacesClient:        namespacesClient,
-		TopicsClient:            topicsClient,
-		SubscriptionsClient:     subscriptionsClient,
-		SubscriptionRulesClient: subscriptionRulesClient,
-	}
-}
-
-func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	clustersClient := servicefabricSvc.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&clustersClient.Client, auth)
-
-	c.serviceFabric = &servicefabric.Client{
-		ClustersClient: clustersClient,
-	}
-}
-
-func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	client := signalrSvc.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&client.Client, auth)
-
-	c.signalr = &signalr.Client{
-		Client: client,
-	}
-}
-
-func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
@@ -1157,72 +689,8 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	usageClient := storage.NewUsagesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
-}
 
-func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	functionsClient := streamanalytics.NewFunctionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&functionsClient.Client, auth)
-	c.streamAnalyticsFunctionsClient = functionsClient
-
-	jobsClient := streamanalytics.NewStreamingJobsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&jobsClient.Client, auth)
-	c.streamAnalyticsJobsClient = jobsClient
-
-	inputsClient := streamanalytics.NewInputsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&inputsClient.Client, auth)
-	c.streamAnalyticsInputsClient = inputsClient
-
-	outputsClient := streamanalytics.NewOutputsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&outputsClient.Client, auth)
-	c.streamAnalyticsOutputsClient = outputsClient
-
-	transformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&transformationsClient.Client, auth)
-	c.streamAnalyticsTransformationsClient = transformationsClient
-}
-
-func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	endpointsClient := trafficmanagerSvc.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
-	c.configureClient(&endpointsClient.Client, auth)
-
-	geographicalHierarchiesClient := trafficmanagerSvc.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&geographicalHierarchiesClient.Client, auth)
-
-	profilesClient := trafficmanagerSvc.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&profilesClient.Client, auth)
-
-	c.trafficManager = &trafficmanager.Client{
-		EndpointsClient:              endpointsClient,
-		GeographialHierarchiesClient: geographicalHierarchiesClient,
-		ProfilesClient:               profilesClient,
-	}
-}
-
-func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appServicePlansClient.Client, auth)
-	c.appServicePlansClient = appServicePlansClient
-
-	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appsClient.Client, auth)
-	c.appServicesClient = appsClient
-}
-
-func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	assignmentsClient := policySvc.NewAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&assignmentsClient.Client, auth)
-
-	definitionsClient := policySvc.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&definitionsClient.Client, auth)
-
-	setDefinitionsClient := policySvc.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&setDefinitionsClient.Client, auth)
-
-	c.policy = &policy.Client{
-		AssignmentsClient:    assignmentsClient,
-		DefinitionsClient:    definitionsClient,
-		SetDefinitionsClient: setDefinitionsClient,
-	}
+	c.storage = intStor.BuildClient(accountsClient, options)
 }
 
 var (
@@ -1292,61 +760,4 @@ func (c *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, r
 
 	blobClient := storageClient.GetBlobService()
 	return &blobClient, true, nil
-}
-
-func (c *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	fileClient := storageClient.GetFileService()
-	return &fileClient, true, nil
-}
-
-func (c *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	tableClient := storageClient.GetTableService()
-	return &tableClient, true, nil
-}
-
-func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
-	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, accountExists, err
-	}
-	if !accountExists {
-		return nil, false, nil
-	}
-
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
-		mainStorage.DefaultAPIVersion, true)
-	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
-	}
-
-	queueClient := storageClient.GetQueueService()
-	return &queueClient, true, nil
 }

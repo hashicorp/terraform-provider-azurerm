@@ -108,7 +108,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -124,7 +124,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.JobsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_job" {
@@ -164,8 +164,8 @@ resource "azurerm_stream_analytics_job" "test" {
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
-	streaming_units                          = 3
-		
+  streaming_units                          = 3
+
   tags = {
     environment = "Test"
   }

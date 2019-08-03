@@ -211,7 +211,7 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName string) re
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsOutputsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -227,7 +227,7 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName string) re
 }
 
 func testCheckAzureRMStreamAnalyticsOutputEventHubDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsOutputsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_eventhub" {
@@ -257,13 +257,13 @@ func testAccAzureRMStreamAnalyticsOutputEventHub_avro(rInt int, location string)
 %s
 
 resource "azurerm_stream_analytics_output_eventhub" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  eventhub_name                = "${azurerm_eventhub.test.name}"
-  servicebus_namespace         = "${azurerm_eventhub_namespace.test.name}"
-  shared_access_policy_key     = "${azurerm_eventhub_namespace.test.default_primary_key}"
-  shared_access_policy_name    = "RootManageSharedAccessKey"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  eventhub_name             = "${azurerm_eventhub.test.name}"
+  servicebus_namespace      = "${azurerm_eventhub_namespace.test.name}"
+  shared_access_policy_key  = "${azurerm_eventhub_namespace.test.default_primary_key}"
+  shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {
     type = "Avro"
@@ -278,13 +278,13 @@ func testAccAzureRMStreamAnalyticsOutputEventHub_csv(rInt int, location string) 
 %s
 
 resource "azurerm_stream_analytics_output_eventhub" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  eventhub_name                = "${azurerm_eventhub.test.name}"
-  servicebus_namespace         = "${azurerm_eventhub_namespace.test.name}"
-  shared_access_policy_key     = "${azurerm_eventhub_namespace.test.default_primary_key}"
-  shared_access_policy_name    = "RootManageSharedAccessKey"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  eventhub_name             = "${azurerm_eventhub.test.name}"
+  servicebus_namespace      = "${azurerm_eventhub_namespace.test.name}"
+  shared_access_policy_key  = "${azurerm_eventhub_namespace.test.default_primary_key}"
+  shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {
     type            = "Csv"
