@@ -1955,7 +1955,7 @@ resource "azurerm_virtual_machine" "test" {
     disk_size_gb      = "64"
     lun = 1
   }
-  
+
   os_profile {
     computer_name  = "hostname"
     admin_username = "testadmin"
@@ -1967,7 +1967,7 @@ resource "azurerm_virtual_machine" "test" {
 
   }
 
-zones = ["3"]
+  zones = ["3"]
 
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
