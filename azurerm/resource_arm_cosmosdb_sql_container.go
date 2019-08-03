@@ -202,12 +202,9 @@ func expandSQLContainerUniqueKeyPolicy(input interface{}) *[]documentdb.UniqueKe
 
 	for _, i := range input.(*schema.Set).List() {
 		b := i.(map[string]interface{})
-		c := &[]string{b["path"].(string)}
-		d := *c
-		e := strings.Join(d, "")
-		paths = append(paths, e)
+		paths = append(paths, strings.Join(*&[]string{b["path"].(string)}, ""))
 	}
-	return append(outputs, documentdb.UniqueKey{
+	outputs = append(outputs, documentdb.UniqueKey{
 		Paths: &paths,
 	})
 	return &outputs
