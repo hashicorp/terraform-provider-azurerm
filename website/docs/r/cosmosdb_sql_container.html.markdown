@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cosmosdb_mongo_collection"
-sidebar_current: "docs-azurerm-resource-cosmosdb-mongo-collection"
+page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_container"
+sidebar_current: "docs-azurerm-resource-cosmosdb-sql-container"
 description: |-
-  Manages a Mongo Collection within a Cosmos DB Account.
+  Manages a SQL Container within a Cosmos DB Account.
 ---
 
-# azurerm_cosmosdb_mongo_collection
+# azurerm_cosmosdb_sql_container
 
-Manages a Mongo Collection within a Cosmos DB Account.
+Manages a SQL Container within a Cosmos DB Account.
 
 ## Example Usage
 
