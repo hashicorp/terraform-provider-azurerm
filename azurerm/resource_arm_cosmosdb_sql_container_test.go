@@ -96,7 +96,7 @@ func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.Te
 }
 
 func testAccAzureRMCosmosDbSqlContainer_basic(rInt int, location string) string {
-	res := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_sql_container" "test" {
