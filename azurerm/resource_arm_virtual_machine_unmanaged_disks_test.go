@@ -1968,7 +1968,6 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   zones = ["3"]
-
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
