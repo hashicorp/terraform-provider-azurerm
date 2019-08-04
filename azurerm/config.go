@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
@@ -24,7 +23,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -33,6 +31,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
@@ -76,6 +75,7 @@ import (
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -94,6 +94,7 @@ type ArmClient struct {
 	StopContext context.Context
 
 	// Services
+	analysisservices *analysisservices.Client
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
 	automation       *automation.Client
@@ -137,6 +138,7 @@ type ArmClient struct {
 	storage          *intStor.Client
 	streamanalytics  *streamanalytics.Client
 	trafficManager   *trafficmanager.Client
+	web              *web.Client
 
 	// Authentication
 	applicationsClient      graphrbac.ApplicationsClient
@@ -226,13 +228,6 @@ type ArmClient struct {
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsagesClient
-
-	// Web
-	appServicePlansClient web.AppServicePlansClient
-	appServicesClient     web.AppsClient
-
-	// Analysis Services
-	analysisServicesServerClient analysisservices.ServersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -341,6 +336,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		Environment:                *env,
 	}
 
+	client.analysisservices = analysisservices.BuildClient(o)
 	client.apiManagement = apimanagement.BuildClient(o)
 	client.appInsights = applicationinsights.BuildClient(o)
 	client.automation = automation.BuildClient(o)
@@ -382,6 +378,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
 	client.trafficManager = trafficmanager.BuildClient(o)
+	client.web = web.BuildClient(o)
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
@@ -391,8 +388,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
-	client.registerWebClients(endpoint, c.SubscriptionID, auth)
-	client.registerAnalysisServicesClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -696,22 +691,6 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.storageUsageClient = usageClient
 
 	c.storage = intStor.BuildClient(accountsClient, options)
-}
-
-func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appServicePlansClient.Client, auth)
-	c.appServicePlansClient = appServicePlansClient
-
-	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appsClient.Client, auth)
-	c.appServicesClient = appsClient
-}
-
-func (c *ArmClient) registerAnalysisServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	analysisServicesServersClient := analysisservices.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&analysisServicesServersClient.Client, auth)
-	c.analysisServicesServerClient = analysisServicesServersClient
 }
 
 var (

@@ -90,7 +90,7 @@ func dataSourceAppServicePlan() *schema.Resource {
 }
 
 func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

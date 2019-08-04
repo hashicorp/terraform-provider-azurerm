@@ -131,7 +131,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T, appSer
 }
 
 func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).appServicesClient
+	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_custom_hostname_binding" {
@@ -170,7 +170,7 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		hostname := rs.Primary.Attributes["hostname"]
 
-		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
