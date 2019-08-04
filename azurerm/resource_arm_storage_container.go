@@ -89,7 +89,10 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s)", containerName, accountName)
 	}
 
 	client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -135,10 +138,10 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -184,10 +187,10 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -239,10 +242,10 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

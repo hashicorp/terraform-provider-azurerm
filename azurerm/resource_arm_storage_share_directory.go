@@ -60,7 +60,10 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", directoryName, shareName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Share Directory %q (Share %s, Account %s) ", directoryName, shareName, accountName)
 	}
 
 	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
@@ -106,7 +109,12 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
+		d.SetId("")
+		return nil
 	}
 
 	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
@@ -132,10 +140,10 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -172,10 +180,10 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed already", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed already", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

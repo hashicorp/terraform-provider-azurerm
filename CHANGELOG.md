@@ -1,15 +1,40 @@
-## 1.32.1 (Unreleased)
+## 1.33.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
+* **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+
+IMPROVEMENTS:
+
+* `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
+
 
 BUG FIXES: 
 
-* `azurerm_application_gateway` fix an index out of range crash [GH-3966]
-* `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one [GH-3931]
-* `azurerm_api_managment_product` - additional validation for `approval_required` [GH-3945]
-* `azurerm_iot_dps` fixed deletion issue when using a service principal [GH-3973]
-* `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive [GH-3958]
-* `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions [GH-3947]
-* `azurerm_storage_table` - now migrates older versions of the resource id to the new format [GH-3932]
-* `azurerm_virtual_machine_scale_set` - the `ssh_keys` property of the `os_profile_linux_config` block now recognizes updates [GH-3837]
+* `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
+* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+
+## 1.32.1 (July 31, 2019)
+
+BUG FIXES: 
+
+* `azurerm_application_gateway` fix an index out of range crash ([#3966](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3966))
+* `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one ([#3931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3931))
+* `azurerm_api_managment_product` - additional validation for `approval_required` ([#3945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3945))
+* `azurerm_network_ddos_protection_plan` - correctly decodes the resource ID on read/delete ([#3975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3975))
+* `aurerm_dev_test_virtual_network` - generate subnet IDs in the correct format ([#3717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3717))
+* `azurerm_iot_dps` fixed deletion issue when using a service principal ([#3973](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3973))
+* `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive ([#3958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3958))
+* `azurerm_postgresql_server` - add missing support for version `11.0` ([#3970](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3970))
+* `azurerm_storage_*` - prevent multiple panics when a storage account/resource group cannot be found ([#3986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3986))
+* `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions ([#3947](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3947))
+* `azurerm_storage_table` - now migrates older versions of the resource id to the new format ([#3932](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3932))
+* `azurerm_virtual_machine_scale_set` - the `ssh_keys` property of the `os_profile_linux_config` block now recognizes updates ([#3837](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3837))
+* `azurerm_virtual_machine_scale_set` - changes made to the `network_profile` property should now be correctly reflected during updates ([#3821](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3821))
+
 
 ## 1.32.0 (July 24, 2019)
 

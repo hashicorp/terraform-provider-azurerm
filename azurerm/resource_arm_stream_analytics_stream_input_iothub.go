@@ -81,7 +81,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input IoTHub creation.")
@@ -156,7 +156,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -207,7 +207,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, met
 }
 
 func resourceArmStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -62,7 +62,7 @@ func resourceArmBatchApplication() *schema.Resource {
 }
 
 func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -110,7 +110,7 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -144,7 +144,7 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -170,7 +170,7 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -225,7 +225,7 @@ resource "azurerm_batch_certificate" "test" {
 }
 
 func testCheckAzureRMBatchCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batchCertificateClient
+	conn := testAccProvider.Meta().(*ArmClient).batch.CertificateClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
