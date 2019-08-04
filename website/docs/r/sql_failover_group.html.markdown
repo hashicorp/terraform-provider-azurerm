@@ -13,43 +13,43 @@ Create a failover group of databases on a collection of Azure SQL servers
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-    name = "test"
+resource "azurerm_resource_group" "example" {
+    name     = "example"
     location = "uksouth"
 }
 
 resource "azurerm_sql_server" "primary" {
-    name = "simontest55"
-    resource_group_name =  "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "sqladmin"
+    name                         = "sql-primary"
+    resource_group_name          = "${azurerm_resource_group.example.name}"
+    location                     = "${azurerm_resource_group.example.location}"
+    version                      = "12.0"
+    administrator_login          = "sqladmin"
     administrator_login_password = "pa$$$$w0rd"
 
 }
 
 resource "azurerm_sql_server" "secondary" {
-    name = "simontest56"
-    resource_group_name =  "${azurerm_resource_group.test.name}"
-    location = "northeurope"
-    version = "12.0"
-    administrator_login = "sqladmin"
+    name                         = "sql-secondary"
+    resource_group_name          = "${azurerm_resource_group.example.name}"
+    location                     = "northeurope"
+    version                      = "12.0"
+    administrator_login          = "sqladmin"
     administrator_login_password = "pa$$$$w0rd"
 
 }
 
 resource azurerm_sql_database db1 {
-  name = "db1"
+  name                = "db1"
   resource_group_name = "${azurerm_sql_server.primary.resource_group_name}"
-  location = "${azurerm_sql_server.primary.location}"
-  server_name = "${azurerm_sql_server.primary.name}"
+  location            = "${azurerm_sql_server.primary.location}"
+  server_name         = "${azurerm_sql_server.primary.name}"
 }
 
-resource "azurerm_sql_failover_group" "test" {
-  name = "simon55test"
+resource "azurerm_sql_failover_group" "example" {
+  name                = "example-failover-group"
   resource_group_name = "${azurerm_sql_server.primary.resource_group_name}"
-  server_name = "${azurerm_sql_server.primary.name}"
-  databases = ["${azurerm_sql_database.db1.id}"]
+  server_name         = "${azurerm_sql_server.primary.name}"
+  databases           = ["${azurerm_sql_database.db1.id}"]
   partner_servers {
       id = "${azurerm_sql_server.secondary.id}"
   }
@@ -65,11 +65,11 @@ resource "azurerm_sql_failover_group" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the failover group
+* `name` - (Required) The name of the failover group. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group containing the SQL server
 
-* `server_name` - (Required) The name of the primary SQL server
+* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created.
 
 * `databases` - A list of database ids to add to the failover group
 
@@ -88,6 +88,7 @@ The following arguments are supported:
 `read_write_endpoint_failover_policy` supports the following:
 
 * `mode` - (Required) the failover mode. Possible values are `Manual`, `Automatic`
+
 * `grace_minutes` - Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted
 
 `readonly_endpoint_failover_policy` supports the following:

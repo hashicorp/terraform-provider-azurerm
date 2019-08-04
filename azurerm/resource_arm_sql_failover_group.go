@@ -26,9 +26,10 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -85,7 +86,7 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.ReadOnlyEndpointFailoverPolicyDisabled),
 								string(sql.ReadOnlyEndpointFailoverPolicyEnabled),
-							}, true),
+							}, false),
 						},
 					},
 				},
@@ -103,7 +104,7 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.Automatic),
 								string(sql.Manual),
-							}, true),
+							}, false),
 						},
 						"grace_minutes": {
 							Type:         schema.TypeInt,
@@ -149,7 +150,6 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 
 	properties := sql.FailoverGroup{
 		FailoverGroupProperties: &sql.FailoverGroupProperties{
-			//Databases =
 			ReadOnlyEndpoint:  expandReadOnlyPolicy(d),
 			ReadWriteEndpoint: expandReadWritePolicy(d),
 			PartnerServers:    expandPartnerServers(d),
@@ -305,11 +305,9 @@ func expandReadOnlyPolicy(d *schema.ResourceData) *sql.FailoverGroupReadOnlyEndp
 	v := vs[0].(map[string]interface{})
 	mode := sql.ReadOnlyEndpointFailoverPolicy(v["mode"].(string))
 
-	policy := &sql.FailoverGroupReadOnlyEndpoint{
+	return &sql.FailoverGroupReadOnlyEndpoint{
 		FailoverPolicy: mode,
 	}
-
-	return policy
 }
 
 func flattenReadOnlyPolicy(input *sql.FailoverGroupReadOnlyEndpoint) []interface{} {
@@ -345,7 +343,10 @@ func flattenPartnerServers(input *[]sql.PartnerInfo) []map[string]interface{} {
 	if input != nil {
 		for _, server := range *input {
 			info := make(map[string]interface{})
-			info["id"] = *server.ID
+
+			if v := server.ID; v != nil {
+				info["id"] = *server.ID
+			}
 			info["location"] = *server.Location
 			info["role"] = string(server.ReplicationRole)
 
