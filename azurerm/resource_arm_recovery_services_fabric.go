@@ -22,19 +22,19 @@ func resourceArmRecoveryServicesFabric() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 			"location": azure.SchemaLocation(),
 		},
@@ -54,12 +54,12 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services fabric: %+v", err)
+				return fmt.Errorf("Error checking for presence of existing rec	overy services fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_group", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_resource_group", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -74,18 +74,18 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 
 	future, err := client.Create(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating recovery services fabric: %+v", err)
+		return fmt.Errorf("Error creating recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating recovery services fabric: %+v", err)
+		return fmt.Errorf("Error creating recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving recovery services fabric: %+v", err)
+		return fmt.Errorf("Error retrieving recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceArmRecoveryServicesFabricRead(d, meta)
 }
@@ -109,12 +109,14 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services fabric %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Properties.FriendlyName) // Crazy? yes. But the location comes back in the friendly name
+	if props := resp.Properties; props != nil {
+		d.Set("location", props.FriendlyName) // Crazy? yes. But the location comes back in the friendly name
+	}
 	d.Set("recovery_vault_name", vaultName)
 	return nil
 }
@@ -134,11 +136,11 @@ func resourceArmRecoveryServicesFabricDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services fabric %q: %+v", name, err)
+		return fmt.Errorf("Error deleting recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services fabric %q: %+v", name, err)
+		return fmt.Errorf("Error waiting for deletion of recovery services fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

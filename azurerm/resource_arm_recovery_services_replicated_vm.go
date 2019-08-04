@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -27,21 +29,21 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -51,21 +53,21 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_recovery_fabric_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"recovery_replication_policy_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"source_recovery_protection_container_name": {
@@ -78,21 +80,21 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_resource_group_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_availability_set_id": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.NoEmptyStrings,
+				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"managed_disk": {
@@ -114,14 +116,14 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"target_resource_group_id": {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"targert_disk_type": {
@@ -160,7 +162,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
-	fabricId := d.Get("source_vm_id").(string)
+	sourceVmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("recovery_replication_policy_id").(string)
 	sourceProtectionContainerName := d.Get("source_recovery_protection_container_name").(string)
 	targetProtectionContainerId := d.Get("target_recovery_protection_container_id").(string)
@@ -176,6 +178,19 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 
 	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_recovery_replicated_vm", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+		}
+	}
 
 	managedDisks := []siterecovery.A2AVMManagedDiskInputDetails{}
 
@@ -200,7 +215,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		Properties: &siterecovery.EnableProtectionInputProperties{
 			PolicyID: &policyId,
 			ProviderSpecificDetails: siterecovery.A2AEnableProtectionInput{
-				FabricObjectID:            &fabricId,
+				FabricObjectID:            &sourceVmId,
 				RecoveryContainerID:       &targetProtectionContainerId,
 				RecoveryResourceGroupID:   &targetResourceGroupId,
 				RecoveryAvailabilitySetID: targetAvailabilitySetID,
@@ -210,18 +225,18 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 	}
 	future, err := client.Create(ctx, fabricName, sourceProtectionContainerName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating replicated vm: %+v", err)
+		return fmt.Errorf("Error creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating replicated vm: %+v", err)
+		return fmt.Errorf("Error creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving replicated vm: %+v", err)
+		return fmt.Errorf("Error retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceArmRecoveryReplicatedItemRead(d, meta)
 }
@@ -246,7 +261,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services protection container mapping %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", name)
@@ -259,7 +274,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 	d.Set("target_recovery_protection_container_id", resp.Properties.RecoveryContainerID)
 
 	if a2aDetails, isA2a := resp.Properties.ProviderSpecificDetails.AsA2AReplicationDetails(); isA2a {
-		d.Set("source_vm_id", unifyIdCasing(a2aDetails.FabricObjectID))
+		d.Set("source_vm_id", a2aDetails.FabricObjectID)
 		d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupID)
 		d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
 		if a2aDetails.ProtectedManagedDisks != nil {
@@ -304,11 +319,11 @@ func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interf
 	ctx := meta.(*ArmClient).StopContext
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services protection container mapping %q: %+v", name, err)
+		return fmt.Errorf("Error deleting recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services protection container mapping %q: %+v", name, err)
+		return fmt.Errorf("Error waiting for deletion of recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	return nil
 }

@@ -54,8 +54,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 		// Catch the subscriptionID before it can be overwritten by another "subscriptions"
 		// value in the ID which is the case for the Service Bus subscription resource
-		// Also handle different casing of Subscription that happens when talking to recovery services API
-		if (key == "subscriptions" || key == "Subscriptions") && subscriptionID == "" {
+		if key == "subscriptions" && subscriptionID == "" {
 			subscriptionID = value
 		} else {
 			componentMap[key] = value

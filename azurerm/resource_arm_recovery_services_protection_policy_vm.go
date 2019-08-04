@@ -49,13 +49,10 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{1,49}$"),
-					"Recovery Service Vault name must be 2 - 50 characters long, start with a letter, contain only letters, numbers and hyphens.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 
 			"timezone": {
