@@ -42,7 +42,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"certificate"},
+				ImportStateVerifyIgnore: []string{"certificate", "password"},
 			},
 		},
 	})
