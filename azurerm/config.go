@@ -341,6 +341,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.appInsights = applicationinsights.BuildClient(o)
 	client.automation = automation.BuildClient(o)
 	client.authorization = authorization.BuildClient(o)
+	client.batch = batch.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.containers = containers.BuildClient(o)

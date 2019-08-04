@@ -71,10 +71,11 @@ func resourceArmBatchCertificate() *schema.Resource {
 			},
 
 			"thumbprint_algorithm": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"SHA1"}, false),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     validation.StringInSlice([]string{"SHA1"}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"public_data": {
