@@ -38,6 +38,12 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate"},
+			},
 		},
 	})
 }
@@ -87,6 +93,12 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate"},
 			},
 		},
 	})
