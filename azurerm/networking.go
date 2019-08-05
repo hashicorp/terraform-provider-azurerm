@@ -2,10 +2,36 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
+	id, err := parseAzureResourceID(resourceId)
+	if err != nil {
+		return "", "", err
+	}
+
+	return id.ResourceGroup, id.Path["expressRouteCircuits"], err
+}
+
+func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
+	_, errors := validateFunc(i, k)
+
+	errorStrings := []string{}
+	for _, e := range errors {
+		errorStrings = append(errorStrings, e.Error())
+	}
+
+	if len(errors) > 0 {
+		return false, fmt.Errorf(strings.Join(errorStrings, "\n"))
+	}
+
+	return true, nil
+}
 
 func parseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error) {
 	id, err := parseAzureResourceID(networkSecurityGroupId)
@@ -23,15 +49,6 @@ func parseRouteTableName(routeTableId string) (string, error) {
 	}
 
 	return id.Path["routeTables"], nil
-}
-
-func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
-	id, err := parseAzureResourceID(resourceId)
-	if err != nil {
-		return "", "", err
-	}
-
-	return id.ResourceGroup, id.Path["expressRouteCircuits"], err
 }
 
 func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.ExpressRouteCircuit, resourceGroup string, e error) {

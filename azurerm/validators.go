@@ -29,21 +29,6 @@ func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
-	_, errors := validateFunc(i, k)
-
-	errorStrings := []string{}
-	for _, e := range errors {
-		errorStrings = append(errorStrings, e.Error())
-	}
-
-	if len(errors) > 0 {
-		return false, fmt.Errorf(strings.Join(errorStrings, "\n"))
-	}
-
-	return true, nil
-}
-
 func validateIso8601Duration() schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
