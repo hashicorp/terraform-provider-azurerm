@@ -5,8 +5,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-// TODO: deprecate and move these into deprecated.go
-
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
 func tagsSchema() *schema.Schema {
