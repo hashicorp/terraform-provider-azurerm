@@ -150,9 +150,9 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 
 	properties := sql.FailoverGroup{
 		FailoverGroupProperties: &sql.FailoverGroupProperties{
-			ReadOnlyEndpoint:  expandReadOnlyPolicy(d),
-			ReadWriteEndpoint: expandReadWritePolicy(d),
-			PartnerServers:    expandPartnerServers(d),
+			ReadOnlyEndpoint:  expandSqlFailoverGroupReadOnlyPolicy(d),
+			ReadWriteEndpoint: expandSqlFailoverGroupReadWritePolicy(d),
+			PartnerServers:    expandSqlFailoverGroupPartnerServers(d),
 		},
 		Tags: expandTags(tags),
 	}
@@ -217,19 +217,21 @@ func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.FailoverGroupProperties; props != nil {
-		if err := d.Set("read_write_endpoint_failover_policy", flattenReadWritePolicy(props.ReadWriteEndpoint)); err != nil {
+		if err := d.Set("read_write_endpoint_failover_policy", flattenSqlFailoverGroupReadWritePolicy(props.ReadWriteEndpoint)); err != nil {
 			return fmt.Errorf("Error setting `read_write_endpoint_failover_policy`: %+v", err)
 		}
 
-		if err := d.Set("readonly_endpoint_failover_policy", flattenReadOnlyPolicy(props.ReadOnlyEndpoint)); err != nil {
+		if err := d.Set("readonly_endpoint_failover_policy", flattenSqlFailoverGroupReadOnlyPolicy(props.ReadOnlyEndpoint)); err != nil {
 			return fmt.Errorf("Error setting `read_only_endpoint_failover_policy`: %+v", err)
 		}
 
-		d.Set("databases", set.FromStringSlice(*props.Databases))
+		if props.Databases != nil {
+			d.Set("databases", set.FromStringSlice(*props.Databases))
+		}
 		d.Set("role", string(props.ReplicationRole))
 
-		if err := d.Set("partner_servers", flattenPartnerServers(props.PartnerServers)); err != nil {
-			return fmt.Errorf("Error setting `partnet_servers`: %+v", err)
+		if err := d.Set("partner_servers", flattenSqlFailoverGroupPartnerServers(props.PartnerServers)); err != nil {
+			return fmt.Errorf("Error setting `partner_servers`: %+v", err)
 		}
 	}
 
@@ -263,7 +265,7 @@ func resourceArmSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{})
 	return err
 }
 
-func expandReadWritePolicy(d *schema.ResourceData) *sql.FailoverGroupReadWriteEndpoint {
+func expandSqlFailoverGroupReadWritePolicy(d *schema.ResourceData) *sql.FailoverGroupReadWriteEndpoint {
 	vs := d.Get("read_write_endpoint_failover_policy").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -281,7 +283,7 @@ func expandReadWritePolicy(d *schema.ResourceData) *sql.FailoverGroupReadWriteEn
 	return policy
 }
 
-func flattenReadWritePolicy(input *sql.FailoverGroupReadWriteEndpoint) []interface{} {
+func flattenSqlFailoverGroupReadWritePolicy(input *sql.FailoverGroupReadWriteEndpoint) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -296,7 +298,7 @@ func flattenReadWritePolicy(input *sql.FailoverGroupReadWriteEndpoint) []interfa
 	return []interface{}{policy}
 }
 
-func expandReadOnlyPolicy(d *schema.ResourceData) *sql.FailoverGroupReadOnlyEndpoint {
+func expandSqlFailoverGroupReadOnlyPolicy(d *schema.ResourceData) *sql.FailoverGroupReadOnlyEndpoint {
 	vs := d.Get("readonly_endpoint_failover_policy").([]interface{})
 	if len(vs) == 0 {
 		return nil
@@ -310,7 +312,7 @@ func expandReadOnlyPolicy(d *schema.ResourceData) *sql.FailoverGroupReadOnlyEndp
 	}
 }
 
-func flattenReadOnlyPolicy(input *sql.FailoverGroupReadOnlyEndpoint) []interface{} {
+func flattenSqlFailoverGroupReadOnlyPolicy(input *sql.FailoverGroupReadOnlyEndpoint) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -321,7 +323,7 @@ func flattenReadOnlyPolicy(input *sql.FailoverGroupReadOnlyEndpoint) []interface
 	return []interface{}{policy}
 }
 
-func expandPartnerServers(d *schema.ResourceData) *[]sql.PartnerInfo {
+func expandSqlFailoverGroupPartnerServers(d *schema.ResourceData) *[]sql.PartnerInfo {
 	servers := d.Get("partner_servers").([]interface{})
 	partners := make([]sql.PartnerInfo, 0)
 
@@ -337,7 +339,7 @@ func expandPartnerServers(d *schema.ResourceData) *[]sql.PartnerInfo {
 	return &partners
 }
 
-func flattenPartnerServers(input *[]sql.PartnerInfo) []map[string]interface{} {
+func flattenSqlFailoverGroupPartnerServers(input *[]sql.PartnerInfo) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 
 	if input != nil {
@@ -345,9 +347,11 @@ func flattenPartnerServers(input *[]sql.PartnerInfo) []map[string]interface{} {
 			info := make(map[string]interface{})
 
 			if v := server.ID; v != nil {
-				info["id"] = *server.ID
+				info["id"] = *v
 			}
-			info["location"] = *server.Location
+			if v := server.Location; v != nil {
+				info["location"] = *v
+			}
 			info["role"] = string(server.ReplicationRole)
 
 			result = append(result, info)
