@@ -7,6 +7,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func parseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error) {
+	id, err := parseAzureResourceID(networkSecurityGroupId)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Unable to Parse Network Security Group ID '%s': %+v", networkSecurityGroupId, err)
+	}
+
+	return id.Path["networkSecurityGroups"], nil
+}
+
+func parseRouteTableName(routeTableId string) (string, error) {
+	id, err := parseAzureResourceID(routeTableId)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Unable to parse Route Table ID '%s': %+v", routeTableId, err)
+	}
+
+	return id.Path["routeTables"], nil
+}
+
 func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
 	id, err := parseAzureResourceID(resourceId)
 	if err != nil {

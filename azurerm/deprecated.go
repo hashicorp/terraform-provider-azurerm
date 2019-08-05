@@ -2,10 +2,18 @@ package azurerm
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/flags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
+
+var requireResourcesToBeImported = flags.RequireResourcesToBeImported
+
+func parseAzureResourceID(id string) (*azure.ResourceID, error) {
+	return azure.ParseAzureResourceID(id)
+}
 
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
