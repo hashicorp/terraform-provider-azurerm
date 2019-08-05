@@ -48,12 +48,6 @@ func resourceArmRecoveryServicesNetworkMapping() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
-			"source_network_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
 			"source_network_id": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -77,13 +71,25 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	targetFabricName := d.Get("target_recovery_fabric_name").(string)
-	sourceNetworkName := d.Get("source_network_name").(string)
 	sourceNetworkId := d.Get("source_network_id").(string)
 	targetNetworkId := d.Get("target_network_id").(string)
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
+
+	//get network name from id
+	parsedSourceNetworkId, err := azure.ParseAzureResourceID(sourceNetworkId)
+	if err != nil {
+		return fmt.Errorf("[ERROR] Unable to parse source_network_id '%s' (network mapping %s): %+v", sourceNetworkId, name, err)
+	}
+	sourceNetworkName, hasName := parsedSourceNetworkId.Path["virtualNetworks"]
+	if !hasName {
+		sourceNetworkName, hasName = parsedSourceNetworkId.Path["virtualnetworks"] // Handle that different APIs return different ID casings
+		if !hasName {
+			return fmt.Errorf("[ERROR] parsed source_network_id '%s' doesn't contain 'virtualnetworks'", parsedSourceNetworkId)
+		}
+	}
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
@@ -152,7 +158,6 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 	d.Set("resource_group_name", resGroup)
 	d.Set("recovery_vault_name", vaultName)
 	d.Set("source_recovery_fabric_name", fabricName)
-	d.Set("source_network_name", resp.Properties.PrimaryNetworkFriendlyName)
 	d.Set("name", resp.Name)
 	if props := resp.Properties; props != nil {
 		d.Set("source_network_id", props.PrimaryNetworkID)
