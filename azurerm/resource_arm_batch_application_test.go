@@ -78,7 +78,7 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).batchApplicationClient
+		client := testAccProvider.Meta().(*ArmClient).batch.ApplicationClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
@@ -93,7 +93,7 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).batchApplicationClient
+	client := testAccProvider.Meta().(*ArmClient).batch.ApplicationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

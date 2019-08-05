@@ -361,7 +361,7 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+	client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -400,7 +400,7 @@ func testCheckAzureRMKeyVaultExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vaultName)
@@ -430,7 +430,7 @@ func testCheckAzureRMKeyVaultDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, vaultName)

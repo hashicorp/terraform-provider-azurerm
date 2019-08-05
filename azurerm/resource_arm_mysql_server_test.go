@@ -253,7 +253,7 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+		client := testAccProvider.Meta().(*ArmClient).mysql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -270,7 +270,7 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+	client := testAccProvider.Meta().(*ArmClient).mysql.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

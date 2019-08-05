@@ -30,7 +30,7 @@ type RetentionPolicy struct {
 }
 
 type Cors struct {
-	CorsRule CorsRule `xml:"CorsRule"`
+	CorsRule []CorsRule `xml:"CorsRule"`
 }
 
 type CorsRule struct {

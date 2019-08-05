@@ -171,7 +171,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -187,7 +187,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batchAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

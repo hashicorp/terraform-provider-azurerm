@@ -245,7 +245,7 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
+		client := testAccProvider.Meta().(*ArmClient).authorization.RoleAssignmentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
@@ -269,7 +269,7 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
+		client := testAccProvider.Meta().(*ArmClient).authorization.RoleAssignmentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
