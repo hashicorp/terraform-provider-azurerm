@@ -41,7 +41,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 }
 
 func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Hostname Binding creation.")
@@ -90,7 +90,7 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 }
 
 func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -120,7 +120,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 }
 
 func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

@@ -66,7 +66,7 @@ func dataSourceArmBatchAccount() *schema.Resource {
 }
 
 func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchAccountClient
+	client := meta.(*ArmClient).batch.AccountClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

@@ -77,7 +77,7 @@ func testCheckAzureRMMariaDBFirewallRuleExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Firewall Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mariadbFirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).mariadb.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -93,7 +93,7 @@ func testCheckAzureRMMariaDBFirewallRuleExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMMariaDBFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mariadbDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).mariadb.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

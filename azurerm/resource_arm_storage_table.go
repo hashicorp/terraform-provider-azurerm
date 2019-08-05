@@ -23,8 +23,20 @@ func resourceArmStorageTable() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		SchemaVersion: 1,
-		MigrateState:  resourceStorageTableMigrateState,
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				// this should have been applied from pre-0.12 migration system; backporting just in-case
+				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageTableStateUpgradeV0ToV1,
+				Version: 0,
+			},
+			{
+				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageTableStateUpgradeV1ToV2,
+				Version: 1,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -95,7 +107,10 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", tableName, accountName)
 	}
 
 	client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
@@ -141,11 +156,11 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -193,11 +208,11 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		return nil
 	}
 
@@ -225,11 +240,11 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

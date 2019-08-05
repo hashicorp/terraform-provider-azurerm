@@ -411,7 +411,7 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -437,7 +437,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -935,7 +935,7 @@ resource "azurerm_batch_certificate" "testpfx" {
   certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
   format               = "Pfx"
   password             = "terraform"
-  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
 

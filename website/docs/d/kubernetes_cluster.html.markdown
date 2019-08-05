@@ -94,8 +94,6 @@ A `agent_pool_profile` block exports the following:
 
 * `min_count` - Minimum number of nodes for auto-scaling 
 
-* `min_count` - Minimum number of nodes for auto-scaling 
-
 * `max_count` - Maximum number of nodes for auto-scaling
 
 * `name` - The name assigned to this pool of agents.

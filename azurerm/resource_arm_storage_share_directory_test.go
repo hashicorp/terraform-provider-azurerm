@@ -168,7 +168,10 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Share Directory %q (Share %s, Account %s) ", name, shareName, accountName)
 		}
 
 		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
@@ -204,7 +207,7 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
 		}
 
 		// not found, the account's gone
