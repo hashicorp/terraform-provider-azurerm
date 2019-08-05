@@ -37,7 +37,6 @@ goimports:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	echo "$(GOGC)"
 	golangci-lint run ./...
 
 test-docker:
