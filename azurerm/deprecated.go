@@ -46,7 +46,7 @@ func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*stri
 
 func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 	// we intentionally ignore the error here, since this method doesn't expose it
-	_ := tags.FlattenAndSet(d, tagMap)
+	_ = tags.FlattenAndSet(d, tagMap)
 }
 
 func validateRFC3339Date(v interface{}, k string) (warnings []string, errors []error) {
