@@ -481,6 +481,12 @@ func Provider() terraform.ResourceProvider {
 				ValidateFunc: validate.UUIDOrEmpty,
 			},
 
+			"disable_correlation_request_id": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+			},
+
 			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
@@ -533,8 +539,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		client, err := getArmClient(config, skipProviderRegistration, partnerId)
+		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
 
+		client, err := getArmClient(config, skipProviderRegistration, partnerId, disableCorrelationRequestID)
 		if err != nil {
 			return nil, err
 		}
