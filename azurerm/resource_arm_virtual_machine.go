@@ -84,6 +84,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				StateFunc: func(id interface{}) string {
+					return strings.ToLower(id.(string))
+				},
 			},
 
 			"identity": {
@@ -667,8 +670,8 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags:                     expandedTags,
-		Zones:                    zones,
+		Tags:  expandedTags,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -765,12 +768,15 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.VirtualMachineProperties; props != nil {
 		if availabilitySet := props.AvailabilitySet; availabilitySet != nil {
-			// TODO: why is this being lower-cased?
+			// Lowercase due to incorrect capitalisation of resource group name in
+			// availability set ID in response from get VM API request
 			d.Set("availability_set_id", strings.ToLower(*availabilitySet.ID))
 		}
 
 		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
-			d.Set("proximity_placement_group_id", *proximityPlacementGroup.ID)
+			// Lowercase due to incorrect capitalisation of resource group name in
+			// proximity placement group ID in response from get VM API request
+			d.Set("proximity_placement_group_id", strings.ToLower(*proximityPlacementGroup.ID))
 		}
 
 		if profile := props.HardwareProfile; profile != nil {

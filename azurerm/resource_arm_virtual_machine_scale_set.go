@@ -745,6 +745,15 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetExtensionHash,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				StateFunc: func(id interface{}) string {
+					return strings.ToLower(id.(string))
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 
@@ -855,13 +864,22 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		proximityPlacementGroup := v.(string)
+		ppg := compute.SubResource{
+			ID: &proximityPlacementGroup,
+		}
+
+		scaleSetProps.ProximityPlacementGroup = &ppg
+	}
+
 	properties := compute.VirtualMachineScaleSet{
-		Name:                             &name,
-		Location:                         &location,
-		Tags:                             expandTags(tags),
-		Sku:                              sku,
+		Name:     &name,
+		Location: &location,
+		Tags:     expandTags(tags),
+		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones:                            zones,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -949,6 +967,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
 					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
 				}
+			}
+
+			if proximityPlacementGroup := properties.ProximityPlacementGroup; proximityPlacementGroup != nil {
+				// Lowercase due to incorrect capitalisation of resource group name in
+				// proximity placement group ID in response from get VM API request
+				d.Set("proximity_placement_group_id", strings.ToLower(*proximityPlacementGroup.ID))
 			}
 		}
 		d.Set("overprovision", properties.Overprovision)

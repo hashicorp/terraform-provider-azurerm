@@ -154,6 +154,7 @@ type ArmClient struct {
 	galleriesClient            compute.GalleriesClient
 	galleryImagesClient        compute.GalleryImagesClient
 	galleryImageVersionsClient compute.GalleryImageVersionsClient
+	ppgClient                  compute.ProximityPlacementGroupsClient
 	snapshotsClient            compute.SnapshotsClient
 	usageOpsClient             compute.UsageClient
 	vmExtensionImageClient     compute.VirtualMachineExtensionImagesClient
@@ -456,6 +457,10 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&galleryImageVersionsClient.Client, auth)
 	c.galleryImageVersionsClient = galleryImageVersionsClient
+
+	proximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&proximityPlacementGroupsClient.Client, auth)
+	c.ppgClient = proximityPlacementGroupsClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

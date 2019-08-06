@@ -57,6 +57,15 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				StateFunc: func(id interface{}) string {
+					return strings.ToLower(id.(string))
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -90,13 +99,24 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	managed := d.Get("managed").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
+	properties := compute.AvailabilitySetProperties{
+		PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
+		PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
+	}
+
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		proximityPlacementGroup := v.(string)
+		ppg := compute.SubResource{
+			ID: &proximityPlacementGroup,
+		}
+
+		properties.ProximityPlacementGroup = &ppg
+	}
+
 	availSet := compute.AvailabilitySet{
 		Name:     &name,
 		Location: &location,
-		AvailabilitySetProperties: &compute.AvailabilitySetProperties{
-			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
-			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
-		},
+		AvailabilitySetProperties: &properties,
 		Tags: expandTags(tags),
 	}
 
@@ -149,6 +169,12 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	if props := resp.AvailabilitySetProperties; props != nil {
 		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+
+		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
+			// Lowercase due to incorrect capitalisation of resource group name in
+			// proximity placement group ID in response from get VM API request
+			d.Set("proximity_placement_group_id", strings.ToLower(*proximityPlacementGroup.ID))
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
