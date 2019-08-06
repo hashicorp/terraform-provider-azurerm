@@ -132,6 +132,8 @@ The following arguments are supported:
 
 * `primary_network_interface_id` - (Optional) The ID of the Network Interface (which must be attached to the Virtual Machine) which should be the Primary Network Interface for this Virtual Machine.
 
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned.
+
 * `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks.
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
