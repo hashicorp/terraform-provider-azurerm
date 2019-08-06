@@ -382,7 +382,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 									"log_type": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerinstance.ContainerInsights),
@@ -1241,23 +1241,26 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 
 	workspaceId := analyticsV["workspace_id"].(string)
 	workspaceKey := analyticsV["workspace_key"].(string)
-	logType := containerinstance.LogAnalyticsLogType(analyticsV["log_type"].(string))
 
-	metadataMap := analyticsV["metadata"].(map[string]interface{})
-	metadata := make(map[string]*string)
-	for k, v := range metadataMap {
-		strValue := v.(string)
-		metadata[k] = &strValue
+	logAnalytics := containerinstance.LogAnalytics{
+		WorkspaceID:  utils.String(workspaceId),
+		WorkspaceKey: utils.String(workspaceKey),
 	}
 
-	return &containerinstance.ContainerGroupDiagnostics{
-		LogAnalytics: &containerinstance.LogAnalytics{
-			WorkspaceID:  utils.String(workspaceId),
-			WorkspaceKey: utils.String(workspaceKey),
-			LogType:      logType,
-			Metadata:     metadata,
-		},
+	if logType := analyticsV["log_type"].(string); logType != "" {
+		logAnalytics.LogType = containerinstance.LogAnalyticsLogType(logType)
+
+		metadataMap := analyticsV["metadata"].(map[string]interface{})
+		metadata := make(map[string]*string)
+		for k, v := range metadataMap {
+			strValue := v.(string)
+			metadata[k] = &strValue
+		}
+
+		logAnalytics.Metadata = metadata
 	}
+
+	return &containerinstance.ContainerGroupDiagnostics{LogAnalytics: &logAnalytics}
 }
 
 func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []interface{} {
