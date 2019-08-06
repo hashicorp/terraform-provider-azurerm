@@ -15,6 +15,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
+	cases := []struct {
+		Value  string
+		Errors int
+	}{
+		{
+			Value:  "bad",
+			Errors: 1,
+		},
+		{
+			Value:  "/good/file/path",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
+
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}
+
 func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_file.test"
 
