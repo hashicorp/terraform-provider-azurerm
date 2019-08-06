@@ -23,11 +23,13 @@ func Provider() terraform.ResourceProvider {
 	// the Service Registration interface to gradually migrate Data Sources/Resources over to the
 	// new pattern.
 	// However this requires that the following be done first:
-	//   1. Finish migrating the SDK Clients into Packages
-	//   2. Making the SDK Clients public in the ArmClient prior to moving
-	//   3. Migrating the top level functions into the internal package
-	//     e.g. feature_flags.go, locks.go, resourceid.go, tags.go, validators.go
-	//   4. Migrating the `ArmClient` from `common.go` into internal/common/clients.go
+	//  1. Migrating the top level functions into the internal package
+	//		e.g. deprecated.go, locks.go
+	//	2. Switch the remaining resources over to the new Storage SDK
+	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
+	//	3. Finish migrating the SDK Clients into Packages
+	//	4. Making the SDK Clients public in the ArmClient prior to moving
+	//	5. Migrating the `ArmClient` from `common.go` into internal/common/clients.go
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
 	supportedServices := []common.ServiceRegistration{}
