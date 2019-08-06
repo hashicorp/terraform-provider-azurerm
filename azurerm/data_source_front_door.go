@@ -372,8 +372,14 @@ func dataSourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("enabled", false)
 		}
 		d.Set("friendly_name", properties.FriendlyName)
-		if err := d.Set("frontend_endpoint", flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints)); err != nil {
-			return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+		frontDoorFrontendEndpoint, flattenErr := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta)
+
+		if flattenErr == nil {
+			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoint); err != nil {
+				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("Error setting `frontend_endpoint`: %+v", flattenErr)
 		}
 		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(properties.HealthProbeSettings)); err != nil {
 			return fmt.Errorf("Error setting `backend_pool_health_probe`: %+v", err)

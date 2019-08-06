@@ -201,6 +201,7 @@ type ArmClient struct {
 
 	// Frontdoor
 	frontDoorsClient               frontdoor.FrontDoorsClient 
+	frontDoorsFrontendClient       frontdoor.FrontendEndpointsClient 
 	
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -693,9 +694,13 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 }
 
 func (c *ArmClient) registerFrontdoorInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	fdc := frontdoor.NewFrontDoorsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&fdc.Client, auth)
-	c.frontDoorsClient = fdc
+	frontDoorsClient := frontdoor.NewFrontDoorsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&frontDoorsClient.Client, auth)
+	c.frontDoorsClient = frontDoorsClient
+
+	frontDoorsFrontendClient := frontdoor.NewFrontendEndpointsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&frontDoorsFrontendClient.Client, auth)
+	c.frontDoorsFrontendClient = frontDoorsFrontendClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

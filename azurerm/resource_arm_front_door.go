@@ -511,8 +511,13 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("enabled", false)
 		}
 		d.Set("friendly_name", properties.FriendlyName)
-		if err := d.Set("frontend_endpoint", flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints)); err != nil {
-			return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+
+		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); err != nil {
+			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoint); err != nil {
+				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("Error flattening `frontend_endpoint`: %+v", err)
 		}
 		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(properties.HealthProbeSettings)); err != nil {
 			return fmt.Errorf("Error setting `backend_pool_health_probe`: %+v", err)
@@ -1052,11 +1057,11 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	return output
 }
 
-func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []interface{} {
+func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) ([]interface{}, error) {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), fmt.Errorf("Cannot read Front Door Frontend Endpoint (Resource Group %q): slice is empty", resourceGroup)
 	}
-	
+
 	output := make([]interface{}, 0)
 	
 	for _, v := range *input {
@@ -1064,54 +1069,80 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint) []
 		customHttpsConfiguration := make([]interface{}, 0)
 		chc := make(map[string]interface{}, 0)
 
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
 		if name := v.Name; name != nil {
 			result["name"] = *name
-		}
 
-		if properties := v.FrontendEndpointProperties; properties != nil {
-			if hostName := properties.HostName; hostName != nil {
-				result["host_name"] = *hostName
+			// Need to call frontEndEndpointVlient here to get customConfiguration information from that client 
+			// because the information is hidden from the main frontDoorClient "by design"...
+			//
+			// Get gets a Frontend endpoint with the specified name within the specified Front Door.
+			// Parameters:
+			// resourceGroupName    - name of the Resource group within the Azure subscription.
+			// frontDoorName        - name of the Front Door which is globally unique.
+			// frontendEndpointName - name of the Frontend endpoint which is unique within the Front Door.
+
+			client := meta.(*ArmClient).frontDoorsFrontendClient
+			ctx := meta.(*ArmClient).StopContext
+
+			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
+			if err != nil {
+				return make([]interface{}, 0), fmt.Errorf("Error retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
-			if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
-				if sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled {
-					result["session_affinity_enabled"] = true
-				} else {
-					result["session_affinity_enabled"] = false
+			if resp.ID == nil {
+				return make([]interface{}, 0), fmt.Errorf("Cannot read Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q) ID", name, resourceGroup)
+			}
+
+			result["id"] = resp.ID
+
+			if properties := resp.FrontendEndpointProperties; properties != nil {
+				log.Printf("********\n\nProperties:\n%+v\n", properties)
+
+				if hostName := properties.HostName; hostName != nil {
+					result["host_name"] = *hostName
 				}
-			}
-
-			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
-				result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
-			}
-
-			if properties.CustomHTTPSConfiguration != nil {
-				chc["certificate_source"] = string(properties.CustomHTTPSConfiguration.CertificateSource)
-
-				if properties.CustomHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
-					kvcsp := properties.CustomHTTPSConfiguration.KeyVaultCertificateSourceParameters
-					chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
-					chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
-					chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
+				if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
+					if sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled {
+						result["session_affinity_enabled"] = true
+					} else {
+						result["session_affinity_enabled"] = false
+					}
 				}
-			} else {
-				// since FrontDoor is the default the API does not set this value (e.g. null) in Azure,
-				// Set default value for state file
-				chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
+
+				if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
+					result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
+				}
+
+				if properties.CustomHTTPSConfiguration != nil {
+					customHTTPSConfiguration := properties.CustomHTTPSConfiguration
+					log.Printf("\ncustomHTTPSConfiguration:\n%+v\n", customHTTPSConfiguration)
+
+					chc["certificate_source"] = string(customHTTPSConfiguration.CertificateSource)
+
+					if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
+						log.Printf("\nCertificateSourceAzureKeyVault:\n%+v\n\n\n\n\n\n\n\n\n\n\n\n********", *customHTTPSConfiguration.KeyVaultCertificateSourceParameters)
+
+						if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
+							chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
+							chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
+							chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
+						}
+					} else {
+						chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
+					}
+
+					customHttpsConfiguration = append(customHttpsConfiguration, chc)
+					result["custom_https_configuration"] = customHttpsConfiguration
+				}
+
+				//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 			}
 
-			customHttpsConfiguration = append(customHttpsConfiguration, chc)
-			result["custom_https_configuration"] = customHttpsConfiguration
-
-			//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 		}
 
 		output = append(output, result)
 	}
 
-	return output
+	return output, nil
 }
 
 func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
@@ -1213,11 +1244,23 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					c["custom_forwarding_path"] = v.CustomForwardingPath
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
-					cc := v.CacheConfiguration
-					c["cache_query_parameter_strip_directive"] = string(cc.QueryParameterStripDirective)
-					if cc.DynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
-						c["cache_use_dynamic_compression"] = true
+					if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
+						if queryParameter := cacheConfiguration.QueryParameterStripDirective; queryParameter != "" {
+							c["cache_query_parameter_strip_directive"] = string(queryParameter)
+						} else {
+							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
+						}
+
+						c["cache_use_dynamic_compression"] = false
+
+						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
+							if dynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
+								c["cache_use_dynamic_compression"] = true
+							}
+						}
 					} else {
+						// Set Defaults
+						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
 						c["cache_use_dynamic_compression"] = false
 					}
 
