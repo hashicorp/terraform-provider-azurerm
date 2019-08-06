@@ -512,6 +512,10 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
+
+		// remove date and time stamp from log output as the plugin SDK already adds its own
+		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
