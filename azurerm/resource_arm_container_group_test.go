@@ -182,6 +182,38 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMContainerGroup_logTypeUnset(ri, testLocation())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", ""),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"diagnostics.0.log_analytics.0.workspace_key",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
@@ -719,6 +751,49 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_logTypeUnset(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
+  }
+
+  diagnostics {
+    log_analytics {
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri, ri)
 }
 
 func testAccAzureRMContainerGroup_linuxBasicUpdated(ri int, location string) string {
