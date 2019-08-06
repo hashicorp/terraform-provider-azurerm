@@ -3,6 +3,7 @@ package azurerm
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/flags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
@@ -46,4 +47,24 @@ func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*stri
 func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 	// we intentionally ignore the error here, since this method doesn't expose it
 	tags.FlattenAndSet(d, tagMap)
+}
+
+func validateRFC3339Date(v interface{}, k string) (warnings []string, errors []error) {
+	return validate.RFC3339Time(v, k)
+}
+
+func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
+	return validate.UUID(v, k)
+}
+
+func validateIso8601Duration() schema.SchemaValidateFunc {
+	return validate.ISO8601Duration
+}
+
+func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
+	return validate.VirtualMachineTimeZone()
+}
+
+func validateCollation() schema.SchemaValidateFunc {
+	return validate.DatabaseCollation
 }
