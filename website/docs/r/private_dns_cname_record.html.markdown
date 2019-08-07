@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_dns_a_record"
-sidebar_current: "docs-azurerm-resource-private-dns-a-record"
+page_title: "Azure Resource Manager: azurerm_private_dns_cname_record"
+sidebar_current: "docs-azurerm-resource-private-dns-cname-record"
 description: |-
-  Manages a Private DNS A Record.
+  Manages a Private DNS CNAME Record.
 ---
 
 # azurerm_dns_a_record
 
-Enables you to manage DNS A Records within Azure Private DNS.
+Enables you to manage DNS CNAME Records within Azure Private DNS.
 
 ## Example Usage
 
@@ -23,12 +23,12 @@ resource "azurerm_private_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_private_dns_a_record" "test" {
+resource "azurerm_private_dns_cname_record" "test" {
   name                = "test"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ttl                 = 300
-  records             = ["10.0.180.17"]
+  record              = "contoso.com"
 }
 ```
 
@@ -36,7 +36,7 @@ resource "azurerm_private_dns_a_record" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS A Record.
+* `name` - (Required) The name of the DNS CNAME Record.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Required) List of IPv4 Addresses.
+* `record` - (Required) The target of the CNAME.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -52,12 +52,12 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Private DNS A Record ID.
+* `id` - The Private DNS CNAME Record ID.
 
 ## Import
 
-Private DNS A Records can be imported using the `resource id`, e.g.
+Private DNS CName Records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_dns_a_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/A/myrecord1
+terraform import azurerm_private_dns_cname_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/CName/myrecord1
 ```
