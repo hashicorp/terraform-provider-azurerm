@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -580,9 +579,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		return client, nil
 	}
 }
-
-// armMutexKV is the instance of MutexKV for ARM resources
-var armMutexKV = mutexkv.NewMutexKV()
 
 // Deprecated: use `suppress.CaseDifference` instead
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
