@@ -291,6 +291,10 @@ func dataSourceArmFrontDoor() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+						"enable_custom_https_provisioning": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"custom_https_configuration": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -298,6 +302,14 @@ func dataSourceArmFrontDoor() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate_source": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"provisioning_state": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"provisioning_substate": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},

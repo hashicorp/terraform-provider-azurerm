@@ -351,6 +351,10 @@ func resourceArmFrontDoor() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+						"enable_custom_https_provisioning": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
 						"custom_https_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -365,6 +369,14 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.CertificateSourceFrontDoor),
 										}, false),
 										Default: string(frontdoor.CertificateSourceFrontDoor),
+									},
+									"provisioning_state": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"provisioning_substate": {
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 									// NOTE: None of these attributes are valid if
 									//       certificate_source is set to FrontDoor
