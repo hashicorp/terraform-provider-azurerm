@@ -135,7 +135,7 @@ A `logs` block supports the following:
 
 * `application_logs` - (Optional) An `application_logs` block as defined below.
 
-* `http_logs` - (Optional) An `https_logs` block as defined below.
+* `http_logs` - (Optional) An `http_logs` block as defined below.
 
 ---
 

@@ -1122,8 +1122,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	result := make(map[string]interface{})
 
+	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-		appLogs := make([]interface{}, 0)
 
 		appLogsItem := make(map[string]interface{})
 
@@ -1145,7 +1145,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 			// The API returns a non nil application logs object when other logs are specified so we'll check that this structure is empty before adding it to the statefile.
 			if blobStorageInput.SasURL != nil {
 				blobStorage = append(blobStorage, blobStorageItem)
-
 				appLogsItem["azure_blob_storage"] = blobStorage
 			}
 
@@ -1155,12 +1154,11 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 			appLogs = append(appLogs, appLogsItem)
 		}
 
-		result["application_logs"] = appLogs
 	}
+	result["application_logs"] = appLogs
 
+	httpLogs := make([]interface{}, 0)
 	if input.HTTPLogs != nil {
-		httpLogs := make([]interface{}, 0)
-
 		httpLogsItem := make(map[string]interface{})
 
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
@@ -1187,9 +1185,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 		if len(httpLogsItem) > 0 {
 			httpLogs = append(httpLogs, httpLogsItem)
 		}
-
-		result["http_logs"] = httpLogs
 	}
+	result["http_logs"] = httpLogs
 
 	return append(results, result)
 }
