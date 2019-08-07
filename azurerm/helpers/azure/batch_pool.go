@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -203,8 +204,42 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 	if armContainerConfiguration.Type != nil {
 		result["type"] = *armContainerConfiguration.Type
 	}
+	result["container_registries"] = flattenBatchPoolContainerRegistries(armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
+}
+
+func flattenBatchPoolContainerRegistries(armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+	results := make([]interface{}, 0)
+
+	if armContainerRegistries == nil {
+		return results
+	}
+	for _, armContainerRegistry := range *armContainerRegistries {
+		result := flattenBatchPoolContainerRegistry(&armContainerRegistry)
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if armContainerRegistry == nil {
+		return result
+	}
+	if registryServer := armContainerRegistry.RegistryServer; registryServer != nil {
+		result["registry_server"] = *registryServer
+	}
+	if userName := armContainerRegistry.UserName; userName != nil {
+		result["user_name"] = *userName
+	}
+	// We won't usually get the password back, but we include it here anyways
+	if password := armContainerRegistry.Password; password != nil {
+		result["password"] = *password
+	}
+
+	return result
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
@@ -252,12 +287,44 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 
 	containerConfiguration := list[0].(map[string]interface{})
 	containerType := containerConfiguration["type"].(string)
+	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].(*schema.Set).List())
+	if err != nil {
+		return nil, err
+	}
 
 	containerConf := &batch.ContainerConfiguration{
-		Type: &containerType,
+		Type:                &containerType,
+		ContainerRegistries: containerRegistries,
 	}
 
 	return containerConf, nil
+}
+
+func expandBatchPoolContainerRegistries(list []interface{}) (*[]batch.ContainerRegistry, error) {
+	result := []batch.ContainerRegistry{}
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		containerRegistry, err := expandBatchPoolContainerRegistry(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *containerRegistry)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.ContainerRegistry, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: container registry reference should be defined")
+	}
+
+	containerRegistry := batch.ContainerRegistry{
+		RegistryServer: utils.String(ref["registry_server"].(string)),
+		UserName:       utils.String(ref["user_name"].(string)),
+		Password:       utils.String(ref["password"].(string)),
+	}
+	return &containerRegistry, nil
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
