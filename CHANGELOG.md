@@ -7,6 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
 * `azurerm_traffic_manager_profile`  - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
