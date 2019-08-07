@@ -226,7 +226,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "mycnamerecord%d"
+  name                = "acctestcname%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
@@ -263,7 +263,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "mycnamerecord%d"
+  name                = "acctestcname%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
@@ -285,7 +285,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "mycnamerecord%d"
+  name                = "acctestcname%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
@@ -307,7 +307,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "mycnamerecord%d"
+  name                = "acctestcname%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
@@ -334,7 +334,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "mycnamerecord%d"
+  name                = "acctestcname%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300

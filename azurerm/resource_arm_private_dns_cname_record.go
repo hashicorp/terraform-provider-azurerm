@@ -2,7 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,27 +24,32 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"zone_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"record": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"ttl": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
 			"tags": tagsSchema(),
@@ -68,7 +74,7 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dns_cname_record", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", *existing.ID)
 		}
 	}
 
@@ -158,8 +164,8 @@ func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interfa
 	name := id.Path["CNAME"]
 	zoneName := id.Path["privateDnsZones"]
 
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
-	if resp.StatusCode != http.StatusOK {
+	_, err = dnsClient.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
+	if err != nil {
 		return fmt.Errorf("Error deleting Private DNS CNAME Record %s: %+v", name, err)
 	}
 
