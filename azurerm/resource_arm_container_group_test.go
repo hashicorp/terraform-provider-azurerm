@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -1167,7 +1166,7 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
-			if resp.StatusCode != http.StatusNotFound {
+			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Container Group still exists:\n%#v", resp)
 			}
 
