@@ -157,7 +157,7 @@ A `image_registry_credential` block supports:
 
 A `log_analytics` block supports:
 
-* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
+* `log_type` - (Optional) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace. Changing this forces a new resource to be created.
 
