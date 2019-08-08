@@ -113,6 +113,8 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
+~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -201,7 +203,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-A `queue_properties` block supports the following: not applicable when storage account type is **BlobStorage**
+A `queue_properties` block supports the following:
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
