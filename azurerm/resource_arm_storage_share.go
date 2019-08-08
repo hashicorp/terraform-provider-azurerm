@@ -313,8 +313,7 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
 	}
 
-	deleteSnapshots := true
-	if _, err := client.Delete(ctx, id.AccountName, id.ShareName, deleteSnapshots); err != nil {
+	if _, err := client.Delete(ctx, id.AccountName, id.ShareName, true); err != nil {
 		return fmt.Errorf("Error deleting File Share %q (Storage Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, *resourceGroup, err)
 	}
 

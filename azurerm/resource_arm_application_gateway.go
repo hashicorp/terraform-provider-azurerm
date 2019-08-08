@@ -2267,7 +2267,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
-			return &results, stopApplicationGateway
+			return &results, false
 		}
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed

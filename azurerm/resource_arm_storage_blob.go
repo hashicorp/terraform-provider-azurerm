@@ -771,7 +771,7 @@ func expandStorageAccountBlobMetadata(d *schema.ResourceData) storage.BlobMetada
 	for key, value := range blobMetadataRaw {
 		blobMetadata[key] = value.(string)
 	}
-	return storage.BlobMetadata(blobMetadata)
+	return blobMetadata
 }
 
 func flattenStorageAccountBlobMetadata(in storage.BlobMetadata) map[string]interface{} {

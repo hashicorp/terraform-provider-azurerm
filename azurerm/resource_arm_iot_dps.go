@@ -306,7 +306,7 @@ func expandIoTDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription {
 		linkedHub := iothub.DefinitionDescription{
 			ConnectionString:      utils.String(linkedHubConfig["connection_string"].(string)),
 			AllocationWeight:      utils.Int32(int32(linkedHubConfig["allocation_weight"].(int))),
-			ApplyAllocationPolicy: utils.Bool((linkedHubConfig["apply_allocation_policy"].(bool))),
+			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
 			Location:              utils.String(linkedHubConfig["location"].(string)),
 		}
 
