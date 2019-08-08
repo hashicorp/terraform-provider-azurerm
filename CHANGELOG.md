@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
+* `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
