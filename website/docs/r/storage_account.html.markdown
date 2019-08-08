@@ -148,7 +148,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-`queue_properties` supports the following:
+`queue_properties` supports the following: not applicable when storage account type is **BlobStorage**
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
