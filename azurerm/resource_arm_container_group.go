@@ -551,7 +551,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenContainerGroupIdentity(d, resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenContainerGroupIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
@@ -1021,7 +1021,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(d *schema.ResourceData, identity *containerinstance.ContainerGroupIdentity) []interface{} {
+func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) []interface{} {
 	if identity == nil {
 		return make([]interface{}, 0)
 	}

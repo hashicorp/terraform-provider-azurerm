@@ -138,9 +138,8 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 	location := testLocation()
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID, subscriptionID)
+	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -299,7 +298,7 @@ resource "azurerm_batch_account" "test" {
 `, rInt, location, rString, rString)
 }
 
-func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string, subscriptionID string) string {
+func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string) string {
 	return fmt.Sprintf(`
 data "azuread_service_principal" "test" {
 	display_name = "Microsoft Azure Batch"
