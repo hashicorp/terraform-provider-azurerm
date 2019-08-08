@@ -608,8 +608,6 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	// TODO: otherwise can we just stop the container, and hope that removes the NIC?
-
 	if props := existing.ContainerGroupProperties; props != nil {
 		if profile := props.NetworkProfile; profile != nil {
 			if profile.ID != nil {
