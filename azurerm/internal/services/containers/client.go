@@ -13,6 +13,7 @@ type Client struct {
 	RegistriesClient         containerregistry.RegistriesClient
 	ReplicationsClient       containerregistry.ReplicationsClient
 	ServicesClient           containerservice.ContainerServicesClient
+	AgentPoolsClient         containerservice.AgentPoolsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -34,6 +35,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	// AKS
 	c.KubernetesClustersClient = containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.KubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
+
+	c.AgentPoolsClient = containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.AgentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &c
 }
