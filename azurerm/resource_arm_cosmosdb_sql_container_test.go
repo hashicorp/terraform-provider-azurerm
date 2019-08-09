@@ -38,7 +38,7 @@ func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+	client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
