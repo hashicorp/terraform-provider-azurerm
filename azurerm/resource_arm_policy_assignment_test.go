@@ -146,7 +146,7 @@ func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCh
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).policyAssignmentsClient
+		client := testAccProvider.Meta().(*ArmClient).policy.AssignmentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		id := rs.Primary.ID
@@ -164,7 +164,7 @@ func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).policyAssignmentsClient
+	client := testAccProvider.Meta().(*ArmClient).policy.AssignmentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -303,9 +303,11 @@ resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
   scope                = "${azurerm_resource_group.test.id}"
   policy_definition_id = "${azurerm_policy_definition.test.id}"
+
   identity {
     type = "SystemAssigned"
   }
+
   location = "%s"
 }
 `, ri, ri, ri, location, ri, location)

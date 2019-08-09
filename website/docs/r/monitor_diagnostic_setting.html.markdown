@@ -87,6 +87,10 @@ The following arguments are supported:
 
 -> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
+* `log_analytics_destination_type` - (Optional) When set to 'Dedicated' logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table.
+
+-> **NOTE:** This setting will only have an effect if a `log_analytics_workspace_id` is provided, and the resource is available for resource-specific logs.  As of July 2019, this only includes Azure Data Factory. Please [see the documentation](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/diagnostic-logs-stream-log-store#azure-diagnostics-vs-resource-specific) for more information.
+
 ---
 
 A `log` block supports the following:

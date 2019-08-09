@@ -65,7 +65,7 @@ func dataSourceArmDevTestLab() *schema.Resource {
 }
 
 func dataSourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
+	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

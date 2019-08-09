@@ -288,6 +288,7 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "EP1"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_elastic_worker_count", "20"),
 				),
 			},
 		},
@@ -323,7 +324,7 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+	conn := testAccProvider.Meta().(*ArmClient).web.AppServicePlansClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_plan" {
@@ -363,7 +364,7 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+		conn := testAccProvider.Meta().(*ArmClient).web.AppServicePlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
@@ -616,6 +617,8 @@ resource "azurerm_app_service_plan" "test" {
   location            = "${azurerm_resource_group.test.location}"
   kind                = "elastic"
 
+  maximum_elastic_worker_count = 20
+
   sku {
     tier = "ElasticPremium"
     size = "EP1"
@@ -627,21 +630,21 @@ resource "azurerm_app_service_plan" "test" {
 func testAccAzureRMAppServicePlan_basicWindowsContainer(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	kind                = "xenon"
-	is_xenon            = true
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "xenon"
+  is_xenon            = true
 
-	sku {
-		tier = "PremiumContainer"
-		size = "PC2"
-	}
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
+  }
 }
 `, rInt, location, rInt)
 }

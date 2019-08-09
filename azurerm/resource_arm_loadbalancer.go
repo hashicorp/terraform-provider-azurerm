@@ -81,6 +81,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
+						"public_ip_prefix_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -311,6 +318,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 			}
 		}
 
+		if v := data["public_ip_prefix_id"].(string); v != "" {
+			properties.PublicIPPrefix = &network.SubResource{
+				ID: &v,
+			}
+		}
+
 		if v := data["subnet_id"].(string); v != "" {
 			properties.Subnet = &network.Subnet{
 				ID: &v,
@@ -363,6 +376,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			if pip := props.PublicIPAddress; pip != nil {
 				ipConfig["public_ip_address_id"] = *pip.ID
+			}
+
+			if pip := props.PublicIPPrefix; pip != nil {
+				ipConfig["public_ip_prefix_id"] = *pip.ID
 			}
 
 			loadBalancingRules := make([]interface{}, 0)

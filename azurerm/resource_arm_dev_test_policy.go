@@ -89,7 +89,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 }
 
 func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
@@ -149,7 +149,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -190,7 +190,7 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -118,6 +118,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
+			/// AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -140,6 +141,13 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ConflictsWith: []string{"properties.0.reserved"},
 			},
 
+			"maximum_elastic_worker_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"maximum_number_of_workers": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -156,7 +164,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
@@ -216,6 +224,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if v, exists := d.GetOkExists("maximum_elastic_worker_count"); exists {
+		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v.(int)))
+	}
+
 	if reservedExists {
 		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved.(bool))
 	}
@@ -243,7 +255,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -267,13 +279,20 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
+	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
+	if utils.ResponseWasNotFound(resp.Response) {
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		d.SetId("")
+		return nil
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
-	d.Set("is_xenon", resp.IsXenon)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
@@ -288,8 +307,13 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
 
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+		}
+
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
@@ -302,7 +326,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

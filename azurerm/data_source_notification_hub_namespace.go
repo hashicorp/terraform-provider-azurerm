@@ -59,7 +59,7 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
+	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

@@ -99,7 +99,7 @@ func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryLinkedServiceClient
+		client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -116,7 +116,7 @@ func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.T
 }
 
 func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryLinkedServiceClient
+	client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -220,8 +220,8 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   description         = "test description 2"
 
   parameters = {
-    foo = "test1"
-    bar = "test2"
+    foo  = "test1"
+    bar  = "test2"
     buzz = "test3"
   }
 

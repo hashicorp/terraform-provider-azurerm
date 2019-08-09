@@ -113,7 +113,6 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	enabled := true
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -121,13 +120,13 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, location, enabled),
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, location, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, enabled),
+				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, true),
 				ExpectError: testRequiresImportError("azurerm_metric_alertrule"),
 			},
 		},
