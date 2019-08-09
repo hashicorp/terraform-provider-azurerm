@@ -16,8 +16,7 @@ IMPROVEMENTS:
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
-* `azurerm_traffic_manager_profile`  - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
-
+* `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 
 BUG FIXES: 
 
@@ -25,6 +24,8 @@ BUG FIXES:
 * `azurerm_batch_certificate` - the `thumbprint_algorithm` property is now case insensitive [GH-3977]
 * `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+* `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
+* `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
 
 ## 1.32.1 (July 31, 2019)
 
