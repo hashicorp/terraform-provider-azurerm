@@ -155,7 +155,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
@@ -258,7 +258,7 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())
@@ -299,7 +299,7 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())

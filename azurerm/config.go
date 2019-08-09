@@ -11,7 +11,6 @@ import (
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
@@ -55,6 +54,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -122,6 +122,7 @@ type ArmClient struct {
 	maps             *maps.Client
 	mariadb          *mariadb.Client
 	media            *media.Client
+	monitor          *monitor.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
@@ -150,18 +151,6 @@ type ArmClient struct {
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
-
-	// Autoscale Settings
-	autoscaleSettingsClient insights.AutoscaleSettingsClient
-
-	// Monitor
-	monitorActionGroupsClient               insights.ActionGroupsClient
-	monitorActivityLogAlertsClient          insights.ActivityLogAlertsClient
-	monitorAlertRulesClient                 insights.AlertRulesClient
-	monitorDiagnosticSettingsClient         insights.DiagnosticSettingsClient
-	monitorDiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
-	monitorLogProfilesClient                insights.LogProfilesClient
-	monitorMetricAlertsClient               insights.MetricAlertsClient
 
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
@@ -338,6 +327,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.maps = maps.BuildClient(o)
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
+	client.monitor = monitor.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
@@ -359,7 +349,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.web = web.BuildClient(o)
 
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
@@ -404,40 +393,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-}
-
-func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&agc.Client, auth)
-	c.monitorActionGroupsClient = agc
-
-	alac := insights.NewActivityLogAlertsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&alac.Client, auth)
-	c.monitorActivityLogAlertsClient = alac
-
-	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&arc.Client, auth)
-	c.monitorAlertRulesClient = arc
-
-	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitorLogProfilesClient.Client, auth)
-	c.monitorLogProfilesClient = monitorLogProfilesClient
-
-	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mac.Client, auth)
-	c.monitorMetricAlertsClient = mac
-
-	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&autoscaleSettingsClient.Client, auth)
-	c.autoscaleSettingsClient = autoscaleSettingsClient
-
-	monitoringInsightsClient := insights.NewDiagnosticSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitoringInsightsClient.Client, auth)
-	c.monitorDiagnosticSettingsClient = monitoringInsightsClient
-
-	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
-	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
