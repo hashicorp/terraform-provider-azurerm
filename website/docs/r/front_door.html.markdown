@@ -173,13 +173,39 @@ The `routing_rule` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `name` - (Required) Name of the Frontend endpoint.
+
+* `host_name` - (Required) Name of the Frontend endpoint.
+
+* `session_affinity_enabled` - (Required) Name of the Frontend endpoint.
+
+* `session_affinity_ttl_seconds` - (Required) Name of the Frontend endpoint.
+
+* `enable_custom_https_provisioning` - (Required) Name of the Frontend endpoint.
+
+---
+
+The `custom_https_configuration` block supports the following:
+
+* `certificate_source` - (Optional) Certificate source to encrypted HTTPS traffic with. Permitted values are `FrontDoor` or `AzureKeyVault` Defaults to `FrontDoor`.
+
+* `azure_key_vault_certificate_vault_id` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+
+* `azure_key_vault_certificate_secret_name` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+
+* `azure_key_vault_certificate_secret_version` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+
+~> **Note:** In order to enable the use of your own custom HTTPS certificate you must grant Azure Front Door Service access to your key vault. For instuctions on how to configure your Key Vault correctly please refer to the product [documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate). 
+
+---
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `provisioning_state` - Provisioning state of the Front Door.
+
+* `provisioning_substate` - Provisioning substate of the Front Door
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 

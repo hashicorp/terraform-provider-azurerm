@@ -22,7 +22,7 @@ func dataSourceArmFrontDoor() *schema.Resource {
 				ValidateFunc: azure.ValidateFrontDoorName,
 			},
 
-			"enabled": {
+			"load_balancer_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -291,7 +291,7 @@ func dataSourceArmFrontDoor() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"enable_custom_https_provisioning": {
+						"custom_https_provisioning_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
@@ -379,11 +379,12 @@ func dataSourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		d.Set("cname", properties.Cname)
 		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("enabled", true)
+			d.Set("load_balancer_enabled", true)
 		} else {
-			d.Set("enabled", false)
+			d.Set("load_balancer_enabled", false)
 		}
 		d.Set("friendly_name", properties.FriendlyName)
+
 		frontDoorFrontendEndpoint, flattenErr := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta)
 
 		if flattenErr == nil {

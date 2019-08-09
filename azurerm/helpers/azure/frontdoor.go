@@ -169,12 +169,21 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	return false
 }
 
-func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, serviceName string, resourceType string, resourceName string) string {
-	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(serviceName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
+func IsFrontDoorFrontendEndpointConfigurable(currentState frontdoor.CustomHTTPSProvisioningState) bool {
+	switch currentState {
+	case frontdoor.CustomHTTPSProvisioningStateDisabling, frontdoor.CustomHTTPSProvisioningStateEnabling, frontdoor.CustomHTTPSProvisioningStateFailed:
+		return false
+	default:
+		return true
+	}
+}
+
+func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
+	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
 		return ""
 	}
 
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, serviceName, resourceType, resourceName)
+	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)
 }
 
 func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
