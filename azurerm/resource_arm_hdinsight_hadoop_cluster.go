@@ -226,6 +226,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 				ComputeProfile: &hdinsight.ComputeProfile{
 					Roles: &roles,
 				},
+				ApplicationType: utils.String("CustomApplication"),
 			},
 		}
 		future, err := applicationsClient.Create(ctx, resourceGroup, name, name, application)
