@@ -20,6 +20,7 @@ var hdInsightHadoopClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	Required:                 true,
 }
 
 var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -27,6 +28,7 @@ var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        25,
 	CanSpecifyDisks:         false,
+	Required:                true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -36,6 +38,17 @@ var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinitio
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	Required:                 true,
+}
+
+var hdInsightHadoopClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
+	CanSpecifyInstanceCount:  false,
+	MinInstanceCount:         1,
+	MaxInstanceCount:         1,
+	CanSpecifyDisks:          false,
+	FixedMinInstanceCount:    utils.Int32(int32(1)),
+	FixedTargetInstanceCount: utils.Int32(int32(1)),
+	Required:                 false,
 }
 
 func resourceArmHDInsightHadoopCluster() *schema.Resource {
@@ -89,6 +102,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHadoopClusterWorkerNodeDefinition),
 
 						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition),
+
+						"edge_node": azure.SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightHadoopClusterEdgeNodeDefinition),
 					},
 				},
 			},
@@ -194,6 +209,34 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(*read.ID)
+
+	// Add edge node after creation
+	if v, ok := d.GetOk("roles.0.edge_node"); ok {
+		edgeNodeRaw := v.([]interface{})
+		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+
+		edgeNode, err := azure.ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, hdInsightHadoopClusterEdgeNodeDefinition)
+		if err != nil {
+			return fmt.Errorf("Error expanding `roles.0.edge_node`: %+v", err)
+		}
+		roles := make([]hdinsight.Role, 0)
+		roles = append(roles, *edgeNode)
+		application := hdinsight.Application{
+			Properties: &hdinsight.ApplicationProperties{
+				ComputeProfile: &hdinsight.ComputeProfile{
+					Roles: &roles,
+				},
+			},
+		}
+		future, err := applicationsClient.Create(ctx, resourceGroup, name, name, application)
+		if err != nil {
+			return fmt.Errorf("Error creating edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
 
 	return resourceArmHDInsightHadoopClusterRead(d, meta)
 }

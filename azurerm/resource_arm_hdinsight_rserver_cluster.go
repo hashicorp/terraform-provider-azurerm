@@ -21,6 +21,7 @@ var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	Required:                 true,
 }
 
 var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -28,6 +29,7 @@ var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        16,
 	CanSpecifyDisks:         false,
+	Required:                true,
 }
 
 var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -37,6 +39,7 @@ var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefiniti
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	Required:                 true,
 }
 
 var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
@@ -45,6 +48,7 @@ var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         1,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
+	Required:                 true,
 }
 
 func resourceArmHDInsightRServerCluster() *schema.Resource {

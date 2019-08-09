@@ -19,6 +19,7 @@ var hdInsightHBaseClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         2,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	Required:                 true,
 }
 
 var hdInsightHBaseClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -26,6 +27,7 @@ var hdInsightHBaseClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        23,
 	CanSpecifyDisks:         false,
+	Required:                true,
 }
 
 var hdInsightHBaseClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -34,6 +36,7 @@ var hdInsightHBaseClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	MaxInstanceCount:         3,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	Required:                 true,
 }
 
 func resourceArmHDInsightHBaseCluster() *schema.Resource {

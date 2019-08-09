@@ -210,6 +210,7 @@ type HDInsightNodeDefinition struct {
 	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
 	FixedTargetInstanceCount *int32
+	Required                 bool
 }
 
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition) *schema.Schema {
@@ -364,6 +365,17 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, *definition.MaxNumberOfDisksPerNode),
+		}
+	}
+
+	if !definition.Required {
+		return &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: result,
+			},
 		}
 	}
 
