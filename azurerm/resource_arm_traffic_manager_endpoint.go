@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// Return the basic structure of a traffic manager endpoint
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,
@@ -111,6 +112,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
+			// custom headers can be added one by one, or once in a list
+			// For each custom header, a name and value is required
+			// Custom headers are not necessary and will be renewes each time
 			"custom_header": {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
@@ -129,6 +133,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Optional: true,
 			},
 
+			// Subnets can be added one by one, or once in a list
+			// For each custom header, a first is needed and just one from last or scope is needed
+			// Subnets are not necessary and will be renewes each time
 			"subnet": {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
@@ -247,6 +254,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
+		// Set the subnets and custom headers from the Azure configuration to Terraform saving files
 		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
 			return fmt.Errorf("Error setting `subnet`: %s", err)
 		}
@@ -256,7 +264,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	}
 	return nil
 }
-
+// helper function to flatten the Azure configuration to what Terraform accepts
 func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
@@ -278,6 +286,7 @@ func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.En
 	return result
 }
 
+// helper function to flatten the Azure configuration to what Terraform accepts
 func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
@@ -365,6 +374,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
+	// Load the data of Terraform  and form them to Azure configuration
 	templist := d.Get("subnet").([]interface{})
 	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
 	for _, subnetOld := range templist {
