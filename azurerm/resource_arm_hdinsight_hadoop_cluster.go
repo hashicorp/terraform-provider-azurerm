@@ -228,7 +228,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		application := hdinsight.Application{
 			Properties: &hdinsight.ApplicationProperties{
 				ComputeProfile: &hdinsight.ComputeProfile{
-					Roles: &[]hdinsight.Role{hdinsight.Role{
+					Roles: &[]hdinsight.Role{{
 						Name: utils.String("edgenode"),
 						HardwareProfile: &hdinsight.HardwareProfile{
 							VMSize: utils.String(v["vm_size"].(string)),
