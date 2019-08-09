@@ -44,8 +44,9 @@ func dataSourceArmDnsZone() *schema.Resource {
 			},
 
 			"zone_type": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Private DNS Zones are now supported through a separate resource in Azure & Terraform",
 			},
 
 			"registration_virtual_network_ids": {
@@ -140,7 +141,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func findZone(client dns.ZonesClient, rgClient resources.GroupsGroupClient, ctx context.Context, name string) (dns.Zone, string, error) {
+func findZone(client dns.ZonesClient, rgClient resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
 	groups, err := rgClient.List(ctx, "", nil)
 	if err != nil {
 		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)

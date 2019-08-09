@@ -199,7 +199,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apimgmt.ServiceClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ServiceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management" {
@@ -239,7 +239,7 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Api Management: %s", apiMangementName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).apimgmt.ServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, apiMangementName)
 		if err != nil {
@@ -429,7 +429,7 @@ resource "azurerm_api_management" "test" {
   }
 
   sign_up {
-    enabled          = true
+    enabled = true
 
     terms_of_service {
       enabled          = true

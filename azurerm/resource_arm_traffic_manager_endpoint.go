@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -116,53 +117,58 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			// For each custom header, a name and value is required
 			// Custom headers are not necessary and will be renewes each time
 			"custom_header": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
-				ForceNew: true,
-				Optional: true,
 			},
 
 			// Subnets can be added one by one, or once in a list
 			// For each custom header, a first is needed and just one from last or scope is needed
 			// Subnets are not necessary and will be renewes each time
 			"subnet": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"first": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
 						},
 						"last": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.IPv4Address,
 						},
 						"scope": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 32),
 						},
 					},
 				},
-				ForceNew: true,
-				Optional: true,
 			},
 		},
 	}
 }
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
@@ -210,7 +216,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -306,7 +312,7 @@ func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmana
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerEndpointsClient
+	client := meta.(*ArmClient).trafficManager.EndpointsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -374,6 +380,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
+<<<<<<< HEAD
 	// Load the data of Terraform  and form them to Azure configuration
 	templist := d.Get("subnet").([]interface{})
 	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
@@ -388,32 +395,37 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 				First: &subnetFirst,
 				Last:  &subnetLast,
 			}
+=======
+	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnet := range d.Get("subnet").([]interface{}) {
+		subnetBlock := subnet.(map[string]interface{})
+		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Last:  utils.String(subnetBlock["last"].(string)),
+			})
+>>>>>>> 385902838f70b0f81ff8b49d6104ad1de4755cbf
 		} else {
-			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
-				First: &subnetFirst,
-				Scope: &subnetScope,
-			}
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Scope: utils.Int32(int32(subnetBlock["scope"].(int))),
+			})
 		}
-		subnetMappings = append(subnetMappings, subnetNew)
 	}
-	if len(subnetMappings) > 0 {
-		endpointProps.Subnets = &subnetMappings
+	if len(subnetSlice) > 0 {
+		endpointProps.Subnets = &subnetSlice
 	}
 
-	templist = d.Get("custom_header").([]interface{})
-	headerMappings := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
-	for _, headerOld := range templist {
-		headerOld := headerOld.(map[string]interface{})
-		headerName := headerOld["name"].(string)
-		headerValue := headerOld["value"].(string)
-		headerNew := trafficmanager.EndpointPropertiesCustomHeadersItem{
-			Name:  &headerName,
-			Value: &headerValue,
-		}
-		headerMappings = append(headerMappings, headerNew)
+	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	for _, header := range d.Get("custom_header").([]interface{}) {
+		headerBlock := header.(map[string]interface{})
+		headerSlice = append(headerSlice, trafficmanager.EndpointPropertiesCustomHeadersItem{
+			Name:  utils.String(headerBlock["name"].(string)),
+			Value: utils.String(headerBlock["value"].(string)),
+		})
 	}
-	if len(headerMappings) > 0 {
-		endpointProps.CustomHeaders = &headerMappings
+	if len(headerSlice) > 0 {
+		endpointProps.CustomHeaders = &headerSlice
 	}
 
 	return &endpointProps

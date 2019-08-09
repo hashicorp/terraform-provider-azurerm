@@ -3,37 +3,76 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
 
-func resourceStorageShareMigrateState(
-	v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
-	switch v {
-	case 0:
-		log.Println("[INFO] Found AzureRM Storage Share State v0; migrating to v1")
-		return migrateStorageShareStateV0toV1(is)
-	default:
-		return is, fmt.Errorf("Unexpected schema version: %d", v)
+// the schema schema was used for both V0 and V1
+func resourceStorageShareStateResourceV0V1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageShareName,
+			},
+			"resource_group_name": azure.SchemaResourceGroupName(),
+			"storage_account_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"quota": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      5120,
+				ValidateFunc: validation.IntBetween(1, 5120),
+			},
+			"url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
 	}
 }
 
-func migrateStorageShareStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
-	if is.Empty() {
-		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return is, nil
+func resourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	shareName := rawState["name"].(string)
+	resourceGroup := rawState["resource_group_name"].(string)
+	accountName := rawState["storage_account_name"].(string)
+
+	id := rawState["id"].(string)
+	newResourceID := fmt.Sprintf("%s/%s/%s", shareName, resourceGroup, accountName)
+	log.Printf("[DEBUG] Updating ID from %q to %q", id, newResourceID)
+
+	rawState["id"] = newResourceID
+	return rawState, nil
+}
+
+func resourceStorageShareStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	id := rawState["id"].(string)
+
+	// name/resourceGroup/accountName
+	parsedId := strings.Split(id, "/")
+	if len(parsedId) != 3 {
+		return rawState, fmt.Errorf("Expected 3 segments in the ID but got %d", len(parsedId))
 	}
 
-	log.Printf("[DEBUG] ARM Storage Share Attributes before Migration: %#v", is.Attributes)
+	shareName := parsedId[0]
+	accountName := parsedId[2]
 
-	name := is.Attributes["name"]
-	resourceGroupName := is.Attributes["resource_group_name"]
-	storageAccountName := is.Attributes["storage_account_name"]
-	newID := fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
-	is.Attributes["id"] = newID
-	is.ID = newID
+	environment := meta.(*ArmClient).environment
+	client := shares.NewWithEnvironment(environment)
 
-	log.Printf("[DEBUG] ARM Storage Share Attributes after State Migration: %#v", is.Attributes)
+	newResourceId := client.GetResourceID(accountName, shareName)
+	log.Printf("[DEBUG] Updating Resource ID from %q to %q", id, newResourceId)
 
-	return is, nil
+	rawState["id"] = newResourceId
+
+	return rawState, nil
 }

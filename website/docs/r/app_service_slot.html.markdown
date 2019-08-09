@@ -156,6 +156,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+* `auth_settings` - (Optional) A `auth_settings` block as defined below.
+
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service Slot send session affinity cookies, which route client requests in the same session to the same instance?
@@ -238,11 +240,95 @@ A `cors` block supports the following:
 
 ---
 
+A `auth_settings` block supports the following:
+
+* `enabled` - (Required) Is Authentication enabled?
+
+* `active_directory` - (Optional) A `active_directory` block as defined below.
+
+* `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
+
+* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app.
+
+* `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
+
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+
+* `facebook` - (Optional) A `facebook` block as defined below.
+
+* `google` - (Optional) A `google` block as defined below.
+
+* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+
+* `microsoft` - (Optional) A `microsoft` block as defined below.
+
+* `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
+
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+
+* `twitter` - (Optional) A `twitter` block as defined below.
+
+* `unauthenticated_client_action` - (Optional) The action to take when an unauthenticated client attempts to access the app. Possible values are `AllowAnonymous` and `RedirectToLoginPage`.
+
+---
+
+A `active_directory` block supports the following:
+
+* `client_id` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
+
+* `client_secret` - (Optional) The Client Secret of this relying party application. If no secret is provided, implicit flow will be used.
+
+* `allowed_audiences` (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+
+---
+
+A `facebook` block supports the following:
+
+* `app_id` - (Required) The App ID of the Facebook app used for login
+
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+
+---
+
+A `google` block supports the following:
+
+* `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
+
+* `client_secret` - (Required) The client secret associated with the Google web application.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. https://developers.google.com/identity/sign-in/web/
+
+---
+
+A `ip_restriction` block supports the following:
+
+* `ip_address` - (Required) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+---
+
+A `microsoft` block supports the following:
+
+* `client_id` - (Required) The OAuth 2.0 client ID that was created for the app used for authentication.
+
+* `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
+
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the App Service. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 

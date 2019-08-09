@@ -69,7 +69,7 @@ func resourceArmApiManagementProduct() *schema.Resource {
 }
 
 func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for API Management Product creation.")
@@ -118,6 +118,8 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	if subscriptionRequired && subscriptionsLimit > 0 {
 		properties.ProductContractProperties.ApprovalRequired = utils.Bool(approvalRequired)
 		properties.ProductContractProperties.SubscriptionsLimit = utils.Int32(int32(subscriptionsLimit))
+	} else if approvalRequired {
+		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, properties, ""); err != nil {
@@ -139,7 +141,7 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,7 +182,7 @@ func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmApiManagementProductDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ProductsClient
+	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

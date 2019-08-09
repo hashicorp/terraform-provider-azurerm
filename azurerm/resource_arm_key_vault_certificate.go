@@ -21,7 +21,7 @@ import (
 
 //todo refactor and find a home for this wayward func
 func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -334,8 +334,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 }
 
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
+	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -438,8 +438,8 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client keyvault
 }
 
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
+	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -508,8 +508,8 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
+	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())

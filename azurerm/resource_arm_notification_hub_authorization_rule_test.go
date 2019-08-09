@@ -178,7 +178,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
+		client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -200,7 +200,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 }
 
 func testCheckAzureRMNotificationHubAuthorizationRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
+	client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

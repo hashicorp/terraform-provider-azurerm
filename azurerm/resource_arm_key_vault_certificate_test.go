@@ -245,7 +245,7 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -257,7 +257,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -283,7 +283,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -296,7 +296,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -320,7 +320,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 
 func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.ManagementClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -332,7 +332,7 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyVaultClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -369,9 +369,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -394,7 +392,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
@@ -437,9 +435,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -542,9 +538,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -572,8 +566,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  key_vault_id  = "${azurerm_key_vault.test.id}"
+  name         = "acctestcert%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -634,9 +628,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -656,7 +648,7 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
-    
+
     storage_permissions = [
       "set",
     ]
@@ -664,7 +656,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
@@ -733,9 +725,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -759,7 +749,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name     = "acctestcert%s"
+  name         = "acctestcert%s"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate_policy {
@@ -825,9 +815,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"

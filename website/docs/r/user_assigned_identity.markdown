@@ -53,7 +53,7 @@ The following attributes are exported:
 
 ## Import
 
-User Assigned Identitites can be imported using the `resource id`, e.g.
+User Assigned Identities can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_user_assigned_identity.testIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity

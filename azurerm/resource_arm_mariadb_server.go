@@ -174,7 +174,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 }
 
 func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
@@ -295,7 +295,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -345,7 +345,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

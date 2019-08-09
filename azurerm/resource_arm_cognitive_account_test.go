@@ -164,7 +164,7 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cognitiveAccountsClient
+	client := testAccProvider.Meta().(*ArmClient).cognitive.AccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -200,7 +200,7 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).cognitiveAccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).cognitive.AccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, name)

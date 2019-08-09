@@ -65,9 +65,11 @@ The following arguments are supported:
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
-* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
-* `certificate` - (Optional) A `certificate` block as defined below.
+* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below. Conflicts with `certificate`.
+
+* `certificate` - (Optional) A `certificate` block as defined below. Conflicts with `certificate_common_names`.
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
@@ -85,11 +87,29 @@ The following arguments are supported:
 
 A `azure_active_directory` block supports the following:
 
-* `tenant_id` - (Required) The Azure Active Directory Tenant ID. Changing this forces a new resource to be created.
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID.
 
-* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID. Changing this forces a new resource to be created.
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID.
 
-* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application. Changing this forces a new resource to be created.
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application.
+
+---
+
+A `certificate_common_names` block supports the following:
+
+* `common_names` - (Required) A `common_names` block as defined below.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `common_names` block supports the following:
+
+* `certificate_common_name` - (Required) The common or subject name of the certificate.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 

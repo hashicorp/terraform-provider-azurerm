@@ -201,9 +201,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 					testCheckAzureRMTrafficManagerEndpointExists(firstResourceName),
 					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
 					resource.TestCheckResourceAttr(firstResourceName, "subnet.#", "0"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnet.0.first", "12.34.56.78"),
-					resource.TestCheckResourceAttr(firstResourceName, "subnet.0.last", "12.34.56.78"),
 					resource.TestCheckResourceAttr(secondResourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.first", "12.34.56.78"),
+					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.last", "12.34.56.78"),
 				),
 			},
 		},
@@ -386,7 +386,7 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
@@ -418,7 +418,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
@@ -430,7 +430,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
+
+	conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -780,14 +781,14 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnet {
-		first = "1.2.3.0"
-		scope = "24"
-	}
-	subnet {
-		first = "11.12.13.14"
+  subnet {
+    first = "1.2.3.0"
+    scope = "24"
+  }
+  subnet {
+    first = "11.12.13.14"
     last = "11.12.13.14"
-	}
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -796,10 +797,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnet {
-		first = "21.22.23.24"
-		scope = "32"
-	}
+  subnet {
+    first = "21.22.23.24"
+    scope = "32"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -842,10 +843,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	subnet {
-		first = "12.34.56.78"
-		last = "12.34.56.78"
-	}
+  subnet {
+    first = "12.34.56.78"
+    last = "12.34.56.78"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -860,7 +861,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmp%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
-  traffic_routing_method = "Subnet"
+  traffic_routing_method = "Priority"
 
   dns_config {
     relative_name = "acctesttmp%d"
@@ -880,10 +881,11 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	custom_header {
-		name = "header"
-		value = "www.bing.com"
-	}
+  priority            = 1
+  custom_header {
+    name = "header"
+    value = "www.bing.com"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -892,6 +894,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 2
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -906,7 +909,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmp%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
-  traffic_routing_method = "Subnet"
+  traffic_routing_method = "Priority"
 
   dns_config {
     relative_name = "acctesttmp%d"
@@ -926,6 +929,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   target              = "terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 1
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -934,10 +938,11 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   target              = "www.terraform.io"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	custom_header {
-		name = "header"
-		value = "www.bing.com"
-	}
+  priority            = 2
+  custom_header {
+    name = "header"
+    value = "www.bing.com"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

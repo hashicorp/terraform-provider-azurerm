@@ -99,7 +99,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 }
 
 func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
@@ -166,7 +166,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -212,7 +212,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

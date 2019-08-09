@@ -17,6 +17,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 		Read:   resourceArmMySqlFirewallRuleRead,
 		Update: resourceArmMySqlFirewallRuleCreateUpdate,
 		Delete: resourceArmMySqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -31,9 +32,10 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"start_ip_address": {
@@ -50,7 +52,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Firewall Rule creation.")
@@ -104,7 +106,7 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -134,7 +136,7 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

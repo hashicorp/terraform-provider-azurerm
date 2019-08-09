@@ -39,7 +39,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateFilePath(),
+				ValidateFunc: validateDataLakeStoreRemoteFilePath(),
 			},
 
 			"local_file_path": {
@@ -178,4 +178,16 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 		filePath:           uri.Path,
 	}
 	return &file, nil
+}
+
+func validateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (warnings []string, errors []error) {
+		val := v.(string)
+
+		if !strings.HasPrefix(val, "/") {
+			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
+		}
+
+		return warnings, errors
+	}
 }

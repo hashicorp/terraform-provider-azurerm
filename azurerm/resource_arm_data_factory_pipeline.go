@@ -72,7 +72,7 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 }
 
 func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
+	client := meta.(*ArmClient).dataFactory.PipelinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Data Factory Pipeline creation.")
@@ -132,7 +132,7 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
+	client := meta.(*ArmClient).dataFactory.PipelinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -180,7 +180,7 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
+	client := meta.(*ArmClient).dataFactory.PipelinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

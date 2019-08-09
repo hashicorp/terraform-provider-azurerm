@@ -214,17 +214,31 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	storageImageRef := list[0].(map[string]interface{})
+	imageRef := &batch.ImageReference{}
 
-	storageImageRefOffer := storageImageRef["offer"].(string)
-	storageImageRefPublisher := storageImageRef["publisher"].(string)
-	storageImageRefSku := storageImageRef["sku"].(string)
-	storageImageRefVersion := storageImageRef["version"].(string)
+	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
+		storageImageRefID := storageImageRef["id"].(string)
+		imageRef.ID = &storageImageRefID
+	}
 
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
+	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
+		storageImageRefOffer := storageImageRef["offer"].(string)
+		imageRef.Offer = &storageImageRefOffer
+	}
+
+	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
+		storageImageRefPublisher := storageImageRef["publisher"].(string)
+		imageRef.Publisher = &storageImageRefPublisher
+	}
+
+	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
+		storageImageRefSku := storageImageRef["sku"].(string)
+		imageRef.Sku = &storageImageRefSku
+	}
+
+	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
+		storageImageRefVersion := storageImageRef["version"].(string)
+		imageRef.Version = &storageImageRefVersion
 	}
 
 	return imageRef, nil
@@ -248,7 +262,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
-	result := []batch.CertificateReference{}
+	var result []batch.CertificateReference
 
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
@@ -270,7 +284,7 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 	storeLocation := ref["store_location"].(string)
 	storeName := ref["store_name"].(string)
 	visibilityRefs := ref["visibility"].(*schema.Set)
-	visibility := []batch.CertificateVisibility{}
+	var visibility []batch.CertificateVisibility
 	if visibilityRefs != nil {
 		for _, visibilityRef := range visibilityRefs.List() {
 			visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
