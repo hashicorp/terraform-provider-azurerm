@@ -20,7 +20,6 @@ var hdInsightHadoopClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
-	Required:                 true,
 }
 
 var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -28,7 +27,6 @@ var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        25,
 	CanSpecifyDisks:         false,
-	Required:                true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -38,17 +36,6 @@ var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinitio
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
-	Required:                 true,
-}
-
-var hdInsightHadoopClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
-	MinInstanceCount:         1,
-	MaxInstanceCount:         1,
-	CanSpecifyDisks:          false,
-	FixedMinInstanceCount:    utils.Int32(int32(1)),
-	FixedTargetInstanceCount: utils.Int32(int32(1)),
-	Required:                 false,
 }
 
 func resourceArmHDInsightHadoopCluster() *schema.Resource {
@@ -233,6 +220,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 						HardwareProfile: &hdinsight.HardwareProfile{
 							VMSize: utils.String(v["vm_size"].(string)),
 						},
+						TargetInstanceCount: utils.Int32(1),
 					}},
 				},
 				ApplicationType: utils.String("CustomApplication"),

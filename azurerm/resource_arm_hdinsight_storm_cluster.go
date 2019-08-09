@@ -19,7 +19,6 @@ var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         4,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
-	Required:                 true,
 }
 
 var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -28,7 +27,6 @@ var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	// can't find a hard limit - appears to be limited by the subscription; setting something sensible for now
 	MaxInstanceCount: 9999,
 	CanSpecifyDisks:  false,
-	Required:         true,
 }
 
 var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -37,7 +35,6 @@ var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	MaxInstanceCount:         3,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
-	Required:                 true,
 }
 
 func resourceArmHDInsightStormCluster() *schema.Resource {

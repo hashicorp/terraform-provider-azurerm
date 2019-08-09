@@ -19,7 +19,6 @@ var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:         2,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
-	Required:                 true,
 }
 
 var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -28,7 +27,6 @@ var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MaxInstanceCount:        57,
 	CanSpecifyDisks:         true,
 	MaxNumberOfDisksPerNode: utils.Int(8),
-	Required:                true,
 }
 
 var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -37,7 +35,6 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	MaxInstanceCount:         3,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
-	Required:                 true,
 }
 
 func resourceArmHDInsightKafkaCluster() *schema.Resource {
