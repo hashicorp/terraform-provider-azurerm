@@ -380,22 +380,6 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.MinChildEndpoints = &mci64
 	}
 
-<<<<<<< HEAD
-	// Load the data of Terraform  and form them to Azure configuration
-	templist := d.Get("subnet").([]interface{})
-	subnetMappings := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
-	for _, subnetOld := range templist {
-		subnetOld := subnetOld.(map[string]interface{})
-		subnetFirst := subnetOld["first"].(string)
-		subnetLast := subnetOld["last"].(string)
-		subnetScope := int32(subnetOld["scope"].(int))
-		var subnetNew trafficmanager.EndpointPropertiesSubnetsItem
-		if subnetScope == 0 && subnetFirst != "0.0.0.0" {
-			subnetNew = trafficmanager.EndpointPropertiesSubnetsItem{
-				First: &subnetFirst,
-				Last:  &subnetLast,
-			}
-=======
 	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
 	for _, subnet := range d.Get("subnet").([]interface{}) {
 		subnetBlock := subnet.(map[string]interface{})
@@ -404,7 +388,6 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 				First: utils.String(subnetBlock["first"].(string)),
 				Last:  utils.String(subnetBlock["last"].(string)),
 			})
->>>>>>> 385902838f70b0f81ff8b49d6104ad1de4755cbf
 		} else {
 			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
 				First: utils.String(subnetBlock["first"].(string)),
