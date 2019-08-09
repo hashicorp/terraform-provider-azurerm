@@ -235,7 +235,7 @@ resource "azurerm_sql_failover_group" "test" {
     id = "${azurerm_sql_server.test_secondary.id}"
   }
 
-  read_write_endpoint_failover_policy = {
+  read_write_endpoint_failover_policy {
     mode          = "Automatic"
     grace_minutes = 60
   }
@@ -304,7 +304,7 @@ resource "azurerm_sql_failover_group" "test" {
     id = "${azurerm_sql_server.test_secondary.id}"
   }
 
-  read_write_endpoint_failover_policy = {
+  read_write_endpoint_failover_policy {
     mode          = "Automatic"
     grace_minutes = 60
   }
@@ -363,7 +363,7 @@ resource "azurerm_sql_failover_group" "test" {
     id = "${azurerm_sql_server.test_secondary.id}"
   }
 
-  read_write_endpoint_failover_policy = {
+  read_write_endpoint_failover_policy {
     mode          = "Automatic"
     grace_minutes = 60
   }
