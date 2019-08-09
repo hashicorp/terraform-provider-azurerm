@@ -289,7 +289,7 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 		d.Set("node_taints", *profile.NodeTaints)
 	}
 
-	if *profile.EnableAutoScaling == true {
+	if *profile.EnableAutoScaling {
 		autoscale_configs := make([]interface{}, 0)
 		autoscale_config := make(map[string]interface{})
 		if profile.MaxCount != nil {

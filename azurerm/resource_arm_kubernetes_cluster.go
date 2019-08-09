@@ -670,7 +670,11 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 			return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
 		}
 
-		resourceArmKubernetesClusterRead(d, meta)
+		err = resourceArmKubernetesClusterRead(d, meta)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
 		d.SetId(*read.ID)
 	}
 
@@ -1090,7 +1094,11 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 
 	agentPoolProfiles := make([]interface{}, 0)
 
-	for _, profile := range *profiles {
+	for index, profile := range *profiles {
+		if index > 0 {
+			// Keep only first element
+			continue
+		}
 		agentPoolProfile := make(map[string]interface{})
 
 		if profile.Type != "" {
@@ -1149,9 +1157,9 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
-		return agentPoolProfiles
 	}
-	return []interface{}{}
+
+	return agentPoolProfiles
 
 }
 
