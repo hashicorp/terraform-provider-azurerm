@@ -6,9 +6,10 @@ import (
 )
 
 type Client struct {
-	DatabasesClient     mariadb.DatabasesClient
-	FirewallRulesClient mariadb.FirewallRulesClient
-	ServersClient       mariadb.ServersClient
+	DatabasesClient           mariadb.DatabasesClient
+	FirewallRulesClient       mariadb.FirewallRulesClient
+	ServersClient             mariadb.ServersClient
+	VirtualNetworkRulesClient mariadb.VirtualNetworkRulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -22,6 +23,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.ServersClient = mariadb.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.ServersClient.Client, o.ResourceManagerAuthorizer)
+
+	c.VirtualNetworkRulesClient = mariadb.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &c
 }
