@@ -603,7 +603,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
-	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -621,12 +620,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -666,33 +659,16 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if len(accessKeys) > 0 {
-			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
-			d.Set("primary_connection_string", pcs)
-		}
-
-		if len(accessKeys) > 1 {
-			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
-			d.Set("secondary_connection_string", scs)
-		}
-
 		if endpoints := props.PrimaryEndpoints; endpoints != nil {
 			d.Set("primary_blob_endpoint", endpoints.Blob)
 			d.Set("primary_queue_endpoint", endpoints.Queue)
 			d.Set("primary_table_endpoint", endpoints.Table)
 			d.Set("primary_file_endpoint", endpoints.File)
-
-			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
-			d.Set("primary_blob_connection_string", pscs)
 		}
 
 		if endpoints := props.SecondaryEndpoints; endpoints != nil {
 			if blob := endpoints.Blob; blob != nil {
 				d.Set("secondary_blob_endpoint", blob)
-				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-					*blob, *resp.Name, *accessKeys[1].Value)
-				d.Set("secondary_blob_connection_string", sscs)
 			} else {
 				d.Set("secondary_blob_endpoint", "")
 				d.Set("secondary_blob_connection_string", "")
@@ -718,9 +694,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			}
 		}
 	}
-
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
 
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
