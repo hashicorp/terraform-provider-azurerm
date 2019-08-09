@@ -10,9 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
-	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -42,6 +39,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -107,6 +105,7 @@ type ArmClient struct {
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
 	dataFactory      *datafactory.Client
+	datalake         *datalake.Client
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
@@ -151,15 +150,6 @@ type ArmClient struct {
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
-
-	// Data Lake Store
-	dataLakeStoreAccountClient       storeAccount.AccountsClient
-	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
-	dataLakeStoreFilesClient         filesystem.Client
-
-	// Data Lake Analytics
-	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
-	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
 
 	// Autoscale Settings
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
@@ -333,6 +323,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)
 	client.dataFactory = datafactory.BuildClient(o)
+	client.datalake = datalake.BuildClient(o)
 	client.devSpace = devspace.BuildClient(o)
 	client.devTestLabs = devtestlabs.BuildClient(o)
 	client.dns = dns.BuildClient(o)
@@ -368,7 +359,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.web = web.BuildClient(o)
 
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -414,28 +404,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-}
-
-func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&storeAccountClient.Client, auth)
-	c.dataLakeStoreAccountClient = storeAccountClient
-
-	storeFirewallRulesClient := storeAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&storeFirewallRulesClient.Client, auth)
-	c.dataLakeStoreFirewallRulesClient = storeFirewallRulesClient
-
-	analyticsAccountClient := analyticsAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&analyticsAccountClient.Client, auth)
-	c.dataLakeAnalyticsAccountClient = analyticsAccountClient
-
-	filesClient := filesystem.NewClient()
-	c.configureClient(&filesClient.Client, auth)
-	c.dataLakeStoreFilesClient = filesClient
-
-	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
-	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
