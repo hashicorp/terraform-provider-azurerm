@@ -103,7 +103,16 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition),
 
-						"edge_node": azure.SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightHadoopClusterEdgeNodeDefinition),
+						"edge_node": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"vm_size": azure.SchemaHDInsightNodeDefinitionVMSize(),
+								},
+							},
+						},
 					},
 				},
 			},
@@ -215,16 +224,16 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		edgeNodeRaw := v.([]interface{})
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
 
-		edgeNode, err := azure.ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, hdInsightHadoopClusterEdgeNodeDefinition)
-		if err != nil {
-			return fmt.Errorf("Error expanding `roles.0.edge_node`: %+v", err)
-		}
-		roles := make([]hdinsight.Role, 0)
-		roles = append(roles, *edgeNode)
+		v := edgeNodeRaw[0].(map[string]interface{})
 		application := hdinsight.Application{
 			Properties: &hdinsight.ApplicationProperties{
 				ComputeProfile: &hdinsight.ComputeProfile{
-					Roles: &roles,
+					Roles: &[]hdinsight.Role{hdinsight.Role{
+						Name: utils.String("edgenode"),
+						HardwareProfile: &hdinsight.HardwareProfile{
+							VMSize: utils.String(v["vm_size"].(string)),
+						},
+					}},
 				},
 				ApplicationType: utils.String("CustomApplication"),
 			},
