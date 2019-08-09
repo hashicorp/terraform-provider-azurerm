@@ -669,6 +669,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
     edge_node {
       vm_size  = "Standard_D3_V2"
+      install_script_action_uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
     }
   }
 }

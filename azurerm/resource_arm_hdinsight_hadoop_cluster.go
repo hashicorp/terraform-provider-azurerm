@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -97,6 +98,13 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"vm_size": azure.SchemaHDInsightNodeDefinitionVMSize(),
+
+									"install_script_action_uri": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
 								},
 							},
 						},
@@ -221,6 +229,10 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 							VMSize: utils.String(v["vm_size"].(string)),
 						},
 						TargetInstanceCount: utils.Int32(1),
+						ScriptActions: &[]hdinsight.ScriptAction{{
+							Name: utils.String("edgenode"),
+							URI:  utils.String(v["install_script_action_uri"].(string)),
+						}},
 					}},
 				},
 				ApplicationType: utils.String("CustomApplication"),
