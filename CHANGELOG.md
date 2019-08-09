@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
