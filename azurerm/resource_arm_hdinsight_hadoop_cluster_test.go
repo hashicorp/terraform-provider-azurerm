@@ -669,8 +669,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
     edge_node {
       vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
     }
   }
 }
