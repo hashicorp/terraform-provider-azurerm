@@ -72,7 +72,7 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 }
 
 func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	imageVersion := d.Get("name").(string)

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
@@ -38,6 +37,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
@@ -102,6 +102,7 @@ type ArmClient struct {
 	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
+	compute          *compute.Client
 	containers       *containers.Client
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
@@ -140,21 +141,6 @@ type ArmClient struct {
 	streamanalytics  *streamanalytics.Client
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
-
-	// Compute
-	availSetClient             compute.AvailabilitySetsClient
-	diskClient                 compute.DisksClient
-	imageClient                compute.ImagesClient
-	galleriesClient            compute.GalleriesClient
-	galleryImagesClient        compute.GalleryImagesClient
-	galleryImageVersionsClient compute.GalleryImageVersionsClient
-	snapshotsClient            compute.SnapshotsClient
-	usageOpsClient             compute.UsageClient
-	vmExtensionImageClient     compute.VirtualMachineExtensionImagesClient
-	vmExtensionClient          compute.VirtualMachineExtensionsClient
-	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
-	vmImageClient              compute.VirtualMachineImagesClient
-	vmClient                   compute.VirtualMachinesClient
 
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
@@ -342,6 +328,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.batch = batch.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
+	client.compute = compute.BuildClient(o)
 	client.containers = containers.BuildClient(o)
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)
@@ -380,7 +367,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.trafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
-	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
@@ -389,60 +375,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
-}
-
-func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&availabilitySetsClient.Client, auth)
-	c.availSetClient = availabilitySetsClient
-
-	diskClient := compute.NewDisksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&diskClient.Client, auth)
-	c.diskClient = diskClient
-
-	imagesClient := compute.NewImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&imagesClient.Client, auth)
-	c.imageClient = imagesClient
-
-	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&snapshotsClient.Client, auth)
-	c.snapshotsClient = snapshotsClient
-
-	usageClient := compute.NewUsageClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&usageClient.Client, auth)
-	c.usageOpsClient = usageClient
-
-	extensionImagesClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&extensionImagesClient.Client, auth)
-	c.vmExtensionImageClient = extensionImagesClient
-
-	extensionsClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&extensionsClient.Client, auth)
-	c.vmExtensionClient = extensionsClient
-
-	virtualMachineImagesClient := compute.NewVirtualMachineImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&virtualMachineImagesClient.Client, auth)
-	c.vmImageClient = virtualMachineImagesClient
-
-	scaleSetsClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&scaleSetsClient.Client, auth)
-	c.vmScaleSetClient = scaleSetsClient
-
-	virtualMachinesClient := compute.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&virtualMachinesClient.Client, auth)
-	c.vmClient = virtualMachinesClient
-
-	galleriesClient := compute.NewGalleriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleriesClient.Client, auth)
-	c.galleriesClient = galleriesClient
-
-	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleryImagesClient.Client, auth)
-	c.galleryImagesClient = galleryImagesClient
-
-	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleryImageVersionsClient.Client, auth)
-	c.galleryImageVersionsClient = galleryImageVersionsClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
