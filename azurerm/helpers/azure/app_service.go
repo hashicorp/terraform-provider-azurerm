@@ -468,26 +468,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
-				"cors": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"allowed_origins": {
-								Type:     schema.TypeSet,
-								Required: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
-							},
-							"support_credentials": {
-								Type:     schema.TypeBool,
-								Optional: true,
-								Default:  false,
-							},
-						},
-					},
-				},
+				"cors": SchemaWebCorsSettings(),
 			},
 		},
 	}
@@ -749,57 +730,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 			},
 		},
 	}
-}
-
-func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
-	settings := input.([]interface{})
-	corsSettings := web.CorsSettings{}
-
-	if len(settings) == 0 {
-		return corsSettings
-	}
-
-	setting := settings[0].(map[string]interface{})
-
-	if v, ok := setting["allowed_origins"]; ok {
-		input := v.(*schema.Set).List()
-
-		allowedOrigins := make([]string, 0)
-		for _, param := range input {
-			allowedOrigins = append(allowedOrigins, param.(string))
-		}
-
-		corsSettings.AllowedOrigins = &allowedOrigins
-	}
-
-	if v, ok := setting["support_credentials"]; ok {
-		corsSettings.SupportCredentials = utils.Bool(v.(bool))
-	}
-
-	return corsSettings
-}
-
-func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	result := make(map[string]interface{})
-
-	allowedOrigins := make([]interface{}, 0)
-	if s := input.AllowedOrigins; s != nil {
-		for _, v := range *s {
-			allowedOrigins = append(allowedOrigins, v)
-		}
-	}
-	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
-
-	if input.SupportCredentials != nil {
-		result["support_credentials"] = *input.SupportCredentials
-	}
-
-	return append(results, result)
 }
 
 func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsProperties {
@@ -1418,7 +1348,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
-		expand := ExpandAppServiceCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
 	}
 
@@ -1537,7 +1467,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
-	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
+	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
 	return append(results, result)
 }

@@ -41,8 +41,8 @@ func resourceArmSqlServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string("2.0"),
-					string("12.0"),
+					"2.0",
+					"12.0",
 				}, true),
 			},
 

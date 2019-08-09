@@ -50,7 +50,7 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 
 func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchCertificateClient
+	client := meta.(*ArmClient).batch.CertificateClient
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)

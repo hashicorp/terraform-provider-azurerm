@@ -199,9 +199,12 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
 			},
+
+			"auth_settings": azure.SchemaAppServiceAuthSettings(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -226,7 +229,7 @@ func resourceArmFunctionApp() *schema.Resource {
 }
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
@@ -316,11 +319,22 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*read.ID)
 
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+
+	auth := web.SiteAuthSettings{
+		ID:                         read.ID,
+		SiteAuthSettingsProperties: &authSettings}
+
+	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+	}
+
 	return resourceArmFunctionAppUpdate(d, meta)
 }
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -396,6 +410,20 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("auth_settings") {
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		id := d.Id()
+		authSettings := web.SiteAuthSettings{
+			ID:                         &id,
+			SiteAuthSettingsProperties: &authSettingsProperties,
+		}
+
+		if _, err := client.UpdateAuthSettings(ctx, resGroup, name, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", name, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandFunctionAppConnectionStrings(d)
@@ -412,7 +440,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -459,6 +487,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	siteCredResp, err := siteCredFuture.Result(client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -514,6 +546,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	if err := d.Set("auth_settings", authSettings); err != nil {
+		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+	}
+
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
@@ -525,7 +562,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -594,7 +631,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 
 	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
 
-	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
+	appServicePlansClient := meta.(*ArmClient).web.AppServicePlansClient
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
@@ -645,6 +682,12 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := azure.ExpandWebCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
 	return siteConfig
 }
 
@@ -672,6 +715,8 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
+
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
 	results = append(results, result)
 	return results

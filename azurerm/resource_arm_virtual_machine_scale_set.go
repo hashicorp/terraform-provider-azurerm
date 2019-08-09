@@ -1554,6 +1554,61 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+
+		if v, ok := m["accelerated_networking"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["ip_forwarding"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["network_security_group_id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["dns_settings"].(map[string]interface{}); ok {
+			if k, ok := v["dns_servers"]; ok {
+				buf.WriteString(fmt.Sprintf("%s-", k))
+			}
+		}
+		if ipConfig, ok := m["ip_configuration"].([]interface{}); ok {
+			for _, it := range ipConfig {
+				config := it.(map[string]interface{})
+				if name, ok := config["name"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", name.(string)))
+				}
+				if subnetid, ok := config["subnet_id"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", subnetid.(string)))
+				}
+				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*schema.Set).List()))
+				}
+				if appSecGroup, ok := config["application_security_group_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*schema.Set).List()))
+				}
+				if lbPoolIds, ok := config["load_balancer_backend_address_pool_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*schema.Set).List()))
+				}
+				if lbInNatRules, ok := config["load_balancer_inbound_nat_rules_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*schema.Set).List()))
+				}
+				if primary, ok := config["primary"]; ok {
+					buf.WriteString(fmt.Sprintf("%t-", primary.(bool)))
+				}
+				if publicIPConfig, ok := config["public_ip_address_configuration"].([]interface{}); ok {
+					for _, publicIPIt := range publicIPConfig {
+						publicip := publicIPIt.(map[string]interface{})
+						if publicIPConfigName, ok := publicip["name"]; ok {
+							buf.WriteString(fmt.Sprintf("%s-", publicIPConfigName.(string)))
+						}
+						if idle_timeout, ok := publicip["idle_timeout"]; ok {
+							buf.WriteString(fmt.Sprintf("%d-", idle_timeout.(int)))
+						}
+						if dnsLabel, ok := publicip["domain_name_label"]; ok {
+							buf.WriteString(fmt.Sprintf("%s-", dnsLabel.(string)))
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -1564,6 +1619,18 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+		if sshKeys, ok := m["ssh_keys"].([]interface{}); ok {
+			for _, item := range sshKeys {
+				k := item.(map[string]interface{})
+				if path, ok := k["path"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", path.(string)))
+				}
+				if data, ok := k["key_data"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", data.(string)))
+				}
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())

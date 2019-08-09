@@ -71,7 +71,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Queue creation.")
@@ -143,7 +143,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.Resou
 }
 
 func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -188,7 +188,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData,
 }
 
 func resourceArmStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

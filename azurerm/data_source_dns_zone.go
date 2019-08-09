@@ -44,8 +44,9 @@ func dataSourceArmDnsZone() *schema.Resource {
 			},
 
 			"zone_type": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Private DNS Zones are now supported through a separate resource in Azure & Terraform",
 			},
 
 			"registration_virtual_network_ids": {

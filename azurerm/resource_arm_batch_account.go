@@ -93,7 +93,7 @@ func resourceArmBatchAccount() *schema.Resource {
 }
 
 func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchAccountClient
+	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
@@ -171,7 +171,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchAccountClient
+	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -223,7 +223,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchAccountClient
+	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
@@ -266,7 +266,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchAccountClient
+	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

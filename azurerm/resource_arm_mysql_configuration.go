@@ -46,7 +46,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 }
 
 func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
@@ -85,7 +85,7 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -116,7 +116,7 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
