@@ -14,7 +14,6 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -48,6 +47,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
@@ -112,6 +112,7 @@ type ArmClient struct {
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	keyvault         *keyvault.Client
@@ -139,13 +140,6 @@ type ArmClient struct {
 	streamanalytics  *streamanalytics.Client
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
-
-	// Authentication
-	applicationsClient      graphrbac.ApplicationsClient
-	servicePrincipalsClient graphrbac.ServicePrincipalsClient
-
-	// Autoscale Settings
-	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	// Compute
 	availSetClient             compute.AvailabilitySetsClient
@@ -180,6 +174,9 @@ type ArmClient struct {
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
+
+	// Autoscale Settings
+	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	// Monitor
 	monitorActionGroupsClient               insights.ActionGroupsClient
@@ -322,14 +319,15 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	})
 
 	o := &common.ClientOptions{
+		SubscriptionId:              c.SubscriptionID,
+		TenantID:                    c.TenantID,
+		PartnerId:                   partnerId,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		SubscriptionId:              c.SubscriptionID,
-		PartnerId:                   partnerId,
 		PollingDuration:             60 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
@@ -353,6 +351,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
 	client.keyvault = keyvault.BuildClient(o)
@@ -381,7 +380,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.trafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
-	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
@@ -391,17 +389,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
-}
-
-func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
-
-	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
-	c.configureClient(&applicationsClient.Client, graphAuth)
-	c.applicationsClient = applicationsClient
-
-	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
-	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
-	c.servicePrincipalsClient = servicePrincipalsClient
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
