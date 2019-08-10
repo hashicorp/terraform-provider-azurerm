@@ -9,9 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
-	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -52,6 +49,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -68,8 +66,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -123,6 +123,7 @@ type ArmClient struct {
 	monitor          *monitor.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
+	mssql            *mssql.Client
 	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
@@ -139,21 +140,10 @@ type ArmClient struct {
 	signalr          *signalr.Client
 	storage          *intStor.Client
 	streamanalytics  *streamanalytics.Client
+	subscription     *subscription.Client
+	sql              *sql.Client
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
-
-	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	msSqlElasticPoolsClient MsSql.ElasticPoolsClient
-
-	sqlDatabasesClient                       sql.DatabasesClient
-	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
-	sqlElasticPoolsClient                    sql.ElasticPoolsClient
-	sqlFirewallRulesClient                   sql.FirewallRulesClient
-	sqlServersClient                         sql.ServersClient
-	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
-
-	subscriptionsClient subscriptions.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -269,6 +259,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.monitor = monitor.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
+	client.mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
 	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
@@ -286,11 +277,11 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.scheduler = scheduler.BuildClient(o)
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
+	client.subscription = subscription.BuildClient(o)
+	client.sql = sql.BuildClient(o)
 	client.trafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
@@ -323,53 +314,6 @@ func setUserAgent(client *autorest.Client, partnerID string) {
 	}
 
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
-}
-
-func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-
-	// SQL Azure
-	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlDBClient.Client, auth)
-	c.sqlDatabasesClient = sqlDBClient
-
-	sqlDTDPClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&sqlDTDPClient.Client, "")
-	sqlDTDPClient.Authorizer = auth
-	sqlDTDPClient.Sender = sender
-	sqlDTDPClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.sqlDatabaseThreatDetectionPoliciesClient = sqlDTDPClient
-
-	sqlFWClient := sql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlFWClient.Client, auth)
-	c.sqlFirewallRulesClient = sqlFWClient
-
-	sqlEPClient := sql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlEPClient.Client, auth)
-	c.sqlElasticPoolsClient = sqlEPClient
-
-	MsSqlEPClient := MsSql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&MsSqlEPClient.Client, auth)
-	c.msSqlElasticPoolsClient = MsSqlEPClient
-
-	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlSrvClient.Client, auth)
-	c.sqlServersClient = sqlSrvClient
-
-	sqlADClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlADClient.Client, auth)
-	c.sqlServerAzureADAdministratorsClient = sqlADClient
-
-	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlVNRClient.Client, auth)
-	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-}
-
-func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-
-	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionsClient.Client, auth)
-	c.subscriptionsClient = subscriptionsClient
-
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {
