@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
 * `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
 * `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
+* `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
 
 ## 1.32.1 (July 31, 2019)
 
