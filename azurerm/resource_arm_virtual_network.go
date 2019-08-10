@@ -118,7 +118,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).network.VnetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
@@ -194,7 +194,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).network.VnetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -243,7 +243,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).network.VnetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -429,7 +429,7 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*ArmClient).subnetClient
+	subnetClient := meta.(*ArmClient).network.SubnetsClient
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 
 	if err != nil {

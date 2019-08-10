@@ -104,7 +104,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Authorization: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).expressRouteAuthsClient
+		client := testAccProvider.Meta().(*ArmClient).network.ExpressRouteAuthsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
@@ -121,7 +121,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 }
 
 func testCheckAzureRMExpressRouteCircuitAuthorizationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).expressRouteAuthsClient
+	client := testAccProvider.Meta().(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -1848,8 +1848,8 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	return &diskResp, nil
 }
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*ArmClient).ifaceClient
-	pipClient := meta.(*ArmClient).publicIPClient
+	nicClient := meta.(*ArmClient).network.InterfacesClient
+	pipClient := meta.(*ArmClient).network.PublicIPsClient
 
 	if props == nil {
 		return "", nil

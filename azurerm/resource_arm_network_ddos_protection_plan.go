@@ -49,7 +49,7 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 }
 
 func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
@@ -113,7 +113,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -153,7 +153,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

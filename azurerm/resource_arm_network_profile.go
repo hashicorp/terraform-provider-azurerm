@@ -83,7 +83,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 }
 
 func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
@@ -153,7 +153,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -198,7 +198,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

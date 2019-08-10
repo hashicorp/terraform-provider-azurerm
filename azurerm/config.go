@@ -10,7 +10,6 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
@@ -57,6 +56,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
@@ -125,6 +125,7 @@ type ArmClient struct {
 	monitor          *monitor.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
+	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	postgres         *postgres.Client
@@ -152,40 +153,14 @@ type ArmClient struct {
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
-	// Networking
-	applicationGatewayClient        network.ApplicationGatewaysClient
-	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
-	azureFirewallsClient            network.AzureFirewallsClient
-	connectionMonitorsClient        network.ConnectionMonitorsClient
-	ddosProtectionPlanClient        network.DdosProtectionPlansClient
-	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
-	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
-	expressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
-	ifaceClient                     network.InterfacesClient
-	loadBalancerClient              network.LoadBalancersClient
-	localNetConnClient              network.LocalNetworkGatewaysClient
-	netProfileClient                network.ProfilesClient
-	packetCapturesClient            network.PacketCapturesClient
-	publicIPClient                  network.PublicIPAddressesClient
-	publicIPPrefixClient            network.PublicIPPrefixesClient
-	routesClient                    network.RoutesClient
-	routeTablesClient               network.RouteTablesClient
-	secGroupClient                  network.SecurityGroupsClient
-	secRuleClient                   network.SecurityRulesClient
-	subnetClient                    network.SubnetsClient
-	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
-	vnetGatewayClient               network.VirtualNetworkGatewaysClient
-	vnetClient                      network.VirtualNetworksClient
-	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
-	watcherClient                   network.WatchersClient
-
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 	deploymentsClient     resources.DeploymentsClient
 	providersClient       resourcesprofile.ProvidersClient
 	resourcesClient       resources.Client
 	resourceGroupsClient  resources.GroupsClient
-	subscriptionsClient   subscriptions.Client
+
+	subscriptionsClient subscriptions.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -331,6 +306,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
+	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
@@ -349,7 +325,6 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.web = web.BuildClient(o)
 
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
@@ -393,108 +368,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-}
-
-func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	applicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&applicationGatewaysClient.Client, auth)
-	c.applicationGatewayClient = applicationGatewaysClient
-
-	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appSecurityGroupsClient.Client, auth)
-	c.applicationSecurityGroupsClient = appSecurityGroupsClient
-
-	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&azureFirewallsClient.Client, auth)
-	c.azureFirewallsClient = azureFirewallsClient
-
-	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&connectionMonitorsClient.Client, auth)
-	c.connectionMonitorsClient = connectionMonitorsClient
-
-	ddosProtectionPlanClient := network.NewDdosProtectionPlansClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ddosProtectionPlanClient.Client, auth)
-	c.ddosProtectionPlanClient = ddosProtectionPlanClient
-
-	expressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRouteAuthsClient.Client, auth)
-	c.expressRouteAuthsClient = expressRouteAuthsClient
-
-	expressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRouteCircuitsClient.Client, auth)
-	c.expressRouteCircuitClient = expressRouteCircuitsClient
-
-	expressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRoutePeeringsClient.Client, auth)
-	c.expressRoutePeeringsClient = expressRoutePeeringsClient
-
-	interfacesClient := network.NewInterfacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&interfacesClient.Client, auth)
-	c.ifaceClient = interfacesClient
-
-	loadBalancersClient := network.NewLoadBalancersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&loadBalancersClient.Client, auth)
-	c.loadBalancerClient = loadBalancersClient
-
-	localNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&localNetworkGatewaysClient.Client, auth)
-	c.localNetConnClient = localNetworkGatewaysClient
-
-	gatewaysClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&gatewaysClient.Client, auth)
-	c.vnetGatewayClient = gatewaysClient
-
-	gatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&gatewayConnectionsClient.Client, auth)
-	c.vnetGatewayConnectionsClient = gatewayConnectionsClient
-
-	netProfileClient := network.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&netProfileClient.Client, auth)
-	c.netProfileClient = netProfileClient
-
-	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&networksClient.Client, auth)
-	c.vnetClient = networksClient
-
-	packetCapturesClient := network.NewPacketCapturesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&packetCapturesClient.Client, auth)
-	c.packetCapturesClient = packetCapturesClient
-
-	peeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&peeringsClient.Client, auth)
-	c.vnetPeeringsClient = peeringsClient
-
-	publicIPAddressesClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&publicIPAddressesClient.Client, auth)
-	c.publicIPClient = publicIPAddressesClient
-
-	publicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&publicIPPrefixesClient.Client, auth)
-	c.publicIPPrefixClient = publicIPPrefixesClient
-
-	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&routesClient.Client, auth)
-	c.routesClient = routesClient
-
-	routeTablesClient := network.NewRouteTablesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&routeTablesClient.Client, auth)
-	c.routeTablesClient = routeTablesClient
-
-	securityGroupsClient := network.NewSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&securityGroupsClient.Client, auth)
-	c.secGroupClient = securityGroupsClient
-
-	securityRulesClient := network.NewSecurityRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&securityRulesClient.Client, auth)
-	c.secRuleClient = securityRulesClient
-
-	subnetsClient := network.NewSubnetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subnetsClient.Client, auth)
-	c.subnetClient = subnetsClient
-
-	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&watchersClient.Client, auth)
-	c.watcherClient = watchersClient
 }
 
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
