@@ -29,7 +29,7 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: azure.ValidateMsSqlFailoverGroupName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
