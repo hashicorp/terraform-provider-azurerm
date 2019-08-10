@@ -406,19 +406,23 @@ func resourceArmFrontDoor() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if err := azure.ValidateFrontdoor(d); err != nil {
+				return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
+			}
+
+			return nil
+		},
 	}
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	if err := azure.ValidateFrontdoor(d); err != nil {
-		return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	client := meta.(*ArmClient).frontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*ArmClient).subscriptionId
 
 	if requireResourcesToBeImported {
@@ -504,8 +508,9 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			if properties := resp.FrontendEndpointProperties; properties != nil {
 				if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 					// return an error if the Frontend Endpoint is in a state that is unconfigurable
-					if azure.IsFrontDoorFrontendEndpointConfigurable(provisioningState) {
-						return fmt.Errorf("Unable to set Front Door Frontend Endpoint %q (Resource Group %q) Custom Domain HTTPS state because because the Frontend Endpoint is currently in the %q state", frontendEndpointName, resourceGroup, provisioningState)
+					if !azure.IsFrontDoorFrontendEndpointConfigurable(provisioningState) {
+						log.Printf("\n\n******************************************** %v ************************************************\n\n", provisioningState)
+						return fmt.Errorf("Unable to set Front Door Frontend Endpoint %q (Resource Group %q) Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", frontendEndpointName, resourceGroup, provisioningState)
 					}
 
 					if customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled {
@@ -621,8 +626,9 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("friendly_name", properties.FriendlyName)
 
-		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoint != nil {
-			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoint); err != nil {
+		if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
+
+			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 			}
 		} else {
@@ -810,7 +816,14 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 
 func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.CustomHTTPSConfiguration {
 	if len(input) == 0 {
-		return &frontdoor.CustomHTTPSConfiguration{}
+		defaultHttpsConfiguration := frontdoor.CustomHTTPSConfiguration{
+			ProtocolType:      frontdoor.ServerNameIndication,
+			CertificateSource: frontdoor.CertificateSourceFrontDoor,
+			CertificateSourceParameters: &frontdoor.CertificateSourceParameters{
+				CertificateType: frontdoor.Dedicated,
+			},
+		}
+		return &defaultHttpsConfiguration
 	}
 
 	v := input[0].(map[string]interface{})
@@ -1206,8 +1219,6 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 			result["id"] = resp.ID
 
 			if properties := resp.FrontendEndpointProperties; properties != nil {
-				log.Printf("********\n\nProperties:\n%+v\n", properties)
-
 				if hostName := properties.HostName; hostName != nil {
 					result["host_name"] = *hostName
 				}
@@ -1226,13 +1237,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 				if properties.CustomHTTPSConfiguration != nil {
 					customHTTPSConfiguration := properties.CustomHTTPSConfiguration
-					//log.Printf("\ncustomHTTPSConfiguration:\n%+v\n", customHTTPSConfiguration)
-
-					chc["certificate_source"] = string(customHTTPSConfiguration.CertificateSource)
-
 					if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
-						// log.Printf("\nCertificateSourceAzureKeyVault:\n%+v\n\n\n\n\n\n\n\n\n\n\n\n********", *customHTTPSConfiguration.KeyVaultCertificateSourceParameters)
-
 						// if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
 						// 	chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
 						// 	chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
@@ -1249,17 +1254,17 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 						chc["provisioning_state"] = provisioningState
 						if provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
 							result["custom_https_provisioning_enabled"] = true
+
+							if provisioningSubstate := properties.CustomHTTPSProvisioningSubstate; provisioningSubstate != "" {
+								chc["provisioning_substate"] = provisioningSubstate
+							}
 						} else {
 							result["custom_https_provisioning_enabled"] = false
 						}
-					}
 
-					if provisioningSubstate := properties.CustomHTTPSProvisioningSubstate; provisioningSubstate != "" {
-						chc["provisioning_substate"] = provisioningSubstate
+						customHttpsConfiguration = append(customHttpsConfiguration, chc)
+						result["custom_https_configuration"] = customHttpsConfiguration
 					}
-
-					customHttpsConfiguration = append(customHttpsConfiguration, chc)
-					result["custom_https_configuration"] = customHttpsConfiguration
 				}
 
 				//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
