@@ -9,11 +9,8 @@ import (
 	"sync"
 	"time"
 
-	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -64,6 +61,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
@@ -132,6 +130,7 @@ type ArmClient struct {
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	resource         *resource.Client
 	scheduler        *scheduler.Client
 	search           *search.Client
 	securityCenter   *securitycenter.Client
@@ -143,57 +142,22 @@ type ArmClient struct {
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
 
+	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
+	msSqlElasticPoolsClient MsSql.ElasticPoolsClient
+
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
-	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
-	sqlFirewallRulesClient               sql.FirewallRulesClient
-	sqlServersClient                     sql.ServersClient
-	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
-
-	// Resources
-	managementLocksClient locks.ManagementLocksClient
-	deploymentsClient     resources.DeploymentsClient
-	providersClient       resourcesprofile.ProvidersClient
-	resourcesClient       resources.Client
-	resourceGroupsClient  resources.GroupsClient
+	sqlFirewallRulesClient                   sql.FirewallRulesClient
+	sqlServersClient                         sql.ServersClient
+	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
 
 	subscriptionsClient subscriptions.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsagesClient
-}
-
-func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
-	setUserAgent(client, c.partnerId)
-	client.Authorizer = auth
-	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
-	client.Sender = sender.BuildSender("AzureRM")
-	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 180 * time.Minute
-}
-
-func setUserAgent(client *autorest.Client, partnerID string) {
-	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
-	tfUserAgent := httpclient.UserAgentString()
-
-	pv := version.ProviderVersion
-	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
-	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
-
-	// append the CloudShell version to the user agent if it exists
-	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
-	}
-
-	if partnerID != "" {
-		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
-	}
-
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 // getArmClient is a helper method which returns a fully instantiated
@@ -314,6 +278,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.recoveryServices = recoveryservices.BuildClient(o)
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
+	client.resource = resource.BuildClient(o)
 	client.search = search.BuildClient(o)
 	client.securityCenter = securitycenter.BuildClient(o)
 	client.servicebus = servicebus.BuildClient(o)
@@ -329,6 +294,35 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
+}
+
+func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
+	setUserAgent(client, c.partnerId)
+	client.Authorizer = auth
+	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
+	client.Sender = sender.BuildSender("AzureRM")
+	client.SkipResourceProviderRegistration = c.skipProviderRegistration
+	client.PollingDuration = 180 * time.Minute
+}
+
+func setUserAgent(client *autorest.Client, partnerID string) {
+	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+	tfUserAgent := httpclient.UserAgentString()
+
+	pv := version.ProviderVersion
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
+
+	// append the CloudShell version to the user agent if it exists
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
+	}
+
+	if partnerID != "" {
+		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+	}
+
+	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -371,30 +365,11 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 }
 
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&locksClient.Client, auth)
-	c.managementLocksClient = locksClient
-
-	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&deploymentsClient.Client, auth)
-	c.deploymentsClient = deploymentsClient
-
-	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourcesClient.Client, auth)
-	c.resourcesClient = resourcesClient
-
-	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourceGroupsClient.Client, auth)
-	c.resourceGroupsClient = resourceGroupsClient
 
 	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.subscriptionsClient = subscriptionsClient
 
-	// this has to come from the Profile since this is shared with Stack
-	providersClient := resourcesprofile.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&providersClient.Client, auth)
-	c.providersClient = providersClient
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {
