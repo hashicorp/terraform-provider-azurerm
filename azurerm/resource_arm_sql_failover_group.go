@@ -119,8 +119,6 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -146,15 +144,12 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
-
 	properties := sql.FailoverGroup{
 		FailoverGroupProperties: &sql.FailoverGroupProperties{
 			ReadOnlyEndpoint:  expandSqlFailoverGroupReadOnlyPolicy(d),
 			ReadWriteEndpoint: expandSqlFailoverGroupReadWritePolicy(d),
 			PartnerServers:    expandSqlFailoverGroupPartnerServers(d),
 		},
-		Tags: expandTags(tags),
 	}
 
 	if r, ok := d.Get("databases").(*schema.Set); ok && r.Len() > 0 {
@@ -235,8 +230,6 @@ func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	return nil
 }
 
@@ -276,7 +269,7 @@ func expandSqlFailoverGroupReadWritePolicy(d *schema.ResourceData) *sql.Failover
 		FailoverPolicy: mode,
 	}
 
-	if mode != "manual" {
+	if mode != sql.Manual {
 		policy.FailoverWithDataLossGracePeriodMinutes = utils.Int32(graceMins)
 	}
 
