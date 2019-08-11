@@ -100,8 +100,8 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	tags := d.Get("tags").(map[string]interface{})
 
 	availSet := compute.AvailabilitySet{
-		Name:                      &name,
-		Location:                  &location,
+		Name:     &name,
+		Location: &location,
 		AvailabilitySetProperties: &compute.AvailabilitySetProperties{
 			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
 			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
