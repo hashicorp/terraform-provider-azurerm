@@ -99,15 +99,13 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	managed := d.Get("managed").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
-	properties := compute.AvailabilitySetProperties{
-		PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
-		PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
-	}
-
 	availSet := compute.AvailabilitySet{
 		Name:                      &name,
 		Location:                  &location,
-		AvailabilitySetProperties: &properties,
+		AvailabilitySetProperties: &compute.AvailabilitySetProperties{
+			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
+			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
+		},
 		Tags: expandTags(tags),
 	}
 
@@ -117,7 +115,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 			ID: &proximityPlacementGroup,
 		}
 
-		properties.ProximityPlacementGroup = &ppg
+		availSet.AvailabilitySetProperties.ProximityPlacementGroup = &ppg
 	}
 
 	if managed {
