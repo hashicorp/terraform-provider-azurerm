@@ -13,13 +13,13 @@ func dataSourceArmProximityPlacementGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmProximityPlacementGroupRead,
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 		},
 	}
 }
@@ -28,8 +28,8 @@ func dataSourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).ppgClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {

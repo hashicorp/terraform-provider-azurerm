@@ -104,6 +104,13 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
 	}
 
+	availSet := compute.AvailabilitySet{
+		Name:                      &name,
+		Location:                  &location,
+		AvailabilitySetProperties: &properties,
+		Tags: expandTags(tags),
+	}
+
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		proximityPlacementGroup := v.(string)
 		ppg := compute.SubResource{
@@ -111,13 +118,6 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		properties.ProximityPlacementGroup = &ppg
-	}
-
-	availSet := compute.AvailabilitySet{
-		Name:     &name,
-		Location: &location,
-		AvailabilitySetProperties: &properties,
-		Tags: expandTags(tags),
 	}
 
 	if managed {
