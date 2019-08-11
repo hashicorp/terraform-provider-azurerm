@@ -119,6 +119,8 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -144,12 +146,15 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	tags := d.Get("tags").(map[string]interface{})
+
 	properties := sql.FailoverGroup{
 		FailoverGroupProperties: &sql.FailoverGroupProperties{
 			ReadOnlyEndpoint:  expandSqlFailoverGroupReadOnlyPolicy(d),
 			ReadWriteEndpoint: expandSqlFailoverGroupReadWritePolicy(d),
 			PartnerServers:    expandSqlFailoverGroupPartnerServers(d),
 		},
+		Tags: expandTags(tags),
 	}
 
 	if r, ok := d.Get("databases").(*schema.Set); ok && r.Len() > 0 {
@@ -229,6 +234,8 @@ func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `partner_servers`: %+v", err)
 		}
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

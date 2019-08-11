@@ -82,6 +82,37 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
+	resourceName := "azurerm_sql_failover_group.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	altLocation := testAltLocation()
+	preConfig := testAccAzureRMSqlFailoverGroup_withTags(ri, location, altLocation)
+	postConfig := testAccAzureRMSqlFailoverGroup_withTagsUpdate(ri, location, altLocation)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFailoverGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFailoverGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -133,7 +164,7 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 
 func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azure_sql_failover_group" {
+		if rs.Type != "azurerm_sql_failover_group" {
 			continue
 		}
 
@@ -165,7 +196,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
-	
+
 resource "azurerm_sql_server" "test_primary" {
   name                         = "acctestmssql%[1]d-primary"
   resource_group_name          = "${azurerm_resource_group.test.name}"
@@ -185,7 +216,7 @@ resource "azurerm_sql_server" "test_secondary" {
 }
   
 resource "azurerm_sql_database" "test" {
-  name                             = "acctestDB%[1]d"
+  name                             = "acctestdb%[1]d"
   resource_group_name              = "${azurerm_resource_group.test.name}"
   server_name                      = "${azurerm_sql_server.test_primary.name}"
   location                         = "${azurerm_resource_group.test.location}"
@@ -230,7 +261,120 @@ resource "azurerm_sql_failover_group" "import" {
     read_write_endpoint_failover_policy {
         mode          = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.mode}"
         grace_minutes = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.grace_minutes}"
-	}
+    }
   }
 `, testAccAzureRMSqlFailoverGroup_basic(rInt, location, altlocation))
+}
+
+func testAccAzureRMSqlFailoverGroup_withTags(rInt int, location, altlocation string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sql_server" "test_primary" {
+  name                         = "acctestmssql%[1]d-primary"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_server" "test_secondary" {
+  name                         = "acctestmssql%[1]d-secondary"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "%[3]s"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%[1]d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test_primary.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+}
+
+resource "azurerm_sql_failover_group" "test" {
+  name                = "acctestsfg%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test_primary.name}"
+  databases           = ["${azurerm_sql_database.test.id}"]
+
+  partner_servers {
+    id = "${azurerm_sql_server.test_secondary.id}"
+  }
+  read_write_endpoint_failover_policy {
+    mode          = "Automatic"
+    grace_minutes = 60
+  }
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, rInt, location, altlocation)
+}
+
+func testAccAzureRMSqlFailoverGroup_withTagsUpdate(rInt int, location, altlocation string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sql_server" "test_primary" {
+  name                         = "acctestmssql%[1]d-primary"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_server" "test_secondary" {
+  name                         = "acctestmssql%[1]d-secondary"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "%[3]s"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%[1]d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test_primary.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+}
+
+resource "azurerm_sql_failover_group" "test" {
+  name                = "acctestsfg%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test_primary.name}"
+  databases           = ["${azurerm_sql_database.test.id}"]
+
+  partner_servers {
+    id = "${azurerm_sql_server.test_secondary.id}"
+  }
+  read_write_endpoint_failover_policy {
+    mode          = "Automatic"
+    grace_minutes = 60
+  }
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, altlocation)
 }
