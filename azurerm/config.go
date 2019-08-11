@@ -262,7 +262,7 @@ func setUserAgent(client *autorest.Client, partnerID string) {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string) (*ArmClient, error) {
+func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(c.Environment)
 	if err != nil {
 		return nil, err
@@ -323,18 +323,18 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	})
 
 	o := &common.ClientOptions{
-		GraphAuthorizer:            graphAuth,
-		GraphEndpoint:              graphEndpoint,
-		KeyVaultAuthorizer:         keyVaultAuth,
-		ResourceManagerAuthorizer:  auth,
-		ResourceManagerEndpoint:    endpoint,
-		StorageAuthorizer:          storageAuth,
-		SubscriptionId:             c.SubscriptionID,
-		PartnerId:                  partnerId,
-		PollingDuration:            60 * time.Minute,
-		SkipProviderReg:            skipProviderRegistration,
-		EnableCorrelationRequestID: true,
-		Environment:                *env,
+		GraphAuthorizer:             graphAuth,
+		GraphEndpoint:               graphEndpoint,
+		KeyVaultAuthorizer:          keyVaultAuth,
+		ResourceManagerAuthorizer:   auth,
+		ResourceManagerEndpoint:     endpoint,
+		StorageAuthorizer:           storageAuth,
+		SubscriptionId:              c.SubscriptionID,
+		PartnerId:                   partnerId,
+		PollingDuration:             60 * time.Minute,
+		SkipProviderReg:             skipProviderRegistration,
+		DisableCorrelationRequestID: disableCorrelationRequestID,
+		Environment:                 *env,
 	}
 
 	client.analysisservices = analysisservices.BuildClient(o)

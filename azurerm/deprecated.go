@@ -5,12 +5,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/flags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
+
+func azureRMLockByName(name string, resourceType string) {
+	locks.ByName(name, resourceType)
+}
+
+func azureRMLockMultipleByName(names *[]string, resourceType string) {
+	locks.MultipleByName(names, resourceType)
+}
+
+func azureRMUnlockByName(name string, resourceType string) {
+	locks.UnlockByName(name, resourceType)
+}
+
+func azureRMUnlockMultipleByName(names *[]string, resourceType string) {
+	locks.UnlockMultipleByName(names, resourceType)
+}
 
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)

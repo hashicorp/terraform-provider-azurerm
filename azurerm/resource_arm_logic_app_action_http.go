@@ -40,11 +40,11 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(http.MethodDelete),
-					string(http.MethodGet),
-					string(http.MethodPatch),
-					string(http.MethodPost),
-					string(http.MethodPut),
+					http.MethodDelete,
+					http.MethodGet,
+					http.MethodPatch,
+					http.MethodPost,
+					http.MethodPut,
 				}, false),
 			},
 

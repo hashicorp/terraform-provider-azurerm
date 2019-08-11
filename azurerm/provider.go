@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -324,6 +323,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_zone":                                                       resourceArmPrivateDnsZone(),
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
+		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
 		"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),
@@ -483,6 +483,12 @@ func Provider() terraform.ResourceProvider {
 				ValidateFunc: validate.UUIDOrEmpty,
 			},
 
+			"disable_correlation_request_id": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+			},
+
 			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
@@ -535,8 +541,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		client, err := getArmClient(config, skipProviderRegistration, partnerId)
+		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
 
+		client, err := getArmClient(config, skipProviderRegistration, partnerId, disableCorrelationRequestID)
 		if err != nil {
 			return nil, err
 		}
@@ -575,9 +582,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		return client, nil
 	}
 }
-
-// armMutexKV is the instance of MutexKV for ARM resources
-var armMutexKV = mutexkv.NewMutexKV()
 
 // Deprecated: use `suppress.CaseDifference` instead
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
