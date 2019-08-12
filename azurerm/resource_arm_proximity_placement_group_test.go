@@ -139,7 +139,7 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ppgClient
+		client := testAccProvider.Meta().(*ArmClient).compute.ProximityPlacementGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, ppgName)
 		if err != nil {
@@ -147,7 +147,7 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", ppgName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on ppgClient: %+v", err)
+			return fmt.Errorf("Bad: Get on Proximity Placement Groups Client: %+v", err)
 		}
 
 		return nil
@@ -168,12 +168,12 @@ func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) reso
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ppgClient
+		client := testAccProvider.Meta().(*ArmClient).compute.ProximityPlacementGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Delete on ppgClient: %+v", err)
+				return fmt.Errorf("Bad: Delete on Proximity Placement Groups Client: %+v", err)
 			}
 		}
 
@@ -190,7 +190,7 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ppgClient
+		client := testAccProvider.Meta().(*ArmClient).compute.ProximityPlacementGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
