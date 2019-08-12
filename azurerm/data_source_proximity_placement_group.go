@@ -25,7 +25,7 @@ func dataSourceArmProximityPlacementGroup() *schema.Resource {
 }
 
 func dataSourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ppgClient
+	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
