@@ -207,7 +207,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoleAssingment_servicePrincipal(ri, id),
+				Config: testAccAzureRMRoleAssignment_servicePrincipal(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
 				),
@@ -226,7 +226,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoleAssingment_group(ri, id),
+				Config: testAccAzureRMRoleAssignment_group(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
 				),
@@ -398,7 +398,7 @@ resource "azurerm_role_assignment" "test" {
 `, roleDefinitionId, rInt, roleAssignmentId)
 }
 
-func testAccAzureRMRoleAssingment_servicePrincipal(rInt int, roleAssignmentID string) string {
+func testAccAzureRMRoleAssignment_servicePrincipal(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -419,7 +419,7 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func testAccAzureRMRoleAssingment_group(rInt int, roleAssignmentID string) string {
+func testAccAzureRMRoleAssignment_group(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
