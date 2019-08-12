@@ -290,7 +290,7 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 
- 	resource.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
