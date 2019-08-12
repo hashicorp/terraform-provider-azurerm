@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -94,13 +95,13 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 }
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
@@ -217,12 +218,12 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {

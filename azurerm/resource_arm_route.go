@@ -71,7 +71,7 @@ func resourceArmRoute() *schema.Resource {
 }
 
 func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -131,7 +131,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -165,7 +165,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -317,7 +317,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -351,7 +351,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -380,7 +380,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {

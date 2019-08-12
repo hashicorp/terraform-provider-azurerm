@@ -41,7 +41,7 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func resourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func resourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	shareName := rawState["name"].(string)
 	resourceGroup := rawState["resource_group_name"].(string)
 	accountName := rawState["storage_account_name"].(string)

@@ -167,8 +167,9 @@ func resourceArmStorageAccount() *schema.Resource {
 
 			"network_rules": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bypass": {
@@ -205,7 +206,7 @@ func resourceArmStorageAccount() *schema.Resource {
 
 						"default_action": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.DefaultActionAllow),
 								string(storage.DefaultActionDeny),

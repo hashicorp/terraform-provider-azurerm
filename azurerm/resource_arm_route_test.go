@@ -163,7 +163,7 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, rtName, name)
@@ -193,7 +193,7 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, rtName, name)
@@ -210,7 +210,7 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).routesClient
+	client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

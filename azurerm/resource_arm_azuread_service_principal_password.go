@@ -72,7 +72,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	objectId := d.Get("service_principal_id").(string)
@@ -143,7 +143,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")
@@ -205,7 +205,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceDa
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")

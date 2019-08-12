@@ -136,7 +136,7 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.AnalyticsAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
@@ -153,7 +153,7 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 }
 
 func testCheckAzureRMDataLakeAnalyticsAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

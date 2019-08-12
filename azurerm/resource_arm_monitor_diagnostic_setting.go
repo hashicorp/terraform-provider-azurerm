@@ -73,6 +73,13 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"log_analytics_destination_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringInSlice([]string{"Dedicated"}, false),
+			},
+
 			"log": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -155,7 +162,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
@@ -234,6 +241,14 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		valid = true
 	}
 
+	if v := d.Get("log_analytics_destination_type").(string); v != "" {
+		if workspaceId != "" {
+			properties.DiagnosticSettings.LogAnalyticsDestinationType = &v
+		} else {
+			return fmt.Errorf("`log_analytics_workspace_id` must be set for `log_analytics_destination_type` to be used")
+		}
+	}
+
 	if !valid {
 		return fmt.Errorf("Either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id` or `storage_account_id` must be set")
 	}
@@ -258,7 +273,7 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())
@@ -287,6 +302,8 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("log_analytics_workspace_id", resp.WorkspaceID)
 	d.Set("storage_account_id", resp.StorageAccountID)
 
+	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
+
 	if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Logs)); err != nil {
 		return fmt.Errorf("Error setting `log`: %+v", err)
 	}
@@ -299,7 +316,7 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
+	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())

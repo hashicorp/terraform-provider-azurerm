@@ -2,11 +2,15 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
@@ -47,7 +51,21 @@ func resourceArmContainerGroup() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Public),
+					string(containerinstance.Private),
 				}, true),
+			},
+
+			"network_profile_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
+				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
+				 * You cannot use a managed identity in a container group deployed to a virtual network.
+				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
+				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations */
+				ConflictsWith: []string{"dns_name_label", "identity"},
 			},
 
 			"os_type": {
@@ -382,7 +400,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 									"log_type": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerinstance.ContainerInsights),
@@ -443,7 +461,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
-
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 
@@ -469,6 +486,17 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	}
+
+	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
+	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
+	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
+		if strings.ToLower(OSType) != "linux" {
+			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
+		}
+		containerGroup.ContainerGroupProperties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
+			ID: &networkProfileID,
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
@@ -523,7 +551,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenContainerGroupIdentity(d, resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenContainerGroupIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
@@ -569,14 +597,107 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	resourceGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
+	networkProfileId := ""
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			// already deleted
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if props := existing.ContainerGroupProperties; props != nil {
+		if profile := props.NetworkProfile; profile != nil {
+			if profile.ID != nil {
+				networkProfileId = *profile.ID
+			}
+		}
+	}
+
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if networkProfileId != "" {
+		parsedProfileId, err := parseAzureResourceID(networkProfileId)
+		if err != nil {
+			return err
+		}
+
+		networkProfileClient := meta.(*ArmClient).network.ProfileClient
+		networkProfileResourceGroup := parsedProfileId.ResourceGroup
+		networkProfileName := parsedProfileId.Path["networkProfiles"]
+
+		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
+		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", name, resourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending:                   []string{"Attached"},
+			Target:                    []string{"Detached"},
+			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, resourceGroup, name),
+			Timeout:                   10 * time.Minute,
+			MinTimeout:                15 * time.Second,
+			ContinuousTargetOccurence: 5,
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Container Group %q (Resource Group %q) to finish deleting: %s", name, resourceGroup, err)
 		}
 	}
 
 	return nil
+}
+
+func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Context,
+	client network.ProfilesClient,
+	networkProfileResourceGroup, networkProfileName,
+	containerResourceGroupName, containerName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		profile, err := client.Get(ctx, networkProfileResourceGroup, networkProfileName, "")
+		if err != nil {
+			return nil, "Error", fmt.Errorf("Error retrieving Network Profile %q (Resource Group %q): %s", networkProfileName, networkProfileResourceGroup, err)
+		}
+
+		exists := false
+		if props := profile.ProfilePropertiesFormat; props != nil {
+			if nics := props.ContainerNetworkInterfaces; nics != nil {
+				for _, nic := range *nics {
+					nicProps := nic.ContainerNetworkInterfacePropertiesFormat
+					if nicProps == nil || nicProps.Container == nil || nicProps.Container.ID == nil {
+						continue
+					}
+
+					parsedId, err := parseAzureResourceID(*nicProps.Container.ID)
+					if err != nil {
+						return nil, "", err
+					}
+
+					if parsedId.ResourceGroup != containerResourceGroupName {
+						continue
+					}
+
+					name := parsedId.Path["containerGroups"]
+					if name == "" || name != containerName {
+						continue
+					}
+
+					exists = true
+					break
+				}
+			}
+		}
+
+		if exists {
+			return nil, "Attached", nil
+		}
+
+		return profile, "Detached", nil
+	}
 }
 
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
@@ -900,7 +1021,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(d *schema.ResourceData, identity *containerinstance.ContainerGroupIdentity) []interface{} {
+func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) []interface{} {
 	if identity == nil {
 		return make([]interface{}, 0)
 	}
@@ -1241,23 +1362,26 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 
 	workspaceId := analyticsV["workspace_id"].(string)
 	workspaceKey := analyticsV["workspace_key"].(string)
-	logType := containerinstance.LogAnalyticsLogType(analyticsV["log_type"].(string))
 
-	metadataMap := analyticsV["metadata"].(map[string]interface{})
-	metadata := make(map[string]*string)
-	for k, v := range metadataMap {
-		strValue := v.(string)
-		metadata[k] = &strValue
+	logAnalytics := containerinstance.LogAnalytics{
+		WorkspaceID:  utils.String(workspaceId),
+		WorkspaceKey: utils.String(workspaceKey),
 	}
 
-	return &containerinstance.ContainerGroupDiagnostics{
-		LogAnalytics: &containerinstance.LogAnalytics{
-			WorkspaceID:  utils.String(workspaceId),
-			WorkspaceKey: utils.String(workspaceKey),
-			LogType:      logType,
-			Metadata:     metadata,
-		},
+	if logType := analyticsV["log_type"].(string); logType != "" {
+		logAnalytics.LogType = containerinstance.LogAnalyticsLogType(logType)
+
+		metadataMap := analyticsV["metadata"].(map[string]interface{})
+		metadata := make(map[string]*string)
+		for k, v := range metadataMap {
+			strValue := v.(string)
+			metadata[k] = &strValue
+		}
+
+		logAnalytics.Metadata = metadata
 	}
+
+	return &containerinstance.ContainerGroupDiagnostics{LogAnalytics: &logAnalytics}
 }
 
 func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []interface{} {
