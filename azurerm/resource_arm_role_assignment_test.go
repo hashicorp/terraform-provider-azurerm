@@ -472,7 +472,8 @@ data "azurerm_builtin_role_definition" "test" {
 }
 
 data "azurerm_management_group" "test" {}
-	resource "azurerm_role_assignment" "test" {
+
+resource "azurerm_role_assignment" "test" {
 	scope              = "${data.azurerm_management_group.test.id}"
 	role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
 	principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
