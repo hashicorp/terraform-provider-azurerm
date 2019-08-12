@@ -6,19 +6,20 @@ import (
 )
 
 type Client struct {
-	AvailabilitySetsClient     compute.AvailabilitySetsClient
-	DisksClient                compute.DisksClient
-	GalleriesClient            compute.GalleriesClient
-	GalleryImagesClient        compute.GalleryImagesClient
-	GalleryImageVersionsClient compute.GalleryImageVersionsClient
-	ImagesClient               compute.ImagesClient
-	SnapshotsClient            compute.SnapshotsClient
-	UsageClient                compute.UsageClient
-	VMExtensionImageClient     compute.VirtualMachineExtensionImagesClient
-	VMExtensionClient          compute.VirtualMachineExtensionsClient
-	VMScaleSetClient           compute.VirtualMachineScaleSetsClient
-	VMClient                   compute.VirtualMachinesClient
-	VMImageClient              compute.VirtualMachineImagesClient
+	AvailabilitySetsClient         compute.AvailabilitySetsClient
+	DisksClient                    compute.DisksClient
+	GalleriesClient                compute.GalleriesClient
+	GalleryImagesClient            compute.GalleryImagesClient
+	GalleryImageVersionsClient     compute.GalleryImageVersionsClient
+	ImagesClient                   compute.ImagesClient
+	ProximityPlacementGroupsClient compute.ProximityPlacementGroupsClient
+	SnapshotsClient                compute.SnapshotsClient
+	UsageClient                    compute.UsageClient
+	VMExtensionImageClient         compute.VirtualMachineExtensionImagesClient
+	VMExtensionClient              compute.VirtualMachineExtensionsClient
+	VMScaleSetClient               compute.VirtualMachineScaleSetsClient
+	VMClient                       compute.VirtualMachinesClient
+	VMImageClient                  compute.VirtualMachineImagesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -41,6 +42,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.ImagesClient = compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.ImagesClient.Client, o.ResourceManagerAuthorizer)
+
+	c.ProximityPlacementGroupsClient = compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.ProximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	c.SnapshotsClient = compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.SnapshotsClient.Client, o.ResourceManagerAuthorizer)

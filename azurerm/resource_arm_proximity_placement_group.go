@@ -38,7 +38,7 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 }
 
 func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ppgClient
+	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Proximity Placement Group creation.")
@@ -79,7 +79,7 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ppgClient
+	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -110,7 +110,7 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ppgClient
+	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
