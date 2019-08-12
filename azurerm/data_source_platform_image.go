@@ -38,7 +38,7 @@ func dataSourceArmPlatformImage() *schema.Resource {
 }
 
 func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vmImageClient
+	client := meta.(*ArmClient).compute.VMImageClient
 	ctx := meta.(*ArmClient).StopContext
 
 	location := azure.NormalizeLocation(d.Get("location").(string))

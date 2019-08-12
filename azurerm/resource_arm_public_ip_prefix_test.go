@@ -24,7 +24,7 @@ func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).publicIPPrefixClient
+		client := testAccProvider.Meta().(*ArmClient).network.PublicIPPrefixesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, publicIpPrefixName, "")
@@ -54,7 +54,7 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).publicIPPrefixClient
+		client := testAccProvider.Meta().(*ArmClient).network.PublicIPPrefixesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, publicIpPrefixName)
 		if err != nil {
@@ -70,7 +70,7 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPublicIPPrefixDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).publicIPPrefixClient
+	client := testAccProvider.Meta().(*ArmClient).network.PublicIPPrefixesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

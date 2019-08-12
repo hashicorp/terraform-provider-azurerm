@@ -146,7 +146,7 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Peering: %s", peeringType)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).expressRoutePeeringsClient
+		client := testAccProvider.Meta().(*ArmClient).network.ExpressRoutePeeringsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
@@ -163,7 +163,7 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 }
 
 func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).expressRoutePeeringsClient
+	client := testAccProvider.Meta().(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

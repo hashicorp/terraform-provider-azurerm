@@ -579,7 +579,7 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 		name := vmID.Path["virtualMachines"]
 		resourceGroup := vmID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Deallocate(ctx, resourceGroup, name)
@@ -2184,7 +2184,7 @@ func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Di
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	client := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200

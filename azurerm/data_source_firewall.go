@@ -61,7 +61,7 @@ func dataSourceArmFirewall() *schema.Resource {
 }
 
 func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

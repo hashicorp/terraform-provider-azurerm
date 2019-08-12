@@ -188,7 +188,7 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -333,7 +333,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 }
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
+	client := meta.(*ArmClient).sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -482,7 +482,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).sql.DatabaseThreatDetectionPoliciesClient
 	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
@@ -491,7 +491,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
+	client := meta.(*ArmClient).sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -514,7 +514,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
-	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).sql.DatabaseThreatDetectionPoliciesClient
 	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
 	if err == nil {
 		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
@@ -574,7 +574,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
+	client := meta.(*ArmClient).sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

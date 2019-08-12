@@ -172,7 +172,7 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitorDiagnosticSettingsClient
+		client := testAccProvider.Meta().(*ArmClient).monitor.DiagnosticSettingsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
@@ -192,7 +192,7 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 }
 
 func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitorDiagnosticSettingsClient
+	client := testAccProvider.Meta().(*ArmClient).monitor.DiagnosticSettingsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

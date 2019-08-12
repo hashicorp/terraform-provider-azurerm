@@ -43,7 +43,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	applicationId := d.Get("application_id").(string)
@@ -93,7 +93,7 @@ func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, me
 }
 
 func resourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	objectId := d.Id()
@@ -114,7 +114,7 @@ func resourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta
 }
 
 func resourceArmActiveDirectoryServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	applicationId := d.Id()

@@ -50,7 +50,7 @@ func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteAuthsClient
+	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -97,7 +97,7 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 }
 
 func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteAuthsClient
+	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -131,7 +131,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 }
 
 func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteAuthsClient
+	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

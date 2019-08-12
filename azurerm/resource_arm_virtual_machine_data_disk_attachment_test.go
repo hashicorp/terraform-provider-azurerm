@@ -219,7 +219,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
@@ -265,7 +265,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
