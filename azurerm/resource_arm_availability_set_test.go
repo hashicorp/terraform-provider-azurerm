@@ -2,8 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -145,6 +147,7 @@ func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(resourceName),
+					testCheckAzureRMAvailabilitySetHasPPG(resourceName),
 				),
 			},
 			{
@@ -209,32 +212,40 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
+func testGetAzureRMAvailabilitySet(s *terraform.State, resourceName string) (result *compute.AvailabilitySet, err error) {
+	// Ensure we have enough information in state to look up in API
+	rs, ok := s.RootModule().Resources[resourceName]
+	if !ok {
+		return nil, fmt.Errorf("Not found: %s", resourceName)
+	}
+
+	// Name of the actual scale set
+	name := rs.Primary.Attributes["name"]
+
+	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+	if !hasResourceGroup {
+		return nil, fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
+	}
+
+	client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	vmss, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
+	}
+
+	if vmss.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("Bad: VirtualMachineScaleSet %q (resource group: %q) does not exist", name, resourceGroup)
+	}
+
+	return &vmss, err
+}
+
+func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		availSetName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
-		}
-
-		client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, resourceGroup, availSetName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", availSetName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
-		}
-
-		return nil
+		_, err := testGetAzureRMAvailabilitySet(s, name)
+		return err
 	}
 }
 
@@ -289,6 +300,22 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testCheckAzureRMAvailabilitySetHasPPG(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMAvailabilitySet(s, name)
+		if err != nil {
+			return err
+		}
+
+		id := resp.ProximityPlacementGroup.ID
+		if id == nil || *id == "" {
+			return fmt.Errorf("Bad: Could not get proximity placement group configurations for scale set %v", name)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMAvailabilitySet_basic(rInt int, location string) string {

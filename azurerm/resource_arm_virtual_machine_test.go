@@ -15,8 +15,8 @@ import (
 )
 
 func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
-	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine
+	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,7 +27,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "os_profile_windows_config.59207889.timezone", "Pacific Standard Time"),
 				),
 			},
@@ -43,7 +43,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -67,7 +67,7 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -91,7 +91,7 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -115,18 +115,20 @@ func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					testCheckAzureRMVirtualMachineHasPPG(resourceName),
 				),
 			},
 		},
 	})
 }
 
+/*
 func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -158,6 +160,46 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 		return nil
 	}
 }
+*/
+
+func testGetAzureRMVirtualMachine(s *terraform.State, resourceName string) (result *compute.VirtualMachine, err error) {
+	// Ensure we have enough information in state to look up in API
+	rs, ok := s.RootModule().Resources[resourceName]
+	if !ok {
+		return nil, fmt.Errorf("Not found: %s", resourceName)
+	}
+
+	// Name of the actual scale set
+	name := rs.Primary.Attributes["name"]
+
+	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+	if !hasResourceGroup {
+		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
+	}
+
+	client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	vm, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Get on vmClient: %+v", err)
+	}
+
+	if vm.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", name, resourceGroup)
+	}
+
+	return &vm, err
+}
+
+func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachine) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMVirtualMachine(s, name)
+
+		vm = resp
+		return err
+	}
+}
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).compute.VMClient
@@ -185,6 +227,22 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testCheckAzureRMVirtualMachineHasPPG(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMVirtualMachine(s, name)
+		if err != nil {
+			return err
+		}
+
+		id := resp.ProximityPlacementGroup.ID
+		if id == nil || *id == "" {
+			return fmt.Errorf("Bad: Could not get proximity placement group configurations for virtual machine %v", name)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMVirtualMachine_winTimeZone(rInt int, location string) string {

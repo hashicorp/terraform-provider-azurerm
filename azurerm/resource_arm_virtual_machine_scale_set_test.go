@@ -136,6 +136,7 @@ func TestAccAzureRMVirtualMachineScaleSet_withPPG(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					testCheckAzureRMVirtualMachineScaleSetHasPPG(resourceName),
 				),
 			},
 		},
@@ -1560,6 +1561,22 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 		storageProfile := resp.VirtualMachineProfile.StorageProfile.DataDisks
 		if storageProfile == nil || len(*storageProfile) == 0 {
 			return fmt.Errorf("Bad: Could not get data disks configurations for scale set %v", name)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMVirtualMachineScaleSetHasPPG(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		if err != nil {
+			return err
+		}
+
+		id := resp.ProximityPlacementGroup.ID
+		if id == nil || *id == "" {
+			return fmt.Errorf("Bad: Could not get proximity placement group configurations for scale set %v", name)
 		}
 
 		return nil
