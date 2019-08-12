@@ -174,3 +174,41 @@ func TestSharedImageVersionName(t *testing.T) {
 		})
 	}
 }
+
+func TestVirtualMachineTimeZone(t *testing.T) {
+	cases := []struct {
+		Value  string
+		Errors int
+	}{
+		{
+			Value:  "",
+			Errors: 0,
+		},
+		{
+			Value:  "UTC",
+			Errors: 0,
+		},
+		{
+			Value:  "China Standard Time",
+			Errors: 0,
+		},
+		{
+			// Valid UTC time zone
+			Value:  "utc-11",
+			Errors: 0,
+		},
+		{
+			// Invalid UTC time zone
+			Value:  "UTC-30",
+			Errors: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := VirtualMachineTimeZone()(tc.Value, "unittest")
+
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected VirtualMachineTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}

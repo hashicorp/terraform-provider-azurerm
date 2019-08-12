@@ -145,6 +145,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Data Source: `azurerm_dns_zone`
+
+The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
+
 ### Data Source: `azurerm_kubernetes_cluster`
 
 The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
@@ -226,6 +230,10 @@ The `preference` field in the `record` block will change from a String to an Int
 ### Resource: `azurerm_dns_ns_record`
 
 The deprecated `record` field will be removed. This has been replaced by the `records` field which accepts multiple values.
+
+### Resource: `azurerm_dns_zone`
+
+The deprecated `zone_type` field will be removed. This has been replaced by the `azurerm_private_dns_zone` resource.
 
 ### Resource: `azurerm_eventhub`
 

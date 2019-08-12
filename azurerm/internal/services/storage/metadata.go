@@ -45,7 +45,7 @@ func FlattenMetaData(input map[string]string) map[string]interface{} {
 	return output
 }
 
-func validateMetaDataKeys(value interface{}, fieldName string) (warnings []string, errors []error) {
+func validateMetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
 	v, ok := value.(map[string]interface{})
 	if !ok {
 		return
