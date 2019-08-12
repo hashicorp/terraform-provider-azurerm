@@ -26,7 +26,9 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 		"assignment": {
 			"sp":    testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal,
 			"group": testAccAzureRMActiveDirectoryServicePrincipal_group,
-			"mgmt":  testAccAzureRMRoleAssignment_managementGroup,
+		},
+		"management": {
+			"assign": testAccAzureRMRoleAssignment_managementGroup,
 		},
 	}
 
@@ -289,7 +291,7 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	groupId := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -297,16 +299,10 @@ func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoleAssignment_managementGroupConfig(),
+				Config: testAccAzureRMRoleAssignment_managementGroupConfig(groupId),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -461,22 +457,24 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func testAccAzureRMRoleAssignment_managementGroupConfig() string {
-	return `
+func testAccAzureRMRoleAssignment_managementGroupConfig(groupId string) string {
+	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
-data "azurerm_builtin_role_definition" "test" {
+data "azurerm_role_definition" "test" {
 	name = "Monitoring Reader"
 }
 
-data "azurerm_management_group" "test" {}
+resource "azurerm_management_group" "test" {
+	group_id = "%s"
+}
 
 resource "azurerm_role_assignment" "test" {
-	scope              = "${data.azurerm_management_group.test.id}"
-	role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
+	scope              = "${azurerm_management_group.test.id}"
+	role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
 	principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
-`
+`, groupId)
 }
