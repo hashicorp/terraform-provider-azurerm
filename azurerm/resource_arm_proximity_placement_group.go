@@ -118,7 +118,7 @@ func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["proximityPlacementGroup"]
+	name := id.Path["proximityPlacementGroups"]
 
 	_, err = client.Delete(ctx, resGroup, name)
 

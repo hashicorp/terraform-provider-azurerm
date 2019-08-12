@@ -131,6 +131,31 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
+	resourceName := "azurerm_availability_set.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAvailabilitySet_withPPG(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
@@ -331,6 +356,29 @@ resource "azurerm_availability_set" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAvailabilitySet_withPPG(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+	name 								= "acctestPPG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_availability_set" "test" {
+  name                = "acctestavset-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+	proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMAvailabilitySet_withDomainCounts(rInt int, location string) string {
