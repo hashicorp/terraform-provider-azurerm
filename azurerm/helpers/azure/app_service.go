@@ -485,6 +485,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 				"application_logs": {
 					Type:     schema.TypeList,
 					Optional: true,
+					Computed: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -523,6 +524,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 				"http_logs": {
 					Type:     schema.TypeList,
 					Optional: true,
+					Computed: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -1127,9 +1129,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 		appLogsItem := make(map[string]interface{})
 
+		blobStorage := make([]interface{}, 0)
 		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
-			blobStorage := make([]interface{}, 0)
-
 			blobStorageItem := make(map[string]interface{})
 
 			blobStorageItem["level"] = string(blobStorageInput.Level)
@@ -1143,17 +1144,12 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 			}
 
 			// The API returns a non nil application logs object when other logs are specified so we'll check that this structure is empty before adding it to the statefile.
-			if blobStorageInput.SasURL != nil {
+			if blobStorageInput.SasURL != nil && *blobStorageInput.SasURL != "" {
 				blobStorage = append(blobStorage, blobStorageItem)
-				appLogsItem["azure_blob_storage"] = blobStorage
 			}
-
 		}
-
-		if len(appLogsItem) > 0 {
-			appLogs = append(appLogs, appLogsItem)
-		}
-
+		appLogsItem["azure_blob_storage"] = blobStorage
+		appLogs = append(appLogs, appLogsItem)
 	}
 	result["application_logs"] = appLogs
 
@@ -1161,8 +1157,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 	if input.HTTPLogs != nil {
 		httpLogsItem := make(map[string]interface{})
 
+		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
-			fileSystem := make([]interface{}, 0)
 
 			fileSystemItem := make(map[string]interface{})
 
@@ -1177,14 +1173,10 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 			// The API returns a non nil filesystem logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
 			if fileSystemInput.Enabled != nil && *fileSystemInput.Enabled {
 				fileSystem = append(fileSystem, fileSystemItem)
-
-				httpLogsItem["file_system"] = fileSystem
 			}
 		}
-
-		if len(httpLogsItem) > 0 {
-			httpLogs = append(httpLogs, httpLogsItem)
-		}
+		httpLogsItem["file_system"] = fileSystem
+		httpLogs = append(httpLogs, httpLogsItem)
 	}
 	result["http_logs"] = httpLogs
 
