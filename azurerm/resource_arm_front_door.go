@@ -482,73 +482,48 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	// Now loop through the FrontendEndpoints and enable/disable Custom Domain HTTPS
 	// on each individual Frontend Endpoint if required
-
 	for _, v := range frontendEndpoints {
 		frontendEndpoint := v.(map[string]interface{})
-
 		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
 		frontendEndpointName := frontendEndpoint["name"].(string)
-		chc := frontendEndpoint["custom_https_configuration"].([]interface{})
 
-		if len(chc) > 0 {
-			customHttpsConfiguration := chc[0].(map[string]interface{})
+		// Get current state of endpoint from Azure
+		client := meta.(*ArmClient).frontDoorsFrontendClient
+		ctx := meta.(*ArmClient).StopContext
 
-			// Get current state of endpoint from Azure
-			client := meta.(*ArmClient).frontDoorsFrontendClient
-			ctx := meta.(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+		}
+		if resp.ID == nil {
+			return fmt.Errorf("Cannot read Front Door Frontend Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+		}
 
-			resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
-			if err != nil {
-				return fmt.Errorf("Error retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-			}
-			if resp.ID == nil {
-				return fmt.Errorf("Cannot read Front Door Frontend Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
-			}
-
-			if properties := resp.FrontendEndpointProperties; properties != nil {
-				if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
-					// return an error if the Frontend Endpoint is in a state that is unconfigurable
-					if !azure.IsFrontDoorFrontendEndpointConfigurable(provisioningState) {
-						log.Printf("\n\n******************************************** %v ************************************************\n\n", provisioningState)
-						return fmt.Errorf("Unable to set Front Door Frontend Endpoint %q (Resource Group %q) Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", frontendEndpointName, resourceGroup, provisioningState)
+		if properties := resp.FrontendEndpointProperties; properties != nil {
+			if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
+				// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
+				// see if its current state is configurable, if not return an error...
+				if customHttpsProvisioningEnabled != azure.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
+					if err := azure.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
+						return err
 					}
+				}
 
-					if customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled {
-						// build a custom Https configuration based off the config file to send to the enable call
-						// TODO: Consolidate this into a helper function since I do the same thing in two places...
-						customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
-							ProtocolType: frontdoor.ServerNameIndication,
-						}
+				if customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled {
+					// Build a custom Https configuration based off the config file to send to the enable call
+					// NOTE: I do not need to check to see if this exists since I already do that in the validation code
+					chc := frontendEndpoint["custom_https_configuration"].([]interface{})
+					customHttpsConfiguration := chc[0].(map[string]interface{})
+					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHttpsConfiguration)
 
-						if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
-							vaultSecret := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
-							vaultVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
-							vaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"].(string)
-
-							customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceAzureKeyVault
-							customHTTPSConfigurationUpdate.KeyVaultCertificateSourceParameters = &frontdoor.KeyVaultCertificateSourceParameters{
-								Vault: &frontdoor.KeyVaultCertificateSourceParametersVault{
-									ID: utils.String(vaultId),
-								},
-								SecretName:    utils.String(vaultSecret),
-								SecretVersion: utils.String(vaultVersion),
-							}
-						} else {
-							customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceFrontDoor
-							customHTTPSConfigurationUpdate.CertificateSourceParameters = &frontdoor.CertificateSourceParameters{
-								CertificateType: frontdoor.Dedicated,
-							}
-						}
-
-						// Enable Custom Domain HTTPS for the Frontend Endpoint
-						if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
-							return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-						}
-					} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
-						// Disable Custom Domain HTTPS for the Frontend Endpoint
-						if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(false, name, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
-							return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-						}
+					// Enable Custom Domain HTTPS for the Frontend Endpoint
+					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
+						return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+					}
+				} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
+					// Disable Custom Domain HTTPS for the Frontend Endpoint
+					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(false, name, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
+						return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 					}
 				}
 			}
@@ -827,33 +802,9 @@ func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.
 	}
 
 	v := input[0].(map[string]interface{})
-	certSource := v["certificate_source"].(string)
+	customHttpsConfiguration := makeCustomHttpsConfiguration(v)
 
-	result := frontdoor.CustomHTTPSConfiguration{
-		ProtocolType: frontdoor.ServerNameIndication,
-	}
-
-	if certSource == "AzureKeyVault" {
-		vaultSecret := v["azure_key_vault_certificate_secret_name"].(string)
-		vaultVersion := v["azure_key_vault_certificate_secret_version"].(string)
-		vaultId := v["azure_key_vault_certificate_vault_id"].(string)
-
-		result.CertificateSource = frontdoor.CertificateSourceAzureKeyVault
-		result.KeyVaultCertificateSourceParameters = &frontdoor.KeyVaultCertificateSourceParameters{
-			Vault: &frontdoor.KeyVaultCertificateSourceParametersVault{
-				ID: utils.String(vaultId),
-			},
-			SecretName:    utils.String(vaultSecret),
-			SecretVersion: utils.String(vaultVersion),
-		}
-	} else {
-		result.CertificateSource = frontdoor.CertificateSourceFrontDoor
-		result.CertificateSourceParameters = &frontdoor.CertificateSourceParameters{
-			CertificateType: frontdoor.Dedicated,
-		}
-	}
-
-	return &result
+	return &customHttpsConfiguration
 }
 
 func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.HealthProbeSettingsModel {
@@ -1196,15 +1147,8 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 		if name := v.Name; name != nil {
 			result["name"] = *name
 
-			// Need to call frontEndEndpointVlient here to get customConfiguration information from that client
+			// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			//
-			// Get gets a Frontend endpoint with the specified name within the specified Front Door.
-			// Parameters:
-			// resourceGroupName    - name of the Resource group within the Azure subscription.
-			// frontDoorName        - name of the Front Door which is globally unique.
-			// frontendEndpointName - name of the Frontend endpoint which is unique within the Front Door.
-
 			client := meta.(*ArmClient).frontDoorsFrontendClient
 			ctx := meta.(*ArmClient).StopContext
 
@@ -1237,15 +1181,13 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 				if properties.CustomHTTPSConfiguration != nil {
 					customHTTPSConfiguration := properties.CustomHTTPSConfiguration
+					log.Printf("\n**********************************************************\n%+v\n**********************************************************\n", customHTTPSConfiguration)
 					if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
-						// if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
-						// 	chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
-						// 	chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
-						// 	chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
-						// }
-
-						// DEBUG: Only like this to unblock development once AFD fix is deployed revert code back
-						chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
+						if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
+							chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
+							chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
+							chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
+						}
 					} else {
 						chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
 					}
@@ -1464,4 +1406,33 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 	}
 
 	return output
+}
+
+func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
+
+	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
+		ProtocolType: frontdoor.ServerNameIndication,
+	}
+
+	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
+		vaultSecret := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
+		vaultVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
+		vaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"].(string)
+
+		customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceAzureKeyVault
+		customHTTPSConfigurationUpdate.KeyVaultCertificateSourceParameters = &frontdoor.KeyVaultCertificateSourceParameters{
+			Vault: &frontdoor.KeyVaultCertificateSourceParametersVault{
+				ID: utils.String(vaultId),
+			},
+			SecretName:    utils.String(vaultSecret),
+			SecretVersion: utils.String(vaultVersion),
+		}
+	} else {
+		customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceFrontDoor
+		customHTTPSConfigurationUpdate.CertificateSourceParameters = &frontdoor.CertificateSourceParameters{
+			CertificateType: frontdoor.Dedicated,
+		}
+	}
+
+	return customHTTPSConfigurationUpdate
 }
