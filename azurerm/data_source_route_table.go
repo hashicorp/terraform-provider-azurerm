@@ -66,7 +66,7 @@ func dataSourceArmRouteTable() *schema.Resource {
 }
 
 func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routeTablesClient
+	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

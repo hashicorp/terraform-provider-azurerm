@@ -17,7 +17,7 @@ func dataSourceArmSubscription() *schema.Resource {
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	groupClient := client.subscriptionsClient
+	groupClient := client.subscription.Client
 	ctx := client.StopContext
 
 	subscriptionId := d.Get("subscription_id").(string)

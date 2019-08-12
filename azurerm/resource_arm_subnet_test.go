@@ -318,7 +318,7 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
@@ -351,8 +351,8 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
 
-		networksClient := testAccProvider.Meta().(*ArmClient).vnetClient
-		subnetsClient := testAccProvider.Meta().(*ArmClient).subnetClient
+		networksClient := testAccProvider.Meta().(*ArmClient).network.VnetClient
+		subnetsClient := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
@@ -400,7 +400,7 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
@@ -418,7 +418,7 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).subnetClient
+	client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

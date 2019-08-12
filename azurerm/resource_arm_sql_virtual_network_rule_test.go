@@ -358,7 +358,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.T
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlVirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -387,7 +387,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlVirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -420,7 +420,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlVirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

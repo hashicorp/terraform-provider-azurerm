@@ -106,7 +106,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
@@ -249,7 +249,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := extractResourceGroupAndErcName(d.Id())

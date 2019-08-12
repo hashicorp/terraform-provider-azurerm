@@ -168,7 +168,7 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitorAlertRulesClient
+		client := testAccProvider.Meta().(*ArmClient).monitor.AlertRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -185,7 +185,7 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitorAlertRulesClient
+	client := testAccProvider.Meta().(*ArmClient).monitor.AlertRulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

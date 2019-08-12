@@ -332,7 +332,7 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+		conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
@@ -349,7 +349,7 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 }
 
 func testCheckAzureRMMonitorAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+	conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

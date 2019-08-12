@@ -72,7 +72,7 @@ func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicePrincipalsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ServicePrincipalsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
@@ -93,7 +93,7 @@ func testCheckAzureRMActiveDirectoryServicePrincipalDestroy(s *terraform.State) 
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicePrincipalsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ServicePrincipalsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 

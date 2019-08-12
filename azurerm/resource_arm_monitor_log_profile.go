@@ -86,7 +86,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 }
 
 func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -148,7 +148,7 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -185,7 +185,7 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -267,7 +267,7 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 
 func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).monitorLogProfilesClient
+		client := meta.(*ArmClient).monitor.LogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
 		if _, err := client.Get(ctx, name); err != nil {
