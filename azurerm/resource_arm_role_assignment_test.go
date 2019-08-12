@@ -287,6 +287,30 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
+
+ 	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleAssignment_emptyNameConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMRoleAssignment_emptyNameConfig() string {
 	return `
 data "azurerm_subscription" "primary" {}
@@ -434,4 +458,23 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = "${azuread_group.test.id}"
 }
 `, rInt, roleAssignmentID)
+}
+
+func testAccAzureRMRoleAssignment_managementGroupConfig() string {
+	return `
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_builtin_role_definition" "test" {
+	name = "Monitoring Reader"
+}
+
+data "azurerm_management_group" "test" {}
+	resource "azurerm_role_assignment" "test" {
+	scope              = "${data.azurerm_subscription.primary.id}${data.azurerm_management_group.test.id}"
+	role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
+	principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+`
 }
