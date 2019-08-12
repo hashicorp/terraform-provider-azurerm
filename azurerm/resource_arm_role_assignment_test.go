@@ -26,6 +26,7 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 		"assignment": {
 			"sp":    testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal,
 			"group": testAccAzureRMActiveDirectoryServicePrincipal_group,
+			"mgmt":  testAccAzureRMRoleAssignment_managementGroup,
 		},
 	}
 
@@ -296,7 +297,7 @@ func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoleAssignment_emptyNameConfig(),
+				Config: testAccAzureRMRoleAssignment_managementGroupConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
