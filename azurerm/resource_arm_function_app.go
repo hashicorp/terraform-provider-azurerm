@@ -224,6 +224,27 @@ func resourceArmFunctionApp() *schema.Resource {
 					},
 				},
 			},
+
+			"functions": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"trigger_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -556,6 +577,21 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	functions, err := client.ListFunctionsComplete(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
+	getSecretsFunc := func(functionName string) (web.FunctionSecrets, error) {
+		return client.ListFunctionSecrets(ctx, resGroup, name, functionName)
+	}
+	functionsFlattened, err := flattenFunctions(getSecretsFunc, functions.Response())
+	if err != nil {
+		return err
+	}
+	if err = d.Set("functions", functionsFlattened); err != nil {
+		return err
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -792,4 +828,35 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenFunctions(getSecrets func(name string) (web.FunctionSecrets, error), functions web.FunctionEnvelopeCollection) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+
+	funcs := *functions.Value
+	if len(funcs) < 1 {
+		log.Printf("[DEBUG] Functions collection is empty")
+		return results, nil
+	}
+
+	for _, function := range funcs {
+		if function.Name == nil {
+			log.Printf("[DEBUG] Function name is nil")
+			continue
+		}
+
+		functionName := *function.Name
+		result := make(map[string]interface{})
+		result["name"] = functionName
+		secret, err := getSecrets(functionName)
+		if err != nil {
+			log.Printf("[DEBUG] Failed to get secrets for function %v", functionName)
+			return results, err
+		}
+		result["key"] = secret.Key
+		result["trigger_url"] = secret.TriggerURL
+		results = append(results, result)
+	}
+
+	return results, nil
 }
