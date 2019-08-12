@@ -1,49 +1,93 @@
 package azurerm
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-func TestAzureRMStorageShareMigrateState(t *testing.T) {
-	cases := map[string]struct {
-		StateVersion       int
-		ID                 string
-		InputAttributes    map[string]string
-		ExpectedAttributes map[string]string
-		Meta               interface{}
-	}{
-		"v0_1": {
-			StateVersion: 0,
-			ID:           "some_id",
-			InputAttributes: map[string]string{
-				"name":                 "some_id",
-				"resource_group_name":  "some_rgn",
-				"storage_account_name": "some_sgn",
-			},
-			ExpectedAttributes: map[string]string{
-				"id": "some_id/some_rgn/some_sgn",
-			},
-		},
+func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
+	clouds := []azure.Environment{
+		azure.ChinaCloud,
+		azure.GermanCloud,
+		azure.PublicCloud,
+		azure.USGovernmentCloud,
 	}
 
-	for tn, tc := range cases {
-		is := &terraform.InstanceState{
-			ID:         tc.ID,
-			Attributes: tc.InputAttributes,
-		}
-		is, err := resourceStorageShareMigrateState(tc.StateVersion, is, tc.Meta)
+	for _, cloud := range clouds {
+		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
+		input := map[string]interface{}{
+			"id":                   "share1",
+			"name":                 "share1",
+			"resource_group_name":  "group1",
+			"storage_account_name": "account1",
+			"quota":                5120,
+		}
+		meta := &ArmClient{
+			environment: cloud,
+		}
+		expected := map[string]interface{}{
+			"id":                   "share1/group1/account1",
+			"name":                 "share1",
+			"resource_group_name":  "group1",
+			"storage_account_name": "account1",
+			"quota":                5120,
+		}
+
+		actual, err := resourceStorageShareStateUpgradeV0ToV1(input, meta)
 		if err != nil {
-			t.Fatalf("bad: %s, err: %#v", tn, err)
+			t.Fatalf("Expected no error but got: %s", err)
 		}
 
-		for k, v := range tc.ExpectedAttributes {
-			actual := is.Attributes[k]
-			if actual != v {
-				t.Fatalf("Bad Storage Share Migrate for %q: %q\n\n expected: %q", k, actual, v)
-			}
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("Expected %+v. Got %+v. But expected them to be the same", expected, actual)
 		}
+
+		t.Logf("[DEBUG] Ok!")
+	}
+}
+
+func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
+	clouds := []azure.Environment{
+		azure.ChinaCloud,
+		azure.GermanCloud,
+		azure.PublicCloud,
+		azure.USGovernmentCloud,
+	}
+
+	for _, cloud := range clouds {
+		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
+
+		input := map[string]interface{}{
+			"id":                   "share1/group1/account1",
+			"name":                 "share1",
+			"resource_group_name":  "group1",
+			"storage_account_name": "account1",
+			"quota":                5120,
+		}
+		meta := &ArmClient{
+			environment: cloud,
+		}
+		expected := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.file.%s/share1", cloud.StorageEndpointSuffix),
+			"name":                 "share1",
+			"resource_group_name":  "group1",
+			"storage_account_name": "account1",
+			"quota":                5120,
+		}
+
+		actual, err := resourceStorageShareStateUpgradeV1ToV2(input, meta)
+		if err != nil {
+			t.Fatalf("Expected no error but got: %s", err)
+		}
+
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("Expected %+v. Got %+v. But expected them to be the same", expected, actual)
+		}
+
+		t.Logf("[DEBUG] Ok!")
 	}
 }

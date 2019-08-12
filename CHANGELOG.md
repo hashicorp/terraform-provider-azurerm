@@ -1,28 +1,118 @@
-## 1.32.0 (Unreleased)
+## 1.33.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_api_management_backend` [GH-3676]
+* **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
+* **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+* **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
 
 IMPROVEMENTS:
 
-* `azurerm_app_service` - support for storage mounts [GH-3792]
-* `azurerm_app_service` - support for user assigned identities [GH-3637]
-* `azurerm_app_service_slot` - support for user assigned identities [GH-3637]
-* `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property [GH-3530]
-* `azurerm_container_registry` - support for `network_rule_set` property [GH-3194]
-* `azurerm_iothub` - support for the `file_upload` property [GH-3735]
-* `azurerm_kubernetes_cluster` - support for auto scaling [GH-3361]
-* `azurerm_security_center_contact` - the `phone` property is now optional [GH-3761]
-* `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` [GH-3750]
-* `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property [GH-3782]
-* `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update [GH-3767]
+* dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
+* internal: removing a duplicate Date/Time from the debug logs [GH-4024]
+* Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
+* `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
+* `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
+* `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
+* `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
+* `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
+* `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 
+BUG FIXES: 
+
+* `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
+* `azurerm_batch_certificate` - the `thumbprint_algorithm` property is now case insensitive [GH-3977]
+* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+* `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
+* `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
+* `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
+
+## 1.32.1 (July 31, 2019)
+
+BUG FIXES: 
+
+* `azurerm_application_gateway` fix an index out of range crash ([#3966](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3966))
+* `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one ([#3931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3931))
+* `azurerm_api_managment_product` - additional validation for `approval_required` ([#3945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3945))
+* `azurerm_network_ddos_protection_plan` - correctly decodes the resource ID on read/delete ([#3975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3975))
+* `aurerm_dev_test_virtual_network` - generate subnet IDs in the correct format ([#3717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3717))
+* `azurerm_iot_dps` fixed deletion issue when using a service principal ([#3973](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3973))
+* `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive ([#3958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3958))
+* `azurerm_postgresql_server` - add missing support for version `11.0` ([#3970](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3970))
+* `azurerm_storage_*` - prevent multiple panics when a storage account/resource group cannot be found ([#3986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3986))
+* `azurerm_storage_account` - fix `enable_advanced_threat_protection` create/read for unsupported regions ([#3947](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3947))
+* `azurerm_storage_table` - now migrates older versions of the resource id to the new format ([#3932](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3932))
+* `azurerm_virtual_machine_scale_set` - the `ssh_keys` property of the `os_profile_linux_config` block now recognizes updates ([#3837](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3837))
+* `azurerm_virtual_machine_scale_set` - changes made to the `network_profile` property should now be correctly reflected during updates ([#3821](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3821))
+
+
+## 1.32.0 (July 24, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_maps_account` ([#3698](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3698))
+* **New Data Source:** `azurerm_mssql_elasticpool` ([#3824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3824))
+* **New Resource:** `azurerm_analysis_services_server` ([#3721](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3721))
+* **New Resource:** `azurerm_api_management_backend` ([#3676](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3676))
+* **New Resource:** `azurerm_batch_application` ([#3825](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3825))
+* **New Resource:** `azurerm_maps_account` ([#3698](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3698))
+* **New Resource:** `azurerm_private_dns_zone_a_record` ([#3849](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3849))
+* **New Resource:** `azurerm_storage_table_entity` ([#3831](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3831))
+* **New Resource:** `azurerm_storage_share_directory` ([#3802](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3802))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v31.0.0` of `github.com/Azure/azure-sdk-for-go` ([#3786](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3786))
+* dependencies: upgrading to `v0.5.0` of `github.com/hashicorp/go-azure-helpers` ([#3850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3850))
+* dependencies: upgrading the `containerservice` SDK to `2019-02-01` ([#3787](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3787))
+* dependencies: upgrading the `subscription` SDK to `2018-06-01` ([#3811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3811))
+* authentication: showing a more helpful error when attempting to use the Azure CLI authentication when logged in as a Service Principal ([#3850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3850))
+* Data Source `azurerm_function_app` - support for `auth_settings` ([#3893](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3893))
+* Data Source `azurerm_subscription` - support the `tenant_id` property ([#3811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3811))
+* `azurerm_app_service` - support for backups ([#3804](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3804))
+* `azurerm_app_service` - support for storage mounts ([#3792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3792))
+* `azurerm_app_service` - support for user assigned identities ([#3637](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3637))
+* `azurerm_app_service_slot` - support for `auth_settings` ([#3897](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3897))
+* `azurerm_app_service_slot` - support for user assigned identities ([#3637](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3637))
+* `azurerm_application_gateway` - Support for Managed Identities ([#3648](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3648))
+* `azurerm_batch_pool` - support for custom images with the `storage_image_reference` property ([#3530](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3530))
+* `azurerm_batch_account` - expose required properties for when `pool_allocation_mode` is `UserSubscription` ([#3535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3535))
+* `azurerm_cognitive_account` - add support for `CustomVision.Training` and `CustomVision.Prediction` to the `kind` property ([#3817](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3817))
+* `azurerm_container_registry` - support for `network_rule_set` property ([#3194](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3194))
+* `azurerm_cosmosdb_account` - validate `max_interval_in_seconds` and `max_staleness_prefix` correctly when using more then 1 geo_location ([#3906](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3906))
+* `azurerm_function_app` - support for `auth_settings` ([#3893](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3893))
+* `azurerm_iothub` - support for the `file_upload` property ([#3735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3735))
+* `azurerm_kubernetes_cluster` - support for auto scaling ([#3361](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3361))
+* `azurerm_kubernetes_cluster` - support for `custom_resource_group_name` ([#3785](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3785))
+* `azurerm_kubernetes_cluster` - support for the `node_taints` property ([#3787](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3787))
+* `azurerm_kubernetes_cluster`  - support for the `windows_profile` property ([#3519](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3519))
+* `kubernetes_cluster` - support for specifying the `load_balancer_sku` property ([#3890](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3890))
+* `azurerm_recovery_services_protected_vm` - changing `backup_policy_id` no longer forces a new resource ([#3822](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3822))
+* `azurerm_security_center_contact` - the `phone` property is now optional ([#3761](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3761))
+* `azurerm_storage_account` - the `account_kind` property now supports `FileStorage` ([#3750](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3750))
+* `azurerm_storage_account` - support for the `enable_advanced_threat_protection` property ([#3782](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3782))
+* `azurerm_storage_account` - support for `queue_properties` ([#3859](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3859))
+* `azurerm_storage_blob` - making `metadata` a computed field ([#3842](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3842))
+* `azurerm_storage_container` - switching to use github.com/tombuildsstuff/giovanni ([#3857](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3857))
+* `azurerm_storage_container` - adding support for `metadata` ([#3857](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3857))
+* `azurerm_storage_container` - can now create containers with the name `$web` ([#3896](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3896))
+* `azurerm_storage_queue` - switching to use github.com/tombuildsstuff/giovanni ([#3832](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3832))
+* `azurerm_storage_share` - switching to use github.com/tombuildsstuff/giovanni ([#3828](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3828))
+* `azurerm_storage_share` - support for configuring ACL's ([#3830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3830))
+* `azurerm_storage_share` - support for configuring MetaData ([#3830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3830))
+* `azurerm_storage_table` - switching to use github.com/tombuildsstuff/giovanni ([#3834](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3834))
+* `azurerm_storage_table` - support for configuring ACL's ([#3847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3847))
+* `azurerm_traffic_manager_endpoint` - supper for `custom_header` and `subnet` properties ([#3655](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3655))
+* `azurerm_virtual_machine` - switching over to use the github.com/tombuildsstuff/giovanni Storage SDK ([#3838](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3838))
+* `azurerm_virtual_machine` - looking up the data disks attached to the Virtual Machine when optionally deleting them upon deletion rather than parsing them from the config ([#3838](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3838))
+* `azurerm_virtual_machine_scale_set` - prevent `public_ip_address_configuration` from being lost during update ([#3767](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3767))
 
 BUG FIXES:
 
-* `azurerm_image` - prevent crash when using `data_disk` [GH-3797]
-* `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name [GH-3768]
+* `azurerm_image` - prevent crash when using `data_disk` ([#3797](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3797))
+* `azurerm_role_assignment` - now correctly uses `scope` when looking up the role definition by name ([#3768](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3768))
 
 ## 1.31.0 (June 28, 2019)
 

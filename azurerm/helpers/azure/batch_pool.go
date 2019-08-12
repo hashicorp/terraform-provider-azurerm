@@ -262,7 +262,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
-	result := []batch.CertificateReference{}
+	var result []batch.CertificateReference
 
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
@@ -284,7 +284,7 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 	storeLocation := ref["store_location"].(string)
 	storeName := ref["store_name"].(string)
 	visibilityRefs := ref["visibility"].(*schema.Set)
-	visibility := []batch.CertificateVisibility{}
+	var visibility []batch.CertificateVisibility
 	if visibilityRefs != nil {
 		for _, visibilityRef := range visibilityRefs.List() {
 			visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))

@@ -107,7 +107,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 }
 
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
@@ -275,7 +275,7 @@ func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

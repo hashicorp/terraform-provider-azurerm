@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -84,6 +85,50 @@ func resourceArmIotDPS() *schema.Resource {
 				},
 			},
 
+			"linked_hub": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connection_string": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+							ForceNew:     true,
+							// Azure returns the key as ****. We'll suppress that here.
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey)=[^;]+")
+								maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
+							},
+							Sensitive: true,
+						},
+						"location": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+							StateFunc:    azure.NormalizeLocation,
+							ForceNew:     true,
+						},
+						"apply_allocation_policy": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"allocation_weight": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"hostname": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -110,11 +155,13 @@ func resourceArmIotDPSCreateOrUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	iotdps := iothub.ProvisioningServiceDescription{
-		Location:   utils.String(d.Get("location").(string)),
-		Name:       utils.String(name),
-		Sku:        expandIoTDPSSku(d),
-		Properties: &iothub.IotDpsPropertiesDescription{},
-		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
+		Location: utils.String(d.Get("location").(string)),
+		Name:     utils.String(name),
+		Sku:      expandIoTDPSSku(d),
+		Properties: &iothub.IotDpsPropertiesDescription{
+			IotHubs: expandIoTDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+		},
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iotdps)
@@ -170,6 +217,13 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("sku", sku); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
+
+	if props := resp.Properties; props != nil {
+		if err := d.Set("linked_hub", flattenIoTDPSLinkedHub(props.IotHubs)); err != nil {
+			return fmt.Errorf("Error setting `linked_hub`: %+v", err)
+		}
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -186,7 +240,7 @@ func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["provisioningServices"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, name, resourceGroup)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -214,7 +268,7 @@ func waitForIotDPSToBeDeleted(ctx context.Context, client iothub.IotDpsResourceC
 
 func iotdpsStateStatusCodeRefreshFunc(ctx context.Context, client iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		res, err := client.Get(ctx, name, resourceGroup)
 
 		log.Printf("Retrieving IoT Device Provisioning Service %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
 
@@ -244,6 +298,24 @@ func expandIoTDPSSku(d *schema.ResourceData) *iothub.IotDpsSkuInfo {
 	}
 }
 
+func expandIoTDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription {
+	linkedHubs := make([]iothub.DefinitionDescription, 0)
+
+	for _, attr := range input {
+		linkedHubConfig := attr.(map[string]interface{})
+		linkedHub := iothub.DefinitionDescription{
+			ConnectionString:      utils.String(linkedHubConfig["connection_string"].(string)),
+			AllocationWeight:      utils.Int32(int32(linkedHubConfig["allocation_weight"].(int))),
+			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
+			Location:              utils.String(linkedHubConfig["location"].(string)),
+		}
+
+		linkedHubs = append(linkedHubs, linkedHub)
+	}
+
+	return &linkedHubs
+}
+
 func flattenIoTDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
@@ -254,4 +326,35 @@ func flattenIoTDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	}
 
 	return []interface{}{output}
+}
+
+func flattenIoTDPSLinkedHub(input *[]iothub.DefinitionDescription) []interface{} {
+	linkedHubs := make([]interface{}, 0)
+	if input == nil {
+		return linkedHubs
+	}
+
+	for _, attr := range *input {
+		linkedHub := make(map[string]interface{})
+
+		if attr.Name != nil {
+			linkedHub["hostname"] = *attr.Name
+		}
+		if attr.ApplyAllocationPolicy != nil {
+			linkedHub["apply_allocation_policy"] = *attr.ApplyAllocationPolicy
+		}
+		if attr.AllocationWeight != nil {
+			linkedHub["allocation_weight"] = *attr.AllocationWeight
+		}
+		if attr.ConnectionString != nil {
+			linkedHub["connection_string"] = *attr.ConnectionString
+		}
+		if attr.Location != nil {
+			linkedHub["location"] = *attr.Location
+		}
+
+		linkedHubs = append(linkedHubs, linkedHub)
+	}
+
+	return linkedHubs
 }

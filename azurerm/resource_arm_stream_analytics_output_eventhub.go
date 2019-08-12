@@ -71,7 +71,7 @@ func resourceArmStreamAnalyticsOutputEventHub() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output EventHub creation.")
@@ -143,7 +143,7 @@ func resourceArmStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -188,7 +188,7 @@ func resourceArmStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmStreamAnalyticsOutputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
