@@ -28,7 +28,7 @@ func dataSourceArmApplicationSecurityGroup() *schema.Resource {
 }
 
 func dataSourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationSecurityGroupsClient
+	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

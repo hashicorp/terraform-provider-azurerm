@@ -560,7 +560,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext
-			providerList, err := client.providersClient.List(ctx, nil, "")
+			providerList, err := client.resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
@@ -571,7 +571,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				availableResourceProviders := providerList.Values()
 				requiredResourceProviders := requiredResourceProviders()
 
-				err := ensureResourceProvidersAreRegistered(ctx, client.providersClient, availableResourceProviders, requiredResourceProviders)
+				err := ensureResourceProvidersAreRegistered(ctx, client.resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
 				}

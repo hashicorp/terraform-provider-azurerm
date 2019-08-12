@@ -55,7 +55,7 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 }
 
 func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
@@ -119,7 +119,7 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -159,7 +159,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

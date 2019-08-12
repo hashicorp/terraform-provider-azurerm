@@ -58,7 +58,7 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 }
 
 func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).msSqlElasticPoolsClient
+	client := meta.(*ArmClient).mssql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

@@ -9,20 +9,6 @@ import (
 	"sync"
 	"time"
 
-	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
-	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
-	vulnerabilitySvc "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
-	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -40,15 +26,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
@@ -58,8 +47,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
@@ -67,14 +59,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -103,16 +98,19 @@ type ArmClient struct {
 	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
+	compute          *compute.Client
 	containers       *containers.Client
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
 	dataFactory      *datafactory.Client
+	datalake         *datalake.Client
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	keyvault         *keyvault.Client
@@ -122,14 +120,18 @@ type ArmClient struct {
 	maps             *maps.Client
 	mariadb          *mariadb.Client
 	media            *media.Client
+	monitor          *monitor.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
+	mssql            *mssql.Client
+	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	postgres         *postgres.Client
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	resource         *resource.Client
 	scheduler        *scheduler.Client
 	search           *search.Client
 	securityCenter   *securitycenter.Client
@@ -138,127 +140,14 @@ type ArmClient struct {
 	signalr          *signalr.Client
 	storage          *intStor.Client
 	streamanalytics  *streamanalytics.Client
+	subscription     *subscription.Client
+	sql              *sql.Client
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
-
-	// Authentication
-	applicationsClient      graphrbac.ApplicationsClient
-	servicePrincipalsClient graphrbac.ServicePrincipalsClient
-
-	// Autoscale Settings
-	autoscaleSettingsClient insights.AutoscaleSettingsClient
-
-	// Compute
-	availSetClient             compute.AvailabilitySetsClient
-	diskClient                 compute.DisksClient
-	imageClient                compute.ImagesClient
-	galleriesClient            compute.GalleriesClient
-	galleryImagesClient        compute.GalleryImagesClient
-	galleryImageVersionsClient compute.GalleryImageVersionsClient
-	snapshotsClient            compute.SnapshotsClient
-	usageOpsClient             compute.UsageClient
-	vmExtensionImageClient     compute.VirtualMachineExtensionImagesClient
-	vmExtensionClient          compute.VirtualMachineExtensionsClient
-	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
-	vmImageClient              compute.VirtualMachineImagesClient
-	vmClient                   compute.VirtualMachinesClient
-
-	sqlDatabasesClient                       sql.DatabasesClient
-	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
-	sqlElasticPoolsClient                    sql.ElasticPoolsClient
-	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	msSqlElasticPoolsClient                            MsSql.ElasticPoolsClient
-	sqlFirewallRulesClient                             sql.FirewallRulesClient
-	sqlServersClient                                   sql.ServersClient
-	sqlServerAzureADAdministratorsClient               sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient                       sql.VirtualNetworkRulesClient
-	databaseVulnerabilityAssessmentRuleBaselinesClient vulnerabilitySvc.DatabaseVulnerabilityAssessmentRuleBaselinesClient
-
-	// Data Lake Store
-	dataLakeStoreAccountClient       storeAccount.AccountsClient
-	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
-	dataLakeStoreFilesClient         filesystem.Client
-
-	// Data Lake Analytics
-	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
-	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
-
-	// Monitor
-	monitorActionGroupsClient               insights.ActionGroupsClient
-	monitorActivityLogAlertsClient          insights.ActivityLogAlertsClient
-	monitorAlertRulesClient                 insights.AlertRulesClient
-	monitorDiagnosticSettingsClient         insights.DiagnosticSettingsClient
-	monitorDiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
-	monitorLogProfilesClient                insights.LogProfilesClient
-	monitorMetricAlertsClient               insights.MetricAlertsClient
-
-	// Networking
-	applicationGatewayClient        network.ApplicationGatewaysClient
-	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
-	azureFirewallsClient            network.AzureFirewallsClient
-	connectionMonitorsClient        network.ConnectionMonitorsClient
-	ddosProtectionPlanClient        network.DdosProtectionPlansClient
-	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
-	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
-	expressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
-	ifaceClient                     network.InterfacesClient
-	loadBalancerClient              network.LoadBalancersClient
-	localNetConnClient              network.LocalNetworkGatewaysClient
-	netProfileClient                network.ProfilesClient
-	packetCapturesClient            network.PacketCapturesClient
-	publicIPClient                  network.PublicIPAddressesClient
-	publicIPPrefixClient            network.PublicIPPrefixesClient
-	routesClient                    network.RoutesClient
-	routeTablesClient               network.RouteTablesClient
-	secGroupClient                  network.SecurityGroupsClient
-	secRuleClient                   network.SecurityRulesClient
-	subnetClient                    network.SubnetsClient
-	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
-	vnetGatewayClient               network.VirtualNetworkGatewaysClient
-	vnetClient                      network.VirtualNetworksClient
-	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
-	watcherClient                   network.WatchersClient
-
-	// Resources
-	managementLocksClient locks.ManagementLocksClient
-	deploymentsClient     resources.DeploymentsClient
-	providersClient       resourcesprofile.ProvidersClient
-	resourcesClient       resources.Client
-	resourceGroupsClient  resources.GroupsClient
-	subscriptionsClient   subscriptions.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsagesClient
-}
-
-func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
-	setUserAgent(client, c.partnerId)
-	client.Authorizer = auth
-	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
-	client.Sender = sender.BuildSender("AzureRM")
-	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 180 * time.Minute
-}
-
-func setUserAgent(client *autorest.Client, partnerID string) {
-	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
-	tfUserAgent := httpclient.UserAgentString()
-
-	pv := version.ProviderVersion
-	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
-	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
-
-	// append the CloudShell version to the user agent if it exists
-	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
-	}
-
-	if partnerID != "" {
-		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
-	}
-
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 // getArmClient is a helper method which returns a fully instantiated
@@ -324,14 +213,15 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	})
 
 	o := &common.ClientOptions{
+		SubscriptionId:              c.SubscriptionID,
+		TenantID:                    c.TenantID,
+		PartnerId:                   partnerId,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		SubscriptionId:              c.SubscriptionID,
-		PartnerId:                   partnerId,
 		PollingDuration:             60 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
@@ -346,15 +236,18 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.batch = batch.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
+	client.compute = compute.BuildClient(o)
 	client.containers = containers.BuildClient(o)
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)
 	client.dataFactory = datafactory.BuildClient(o)
+	client.datalake = datalake.BuildClient(o)
 	client.devSpace = devspace.BuildClient(o)
 	client.devTestLabs = devtestlabs.BuildClient(o)
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
 	client.keyvault = keyvault.BuildClient(o)
@@ -363,9 +256,12 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.maps = maps.BuildClient(o)
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
+	client.monitor = monitor.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
+	client.mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
+	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
@@ -373,6 +269,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.recoveryServices = recoveryservices.BuildClient(o)
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
+	client.resource = resource.BuildClient(o)
 	client.search = search.BuildClient(o)
 	client.securityCenter = securitycenter.BuildClient(o)
 	client.servicebus = servicebus.BuildClient(o)
@@ -380,312 +277,43 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.scheduler = scheduler.BuildClient(o)
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
+	client.subscription = subscription.BuildClient(o)
+	client.sql = sql.BuildClient(o)
 	client.trafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
-	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
-	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
-	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
-	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
 }
 
-func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
-
-	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
-	c.configureClient(&applicationsClient.Client, graphAuth)
-	c.applicationsClient = applicationsClient
-
-	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
-	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
-	c.servicePrincipalsClient = servicePrincipalsClient
+func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
+	setUserAgent(client, c.partnerId)
+	client.Authorizer = auth
+	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
+	client.Sender = sender.BuildSender("AzureRM")
+	client.SkipResourceProviderRegistration = c.skipProviderRegistration
+	client.PollingDuration = 180 * time.Minute
 }
 
-func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&availabilitySetsClient.Client, auth)
-	c.availSetClient = availabilitySetsClient
-
-	diskClient := compute.NewDisksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&diskClient.Client, auth)
-	c.diskClient = diskClient
-
-	imagesClient := compute.NewImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&imagesClient.Client, auth)
-	c.imageClient = imagesClient
-
-	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&snapshotsClient.Client, auth)
-	c.snapshotsClient = snapshotsClient
-
-	usageClient := compute.NewUsageClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&usageClient.Client, auth)
-	c.usageOpsClient = usageClient
-
-	extensionImagesClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&extensionImagesClient.Client, auth)
-	c.vmExtensionImageClient = extensionImagesClient
-
-	extensionsClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&extensionsClient.Client, auth)
-	c.vmExtensionClient = extensionsClient
-
-	virtualMachineImagesClient := compute.NewVirtualMachineImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&virtualMachineImagesClient.Client, auth)
-	c.vmImageClient = virtualMachineImagesClient
-
-	scaleSetsClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&scaleSetsClient.Client, auth)
-	c.vmScaleSetClient = scaleSetsClient
-
-	virtualMachinesClient := compute.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&virtualMachinesClient.Client, auth)
-	c.vmClient = virtualMachinesClient
-
-	galleriesClient := compute.NewGalleriesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleriesClient.Client, auth)
-	c.galleriesClient = galleriesClient
-
-	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleryImagesClient.Client, auth)
-	c.galleryImagesClient = galleryImagesClient
-
-	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&galleryImageVersionsClient.Client, auth)
-	c.galleryImageVersionsClient = galleryImageVersionsClient
-}
-
-func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-
-	// SQL Azure
-	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlDBClient.Client, auth)
-	c.sqlDatabasesClient = sqlDBClient
-
-	sqlDTDPClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&sqlDTDPClient.Client, "")
-	sqlDTDPClient.Authorizer = auth
-	sqlDTDPClient.Sender = sender
-	sqlDTDPClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.sqlDatabaseThreatDetectionPoliciesClient = sqlDTDPClient
-
-	sqlFWClient := sql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlFWClient.Client, auth)
-	c.sqlFirewallRulesClient = sqlFWClient
-
-	sqlEPClient := sql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlEPClient.Client, auth)
-	c.sqlElasticPoolsClient = sqlEPClient
-
-	MsSqlEPClient := MsSql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&MsSqlEPClient.Client, auth)
-	c.msSqlElasticPoolsClient = MsSqlEPClient
-
-	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlSrvClient.Client, auth)
-	c.sqlServersClient = sqlSrvClient
-
-	sqlADClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlADClient.Client, auth)
-	c.sqlServerAzureADAdministratorsClient = sqlADClient
-
-	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&sqlVNRClient.Client, auth)
-	c.sqlVirtualNetworkRulesClient = sqlVNRClient
-
-	databaseVulnerabilityAssessmentRuleBaselinesClient := vulnerabilitySvc.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&databaseVulnerabilityAssessmentRuleBaselinesClient.Client, auth)
-	c.databaseVulnerabilityAssessmentRuleBaselinesClient = databaseVulnerabilityAssessmentRuleBaselinesClient
-}
-
-func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&storeAccountClient.Client, auth)
-	c.dataLakeStoreAccountClient = storeAccountClient
-
-	storeFirewallRulesClient := storeAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&storeFirewallRulesClient.Client, auth)
-	c.dataLakeStoreFirewallRulesClient = storeFirewallRulesClient
-
-	analyticsAccountClient := analyticsAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&analyticsAccountClient.Client, auth)
-	c.dataLakeAnalyticsAccountClient = analyticsAccountClient
-
-	filesClient := filesystem.NewClient()
-	c.configureClient(&filesClient.Client, auth)
-	c.dataLakeStoreFilesClient = filesClient
-
-	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
-	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
-}
-
-func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&agc.Client, auth)
-	c.monitorActionGroupsClient = agc
-
-	alac := insights.NewActivityLogAlertsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&alac.Client, auth)
-	c.monitorActivityLogAlertsClient = alac
-
-	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&arc.Client, auth)
-	c.monitorAlertRulesClient = arc
-
-	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitorLogProfilesClient.Client, auth)
-	c.monitorLogProfilesClient = monitorLogProfilesClient
-
-	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mac.Client, auth)
-	c.monitorMetricAlertsClient = mac
-
-	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&autoscaleSettingsClient.Client, auth)
-	c.autoscaleSettingsClient = autoscaleSettingsClient
-
-	monitoringInsightsClient := insights.NewDiagnosticSettingsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitoringInsightsClient.Client, auth)
-	c.monitorDiagnosticSettingsClient = monitoringInsightsClient
-
-	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
-	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
-}
-
-func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	applicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&applicationGatewaysClient.Client, auth)
-	c.applicationGatewayClient = applicationGatewaysClient
-
-	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&appSecurityGroupsClient.Client, auth)
-	c.applicationSecurityGroupsClient = appSecurityGroupsClient
-
-	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&azureFirewallsClient.Client, auth)
-	c.azureFirewallsClient = azureFirewallsClient
-
-	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&connectionMonitorsClient.Client, auth)
-	c.connectionMonitorsClient = connectionMonitorsClient
-
-	ddosProtectionPlanClient := network.NewDdosProtectionPlansClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&ddosProtectionPlanClient.Client, auth)
-	c.ddosProtectionPlanClient = ddosProtectionPlanClient
-
-	expressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRouteAuthsClient.Client, auth)
-	c.expressRouteAuthsClient = expressRouteAuthsClient
-
-	expressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRouteCircuitsClient.Client, auth)
-	c.expressRouteCircuitClient = expressRouteCircuitsClient
-
-	expressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&expressRoutePeeringsClient.Client, auth)
-	c.expressRoutePeeringsClient = expressRoutePeeringsClient
-
-	interfacesClient := network.NewInterfacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&interfacesClient.Client, auth)
-	c.ifaceClient = interfacesClient
-
-	loadBalancersClient := network.NewLoadBalancersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&loadBalancersClient.Client, auth)
-	c.loadBalancerClient = loadBalancersClient
-
-	localNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&localNetworkGatewaysClient.Client, auth)
-	c.localNetConnClient = localNetworkGatewaysClient
-
-	gatewaysClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&gatewaysClient.Client, auth)
-	c.vnetGatewayClient = gatewaysClient
-
-	gatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&gatewayConnectionsClient.Client, auth)
-	c.vnetGatewayConnectionsClient = gatewayConnectionsClient
-
-	netProfileClient := network.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&netProfileClient.Client, auth)
-	c.netProfileClient = netProfileClient
-
-	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&networksClient.Client, auth)
-	c.vnetClient = networksClient
-
-	packetCapturesClient := network.NewPacketCapturesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&packetCapturesClient.Client, auth)
-	c.packetCapturesClient = packetCapturesClient
-
-	peeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&peeringsClient.Client, auth)
-	c.vnetPeeringsClient = peeringsClient
-
-	publicIPAddressesClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&publicIPAddressesClient.Client, auth)
-	c.publicIPClient = publicIPAddressesClient
-
-	publicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&publicIPPrefixesClient.Client, auth)
-	c.publicIPPrefixClient = publicIPPrefixesClient
-
-	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&routesClient.Client, auth)
-	c.routesClient = routesClient
-
-	routeTablesClient := network.NewRouteTablesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&routeTablesClient.Client, auth)
-	c.routeTablesClient = routeTablesClient
-
-	securityGroupsClient := network.NewSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&securityGroupsClient.Client, auth)
-	c.secGroupClient = securityGroupsClient
-
-	securityRulesClient := network.NewSecurityRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&securityRulesClient.Client, auth)
-	c.secRuleClient = securityRulesClient
-
-	subnetsClient := network.NewSubnetsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&subnetsClient.Client, auth)
-	c.subnetClient = subnetsClient
-
-	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&watchersClient.Client, auth)
-	c.watcherClient = watchersClient
-}
-
-func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&locksClient.Client, auth)
-	c.managementLocksClient = locksClient
-
-	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&deploymentsClient.Client, auth)
-	c.deploymentsClient = deploymentsClient
-
-	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourcesClient.Client, auth)
-	c.resourcesClient = resourcesClient
-
-	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourceGroupsClient.Client, auth)
-	c.resourceGroupsClient = resourceGroupsClient
-
-	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionsClient.Client, auth)
-	c.subscriptionsClient = subscriptionsClient
-
-	// this has to come from the Profile since this is shared with Stack
-	providersClient := resourcesprofile.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&providersClient.Client, auth)
-	c.providersClient = providersClient
+func setUserAgent(client *autorest.Client, partnerID string) {
+	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+	tfUserAgent := httpclient.UserAgentString()
+
+	pv := version.ProviderVersion
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
+
+	// append the CloudShell version to the user agent if it exists
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
+	}
+
+	if partnerID != "" {
+		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+	}
+
+	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {

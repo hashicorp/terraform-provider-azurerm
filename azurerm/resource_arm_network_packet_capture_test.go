@@ -148,7 +148,7 @@ func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
 
 func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+		client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -174,7 +174,7 @@ func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+	client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
