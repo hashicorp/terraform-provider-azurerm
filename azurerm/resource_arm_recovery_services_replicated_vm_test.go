@@ -131,7 +131,6 @@ resource "azurerm_recovery_network_mapping" "test" {
   name = "mapping-%d"
   source_recovery_fabric_name = "${azurerm_recovery_services_fabric.test1.name}"
   target_recovery_fabric_name = "${azurerm_recovery_services_fabric.test2.name}"
-  source_network_name = "${azurerm_virtual_network.test1.name}"
   source_network_id = "${azurerm_virtual_network.test1.id}"
   target_network_id = "${azurerm_virtual_network.test2.id}"
 }
