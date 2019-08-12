@@ -121,7 +121,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["NetworkDDoSProtectionPlans"]
+	name := id.Path["ddosProtectionPlans"]
 
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -161,7 +161,7 @@ func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta int
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["NetworkDDoSProtectionPlans"]
+	name := id.Path["ddosProtectionPlans"]
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {

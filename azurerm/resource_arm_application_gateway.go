@@ -49,6 +49,34 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(network.ResourceIdentityTypeUserAssigned),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ResourceIdentityTypeUserAssigned),
+							}, false),
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+					},
+				},
+			},
 
 			// Required
 			"backend_address_pool": {
@@ -1352,6 +1380,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
+	}
+
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
 		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
@@ -1456,6 +1488,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", applicationGateway.Zones)
+
+	identity := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
@@ -1587,6 +1624,50 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
+func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.ManagedServiceIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := network.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	appGatewayIdentity := network.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if identityType == network.ResourceIdentityTypeUserAssigned {
+		appGatewayIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &appGatewayIdentity
+}
+
+func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if result["type"] == "userAssigned" {
+		result["type"] = "UserAssigned"
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
+}
+
 func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
 	vs := d.Get("authentication_certificate").([]interface{})
 	results := make([]network.ApplicationGatewayAuthenticationCertificate, 0)
@@ -1633,7 +1714,7 @@ func flattenApplicationGatewayAuthenticationCertificates(input *[]network.Applic
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
 			existingVals := existing.([]interface{})
-			if len(existingVals) >= i {
+			if len(existingVals) > i {
 				existingCerts := existingVals[i].(map[string]interface{})
 				if data := existingCerts["data"]; data != nil {
 					output["data"] = data.(string)

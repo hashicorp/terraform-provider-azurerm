@@ -132,7 +132,7 @@ func resourceArmDevTestLinuxVirtualMachine() *schema.Resource {
 }
 
 func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Linux Virtual Machine creation")
@@ -231,7 +231,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -284,7 +284,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDevTestLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
+	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

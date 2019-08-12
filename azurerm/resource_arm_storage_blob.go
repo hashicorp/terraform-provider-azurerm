@@ -75,10 +75,9 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"content_type": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Default:       "application/octet-stream",
-				ConflictsWith: []string{"source_uri"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "application/octet-stream",
 			},
 
 			"source": {
@@ -119,6 +118,7 @@ func resourceArmStorageBlob() *schema.Resource {
 			"metadata": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,

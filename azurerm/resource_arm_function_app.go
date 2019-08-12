@@ -203,6 +203,8 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
+			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+
 			"site_credential": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -316,6 +318,17 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*read.ID)
 
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+
+	auth := web.SiteAuthSettings{
+		ID:                         read.ID,
+		SiteAuthSettingsProperties: &authSettings}
+
+	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+	}
+
 	return resourceArmFunctionAppUpdate(d, meta)
 }
 
@@ -396,6 +409,20 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("auth_settings") {
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		id := d.Id()
+		authSettings := web.SiteAuthSettings{
+			ID:                         &id,
+			SiteAuthSettingsProperties: &authSettingsProperties,
+		}
+
+		if _, err := client.UpdateAuthSettings(ctx, resGroup, name, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", name, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandFunctionAppConnectionStrings(d)
@@ -460,6 +487,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
+	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
@@ -512,6 +543,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
 	if err = d.Set("site_config", siteConfig); err != nil {
 		return err
+	}
+
+	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	if err := d.Set("auth_settings", authSettings); err != nil {
+		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)

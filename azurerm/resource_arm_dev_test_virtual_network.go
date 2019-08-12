@@ -89,7 +89,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
+	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -116,7 +116,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: expandTags(tags),
@@ -150,7 +150,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
+	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -194,7 +194,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
+	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -208,7 +208,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: expandTags(tags),
@@ -242,7 +242,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
+	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -282,12 +282,12 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]dtl.SubnetOverride {
 	results := make([]dtl.SubnetOverride, 0)
 	// default found from the Portal
 	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
-	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
-	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
+	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
+	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, virtualNetworkName, name)
 	if len(input) == 0 {
 		result := dtl.SubnetOverride{
 			ResourceID:                   utils.String(subnetId),

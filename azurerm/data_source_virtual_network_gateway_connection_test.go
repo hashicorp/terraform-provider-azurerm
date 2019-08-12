@@ -99,35 +99,41 @@ func testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(rInt int
 variable "random" {
   default = "%d"
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
 }
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 }
+
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
 }
+
 resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
 }
+
 resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "Basic"
+  type                = "Vpn"
+  vpn_type            = "RouteBased"
+  sku                 = "Basic"
+
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
@@ -135,28 +141,29 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = "${azurerm_subnet.test.id}"
   }
 }
+
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  gateway_address = "168.62.225.23"
-  address_space   = ["10.1.1.0/24"]
+  gateway_address     = "168.62.225.23"
+  address_space       = ["10.1.1.0/24"]
 }
+
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctest-${var.random}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                       = "acctest-${var.random}"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
   type                       = "IPsec"
   virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
   local_network_gateway_id   = "${azurerm_local_network_gateway.test.id}"
-  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+  shared_key                 = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 
 data "azurerm_virtual_network_gateway_connection" "test" {
-	name                = "${azurerm_virtual_network_gateway_connection.test.name}"
-	resource_group_name = "${azurerm_virtual_network_gateway_connection.test.resource_group_name}"
+  name                = "${azurerm_virtual_network_gateway_connection.test.name}"
+  resource_group_name = "${azurerm_virtual_network_gateway_connection.test.resource_group_name}"
 }
-
 `, rInt, location)
 }
 
@@ -285,13 +292,13 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
 }
 
 data "azurerm_virtual_network_gateway_connection" "test_1" {
-	name                = "${azurerm_virtual_network_gateway_connection.test_1.name}"
-	resource_group_name = "${azurerm_virtual_network_gateway_connection.test_1.resource_group_name}"
+  name                = "${azurerm_virtual_network_gateway_connection.test_1.name}"
+  resource_group_name = "${azurerm_virtual_network_gateway_connection.test_1.resource_group_name}"
 }
 
 data "azurerm_virtual_network_gateway_connection" "test_2" {
-	name                = "${azurerm_virtual_network_gateway_connection.test_2.name}"
-	resource_group_name = "${azurerm_virtual_network_gateway_connection.test_2.resource_group_name}"
+  name                = "${azurerm_virtual_network_gateway_connection.test_2.name}"
+  resource_group_name = "${azurerm_virtual_network_gateway_connection.test_2.resource_group_name}"
 }
 `, rInt, rInt2, sharedKey, location, altLocation)
 }
@@ -301,35 +308,41 @@ func testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(rInt in
 variable "random" {
   default = "%d"
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
 }
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 }
+
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
 }
+
 resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
 }
+
 resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  type                = "Vpn"
+  vpn_type            = "RouteBased"
+  sku                 = "VpnGw1"
+
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
@@ -337,22 +350,25 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = "${azurerm_subnet.test.id}"
   }
 }
+
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctest-${var.random}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  gateway_address = "168.62.225.23"
-  address_space   = ["10.1.1.0/24"]
+  gateway_address     = "168.62.225.23"
+  address_space       = ["10.1.1.0/24"]
 }
+
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctest-${var.random}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  type                       = "IPsec"
-  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
-  local_network_gateway_id   = "${azurerm_local_network_gateway.test.id}"
+  name                               = "acctest-${var.random}"
+  location                           = "${azurerm_resource_group.test.location}"
+  resource_group_name                = "${azurerm_resource_group.test.name}"
+  type                               = "IPsec"
+  virtual_network_gateway_id         = "${azurerm_virtual_network_gateway.test.id}"
+  local_network_gateway_id           = "${azurerm_local_network_gateway.test.id}"
   use_policy_based_traffic_selectors = true
   routing_weight                     = 20
+
   ipsec_policy {
     dh_group         = "DHGroup14"
     ike_encryption   = "AES256"
@@ -363,12 +379,13 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
     sa_datasize      = 102400000
     sa_lifetime      = 27000
   }
+
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 
 data "azurerm_virtual_network_gateway_connection" "test" {
-	name                = "${azurerm_virtual_network_gateway_connection.test.name}"
-	resource_group_name = "${azurerm_virtual_network_gateway_connection.test.resource_group_name}"
+  name                = "${azurerm_virtual_network_gateway_connection.test.name}"
+  resource_group_name = "${azurerm_virtual_network_gateway_connection.test.resource_group_name}"
 }
 `, rInt, location)
 }

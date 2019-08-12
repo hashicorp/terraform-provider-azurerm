@@ -21,7 +21,7 @@ func dataSourceArmTrafficManagerGeographicalLocation() *schema.Resource {
 }
 
 func dataSourceArmTrafficManagerGeographicalLocationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManagerGeographialHierarchiesClient
+	client := meta.(*ArmClient).trafficManager.GeographialHierarchiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	results, err := client.GetDefault(ctx)

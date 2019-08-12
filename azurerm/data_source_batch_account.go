@@ -30,6 +30,22 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"key_vault_reference": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"primary_access_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -79,17 +95,25 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("storage_account_id", autoStorage.StorageAccountID)
 		}
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
-	}
+		poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
-		keys, err := client.GetKeys(ctx, resourceGroup, name)
+		if poolAllocationMode == string(batch.BatchService) {
+			keys, err := client.GetKeys(ctx, resourceGroup, name)
 
-		if err != nil {
-			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+			if err != nil {
+				return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+			}
+
+			d.Set("primary_access_key", keys.Primary)
+			d.Set("secondary_access_key", keys.Secondary)
+
+			// set empty keyvault reference which is not needed in Batch Service allocation mode.
+			d.Set("key_vault_reference", []interface{}{})
+		} else if poolAllocationMode == string(batch.UserSubscription) {
+			if err := d.Set("key_vault_reference", azure.FlattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
+				return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
+			}
 		}
-
-		d.Set("primary_access_key", keys.Primary)
-		d.Set("secondary_access_key", keys.Secondary)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

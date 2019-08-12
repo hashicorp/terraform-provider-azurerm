@@ -54,7 +54,6 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-
 resource "azurerm_api_management_product" "test" {
   product_id            = "test-product"
   api_management_name   = "${azurerm_api_management.test.name}"

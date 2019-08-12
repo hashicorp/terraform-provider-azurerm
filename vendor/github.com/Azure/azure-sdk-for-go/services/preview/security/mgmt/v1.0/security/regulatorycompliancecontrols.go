@@ -44,11 +44,9 @@ func NewRegulatoryComplianceControlsClientWithBaseURI(baseURI string, subscripti
 
 // Get selected regulatory compliance control details and state
 // Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription. The name is case
-// insensitive.
 // regulatoryComplianceStandardName - name of the regulatory compliance standard object
 // regulatoryComplianceControlName - name of the regulatory compliance control object
-func (client RegulatoryComplianceControlsClient) Get(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string, regulatoryComplianceControlName string) (result RegulatoryComplianceControl, err error) {
+func (client RegulatoryComplianceControlsClient) Get(ctx context.Context, regulatoryComplianceStandardName string, regulatoryComplianceControlName string) (result RegulatoryComplianceControl, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceControlsClient.Get")
 		defer func() {
@@ -61,15 +59,11 @@ func (client RegulatoryComplianceControlsClient) Get(ctx context.Context, resour
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.RegulatoryComplianceControlsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, regulatoryComplianceStandardName, regulatoryComplianceControlName)
+	req, err := client.GetPreparer(ctx, regulatoryComplianceStandardName, regulatoryComplianceControlName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceControlsClient", "Get", nil, "Failure preparing request")
 		return
@@ -91,11 +85,10 @@ func (client RegulatoryComplianceControlsClient) Get(ctx context.Context, resour
 }
 
 // GetPreparer prepares the Get request.
-func (client RegulatoryComplianceControlsClient) GetPreparer(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string, regulatoryComplianceControlName string) (*http.Request, error) {
+func (client RegulatoryComplianceControlsClient) GetPreparer(ctx context.Context, regulatoryComplianceStandardName string, regulatoryComplianceControlName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"regulatoryComplianceControlName":  autorest.Encode("path", regulatoryComplianceControlName),
 		"regulatoryComplianceStandardName": autorest.Encode("path", regulatoryComplianceStandardName),
-		"resourceGroupName":                autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -107,7 +100,7 @@ func (client RegulatoryComplianceControlsClient) GetPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}/regulatoryComplianceControls/{regulatoryComplianceControlName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}/regulatoryComplianceControls/{regulatoryComplianceControlName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -134,11 +127,9 @@ func (client RegulatoryComplianceControlsClient) GetResponder(resp *http.Respons
 
 // List all supported regulatory compliance controls details and state for selected standard
 // Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription. The name is case
-// insensitive.
 // regulatoryComplianceStandardName - name of the regulatory compliance standard object
 // filter - oData filter. Optional.
-func (client RegulatoryComplianceControlsClient) List(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string, filter string) (result RegulatoryComplianceControlListPage, err error) {
+func (client RegulatoryComplianceControlsClient) List(ctx context.Context, regulatoryComplianceStandardName string, filter string) (result RegulatoryComplianceControlListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceControlsClient.List")
 		defer func() {
@@ -151,16 +142,12 @@ func (client RegulatoryComplianceControlsClient) List(ctx context.Context, resou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.RegulatoryComplianceControlsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, regulatoryComplianceStandardName, filter)
+	req, err := client.ListPreparer(ctx, regulatoryComplianceStandardName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceControlsClient", "List", nil, "Failure preparing request")
 		return
@@ -182,10 +169,9 @@ func (client RegulatoryComplianceControlsClient) List(ctx context.Context, resou
 }
 
 // ListPreparer prepares the List request.
-func (client RegulatoryComplianceControlsClient) ListPreparer(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string, filter string) (*http.Request, error) {
+func (client RegulatoryComplianceControlsClient) ListPreparer(ctx context.Context, regulatoryComplianceStandardName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"regulatoryComplianceStandardName": autorest.Encode("path", regulatoryComplianceStandardName),
-		"resourceGroupName":                autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -200,7 +186,7 @@ func (client RegulatoryComplianceControlsClient) ListPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}/regulatoryComplianceControls", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/regulatoryComplianceStandards/{regulatoryComplianceStandardName}/regulatoryComplianceControls", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -247,7 +233,7 @@ func (client RegulatoryComplianceControlsClient) listNextResults(ctx context.Con
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RegulatoryComplianceControlsClient) ListComplete(ctx context.Context, resourceGroupName string, regulatoryComplianceStandardName string, filter string) (result RegulatoryComplianceControlListIterator, err error) {
+func (client RegulatoryComplianceControlsClient) ListComplete(ctx context.Context, regulatoryComplianceStandardName string, filter string) (result RegulatoryComplianceControlListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RegulatoryComplianceControlsClient.List")
 		defer func() {
@@ -258,6 +244,6 @@ func (client RegulatoryComplianceControlsClient) ListComplete(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, regulatoryComplianceStandardName, filter)
+	result.page, err = client.List(ctx, regulatoryComplianceStandardName, filter)
 	return
 }

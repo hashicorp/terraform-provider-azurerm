@@ -223,7 +223,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+	conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -262,7 +262,7 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+		conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

@@ -279,7 +279,7 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	policyName := d.Get("name").(string)
@@ -341,7 +341,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -421,7 +421,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesProtectionPoliciesClient
+	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

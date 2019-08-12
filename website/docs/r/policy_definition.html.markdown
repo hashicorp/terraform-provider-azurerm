@@ -21,6 +21,12 @@ resource "azurerm_policy_definition" "policy" {
   mode         = "Indexed"
   display_name = "acceptance test policy definition"
 
+  metadata     = <<METADATA
+    {
+    "category": "General"
+    }
+  METADATA
+
   policy_rule = <<POLICY_RULE
 	{
     "if": {

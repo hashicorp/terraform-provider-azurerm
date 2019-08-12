@@ -27,9 +27,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
@@ -69,7 +67,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Required) An SKU block as described below.
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
+
+* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
@@ -88,6 +88,12 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
+A `sku` block supports the following:
+
+* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+
+---
+A `access_policy` block supports the following:
 
 Elements of `access_policy` support:
 
@@ -116,13 +122,6 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access thie Key Vault.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
-
 
 ## Attributes Reference
 
