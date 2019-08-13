@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_mariadb_server" "test" {
+resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-server-1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -44,7 +44,7 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_mariadb_configuration" "test" {
+resource "azurerm_mariadb_configuration" "example" {
   name                = "interactive_timeout"
   resource_group_name = "${azurerm_resource_group.example.name}"
   server_name         = "${azurerm_mariadb_server.example.name}"
