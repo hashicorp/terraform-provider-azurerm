@@ -488,7 +488,7 @@ func Provider() terraform.ResourceProvider {
 				Optional:     true,
 				ValidateFunc: validate.UUIDOrEmpty,
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
-				Description: "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
+				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
 
 			"disable_correlation_request_id": {
