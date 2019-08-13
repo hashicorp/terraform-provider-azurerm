@@ -245,7 +245,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
