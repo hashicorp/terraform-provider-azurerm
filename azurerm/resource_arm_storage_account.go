@@ -579,7 +579,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to each ARM resource"))
+		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
