@@ -199,6 +199,11 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"vnet_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: false,
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -360,6 +365,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig := expandFunctionAppSiteConfig(d)
+
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -688,6 +694,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.Cors = &expand
 	}
 
+	if v, ok := config["vnet_name"]; ok {
+		siteConfig.VnetName = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -714,6 +724,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.VnetName != nil {
+		result["vnet_name"] = *input.VnetName
 	}
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
