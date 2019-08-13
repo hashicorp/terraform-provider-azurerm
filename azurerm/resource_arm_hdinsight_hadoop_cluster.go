@@ -267,6 +267,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 				ApplicationType:      utils.String("CustomApplication"),
 			},
 		}
+		return fmt.Errorf("Application: %+v\nInstallScriptAddress: %+v\nInstallScript: %+v", application, application.Properties.InstallScriptActions, *application.Properties.InstallScriptActions)
 		future, err := applicationsClient.Create(ctx, resourceGroup, name, name, application)
 		if err != nil {
 			return fmt.Errorf("Error creating edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
