@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_function_app` - support for the `virtual_network_name` property [GH-4078]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
 * `azurerm_role_assignment` - now supports management groups [GH-4063]
