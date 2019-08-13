@@ -681,7 +681,7 @@ func TestAccAzureRMFunctionApp_vnetName(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.vnet_name", vnetName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.virtual_network_name", vnetName),
 				),
 			},
 			{
@@ -1668,7 +1668,7 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
   site_config {
-    vnet_name = "%[4]s"
+    virtual_network_name = "%[4]s"
   }
 }
 `, rInt, location, storage, vnetName)

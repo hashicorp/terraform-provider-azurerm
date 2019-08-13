@@ -199,7 +199,7 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"vnet_name": {
+						"virtual_network_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: false,
@@ -694,7 +694,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.Cors = &expand
 	}
 
-	if v, ok := config["vnet_name"]; ok {
+	if v, ok := config["virtual_network_name"]; ok {
 		siteConfig.VnetName = utils.String(v.(string))
 	}
 
@@ -727,7 +727,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	if input.VnetName != nil {
-		result["vnet_name"] = *input.VnetName
+		result["virtual_network_name"] = *input.VnetName
 	}
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)

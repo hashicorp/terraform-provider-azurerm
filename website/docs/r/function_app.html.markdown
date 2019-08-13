@@ -138,6 +138,8 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
 * `cors` - (Optional) A `cors` block as defined below.
