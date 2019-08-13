@@ -1,15 +1,15 @@
 package azurerm
 
 import (
-"fmt"
-"github.com/hashicorp/terraform/helper/validation"
-"log"
+	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
+	"log"
 
-"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-"github.com/hashicorp/terraform/helper/schema"
-"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -264,7 +264,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 					}},
 				},
 				InstallScriptActions: installScriptActions,
-				ApplicationType: utils.String("CustomApplication"),
+				ApplicationType:      utils.String("CustomApplication"),
 			},
 		}
 		future, err := applicationsClient.Create(ctx, resourceGroup, name, name, application)
