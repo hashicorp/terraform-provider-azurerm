@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	WorkflowsClient logic.WorkflowsClient
+	WorkflowsClient *logic.WorkflowsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.WorkflowsClient = logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.WorkflowsClient.Client, o.ResourceManagerAuthorizer)
+	WorkflowsClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WorkflowsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		WorkflowsClient: &WorkflowsClient,
+	}
 }

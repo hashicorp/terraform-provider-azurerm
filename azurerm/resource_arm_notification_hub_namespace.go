@@ -284,7 +284,7 @@ func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interfac
 	return outputs
 }
 
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
@@ -299,7 +299,7 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notifi
 	}
 }
 
-func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

@@ -6,22 +6,25 @@ import (
 )
 
 type Client struct {
-	ApplicationsClient   hdinsight.ApplicationsClient
-	ClustersClient       hdinsight.ClustersClient
-	ConfigurationsClient hdinsight.ConfigurationsClient
+	ApplicationsClient   *hdinsight.ApplicationsClient
+	ClustersClient       *hdinsight.ClustersClient
+	ConfigurationsClient *hdinsight.ConfigurationsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ApplicationsClient = hdinsight.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ApplicationsClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationsClient := hdinsight.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApplicationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ClustersClient = hdinsight.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ClustersClient.Client, o.ResourceManagerAuthorizer)
+	ClustersClient := hdinsight.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ConfigurationsClient = hdinsight.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	ConfigurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ApplicationsClient:   &ApplicationsClient,
+		ClustersClient:       &ClustersClient,
+		ConfigurationsClient: &ConfigurationsClient,
+	}
 }

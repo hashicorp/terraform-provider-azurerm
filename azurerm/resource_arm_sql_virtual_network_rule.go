@@ -241,7 +241,7 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []stri
 	* Ready
 	* ResponseNotFound (Custom state in case of 404)
 */
-func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 
