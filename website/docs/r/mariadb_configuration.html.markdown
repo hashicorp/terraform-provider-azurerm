@@ -15,15 +15,15 @@ Sets a MariaDB Configuration value on a MariaDB Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
 resource "azurerm_mariadb_server" "test" {
   name                = "mariadb-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -46,8 +46,8 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_configuration" "test" {
   name                = "interactive_timeout"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_mariadb_server.example.name}"
   value               = "600"
 }
 ```
