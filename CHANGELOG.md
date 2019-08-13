@@ -9,6 +9,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading the `authorization` SDK to `2018-09-01` [GH-4063]
 * dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
@@ -18,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
+* `azurerm_role_assignment` - now supports management groups [GH-4063]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 
 BUG FIXES: 
