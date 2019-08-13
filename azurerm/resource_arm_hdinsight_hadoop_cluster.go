@@ -1,15 +1,15 @@
 package azurerm
 
 import (
-	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"log"
+"fmt"
+"github.com/hashicorp/terraform/helper/validation"
+"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+"github.com/hashicorp/terraform/helper/schema"
+"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -99,11 +99,41 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"vm_size": azure.SchemaHDInsightNodeDefinitionVMSize(),
 
-									"install_script_action_uri": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+									"install_script_action": {
+										Type:     schema.TypeList,
+										Required: true,
+										ForceNew: true,
+										MinItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+												"uri": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+												// TODO test multiple roles
+												"roles": {
+													Type:     schema.TypeSet,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+														ValidateFunc: validation.StringInSlice([]string{
+															"edgenode",
+															"headnode",
+															"workernode",
+															"zookeepernode",
+														}, false),
+													},
+													Set: schema.HashString,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -219,22 +249,21 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		edgeNodeRaw := v.([]interface{})
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
 
-		v := edgeNodeRaw[0].(map[string]interface{})
+		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
+		installScriptActions := expandHDInsightApplicationScriptActions(edgeNodeConfig["install_script_actions"].([]interface{}))
+
 		application := hdinsight.Application{
 			Properties: &hdinsight.ApplicationProperties{
 				ComputeProfile: &hdinsight.ComputeProfile{
 					Roles: &[]hdinsight.Role{{
 						Name: utils.String("edgenode"),
 						HardwareProfile: &hdinsight.HardwareProfile{
-							VMSize: utils.String(v["vm_size"].(string)),
+							VMSize: utils.String(edgeNodeConfig["vm_size"].(string)),
 						},
 						TargetInstanceCount: utils.Int32(1),
-						ScriptActions: &[]hdinsight.ScriptAction{{
-							Name: utils.String("edgenode"),
-							URI:  utils.String(v["install_script_action_uri"].(string)),
-						}},
 					}},
 				},
+				InstallScriptActions: installScriptActions,
 				ApplicationType: utils.String("CustomApplication"),
 			},
 		}
@@ -341,4 +370,32 @@ func flattenHDInsightHadoopComponentVersion(input map[string]*string) []interfac
 			"hadoop": hadoopVersion,
 		},
 	}
+}
+
+func expandHDInsightApplicationScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
+	actions := make([]hdinsight.RuntimeScriptAction, 0)
+
+	for _, v := range input {
+		val := v.(map[string]interface{})
+
+		name := val["name"].(string)
+		uri := val["uri"].(string)
+
+		rolesRaw := val["roles"].(*schema.Set).List()
+		roles := make([]string, 0)
+		for _, v := range rolesRaw {
+			role := v.(string)
+			roles = append(roles, role)
+		}
+
+		action := hdinsight.RuntimeScriptAction{
+			Name:  utils.String(name),
+			URI:   utils.String(uri),
+			Roles: &roles,
+		}
+
+		actions = append(actions, action)
+	}
+
+	return &actions
 }
