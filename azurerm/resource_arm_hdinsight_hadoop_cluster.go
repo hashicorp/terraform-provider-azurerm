@@ -250,7 +250,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
 
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
-		installScriptActions := expandHDInsightApplicationScriptActions(edgeNodeConfig["install_script_actions"].([]interface{}))
+		installScriptActions := expandHDInsightApplicationScriptActions(edgeNodeConfig["install_script_action"].([]interface{}))
 
 		application := hdinsight.Application{
 			Properties: &hdinsight.ApplicationProperties{
