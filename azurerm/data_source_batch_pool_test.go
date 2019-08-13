@@ -55,10 +55,10 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.4077195354", "RemoteUser"),
 					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.type", "DockerCompatible"),
 					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
-					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
-					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.password", "myPassword"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.995066407.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.995066407.user_name", "myUserName"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
