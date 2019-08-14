@@ -30,6 +30,7 @@ type Client struct {
 	VnetGatewayClient               *network.VirtualNetworkGatewaysClient
 	VnetClient                      *network.VirtualNetworksClient
 	VnetPeeringsClient              *network.VirtualNetworkPeeringsClient
+	VirtualWanClient                *network.VirtualWansClient
 	WatcherClient                   *network.WatchersClient
 }
 
@@ -107,6 +108,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
+
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
@@ -135,6 +139,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		VnetGatewayClient:               &VnetGatewayClient,
 		VnetClient:                      &VnetClient,
 		VnetPeeringsClient:              &VnetPeeringsClient,
+		VirtualWanClient:                &VirtualWanClient,
 		WatcherClient:                   &WatcherClient,
 	}
 }

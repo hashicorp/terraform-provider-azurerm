@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -31,9 +32,9 @@ func resourceArmVirtualWan() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"disable_vpn_encryption": {
 				Type:     schema.TypeBool,
@@ -76,14 +77,14 @@ func resourceArmVirtualWan() *schema.Resource {
 }
 
 func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).virtualWanClient
+	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
 	securityProviderName := d.Get("security_provider_name").(string)
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
@@ -140,7 +141,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).virtualWanClient
+	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -165,7 +166,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualWanProperties; props != nil {
@@ -182,7 +183,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).virtualWanClient
+	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
