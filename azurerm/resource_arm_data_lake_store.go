@@ -33,9 +33,9 @@ func resourceArmDataLakeStore() *schema.Resource {
 				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tier": {
 				Type:             schema.TypeString,
@@ -109,7 +109,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 }
 
 func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreAccountClient
+	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -128,7 +128,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tier := d.Get("tier").(string)
 
 	encryptionState := account.EncryptionState(d.Get("encryption_state").(string))
@@ -176,7 +176,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreAccountClient
+	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -208,7 +208,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreAccountClient
+	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -232,7 +232,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
@@ -255,7 +255,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreAccountClient
+	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

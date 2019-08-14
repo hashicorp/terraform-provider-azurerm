@@ -36,7 +36,7 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbCassandraKeyspaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+	client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -65,7 +65,7 @@ func testCheckAzureRMCosmosDbCassandraKeyspaceDestroy(s *terraform.State) error 
 
 func testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+		client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

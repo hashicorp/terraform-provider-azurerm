@@ -100,7 +100,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -150,7 +150,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -223,7 +223,7 @@ resource "azurerm_network_interface" "test" {
     name                           = "testconfiguration1"
     subnet_id                      = "${azurerm_subnet.test.id}"
     private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = [ "${azurerm_application_security_group.test.id}" ]
+    application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
   }
 }
 

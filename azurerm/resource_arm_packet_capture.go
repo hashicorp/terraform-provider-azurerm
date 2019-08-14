@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"log"
@@ -30,7 +31,7 @@ func resourceArmPacketCapture() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:     schema.TypeString,
@@ -133,7 +134,7 @@ func resourceArmPacketCapture() *schema.Resource {
 }
 
 func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -199,7 +200,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -247,7 +248,7 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

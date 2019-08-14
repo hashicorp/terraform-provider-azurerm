@@ -31,7 +31,7 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:         schema.TypeString,
@@ -44,7 +44,7 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 }
 
 func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -100,7 +100,7 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosKeyspaceID(d.Id())
@@ -129,7 +129,7 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosKeyspaceID(d.Id())

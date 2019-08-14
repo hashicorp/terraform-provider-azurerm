@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,7 +42,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"primary_peer_address_prefix": {
 				Type:     schema.TypeString,
@@ -105,7 +106,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Express Route Peering create/update.")
@@ -113,6 +114,9 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	peeringType := d.Get("peering_type").(string)
 	circuitName := d.Get("express_route_circuit_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
@@ -156,9 +160,6 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.MicrosoftPeeringConfig = peeringConfig
 	}
 
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
 	if err != nil {
 		return err
@@ -179,7 +180,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -222,7 +223,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

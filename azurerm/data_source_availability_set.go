@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,7 +15,7 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAvailabilitySetRead,
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name": {
 				Type:         schema.TypeString,
@@ -48,7 +49,7 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 }
 
 func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -65,7 +66,7 @@ func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))

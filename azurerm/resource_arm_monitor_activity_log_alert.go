@@ -36,7 +36,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
 				Type:     schema.TypeSet,
@@ -154,7 +154,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 }
 
 func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -183,11 +183,11 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActivityLogAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActivityLogAlert: &insights.ActivityLogAlert{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
-			Scopes:      utils.ExpandStringArray(scopesRaw),
+			Scopes:      utils.ExpandStringSlice(scopesRaw),
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
@@ -211,7 +211,7 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -236,7 +236,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	if alert := resp.ActivityLogAlert; alert != nil {
 		d.Set("enabled", alert.Enabled)
 		d.Set("description", alert.Description)
-		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorActivityLogAlertCriteria(alert.Condition)); err != nil {
@@ -252,7 +252,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

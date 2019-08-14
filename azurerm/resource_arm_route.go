@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -32,7 +33,7 @@ func resourceArmRoute() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"route_table_name": {
 				Type:         schema.TypeString,
@@ -70,7 +71,7 @@ func resourceArmRoute() *schema.Resource {
 }
 
 func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -130,7 +131,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -164,7 +165,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

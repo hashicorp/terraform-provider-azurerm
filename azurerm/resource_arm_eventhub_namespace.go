@@ -40,9 +40,9 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:             schema.TypeString,
@@ -110,7 +110,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 }
 
 func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
@@ -130,7 +130,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
@@ -179,7 +179,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -201,7 +201,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("sku", string(resp.Sku.Name))
@@ -229,7 +229,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
+	client := meta.(*ArmClient).eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -250,7 +250,7 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name)
 }
 
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client eventhub.NamespacesClient, resourceGroup, name string) error {
+func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for EventHub Namespace (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -266,7 +266,7 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client eventhub.Na
 	return nil
 }
 
-func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client eventhub.NamespacesClient, resourceGroup, name string) resource.StateRefreshFunc {
+func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 

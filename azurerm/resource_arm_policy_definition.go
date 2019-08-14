@@ -102,7 +102,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -198,7 +198,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
@@ -246,7 +246,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
+	client := meta.(*ArmClient).policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
@@ -295,7 +295,7 @@ func parseManagementGroupIdFromPolicyId(id string) string {
 	return ""
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
@@ -322,7 +322,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 	return schema.ImportStatePassthrough(d, meta)
 }
 
-func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
+func getPolicyDefinition(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

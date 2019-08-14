@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +29,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"app_service_name": {
 				Type:     schema.TypeString,
@@ -40,7 +41,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 }
 
 func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Hostname Binding creation.")
@@ -89,7 +90,7 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 }
 
 func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -119,7 +120,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 }
 
 func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

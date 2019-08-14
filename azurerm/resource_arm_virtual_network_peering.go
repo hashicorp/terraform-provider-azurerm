@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,7 +36,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,
@@ -77,7 +78,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network peering creation.")
@@ -125,7 +126,7 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -161,7 +162,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -207,7 +208,7 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 
 func retryVnetPeeringsClientCreateUpdate(resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		vnetPeeringsClient := meta.(*ArmClient).vnetPeeringsClient
+		vnetPeeringsClient := meta.(*ArmClient).network.VnetPeeringsClient
 		ctx := meta.(*ArmClient).StopContext
 
 		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)

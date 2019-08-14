@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -38,7 +39,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"priority": {
 				Type:         schema.TypeInt,
@@ -110,7 +111,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -221,7 +222,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -293,7 +294,7 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

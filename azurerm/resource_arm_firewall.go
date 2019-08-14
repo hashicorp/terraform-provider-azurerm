@@ -33,9 +33,9 @@ func resourceArmFirewall() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"ip_configuration": {
 				Type:     schema.TypeList,
@@ -83,7 +83,7 @@ func resourceArmFirewall() *schema.Resource {
 }
 
 func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
@@ -104,7 +104,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
 	if err != nil {
@@ -169,7 +169,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -193,7 +193,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", read.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
@@ -209,7 +209,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

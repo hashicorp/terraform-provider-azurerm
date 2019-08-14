@@ -39,7 +39,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateFilePath(),
+				ValidateFunc: validateDataLakeStoreRemoteFilePath(),
 			},
 
 			"local_file_path": {
@@ -52,7 +52,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 }
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 	chunkSize := 4 * 1024 * 1024
 
@@ -111,7 +111,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
@@ -137,7 +137,7 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
@@ -178,4 +178,16 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 		filePath:           uri.Path,
 	}
 	return &file, nil
+}
+
+func validateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (warnings []string, errors []error) {
+		val := v.(string)
+
+		if !strings.HasPrefix(val, "/") {
+			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
+		}
+
+		return warnings, errors
+	}
 }

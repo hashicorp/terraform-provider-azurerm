@@ -22,7 +22,7 @@ func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error)
 }
 
 func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)

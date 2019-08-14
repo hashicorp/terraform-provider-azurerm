@@ -43,6 +43,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.Logic":                {},
 		"Microsoft.ManagedIdentity":      {},
 		"Microsoft.Management":           {},
+		"Microsoft.Maps":                 {},
 		"Microsoft.Media":                {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},

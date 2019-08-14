@@ -90,7 +90,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path         = "/path1/"
+    path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -104,11 +104,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                        = "${local.request_routing_rule_name}"
-    rule_type                   = "Basic"
-    http_listener_name          = "${local.listener_name}"
-    backend_address_pool_name   = "${local.backend_address_pool_name}"
-    backend_http_settings_name  = "${local.http_setting_name}"
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
   }
 }
 ```
@@ -134,6 +134,8 @@ The following arguments are supported:
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
+
+* `identity` - (Optional) A `identity` block.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
@@ -291,6 +293,14 @@ A `http_listener` block supports the following:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+
+---
+
 A `match` block supports the following:
 
 * `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
@@ -444,7 +454,7 @@ A `waf_configuration` block supports the following:
 
 A `disabled_rule_group` block supports the following:
 
-* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
+* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
 
 * `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
 

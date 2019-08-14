@@ -390,7 +390,7 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+	conn := testAccProvider.Meta().(*ArmClient).eventhub.EventHubsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -431,7 +431,7 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+		conn := testAccProvider.Meta().(*ArmClient).eventhub.EventHubsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)

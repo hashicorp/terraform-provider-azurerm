@@ -20,7 +20,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -252,7 +252,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -947,6 +948,27 @@ func TestAccAzureRMApplicationGateway_gatewayIP(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMApplicationGateway_UserAssignedIdentity(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(14)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_UserDefinedIdentity(ri, testLocation(), rs),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
 
 func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -961,7 +983,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+		client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
@@ -978,7 +1000,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+	client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -1074,6 +1096,96 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMApplicationGateway_UserDefinedIdentity(rInt int, location string, rString string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  name = "acctest%s"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  identity {
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template, rString, rInt, rInt)
 }
 
 func testAccAzureRMApplicationGateway_zones(rInt int, location string) string {
@@ -1268,8 +1380,8 @@ resource "azurerm_application_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
+    name = "Standard_v2"
+    tier = "Standard_v2"
   }
 
   autoscale_configuration {
@@ -1369,7 +1481,7 @@ resource "azurerm_application_gateway" "test" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path         = "/path1/"
+    path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -1783,17 +1895,17 @@ func testAccAzureRMApplicationGateway_routingRedirect_httpListener(rInt int, loc
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
-  frontend_port_name2             = "${azurerm_virtual_network.test.name}-feport2"
-  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
-  target_listener_name            = "${azurerm_virtual_network.test.name}-trgthttplstn"
-  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  path_rule_name                  = "${azurerm_virtual_network.test.name}-pathrule1"
-  url_path_map_name               = "${azurerm_virtual_network.test.name}-urlpath1"
-  redirect_configuration_name     = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name           = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
+  url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1878,17 +1990,17 @@ func testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(rInt int
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
-  frontend_port_name2             = "${azurerm_virtual_network.test.name}-feport2"
-  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
-  target_listener_name            = "${azurerm_virtual_network.test.name}-trgthttplstn"
-  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  path_rule_name                  = "${azurerm_virtual_network.test.name}-pathrule1"
-  url_path_map_name               = "${azurerm_virtual_network.test.name}-urlpath1"
-  redirect_configuration_name     = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name           = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
+  url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -2062,6 +2174,7 @@ resource "azurerm_application_gateway" "test" {
     path_rule {
       name                        = "${local.path_rule_name}"
       redirect_configuration_name = "${local.redirect_configuration_name}"
+
       paths = [
         "/test",
       ]
@@ -2075,7 +2188,6 @@ resource "azurerm_application_gateway" "test" {
         "/test2",
       ]
     }
-
   }
 
   redirect_configuration {
@@ -2617,10 +2729,10 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   waf_configuration {
-    enabled          = true
-    firewall_mode    = "Detection"
-    rule_set_type    = "OWASP"
-    rule_set_version = "3.0"
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
     file_upload_limit_mb     = 100
     request_body_check       = true
     max_request_body_size_kb = 100
@@ -2724,7 +2836,7 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
     request_timeout       = 1
 
-	connection_draining {
+    connection_draining {
       enabled           = true
       drain_timeout_sec = 1984
     }
@@ -2762,7 +2874,6 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
-
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -2783,29 +2894,27 @@ resource "azurerm_application_gateway" "test" {
   }
 
   waf_configuration {
-    enabled                     = true
-    firewall_mode               = "Detection"
-    rule_set_type               = "OWASP"
-    rule_set_version            = "3.0"
-    request_body_check          = true
-    max_request_body_size_kb    = 128
-    file_upload_limit_mb        = 100
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    request_body_check       = true
+    max_request_body_size_kb = 128
+    file_upload_limit_mb     = 100
 
     disabled_rule_group {
       rule_group_name = "REQUEST-921-PROTOCOL-ATTACK"
       rules           = [921110, 921151, 921180]
     }
-  
+
     disabled_rule_group {
       rule_group_name = "REQUEST-930-APPLICATION-ATTACK-LFI"
       rules           = [930120, 930130]
     }
-  
+
     disabled_rule_group {
       rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
     }
-    
-  
   }
 
   gateway_ip_configuration {
@@ -2868,7 +2977,6 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
-
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -2889,24 +2997,22 @@ resource "azurerm_application_gateway" "test" {
   }
 
   waf_configuration {
-    enabled                     = true
-    firewall_mode               = "Detection"
-    rule_set_type               = "OWASP"
-    rule_set_version            = "3.0"
-    request_body_check          = true
-    max_request_body_size_kb    = 128
-    file_upload_limit_mb        = 100
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    request_body_check       = true
+    max_request_body_size_kb = 128
+    file_upload_limit_mb     = 100
 
     disabled_rule_group {
       rule_group_name = "REQUEST-921-PROTOCOL-ATTACK"
       rules           = [921110, 921151, 921180]
     }
-  
+
     disabled_rule_group {
       rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
     }
-    
-  
   }
 
   gateway_ip_configuration {
@@ -2969,7 +3075,6 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
-
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -2990,13 +3095,13 @@ resource "azurerm_application_gateway" "test" {
   }
 
   waf_configuration {
-    enabled                     = true
-    firewall_mode               = "Detection"
-    rule_set_type               = "OWASP"
-    rule_set_version            = "3.0"
-    request_body_check          = true
-    max_request_body_size_kb    = 128
-    file_upload_limit_mb        = 100
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    request_body_check       = true
+    max_request_body_size_kb = 128
+    file_upload_limit_mb     = 100
 
     exclusion {
       match_variable          = "RequestArgNames"
@@ -3023,7 +3128,7 @@ resource "azurerm_application_gateway" "test" {
     }
 
     exclusion {
-      match_variable          = "RequestHeaderNames"
+      match_variable = "RequestHeaderNames"
     }
   }
 
@@ -3106,20 +3211,19 @@ resource "azurerm_application_gateway" "test" {
   }
 
   waf_configuration {
-    enabled                     = true
-    firewall_mode               = "Detection"
-    rule_set_type               = "OWASP"
-    rule_set_version            = "3.0"
-    request_body_check          = true
-    max_request_body_size_kb    = 128
-    file_upload_limit_mb        = 100
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    request_body_check       = true
+    max_request_body_size_kb = 128
+    file_upload_limit_mb     = 100
 
     exclusion {
       match_variable          = "RequestArgNames"
       selector_match_operator = "Equals"
       selector                = "displayNameHtml"
     }
-
   }
 
   gateway_ip_configuration {
@@ -3180,6 +3284,7 @@ locals {
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
+
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -3187,34 +3292,42 @@ resource "azurerm_public_ip" "test_standard" {
   sku                 = "Standard"
   allocation_method   = "Static"
 }
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
   }
+
   ssl_policy {
     policy_name = "AppGwSslPolicy20170401S"
     policy_type = "Predefined"
   }
+
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = "${azurerm_subnet.test.id}"
   }
+
   frontend_port {
     name = "${local.frontend_port_name}"
     port = 80
   }
+
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
     public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
+
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
   }
+
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
@@ -3222,12 +3335,14 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
     request_timeout       = 1
   }
+
   http_listener {
     name                           = "${local.listener_name}"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
   }
+
   request_routing_rule {
     name                       = "${local.request_routing_rule_name}"
     rule_type                  = "Basic"
@@ -3252,6 +3367,7 @@ locals {
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
+
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -3259,35 +3375,43 @@ resource "azurerm_public_ip" "test_standard" {
   sku                 = "Standard"
   allocation_method   = "Static"
 }
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
   }
+
   ssl_policy {
-    policy_type = "Custom"
+    policy_type          = "Custom"
     min_protocol_version = "TLSv1_1"
-    cipher_suites = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
+    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
   }
+
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = "${azurerm_subnet.test.id}"
   }
+
   frontend_port {
     name = "${local.frontend_port_name}"
     port = 80
   }
+
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
     public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
+
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
   }
+
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
@@ -3295,12 +3419,14 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
     request_timeout       = 1
   }
+
   http_listener {
     name                           = "${local.listener_name}"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
   }
+
   request_routing_rule {
     name                       = "${local.request_routing_rule_name}"
     rule_type                  = "Basic"
@@ -3325,6 +3451,7 @@ locals {
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
+
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -3332,33 +3459,41 @@ resource "azurerm_public_ip" "test_standard" {
   sku                 = "Standard"
   allocation_method   = "Static"
 }
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
   }
+
   ssl_policy {
     disabled_protocols = ["TLSv1_0", "TLSv1_1"]
   }
+
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = "${azurerm_subnet.test.id}"
   }
+
   frontend_port {
     name = "${local.frontend_port_name}"
     port = 80
   }
+
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
     public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
+
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
   }
+
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
@@ -3366,12 +3501,14 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
     request_timeout       = 1
   }
+
   http_listener {
     name                           = "${local.listener_name}"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
   }
+
   request_routing_rule {
     name                       = "${local.request_routing_rule_name}"
     rule_type                  = "Basic"
@@ -3396,6 +3533,7 @@ locals {
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
+
 resource "azurerm_public_ip" "test_standard" {
   name                = "acctest-pubip-%d-standard"
   location            = "${azurerm_resource_group.test.location}"
@@ -3403,31 +3541,39 @@ resource "azurerm_public_ip" "test_standard" {
   sku                 = "Standard"
   allocation_method   = "Static"
 }
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
   }
+
   disabled_ssl_protocols = ["TLSv1_0", "TLSv1_1"]
+
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = "${azurerm_subnet.test.id}"
   }
+
   frontend_port {
     name = "${local.frontend_port_name}"
     port = 80
   }
+
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
     public_ip_address_id = "${azurerm_public_ip.test_standard.id}"
   }
+
   backend_address_pool {
     name = "${local.backend_address_pool_name}"
   }
+
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
@@ -3435,12 +3581,14 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
     request_timeout       = 1
   }
+
   http_listener {
     name                           = "${local.listener_name}"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
   }
+
   request_routing_rule {
     name                       = "${local.request_routing_rule_name}"
     rule_type                  = "Basic"
@@ -3542,10 +3690,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
+
     custom_error_configuration {
       status_code           = "HttpStatus403"
       custom_error_page_url = "http://azure.com/error403_listener.html"
     }
+
     custom_error_configuration {
       status_code           = "HttpStatus502"
       custom_error_page_url = "http://azure.com/error502_listener.html"
@@ -3656,16 +3806,16 @@ resource "azurerm_application_gateway" "test" {
     name = "${local.rewrite_rule_set_name}"
 
     rewrite_rule {
-      name = "${local.rewrite_rule_name}"
+      name          = "${local.rewrite_rule_name}"
       rule_sequence = 1
 
       condition {
         variable = "var_http_status"
-        pattern = "502"
+        pattern  = "502"
       }
 
       request_header_configuration {
-        header_name = "X-custom"
+        header_name  = "X-custom"
         header_value = "customvalue"
       }
     }
@@ -3771,16 +3921,16 @@ resource "azurerm_application_gateway" "test" {
     name = "${local.rewrite_rule_set_name}"
 
     rewrite_rule {
-      name = "${local.rewrite_rule_name}"
+      name          = "${local.rewrite_rule_name}"
       rule_sequence = 1
 
       condition {
         variable = "var_http_status"
-        pattern = "502"
+        pattern  = "502"
       }
 
       request_header_configuration {
-        header_name = "X-custom"
+        header_name  = "X-custom"
         header_value = "customvalue"
       }
     }
@@ -3951,7 +4101,6 @@ resource "azurerm_subnet" "test1" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
 }
-
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {

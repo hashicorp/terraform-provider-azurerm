@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -38,9 +39,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -173,7 +174,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 }
 
 func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
@@ -194,7 +195,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
@@ -294,7 +295,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -319,7 +320,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if properties := resp.ServerProperties; properties != nil {
@@ -344,7 +345,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
+	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -34,7 +34,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:         schema.TypeString,
@@ -43,7 +43,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"auto_start": {
 				Type:     schema.TypeBool,
@@ -112,13 +112,13 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 }
 
 func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	watcherName := d.Get("network_watcher_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoStart := d.Get("auto_start").(bool)
 	intervalInSeconds := int32(d.Get("interval_in_seconds").(int))
 
@@ -181,7 +181,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -205,7 +205,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	d.Set("network_watcher_name", watcherName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
@@ -229,7 +229,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -48,18 +48,23 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validateKeyVaultName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// Remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(keyvault.Standard),
 								string(keyvault.Premium),
@@ -67,6 +72,16 @@ func resourceArmKeyVault() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(keyvault.Standard),
+					string(keyvault.Premium),
+				}, false),
 			},
 
 			"vault_uri": {
@@ -170,8 +185,32 @@ func resourceArmKeyVault() *schema.Resource {
 }
 
 func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
+
+	// Remove in 2.0
+	var sku keyvault.Sku
+
+	if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
+		input := inputs[0].(map[string]interface{})
+		v := input["name"].(string)
+
+		sku = keyvault.Sku{
+			Family: &armKeyVaultSkuFamily,
+			Name:   keyvault.SkuName(v),
+		}
+	} else {
+		// Keep in 2.0
+		sku = keyvault.Sku{
+			Family: &armKeyVaultSkuFamily,
+			Name:   keyvault.SkuName(d.Get("sku_name").(string)),
+		}
+	}
+
+	if sku.Name == "" {
+		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	}
+
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
 
 	name := d.Get("name").(string)
@@ -190,7 +229,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
@@ -210,7 +249,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Properties: &keyvault.VaultProperties{
 			TenantID:                     &tenantUUID,
-			Sku:                          expandKeyVaultSku(d),
+			Sku:                          &sku,
 			AccessPolicies:               accessPolicies,
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
@@ -281,7 +320,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -304,7 +343,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.Properties; props != nil {
@@ -314,8 +353,17 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("vault_uri", props.VaultURI)
 
-		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
+		if sku := props.Sku; sku != nil {
+			// Remove in 2.0
+			if err := d.Set("sku", flattenKeyVaultSku(sku)); err != nil {
+				return fmt.Errorf("Error setting 'sku' for KeyVault %q: %+v", *resp.Name, err)
+			}
+
+			if err := d.Set("sku_name", string(sku.Name)); err != nil {
+				return fmt.Errorf("Error setting 'sku_name' for KeyVault %q: %+v", *resp.Name, err)
+			}
+		} else {
+			return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
@@ -333,7 +381,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -392,16 +440,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	skuSets := d.Get("sku").([]interface{})
-	sku := skuSets[0].(map[string]interface{})
-
-	return &keyvault.Sku{
-		Family: &armKeyVaultSkuFamily,
-		Name:   keyvault.SkuName(sku["name"].(string)),
-	}
-}
-
+// Remove in 2.0
 func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	result := map[string]interface{}{
 		"name": string(sku.Name),

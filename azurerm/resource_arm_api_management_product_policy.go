@@ -23,7 +23,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -47,7 +47,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -107,7 +107,7 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -143,7 +143,7 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApiManagementProductPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementProductPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

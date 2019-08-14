@@ -35,9 +35,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_security_group_id": {
 				Type:         schema.TypeString,
@@ -244,7 +244,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 }
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
@@ -265,7 +265,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
 	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -361,7 +361,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -383,7 +383,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.InterfacePropertiesFormat; props != nil {
@@ -451,7 +451,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

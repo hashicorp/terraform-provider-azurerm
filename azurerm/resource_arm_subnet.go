@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +31,7 @@ func resourceArmSubnet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,
@@ -120,7 +121,7 @@ func resourceArmSubnet() *schema.Resource {
 }
 
 func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
@@ -219,7 +220,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -279,7 +280,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

@@ -40,14 +40,42 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(network.ResourceIdentityTypeUserAssigned),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ResourceIdentityTypeUserAssigned),
+							}, false),
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+					},
+				},
 			},
 
 			// Required
@@ -1168,6 +1196,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 											"crs_41_xss_attacks",
 											"crs_42_tight_security",
 											"crs_45_trojans",
+											"General",
 											"REQUEST-911-METHOD-ENFORCEMENT",
 											"REQUEST-913-SCANNER-DETECTION",
 											"REQUEST-920-PROTOCOL-ENFORCEMENT",
@@ -1264,7 +1293,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	client := armClient.applicationGatewayClient
+	client := armClient.network.ApplicationGatewaysClient
 	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1285,7 +1314,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	enablehttp2 := d.Get("enable_http2").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -1307,7 +1336,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
 	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1349,6 +1378,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			URLPathMaps:                   urlPathMaps,
 			AutoscaleConfiguration:        autoscaleConfiguration,
 		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
 	}
 
 	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
@@ -1428,7 +1461,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1452,9 +1485,14 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", applicationGateway.Zones)
+
+	identity := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
@@ -1564,7 +1602,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1584,6 +1622,50 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.ManagedServiceIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := network.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	appGatewayIdentity := network.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if identityType == network.ResourceIdentityTypeUserAssigned {
+		appGatewayIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &appGatewayIdentity
+}
+
+func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if result["type"] == "userAssigned" {
+		result["type"] = "UserAssigned"
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
 }
 
 func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
@@ -1632,7 +1714,7 @@ func flattenApplicationGatewayAuthenticationCertificates(input *[]network.Applic
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
 			existingVals := existing.([]interface{})
-			if len(existingVals) >= i {
+			if len(existingVals) > i {
 				existingCerts := existingVals[i].(map[string]interface{})
 				if data := existingCerts["data"]; data != nil {
 					output["data"] = data.(string)
@@ -2185,7 +2267,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
-			return &results, stopApplicationGateway
+			return &results, false
 		}
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -40,7 +41,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"input": {
 				Type:     schema.TypeList,
@@ -99,7 +100,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsFunctionsClient
+	client := meta.(*ArmClient).streamanalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Function Javascript UDF creation.")
@@ -167,7 +168,7 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsFunctionsClient
+	client := meta.(*ArmClient).streamanalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -221,7 +222,7 @@ func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsFunctionsClient
+	client := meta.(*ArmClient).streamanalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

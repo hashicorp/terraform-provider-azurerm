@@ -32,17 +32,17 @@ func resourceArmSqlServer() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"version": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string("2.0"),
-					string("12.0"),
+					"2.0",
+					"12.0",
 				}, true),
 			},
 
@@ -69,12 +69,12 @@ func resourceArmSqlServer() *schema.Resource {
 }
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
@@ -132,7 +132,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -157,7 +157,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
@@ -172,7 +172,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

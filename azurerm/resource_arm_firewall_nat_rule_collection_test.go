@@ -307,7 +307,7 @@ func testCheckAzureRMFirewallNatRuleCollectionExists(resourceName string) resour
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -341,7 +341,7 @@ func testCheckAzureRMFirewallNatRuleCollectionDoesNotExist(resourceName string, 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -370,7 +370,7 @@ func testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -429,10 +429,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template, rInt)
@@ -467,10 +467,10 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
 
     protocols = [
       "Any",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -505,10 +505,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
+    ]
 
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template, rInt)
@@ -543,10 +543,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 
@@ -574,10 +574,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8080
-		translated_address = "8.8.4.4"
+    ]
+
+    translated_port    = 8080
+    translated_address = "8.8.4.4"
   }
 }
 `, template, rInt, rInt)
@@ -612,10 +612,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 }
 
@@ -643,10 +643,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8080
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 8080
+    translated_address = "10.0.0.1"
   }
 }
 `, template, rInt, rInt)
@@ -681,10 +681,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 
   rule {
@@ -704,10 +704,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8888
-		translated_address = "192.168.0.1"
+    ]
+
+    translated_port    = 8888
+    translated_address = "192.168.0.1"
   }
 }
 `, template, rInt)
@@ -742,10 +742,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 }
 `, template, rInt)

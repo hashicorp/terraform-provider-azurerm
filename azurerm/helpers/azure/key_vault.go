@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func GetKeyVaultBaseUrlFromID(ctx context.Context, client keyvault.VaultsClient, keyVaultId string) (string, error) {
+func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (string, error) {
 
 	if keyVaultId == "" {
 		return "", fmt.Errorf("keyVaultId is empty")
@@ -40,7 +40,7 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client keyvault.VaultsClient,
 	return *resp.Properties.VaultURI, nil
 }
 
-func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient, keyVaultUrl string) (*string, error) {
+func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient, keyVaultUrl string) (*string, error) {
 	list, err := client.ListComplete(ctx, utils.Int32(1000))
 	if err != nil {
 		return nil, fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
@@ -89,7 +89,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client keyvault.VaultsClient,
 	return nil, nil
 }
 
-func KeyVaultExists(ctx context.Context, client keyvault.VaultsClient, keyVaultId string) (bool, error) {
+func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (bool, error) {
 
 	if keyVaultId == "" {
 		return false, fmt.Errorf("keyVaultId is empty")

@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,9 +37,9 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"description": {
 				Type:     schema.TypeString,
@@ -158,7 +159,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 }
 
 func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -179,7 +180,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
@@ -212,7 +213,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -234,7 +235,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if alertRule := resp.AlertRule; alertRule != nil {
@@ -311,7 +312,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())

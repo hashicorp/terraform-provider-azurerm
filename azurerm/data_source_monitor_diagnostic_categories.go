@@ -37,7 +37,7 @@ func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
 }
 
 func dataSourceArmMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
-	categoriesClient := meta.(*ArmClient).monitorDiagnosticSettingsCategoryClient
+	categoriesClient := meta.(*ArmClient).monitor.DiagnosticSettingsCategoryClient
 	ctx := meta.(*ArmClient).StopContext
 
 	actualResourceId := d.Get("resource_id").(string)

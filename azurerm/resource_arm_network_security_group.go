@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -31,9 +32,9 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"security_rule": {
 				Type:       schema.TypeSet,
@@ -161,7 +162,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 }
 
 func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -180,7 +181,7 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
@@ -223,7 +224,7 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -245,7 +246,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
@@ -261,7 +262,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

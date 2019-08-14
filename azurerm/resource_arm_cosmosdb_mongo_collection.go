@@ -34,7 +34,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:         schema.TypeString,
@@ -92,7 +92,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 }
 
 func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -161,7 +161,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
@@ -207,7 +207,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())

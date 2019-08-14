@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,9 +28,9 @@ func resourceArmNetworkWatcher() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"tags": tagsSchema(),
 		},
@@ -37,7 +38,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 }
 
 func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -56,7 +57,7 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	watcher := network.Watcher{
@@ -82,7 +83,7 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -104,7 +105,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -113,7 +114,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

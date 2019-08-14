@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
@@ -28,7 +29,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:     schema.TypeString,
@@ -52,7 +53,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 }
 
 func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Firewall Rule creation.")
@@ -106,7 +107,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -138,7 +139,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

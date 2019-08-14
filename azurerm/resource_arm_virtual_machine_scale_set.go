@@ -40,11 +40,11 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": zonesSchema(),
+			"zones": azure.SchemaZones(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -753,7 +753,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vmScaleSetClient
+	client := meta.(*ArmClient).compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
@@ -774,9 +774,9 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {
@@ -904,7 +904,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vmScaleSetClient
+	client := meta.(*ArmClient).compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -927,7 +927,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("zones", resp.Zones)
 
@@ -1059,7 +1059,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vmScaleSetClient
+	client := meta.(*ArmClient).compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1326,13 +1326,21 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						config["primary"] = *properties.Primary
 					}
 
-					if properties.PublicIPAddressConfiguration != nil {
-						publicIpInfo := properties.PublicIPAddressConfiguration
+					if publicIpInfo := properties.PublicIPAddressConfiguration; publicIpInfo != nil {
 						publicIpConfigs := make([]map[string]interface{}, 0, 1)
 						publicIpConfig := make(map[string]interface{})
-						publicIpConfig["name"] = *publicIpInfo.Name
-						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+						if publicIpName := publicIpInfo.Name; publicIpName != nil {
+							publicIpConfig["name"] = *publicIpName
+						}
+						if publicIpProperties := publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties; publicIpProperties != nil {
+							if dns := publicIpProperties.DNSSettings; dns != nil {
+								publicIpConfig["domain_name_label"] = *dns.DomainNameLabel
+							}
+							if timeout := publicIpProperties.IdleTimeoutInMinutes; timeout != nil {
+								publicIpConfig["idle_timeout"] = *timeout
+							}
+							publicIpConfigs = append(publicIpConfigs, publicIpConfig)
+						}
 						config["public_ip_address_configuration"] = publicIpConfigs
 					}
 
@@ -1418,7 +1426,9 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
-		l["lun"] = *disk.Lun
+		if v := disk.Lun; v != nil {
+			l["lun"] = *v
+		}
 
 		result[i] = l
 	}
@@ -1544,6 +1554,61 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+
+		if v, ok := m["accelerated_networking"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["ip_forwarding"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["network_security_group_id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["dns_settings"].(map[string]interface{}); ok {
+			if k, ok := v["dns_servers"]; ok {
+				buf.WriteString(fmt.Sprintf("%s-", k))
+			}
+		}
+		if ipConfig, ok := m["ip_configuration"].([]interface{}); ok {
+			for _, it := range ipConfig {
+				config := it.(map[string]interface{})
+				if name, ok := config["name"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", name.(string)))
+				}
+				if subnetid, ok := config["subnet_id"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", subnetid.(string)))
+				}
+				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*schema.Set).List()))
+				}
+				if appSecGroup, ok := config["application_security_group_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*schema.Set).List()))
+				}
+				if lbPoolIds, ok := config["load_balancer_backend_address_pool_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*schema.Set).List()))
+				}
+				if lbInNatRules, ok := config["load_balancer_inbound_nat_rules_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*schema.Set).List()))
+				}
+				if primary, ok := config["primary"]; ok {
+					buf.WriteString(fmt.Sprintf("%t-", primary.(bool)))
+				}
+				if publicIPConfig, ok := config["public_ip_address_configuration"].([]interface{}); ok {
+					for _, publicIPIt := range publicIPConfig {
+						publicip := publicIPIt.(map[string]interface{})
+						if publicIPConfigName, ok := publicip["name"]; ok {
+							buf.WriteString(fmt.Sprintf("%s-", publicIPConfigName.(string)))
+						}
+						if idle_timeout, ok := publicip["idle_timeout"]; ok {
+							buf.WriteString(fmt.Sprintf("%d-", idle_timeout.(int)))
+						}
+						if dnsLabel, ok := publicip["domain_name_label"]; ok {
+							buf.WriteString(fmt.Sprintf("%s-", dnsLabel.(string)))
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -1554,6 +1619,18 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+		if sshKeys, ok := m["ssh_keys"].([]interface{}); ok {
+			for _, item := range sshKeys {
+				k := item.(map[string]interface{})
+				if path, ok := k["path"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", path.(string)))
+				}
+				if data, ok := k["key_data"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", data.(string)))
+				}
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())

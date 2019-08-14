@@ -42,9 +42,9 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"target_resource_id": {
 				Type:         schema.TypeString,
@@ -348,7 +348,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 }
 
 func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -367,7 +367,7 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	targetResourceId := d.Get("target_resource_id").(string)
 
@@ -412,7 +412,7 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -436,7 +436,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("enabled", resp.Enabled)
@@ -463,7 +463,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

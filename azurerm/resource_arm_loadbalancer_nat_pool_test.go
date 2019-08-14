@@ -192,7 +192,7 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)

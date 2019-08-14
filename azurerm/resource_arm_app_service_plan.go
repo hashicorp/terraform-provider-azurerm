@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
@@ -34,9 +35,9 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ValidateFunc: validateAppServicePlanName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -46,11 +47,14 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
 					// thus we need to support it to be able to import resources without recreating them.
+					// @jcorioland: new SKU and kind 'xenon' have been added for Windows Containers support
+					// https://azure.microsoft.com/en-us/blog/announcing-the-public-preview-of-windows-container-support-in-azure-app-service/
 					"App",
 					"elastic",
 					"FunctionApp",
 					"Linux",
 					"Windows",
+					"xenon",
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -114,6 +118,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
+			/// AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -136,9 +141,21 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ConflictsWith: []string{"properties.0.reserved"},
 			},
 
+			"maximum_elastic_worker_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"maximum_number_of_workers": {
 				Type:     schema.TypeInt,
 				Computed: true,
+			},
+
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"tags": tagsSchema(),
@@ -147,7 +164,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
@@ -168,12 +185,19 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
+
+	isXenon := d.Get("is_xenon").(bool)
+	properties.IsXenon = &isXenon
+
+	if kind == "xenon" && !isXenon {
+		return fmt.Errorf("Creating or updating App Service Plan %q (Resource Group %q): when kind is set to xenon, is_xenon property should be set to true", name, resGroup)
+	}
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
@@ -198,6 +222,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		if !reserved.(bool) || !reservedExists {
 			return fmt.Errorf("Reserved has to be set to true when using kind Linux")
 		}
+	}
+
+	if v, exists := d.GetOkExists("maximum_elastic_worker_count"); exists {
+		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v.(int)))
 	}
 
 	if reservedExists {
@@ -227,7 +255,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -251,10 +279,18 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
+	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
+	if utils.ResponseWasNotFound(resp.Response) {
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		d.SetId("")
+		return nil
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
 
@@ -271,8 +307,13 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
 
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+		}
+
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
+		d.Set("is_xenon", props.IsXenon)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
@@ -285,7 +326,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

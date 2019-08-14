@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,9 +37,9 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_ids": {
 				Type:     schema.TypeList,
@@ -54,7 +55,7 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 }
 
 func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
@@ -75,7 +76,7 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	vnetsToLock, err := extractVnetNames(d)
@@ -118,7 +119,7 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -142,7 +143,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", plan.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := plan.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
@@ -158,7 +159,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

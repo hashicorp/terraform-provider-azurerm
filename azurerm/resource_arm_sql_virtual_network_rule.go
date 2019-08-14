@@ -36,7 +36,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 				ValidateFunc: validateSqlVirtualNetworkRuleName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -60,7 +60,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -119,7 +119,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -155,7 +155,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -241,7 +241,7 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []stri
 	* Ready
 	* ResponseNotFound (Custom state in case of 404)
 */
-func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 

@@ -35,7 +35,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				ValidateFunc: validate.VirtualNetworkRuleName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -59,7 +59,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).postgres.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -123,7 +123,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).postgres.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -159,7 +159,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlVirtualNetworkRulesClient
+	client := meta.(*ArmClient).postgres.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -191,7 +191,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client postgresql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *postgresql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 

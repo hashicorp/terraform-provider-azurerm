@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -39,7 +40,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"priority": {
 				Type:         schema.TypeInt,
@@ -119,7 +120,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -231,7 +232,7 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 }
 
 func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -303,7 +304,7 @@ func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, me
 }
 
 func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -375,9 +376,9 @@ func expandArmFirewallApplicationRules(inputs []interface{}) ([]network.AzureFir
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
 			Description:     utils.String(ruleDescription),
-			SourceAddresses: utils.ExpandStringArray(ruleSourceAddresses),
-			FqdnTags:        utils.ExpandStringArray(ruleFqdnTags),
-			TargetFqdns:     utils.ExpandStringArray(ruleTargetFqdns),
+			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
+			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
