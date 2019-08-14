@@ -40,7 +40,7 @@ github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
-github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization
+github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces
 github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
@@ -64,7 +64,6 @@ github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
@@ -74,6 +73,8 @@ github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/strea
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
 github.com/Azure/azure-sdk-for-go/storage
+github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization
+github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest/autorest v0.3.0

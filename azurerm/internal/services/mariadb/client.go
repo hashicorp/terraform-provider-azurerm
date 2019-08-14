@@ -6,14 +6,18 @@ import (
 )
 
 type Client struct {
-	DatabasesClient     *mariadb.DatabasesClient
-	FirewallRulesClient *mariadb.FirewallRulesClient
-	ServersClient       *mariadb.ServersClient
+	ConfigurationsClient *mariadb.ConfigurationsClient
+	DatabasesClient      *mariadb.DatabasesClient
+	FirewallRulesClient  *mariadb.FirewallRulesClient
+	ServersClient        *mariadb.ServersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
 
-	DatabasesClient := mariadb.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationsClient = mariadb.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
+  
+  DatabasesClient := mariadb.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
 	FirewallRulesClient := mariadb.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -23,8 +27,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient:     &DatabasesClient,
-		FirewallRulesClient: &FirewallRulesClient,
-		ServersClient:       &ServersClient,
+    ConfigurationsClient: &configurationsClient,
+		DatabasesClient:      &DatabasesClient,
+		FirewallRulesClient:  &FirewallRulesClient,
+		ServersClient:        &ServersClient,
 	}
 }
