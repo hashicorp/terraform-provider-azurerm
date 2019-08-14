@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 * **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
+* **New resource:** `azurerm_virtual_wan` [#4089]
 
 IMPROVEMENTS:
 
