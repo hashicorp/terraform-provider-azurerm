@@ -250,7 +250,7 @@ func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	return waitForIotDPSToBeDeleted(ctx, client, resourceGroup, name)
 }
 
-func waitForIotDPSToBeDeleted(ctx context.Context, client iothub.IotDpsResourceClient, resourceGroup, name string) error {
+func waitForIotDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IoT Device Provisioning Service %q (Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -266,7 +266,7 @@ func waitForIotDPSToBeDeleted(ctx context.Context, client iothub.IotDpsResourceC
 	return nil
 }
 
-func iotdpsStateStatusCodeRefreshFunc(ctx context.Context, client iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iotdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, name, resourceGroup)
 

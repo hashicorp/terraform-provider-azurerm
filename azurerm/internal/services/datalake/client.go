@@ -9,32 +9,37 @@ import (
 
 type Client struct {
 	// Data Lake Store
-	StoreAccountsClient      store.AccountsClient
-	StoreFirewallRulesClient store.FirewallRulesClient
-	StoreFilesClient         filesystem.Client
+	StoreAccountsClient      *store.AccountsClient
+	StoreFirewallRulesClient *store.FirewallRulesClient
+	StoreFilesClient         *filesystem.Client
 
 	// Data Lake Analytics
-	AnalyticsAccountsClient      analytics.AccountsClient
-	AnalyticsFirewallRulesClient analytics.FirewallRulesClient
+	AnalyticsAccountsClient      *analytics.AccountsClient
+	AnalyticsFirewallRulesClient *analytics.FirewallRulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.StoreAccountsClient = store.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.StoreAccountsClient.Client, o.ResourceManagerAuthorizer)
+	StoreAccountsClient := store.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&StoreAccountsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.StoreFirewallRulesClient = store.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.StoreFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	StoreFirewallRulesClient := store.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&StoreFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.StoreFilesClient = filesystem.NewClient()
-	o.ConfigureClient(&c.StoreFilesClient.Client, o.ResourceManagerAuthorizer)
+	StoreFilesClient := filesystem.NewClient()
+	o.ConfigureClient(&StoreFilesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AnalyticsAccountsClient = analytics.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AnalyticsAccountsClient.Client, o.ResourceManagerAuthorizer)
+	AnalyticsAccountsClient := analytics.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AnalyticsAccountsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AnalyticsFirewallRulesClient = analytics.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AnalyticsFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	AnalyticsFirewallRulesClient := analytics.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AnalyticsFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		StoreAccountsClient:          &StoreAccountsClient,
+		StoreFirewallRulesClient:     &StoreFirewallRulesClient,
+		StoreFilesClient:             &StoreFilesClient,
+		AnalyticsAccountsClient:      &AnalyticsAccountsClient,
+		AnalyticsFirewallRulesClient: &AnalyticsFirewallRulesClient,
+	}
 }

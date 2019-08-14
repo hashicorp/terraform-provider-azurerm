@@ -702,7 +702,7 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(retention *
 	return weekdays, weeks
 }
 
-func resourceArmRecoveryServicesProtectionPolicyWaitForState(client backup.ProtectionPoliciesClient, ctx context.Context, found bool, vaultName, resourceGroup, policyName string) (backup.ProtectionPolicyResource, error) {
+func resourceArmRecoveryServicesProtectionPolicyWaitForState(client *backup.ProtectionPoliciesClient, ctx context.Context, found bool, vaultName, resourceGroup, policyName string) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,

@@ -6,110 +6,135 @@ import (
 )
 
 type Client struct {
-	ApplicationGatewaysClient       network.ApplicationGatewaysClient
-	ApplicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
-	AzureFirewallsClient            network.AzureFirewallsClient
-	ConnectionMonitorsClient        network.ConnectionMonitorsClient
-	DDOSProtectionPlansClient       network.DdosProtectionPlansClient
-	ExpressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
-	ExpressRouteCircuitsClient      network.ExpressRouteCircuitsClient
-	ExpressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
-	InterfacesClient                network.InterfacesClient
-	LoadBalancersClient             network.LoadBalancersClient
-	LocalNetworkGatewaysClient      network.LocalNetworkGatewaysClient
-	ProfileClient                   network.ProfilesClient
-	PacketCapturesClient            network.PacketCapturesClient
-	PublicIPsClient                 network.PublicIPAddressesClient
-	PublicIPPrefixesClient          network.PublicIPPrefixesClient
-	RoutesClient                    network.RoutesClient
-	RouteTablesClient               network.RouteTablesClient
-	SecurityGroupClient             network.SecurityGroupsClient
-	SecurityRuleClient              network.SecurityRulesClient
-	SubnetsClient                   network.SubnetsClient
-	VnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
-	VnetGatewayClient               network.VirtualNetworkGatewaysClient
-	VnetClient                      network.VirtualNetworksClient
-	VnetPeeringsClient              network.VirtualNetworkPeeringsClient
-	WatcherClient                   network.WatchersClient
+	ApplicationGatewaysClient       *network.ApplicationGatewaysClient
+	ApplicationSecurityGroupsClient *network.ApplicationSecurityGroupsClient
+	AzureFirewallsClient            *network.AzureFirewallsClient
+	ConnectionMonitorsClient        *network.ConnectionMonitorsClient
+	DDOSProtectionPlansClient       *network.DdosProtectionPlansClient
+	ExpressRouteAuthsClient         *network.ExpressRouteCircuitAuthorizationsClient
+	ExpressRouteCircuitsClient      *network.ExpressRouteCircuitsClient
+	ExpressRoutePeeringsClient      *network.ExpressRouteCircuitPeeringsClient
+	InterfacesClient                *network.InterfacesClient
+	LoadBalancersClient             *network.LoadBalancersClient
+	LocalNetworkGatewaysClient      *network.LocalNetworkGatewaysClient
+	ProfileClient                   *network.ProfilesClient
+	PacketCapturesClient            *network.PacketCapturesClient
+	PublicIPsClient                 *network.PublicIPAddressesClient
+	PublicIPPrefixesClient          *network.PublicIPPrefixesClient
+	RoutesClient                    *network.RoutesClient
+	RouteTablesClient               *network.RouteTablesClient
+	SecurityGroupClient             *network.SecurityGroupsClient
+	SecurityRuleClient              *network.SecurityRulesClient
+	SubnetsClient                   *network.SubnetsClient
+	VnetGatewayConnectionsClient    *network.VirtualNetworkGatewayConnectionsClient
+	VnetGatewayClient               *network.VirtualNetworkGatewaysClient
+	VnetClient                      *network.VirtualNetworksClient
+	VnetPeeringsClient              *network.VirtualNetworkPeeringsClient
+	WatcherClient                   *network.WatchersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ApplicationGatewaysClient = network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApplicationSecurityGroupsClient = network.NewApplicationSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ApplicationSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApplicationSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AzureFirewallsClient = network.NewAzureFirewallsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AzureFirewallsClient.Client, o.ResourceManagerAuthorizer)
+	AzureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AzureFirewallsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ConnectionMonitorsClient = network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
+	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DDOSProtectionPlansClient = network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
+	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ExpressRouteAuthsClient = network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ExpressRouteAuthsClient.Client, o.ResourceManagerAuthorizer)
+	ExpressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRouteAuthsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ExpressRouteCircuitsClient = network.NewExpressRouteCircuitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ExpressRouteCircuitsClient.Client, o.ResourceManagerAuthorizer)
+	ExpressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRouteCircuitsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ExpressRoutePeeringsClient = network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
+	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.InterfacesClient = network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.InterfacesClient.Client, o.ResourceManagerAuthorizer)
+	InterfacesClient := network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&InterfacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LoadBalancersClient = network.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
+	LoadBalancersClient := network.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LocalNetworkGatewaysClient = network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
+	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProfileClient = network.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ProfileClient.Client, o.ResourceManagerAuthorizer)
+	ProfileClient := network.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProfileClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VnetClient = network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VnetClient.Client, o.ResourceManagerAuthorizer)
+	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PacketCapturesClient = network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
+	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VnetPeeringsClient = network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
+	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PublicIPsClient = network.NewPublicIPAddressesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PublicIPsClient.Client, o.ResourceManagerAuthorizer)
+	PublicIPsClient := network.NewPublicIPAddressesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PublicIPsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PublicIPPrefixesClient = network.NewPublicIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PublicIPPrefixesClient.Client, o.ResourceManagerAuthorizer)
+	PublicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PublicIPPrefixesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RoutesClient = network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RoutesClient.Client, o.ResourceManagerAuthorizer)
+	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RouteTablesClient = network.NewRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RouteTablesClient.Client, o.ResourceManagerAuthorizer)
+	RouteTablesClient := network.NewRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RouteTablesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SecurityGroupClient = network.NewSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SecurityGroupClient.Client, o.ResourceManagerAuthorizer)
+	SecurityGroupClient := network.NewSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SecurityGroupClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SecurityRuleClient = network.NewSecurityRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SecurityRuleClient.Client, o.ResourceManagerAuthorizer)
+	SecurityRuleClient := network.NewSecurityRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SecurityRuleClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SubnetsClient = network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SubnetsClient.Client, o.ResourceManagerAuthorizer)
+	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VnetGatewayClient = network.NewVirtualNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VnetGatewayClient.Client, o.ResourceManagerAuthorizer)
+	VnetGatewayClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetGatewayClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VnetGatewayConnectionsClient = network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
+	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.WatcherClient = network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.WatcherClient.Client, o.ResourceManagerAuthorizer)
+	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ApplicationGatewaysClient:       &ApplicationGatewaysClient,
+		ApplicationSecurityGroupsClient: &ApplicationSecurityGroupsClient,
+		AzureFirewallsClient:            &AzureFirewallsClient,
+		ConnectionMonitorsClient:        &ConnectionMonitorsClient,
+		DDOSProtectionPlansClient:       &DDOSProtectionPlansClient,
+		ExpressRouteAuthsClient:         &ExpressRouteAuthsClient,
+		ExpressRouteCircuitsClient:      &ExpressRouteCircuitsClient,
+		ExpressRoutePeeringsClient:      &ExpressRoutePeeringsClient,
+		InterfacesClient:                &InterfacesClient,
+		LoadBalancersClient:             &LoadBalancersClient,
+		LocalNetworkGatewaysClient:      &LocalNetworkGatewaysClient,
+		ProfileClient:                   &ProfileClient,
+		PacketCapturesClient:            &PacketCapturesClient,
+		PublicIPsClient:                 &PublicIPsClient,
+		PublicIPPrefixesClient:          &PublicIPPrefixesClient,
+		RoutesClient:                    &RoutesClient,
+		RouteTablesClient:               &RouteTablesClient,
+		SecurityGroupClient:             &SecurityGroupClient,
+		SecurityRuleClient:              &SecurityRuleClient,
+		SubnetsClient:                   &SubnetsClient,
+		VnetGatewayConnectionsClient:    &VnetGatewayConnectionsClient,
+		VnetGatewayClient:               &VnetGatewayClient,
+		VnetClient:                      &VnetClient,
+		VnetPeeringsClient:              &VnetPeeringsClient,
+		WatcherClient:                   &WatcherClient,
+	}
 }

@@ -6,39 +6,46 @@ import (
 )
 
 type Client struct {
-	DatabasesClient                       sql.DatabasesClient
-	DatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
-	ElasticPoolsClient                    sql.ElasticPoolsClient
-	FirewallRulesClient                   sql.FirewallRulesClient
-	ServersClient                         sql.ServersClient
-	ServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
-	VirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
+	DatabasesClient                       *sql.DatabasesClient
+	DatabaseThreatDetectionPoliciesClient *sql.DatabaseThreatDetectionPoliciesClient
+	ElasticPoolsClient                    *sql.ElasticPoolsClient
+	FirewallRulesClient                   *sql.FirewallRulesClient
+	ServersClient                         *sql.ServersClient
+	ServerAzureADAdministratorsClient     *sql.ServerAzureADAdministratorsClient
+	VirtualNetworkRulesClient             *sql.VirtualNetworkRulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
 	// SQL Azure
-	c.DatabasesClient = sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabasesClient.Client, o.ResourceManagerAuthorizer)
+	DatabasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DatabaseThreatDetectionPoliciesClient = sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabaseThreatDetectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	DatabaseThreatDetectionPoliciesClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabaseThreatDetectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ElasticPoolsClient = sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+	ElasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.FirewallRulesClient = sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	FirewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServersClient = sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServersClient.Client, o.ResourceManagerAuthorizer)
+	ServersClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServerAzureADAdministratorsClient = sql.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServerAzureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+	ServerAzureADAdministratorsClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServerAzureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VirtualNetworkRulesClient = sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+	VirtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		DatabasesClient:                       &DatabasesClient,
+		DatabaseThreatDetectionPoliciesClient: &DatabaseThreatDetectionPoliciesClient,
+		ElasticPoolsClient:                    &ElasticPoolsClient,
+		FirewallRulesClient:                   &FirewallRulesClient,
+		ServersClient:                         &ServersClient,
+		ServerAzureADAdministratorsClient:     &ServerAzureADAdministratorsClient,
+		VirtualNetworkRulesClient:             &VirtualNetworkRulesClient,
+	}
 }

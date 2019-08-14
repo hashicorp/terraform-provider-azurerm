@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	DatabaseClient documentdb.DatabaseAccountsClient
+	DatabaseClient *documentdb.DatabaseAccountsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.DatabaseClient = documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabaseClient.Client, o.ResourceManagerAuthorizer)
+	DatabaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabaseClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		DatabaseClient: &DatabaseClient,
+	}
 }

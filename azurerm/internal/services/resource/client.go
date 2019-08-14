@@ -8,27 +8,31 @@ import (
 )
 
 type Client struct {
-	GroupsClient      resources.GroupsClient
-	DeploymentsClient resources.DeploymentsClient
-	LocksClient       locks.ManagementLocksClient
-	ProvidersClient   providers.ProvidersClient
+	GroupsClient      *resources.GroupsClient
+	DeploymentsClient *resources.DeploymentsClient
+	LocksClient       *locks.ManagementLocksClient
+	ProvidersClient   *providers.ProvidersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.LocksClient = locks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LocksClient.Client, o.ResourceManagerAuthorizer)
+	LocksClient := locks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LocksClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DeploymentsClient = resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DeploymentsClient.Client, o.ResourceManagerAuthorizer)
+	DeploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DeploymentsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.GroupsClient = resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.GroupsClient.Client, o.ResourceManagerAuthorizer)
+	GroupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	// this has to come from the Profile since this is shared with Stack
-	c.ProvidersClient = providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ProvidersClient.Client, o.ResourceManagerAuthorizer)
+	ProvidersClient := providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProvidersClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		GroupsClient:      &GroupsClient,
+		DeploymentsClient: &DeploymentsClient,
+		LocksClient:       &LocksClient,
+		ProvidersClient:   &ProvidersClient,
+	}
 }

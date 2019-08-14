@@ -6,18 +6,20 @@ import (
 )
 
 type Client struct {
-	AppServicePlansClient web.AppServicePlansClient
-	AppServicesClient     web.AppsClient
+	AppServicePlansClient *web.AppServicePlansClient
+	AppServicesClient     *web.AppsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.AppServicePlansClient = web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AppServicePlansClient.Client, o.ResourceManagerAuthorizer)
+	AppServicePlansClient := web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AppServicePlansClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AppServicesClient = web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AppServicesClient.Client, o.ResourceManagerAuthorizer)
+	AppServicesClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AppServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		AppServicePlansClient: &AppServicePlansClient,
+		AppServicesClient:     &AppServicesClient,
+	}
 }

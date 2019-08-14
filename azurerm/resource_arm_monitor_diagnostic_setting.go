@@ -349,7 +349,7 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client insights.DiagnosticSettingsClient, targetResourceId string, name string) resource.StateRefreshFunc {
+func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *insights.DiagnosticSettingsClient, targetResourceId string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, targetResourceId, name)
 		if err != nil {
