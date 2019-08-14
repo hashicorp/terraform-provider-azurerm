@@ -83,7 +83,7 @@ func resourceArmFirewall() *schema.Resource {
 }
 
 func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
@@ -169,7 +169,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -209,7 +209,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

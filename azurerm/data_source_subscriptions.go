@@ -34,7 +34,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 
 func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	subClient := armClient.subscriptionsClient
+	subClient := armClient.subscription.Client
 	ctx := armClient.StopContext
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))

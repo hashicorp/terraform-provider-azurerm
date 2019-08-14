@@ -166,7 +166,7 @@ func resourceArmImage() *schema.Resource {
 }
 
 func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
@@ -264,7 +264,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -313,7 +313,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

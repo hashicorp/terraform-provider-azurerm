@@ -38,7 +38,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 }
 
 func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -83,7 +83,7 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -114,7 +114,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
+	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

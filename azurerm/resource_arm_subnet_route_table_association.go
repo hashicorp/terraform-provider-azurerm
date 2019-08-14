@@ -39,7 +39,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
@@ -111,7 +111,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -152,7 +152,7 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

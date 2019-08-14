@@ -86,7 +86,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		rgClient := meta.(*ArmClient).resourceGroupsClient
+		rgClient := meta.(*ArmClient).resource.GroupsClient
 
 		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
 		if err != nil {

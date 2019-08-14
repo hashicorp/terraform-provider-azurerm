@@ -54,7 +54,7 @@ func dataSourceArmDataLakeStoreAccount() *schema.Resource {
 }
 
 func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreAccountClient
+	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

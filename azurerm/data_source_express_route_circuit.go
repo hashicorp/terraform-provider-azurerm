@@ -115,7 +115,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 
 func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

@@ -1293,7 +1293,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	client := armClient.applicationGatewayClient
+	client := armClient.network.ApplicationGatewaysClient
 	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1461,7 +1461,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1602,7 +1602,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

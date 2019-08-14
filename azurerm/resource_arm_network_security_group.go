@@ -162,7 +162,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 }
 
 func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -224,7 +224,7 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -262,7 +262,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
