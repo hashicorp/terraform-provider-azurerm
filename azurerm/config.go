@@ -259,7 +259,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.monitor = monitor.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
+	client.mssql = mssql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
 	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
