@@ -177,6 +177,8 @@ resource "azurerm_virtual_wan" "test" {
 }
 
 func testAccAzureRMVirtualWan_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualWan_basic(rInt, location)
+
 	return fmt.Sprintf(`
 %s
 
@@ -185,7 +187,7 @@ resource "azurerm_virtual_wan" "import" {
   resource_group_name = "${azurerm_virtual_wan.test.resource_group_name}"
   location            = "${azurerm_virtual_wan.test.location}"
 }
-`, testAccAzureRMVirtualWan_basic(rInt, location))
+`, template)
 }
 
 func testAccAzureRMVirtualWan_complete(rInt int, location string) string {
