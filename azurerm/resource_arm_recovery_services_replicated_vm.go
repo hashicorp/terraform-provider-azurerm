@@ -22,7 +22,6 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmRecoveryReplicatedItemCreate,
 		Read:   resourceArmRecoveryReplicatedItemRead,
-		Update: nil,
 		Delete: resourceArmRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
