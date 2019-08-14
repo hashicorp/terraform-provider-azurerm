@@ -422,37 +422,43 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", ""),
+				Description: "The Subscription ID which should be used.",
 			},
 
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
+				Description: "The Client ID which should be used.",
 			},
 
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
+				Description: "The Tenant ID which should be used.",
 			},
 
 			"environment": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
 			},
 
 			// Client Certificate specific fields
-			"client_certificate_password": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
-			},
-
 			"client_certificate_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", ""),
+				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
+			},
+
+			"client_certificate_password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
 			},
 
 			// Client Secret specific fields
@@ -460,6 +466,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
+				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// Managed Service Identity specific fields
@@ -467,25 +474,29 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+				Description: "Allowed Managed Service Identity be used for Authentication.",
 			},
 			"msi_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
 			},
 
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				ValidateFunc: validate.UUIDOrEmpty,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
+				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
 
 			"disable_correlation_request_id": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 
 			// Advanced feature flags
@@ -493,12 +504,14 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
+				Description: "This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
 			},
 
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
+				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
 			},
 		},
 
