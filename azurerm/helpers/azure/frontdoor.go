@@ -47,15 +47,31 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 			redirectConfig := routingRule["redirect_configuration"].([]interface{})
 			forwardConfig := routingRule["forwarding_configuration"].([]interface{})
 
-			// Check 1. validate that only one configuration type is defined per routing rule
-			if len(redirectConfig) == 1 && len(forwardConfig) == 1 {
-				return fmt.Errorf(`"routing_rule":%q is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per routing rule`, routingRuleName)
+			// Check 0. validate that at least one routing configuration exists per routing rule
+			if len(redirectConfig) == 0 && len(forwardConfig) == 0 {
+				return fmt.Errorf(`"routing_rule":%q is invalid. you must have either a "redirect_configuration" or a "forwarding_configuration" defined for the "routing_rule":%q `, routingRuleName, routingRuleName)
 			}
 
-			// Check 2. validate that each routing rule frontend_endpoints are actually defined in the resource schema
+			// Check 1. validate that only one configuration type is defined per routing rule
+			if len(redirectConfig) == 1 && len(forwardConfig) == 1 {
+				return fmt.Errorf(`"routing_rule":%q is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per each routing rule`, routingRuleName)
+			}
+
+			// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
+			if len(forwardConfig) > 0 {
+				fc := forwardConfig[0].(map[string]interface{})
+				if err := backendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
+					return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
+				}
+			}
+
+			// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema
 			if routingRuleFrontends := routingRule["frontend_endpoints"].([]interface{}); len(routingRuleFrontends) > 0 {
 
 				for _, routingRuleFrontend := range routingRuleFrontends {
+					//
+					//TODO: Refactor to helper function that returns an error
+					//
 					// Get the name of the frontend defined in the routing rule
 					routingRulefrontendName := routingRuleFrontend.(string)
 					found = false
@@ -84,45 +100,48 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 	// Verify backend pool load balancing settings and health probe settings are defined in the resource schema
 	if backendPools != nil {
 
-		for _, bp := range backendPools {
-			backendPool := bp.(map[string]interface{})
+		for _, bps := range backendPools {
+			backendPool := bps.(map[string]interface{})
 			backendPoolName := backendPool["name"]
 			backendPoolLoadBalancingName := backendPool["load_balancing_name"]
 			backendPoolHealthProbeName := backendPool["health_probe_name"]
 			found := false
 
 			// Verify backend pool load balancing settings name exists
-			for _, lbs := range loadBalancingSettings {
-				loadBalancing := lbs.(map[string]interface{})
-				loadBalancingName := loadBalancing["name"]
+			if len(loadBalancingSettings) > 0 {
+				for _, lbs := range loadBalancingSettings {
+					loadBalancing := lbs.(map[string]interface{})
+					loadBalancingName := loadBalancing["name"]
 
-				if loadBalancingName == backendPoolLoadBalancingName {
-					found = true
-					break
+					if loadBalancingName == backendPoolLoadBalancingName {
+						found = true
+						break
+					}
 				}
-			}
 
-			if !found {
-				return fmt.Errorf(`"backend_pool":%q "load_balancing_name":%q was not found in the configuration file. verify you have the "backend_pool_load_balancing":%q defined in the configuration file`, backendPoolName, backendPoolLoadBalancingName, backendPoolLoadBalancingName)
+				if !found {
+					return fmt.Errorf(`"backend_pool":%q "load_balancing_name":%q was not found in the configuration file. verify you have the "backend_pool_load_balancing":%q defined in the configuration file`, backendPoolName, backendPoolLoadBalancingName, backendPoolLoadBalancingName)
+				}
 			}
 
 			found = false
 
 			// Verify health probe settings name exists
-			for _, hps := range healthProbeSettings {
-				healthProbe := hps.(map[string]interface{})
-				healthProbeName := healthProbe["name"]
+			if len(healthProbeSettings) > 0 {
+				for _, hps := range healthProbeSettings {
+					healthProbe := hps.(map[string]interface{})
+					healthProbeName := healthProbe["name"]
 
-				if healthProbeName == backendPoolHealthProbeName {
-					found = true
-					break
+					if healthProbeName == backendPoolHealthProbeName {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					return fmt.Errorf(`"backend_pool":%q "health_probe_name":%q was not found in the configuration file. verify you have the "backend_pool_health_probe":%q defined in the configuration file`, backendPoolName, backendPoolHealthProbeName, backendPoolHealthProbeName)
 				}
 			}
-
-			if !found {
-				return fmt.Errorf(`"backend_pool":%q "health_probe_name":%q was not found in the configuration file. verify you have the "backend_pool_health_probe":%q defined in the configuration file`, backendPoolName, backendPoolHealthProbeName, backendPoolHealthProbeName)
-			}
-
 		}
 	} else {
 		return fmt.Errorf(`"backend_pool": must have at least one "backend" defined`)
@@ -157,6 +176,21 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 	}
 
 	return nil
+}
+
+func backendPoolExists(backendPoolName string, backendPools []interface{}) error {
+	if backendPoolName == "" {
+		return fmt.Errorf(`"backend_pool_name" cannot be empty`)
+	}
+
+	for _, bps := range backendPools {
+		backendPool := bps.(map[string]interface{})
+		if backendPool["name"].(string) == backendPoolName {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(`unable to locate "backend_pool_name":%q in configuration file`, backendPoolName)
 }
 
 func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, MatchAllKeys bool) bool {

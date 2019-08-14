@@ -32,6 +32,11 @@ func resourceArmFrontDoor() *schema.Resource {
 				ValidateFunc: azure.ValidateFrontDoorName,
 			},
 
+			"friendly_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"load_balancer_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -45,7 +50,7 @@ func resourceArmFrontDoor() *schema.Resource {
 			"routing_rule": {
 				Type:     schema.TypeList,
 				MaxItems: 100,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -64,7 +69,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 						"accepted_protocols": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 2,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -72,16 +77,14 @@ func resourceArmFrontDoor() *schema.Resource {
 									string(frontdoor.HTTP),
 									string(frontdoor.HTTPS),
 								}, false),
-								Default: string(frontdoor.HTTP),
 							},
 						},
 						"patterns_to_match": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 25,
 							Elem: &schema.Schema{
-								Type:    schema.TypeString,
-								Default: "/*",
+								Type: schema.TypeString,
 							},
 						},
 						"frontend_endpoints": {
@@ -104,7 +107,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"custom_host": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 									"custom_path": {
 										Type:     schema.TypeString,
@@ -143,8 +146,9 @@ func resourceArmFrontDoor() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"backend_pool_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -187,7 +191,7 @@ func resourceArmFrontDoor() *schema.Resource {
 			"backend_pool_load_balancing": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -212,7 +216,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"additional_latency_milliseconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  2,
+							Default:  0,
 						},
 					},
 				},
@@ -220,7 +224,7 @@ func resourceArmFrontDoor() *schema.Resource {
 			"backend_pool_health_probe": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -293,12 +297,13 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"priority": {
 										Type:         schema.TypeInt,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 5),
+										Default:      1,
 									},
 									"host_header": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},
@@ -314,11 +319,11 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 						"health_probe_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 						"load_balancing_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -335,7 +340,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 						"name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
 						},
 						"host_name": {
@@ -345,11 +350,12 @@ func resourceArmFrontDoor() *schema.Resource {
 						"session_affinity_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 						"session_affinity_ttl_seconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Default:  0,
 						},
 						"custom_https_provisioning_enabled": {
 							Type:     schema.TypeBool,
@@ -397,11 +403,6 @@ func resourceArmFrontDoor() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"friendly_name": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 
 			"tags": tagsSchema(),
@@ -988,13 +989,22 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 	customQueryString := v["custom_query_string"].(string)
 
 	redirectConfiguration := frontdoor.RedirectConfiguration{
-		RedirectType:      frontdoor.RedirectType(redirectType),
-		RedirectProtocol:  frontdoor.RedirectProtocol(redirectProtocol),
-		CustomHost:        utils.String(customHost),
-		CustomPath:        utils.String(customPath),
-		CustomFragment:    utils.String(customFragment),
-		CustomQueryString: utils.String(customQueryString),
-		OdataType:         frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorRedirectConfiguration,
+		CustomHost:       utils.String(customHost),
+		RedirectType:     frontdoor.RedirectType(redirectType),
+		RedirectProtocol: frontdoor.RedirectProtocol(redirectProtocol),
+		OdataType:        frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorRedirectConfiguration,
+	}
+
+	// The way the API works is if you don't include the attribute in the structure
+	// it is treated as Preserve instead of Replace...
+	if customPath != "" {
+		redirectConfiguration.CustomPath = utils.String(customPath)
+	}
+	if customFragment != "" {
+		redirectConfiguration.CustomFragment = utils.String(customFragment)
+	}
+	if customQueryString != "" {
+		redirectConfiguration.CustomQueryString = utils.String(customQueryString)
 	}
 
 	return redirectConfiguration
