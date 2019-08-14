@@ -16,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var notificationHubResourceName = "azurerm_notification_hub"
+
 const apnsProductionName = "Production"
 const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
 const apnsSandboxName = "Sandbox"

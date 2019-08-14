@@ -17,6 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
+
 func resourceArmNotificationHubNamespace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNotificationHubNamespaceCreateUpdate,
