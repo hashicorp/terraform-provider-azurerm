@@ -115,7 +115,9 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if props := resp.Properties; props != nil {
-		d.Set("location", props.FriendlyName) // Crazy? yes. But the location comes back in the friendly name
+		if azureDetails, isAzureDetails := props.CustomDetails.AsAzureFabricSpecificDetails(); isAzureDetails {
+			d.Set("location", azureDetails.Location)
+		}
 	}
 	d.Set("recovery_vault_name", vaultName)
 	return nil
