@@ -510,7 +510,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
-				Description: "This will cause the the AzureRM Provider to skip registering any required Resource Providers that arn't already registered",
+				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
 			},
 		},
 
