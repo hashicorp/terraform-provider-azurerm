@@ -6,18 +6,20 @@ import (
 )
 
 type Client struct {
-	RoleAssignmentsClient authorization.RoleAssignmentsClient
-	RoleDefinitionsClient authorization.RoleDefinitionsClient
+	RoleAssignmentsClient *authorization.RoleAssignmentsClient
+	RoleDefinitionsClient *authorization.RoleDefinitionsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.RoleAssignmentsClient = authorization.NewRoleAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RoleAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+	RoleAssignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RoleAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RoleDefinitionsClient = authorization.NewRoleDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RoleDefinitionsClient.Client, o.ResourceManagerAuthorizer)
+	RoleDefinitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RoleDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		RoleAssignmentsClient: &RoleAssignmentsClient,
+		RoleDefinitionsClient: &RoleDefinitionsClient,
+	}
 }

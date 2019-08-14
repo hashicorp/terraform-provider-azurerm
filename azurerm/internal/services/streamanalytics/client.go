@@ -6,29 +6,34 @@ import (
 )
 
 type Client struct {
-	FunctionsClient       streamanalytics.FunctionsClient
-	JobsClient            streamanalytics.StreamingJobsClient
-	InputsClient          streamanalytics.InputsClient
-	OutputsClient         streamanalytics.OutputsClient
-	TransformationsClient streamanalytics.TransformationsClient
+	FunctionsClient       *streamanalytics.FunctionsClient
+	JobsClient            *streamanalytics.StreamingJobsClient
+	InputsClient          *streamanalytics.InputsClient
+	OutputsClient         *streamanalytics.OutputsClient
+	TransformationsClient *streamanalytics.TransformationsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.FunctionsClient = streamanalytics.NewFunctionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.FunctionsClient.Client, o.ResourceManagerAuthorizer)
+	FunctionsClient := streamanalytics.NewFunctionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FunctionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.JobsClient = streamanalytics.NewStreamingJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.JobsClient.Client, o.ResourceManagerAuthorizer)
+	JobsClient := streamanalytics.NewStreamingJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&JobsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.InputsClient = streamanalytics.NewInputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.InputsClient.Client, o.ResourceManagerAuthorizer)
+	InputsClient := streamanalytics.NewInputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&InputsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.OutputsClient = streamanalytics.NewOutputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.OutputsClient.Client, o.ResourceManagerAuthorizer)
+	OutputsClient := streamanalytics.NewOutputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&OutputsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.TransformationsClient = streamanalytics.NewTransformationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.TransformationsClient.Client, o.ResourceManagerAuthorizer)
-	return &c
+	TransformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&TransformationsClient.Client, o.ResourceManagerAuthorizer)
+	return &Client{
+		FunctionsClient:       &FunctionsClient,
+		JobsClient:            &JobsClient,
+		InputsClient:          &InputsClient,
+		OutputsClient:         &OutputsClient,
+		TransformationsClient: &TransformationsClient,
+	}
 }

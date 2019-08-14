@@ -6,30 +6,35 @@ import (
 )
 
 type Client struct {
-	ConfigurationsClient      postgresql.ConfigurationsClient
-	DatabasesClient           postgresql.DatabasesClient
-	FirewallRulesClient       postgresql.FirewallRulesClient
-	ServersClient             postgresql.ServersClient
-	VirtualNetworkRulesClient postgresql.VirtualNetworkRulesClient
+	ConfigurationsClient      *postgresql.ConfigurationsClient
+	DatabasesClient           *postgresql.DatabasesClient
+	FirewallRulesClient       *postgresql.FirewallRulesClient
+	ServersClient             *postgresql.ServersClient
+	VirtualNetworkRulesClient *postgresql.VirtualNetworkRulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ConfigurationsClient = postgresql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	ConfigurationsClient := postgresql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DatabasesClient = postgresql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabasesClient.Client, o.ResourceManagerAuthorizer)
+	DatabasesClient := postgresql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.FirewallRulesClient = postgresql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	FirewallRulesClient := postgresql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServersClient = postgresql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServersClient.Client, o.ResourceManagerAuthorizer)
+	ServersClient := postgresql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VirtualNetworkRulesClient = postgresql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+	VirtualNetworkRulesClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ConfigurationsClient:      &ConfigurationsClient,
+		DatabasesClient:           &DatabasesClient,
+		FirewallRulesClient:       &FirewallRulesClient,
+		ServersClient:             &ServersClient,
+		VirtualNetworkRulesClient: &VirtualNetworkRulesClient,
+	}
 }

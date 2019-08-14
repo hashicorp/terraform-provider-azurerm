@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	ServicesClient media.MediaservicesClient
+	ServicesClient *media.MediaservicesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ServicesClient = media.NewMediaservicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServicesClient.Client, o.ResourceManagerAuthorizer)
+	ServicesClient := media.NewMediaservicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ServicesClient: &ServicesClient,
+	}
 }

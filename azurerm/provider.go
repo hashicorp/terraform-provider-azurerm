@@ -572,7 +572,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				availableResourceProviders := providerList.Values()
 				requiredResourceProviders := requiredResourceProviders()
 
-				err := ensureResourceProvidersAreRegistered(ctx, client.resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := ensureResourceProvidersAreRegistered(ctx, *client.resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
 				}

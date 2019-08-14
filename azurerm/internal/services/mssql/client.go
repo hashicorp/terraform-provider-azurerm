@@ -7,18 +7,20 @@ import (
 )
 
 type Client struct {
-	ElasticPoolsClient                                 sql.ElasticPoolsClient
-	DatabaseVulnerabilityAssessmentRuleBaselinesClient vulnerabilitySvc.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	ElasticPoolsClient                                 *sql.ElasticPoolsClient
+	DatabaseVulnerabilityAssessmentRuleBaselinesClient *vulnerabilitySvc.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ElasticPoolsClient = sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+	ElasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DatabaseVulnerabilityAssessmentRuleBaselinesClient = vulnerabilitySvc.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabaseVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
+	DatabaseVulnerabilityAssessmentRuleBaselinesClient := vulnerabilitySvc.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabaseVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ElasticPoolsClient: &ElasticPoolsClient,
+		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &DatabaseVulnerabilityAssessmentRuleBaselinesClient,
+	}
 }

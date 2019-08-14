@@ -692,7 +692,7 @@ func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings,
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false
