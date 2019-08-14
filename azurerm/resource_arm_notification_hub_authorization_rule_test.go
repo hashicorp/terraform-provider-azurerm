@@ -137,7 +137,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_multi(t *testing.T) {
 	resourceOneName := "azurerm_notification_hub_authorization_rule.test1"
 	resourceTwoName := "azurerm_notification_hub_authorization_rule.test2"
-	resourceThreeName := "azurerm_notification_hub_authorization_rule.test2"
+	resourceThreeName := "azurerm_notification_hub_authorization_rule.test3"
 
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
