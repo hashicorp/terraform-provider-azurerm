@@ -120,12 +120,23 @@ func dataSourceArmBatchPool() *schema.Resource {
 							Computed: true,
 						},
 						"container_registries": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeMap,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"user_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"password": {
+										Type:      schema.TypeString,
+										Computed:  true,
+										Sensitive: true,
+									},
 								},
 							},
 						},

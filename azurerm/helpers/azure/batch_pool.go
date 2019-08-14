@@ -287,7 +287,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 
 	containerConfiguration := list[0].(map[string]interface{})
 	containerType := containerConfiguration["type"].(string)
-	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].(*schema.Set).List())
+	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}

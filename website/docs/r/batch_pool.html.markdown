@@ -266,6 +266,8 @@ A `container_registries` block supports the following:
 
 * `password` - (Optional) The password to log into the registry server.
 
+~> **NOTE:** Changes to the password field will not trigger a recreation of the pool, which is necessary to change container registry settings. In order to change the password for a container registry, either taint the Batch Pool and trigger an update, or manually destroy and re-create the pool.
+
 ## Attributes Reference
 
 The following attributes are exported:

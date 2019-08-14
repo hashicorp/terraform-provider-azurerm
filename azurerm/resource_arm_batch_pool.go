@@ -127,13 +127,27 @@ func resourceArmBatchPool() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"container_registries": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeMap,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ForceNew:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+									"user_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+									"password": {
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
+									},
 								},
 							},
 						},
