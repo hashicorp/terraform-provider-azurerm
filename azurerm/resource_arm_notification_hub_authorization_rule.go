@@ -5,12 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var notificationHubAuthorizationRuleResourceName = "azurerm_notification_hub_authorization_rule"
 
 func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
@@ -101,30 +102,34 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		}
 	}
 
+	azureRMLockByName(notificationHubName, notificationHubResourceName)
+	defer azureRMUnlockByName(notificationHubName, notificationHubResourceName)
+
+	azureRMLockByName(namespaceName, notificationHubNamespaceResourceName)
+	defer azureRMUnlockByName(namespaceName, notificationHubNamespaceResourceName)
+
 	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
 		Properties: &notificationhubs.SharedAccessAuthorizationRuleProperties{
 			Rights: expandNotificationHubAuthorizationRuleRights(manage, send, listen),
 		},
 	}
 
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
+	}
 
-		if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name, parameters); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("Error creating Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err))
-		}
+	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q) ID", name, notificationHubName, namespaceName, resourceGroup)
+	}
 
-		read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
-		if err != nil {
-			return resource.RetryableError(fmt.Errorf("Expected instance of the authorization rule %q (Notification Hub %q / Namespace %q / Resource Group %q) to be created but was in non existent state, retrying", name, notificationHubName, namespaceName, resourceGroup))
-		}
-		if read.ID == nil {
-			return resource.NonRetryableError(fmt.Errorf("Cannot read Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q) ID", name, notificationHubName, namespaceName, resourceGroup))
-		}
+	d.SetId(*read.ID)
 
-		d.SetId(*read.ID)
+	return resourceArmNotificationHubAuthorizationRuleRead(d, meta)
 
-		return resource.NonRetryableError(resourceArmNotificationHubAuthorizationRuleRead(d, meta))
-	})
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -186,6 +191,12 @@ func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, m
 	namespaceName := id.Path["namespaces"]
 	notificationHubName := id.Path["notificationHubs"]
 	name := id.Path["AuthorizationRules"]
+
+	azureRMLockByName(notificationHubName, notificationHubResourceName)
+	defer azureRMUnlockByName(notificationHubName, notificationHubResourceName)
+
+	azureRMLockByName(namespaceName, notificationHubNamespaceResourceName)
+	defer azureRMUnlockByName(namespaceName, notificationHubNamespaceResourceName)
 
 	resp, err := client.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
 	if err != nil {
