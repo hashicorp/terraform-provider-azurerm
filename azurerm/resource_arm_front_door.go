@@ -1203,6 +1203,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 					customHTTPSConfiguration := properties.CustomHTTPSConfiguration
 					if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
 						if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
+							chc["certificate_source"] = string(frontdoor.CertificateSourceAzureKeyVault)
 							chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
 							chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
 							chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
