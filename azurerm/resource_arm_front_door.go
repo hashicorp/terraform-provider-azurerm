@@ -43,6 +43,11 @@ func resourceArmFrontDoor() *schema.Resource {
 				Default:  true,
 			},
 
+			"enforce_backend_pools_certificate_name_check": {
+				Type:     schema.TypeBool,
+				Required: true,
+			},
+
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -184,10 +189,7 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
-			"enforce_backend_pools_certificate_name_check": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
+
 			"backend_pool_load_balancing": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
@@ -221,6 +223,7 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
+
 			"backend_pool_health_probe": {
 				Type:     schema.TypeList,
 				MaxItems: 5000,
@@ -258,6 +261,7 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
+
 			"backend_pool": {
 				Type:     schema.TypeList,
 				MaxItems: 50,
@@ -328,6 +332,7 @@ func resourceArmFrontDoor() *schema.Resource {
 					},
 				},
 			},
+
 			"frontend_endpoint": {
 				Type:     schema.TypeList,
 				MaxItems: 100,
@@ -1164,10 +1169,10 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
 			if err != nil {
-				return make([]interface{}, 0), fmt.Errorf("Error retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return make([]interface{}, 0), fmt.Errorf("Error retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", *name, resourceGroup, err)
 			}
 			if resp.ID == nil {
-				return make([]interface{}, 0), fmt.Errorf("Cannot read Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q) ID", name, resourceGroup)
+				return make([]interface{}, 0), fmt.Errorf("Cannot read Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q) ID", *name, resourceGroup)
 			}
 
 			result["id"] = resp.ID
@@ -1191,7 +1196,6 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 				if properties.CustomHTTPSConfiguration != nil {
 					customHTTPSConfiguration := properties.CustomHTTPSConfiguration
-					log.Printf("\n**********************************************************\n%+v\n**********************************************************\n", customHTTPSConfiguration)
 					if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
 						if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
 							chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID

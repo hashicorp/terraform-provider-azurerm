@@ -39,7 +39,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Https"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
@@ -54,7 +54,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccBackendBing-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
 			},
@@ -83,35 +83,6 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendPool1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", fmt.Sprintf("tafdsa%s.blob.core.windows.net", rs)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_configuration.0.certificate_source", "FrontDoor"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRulerule1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
 			},
 			{
@@ -120,42 +91,19 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 					testCheckAzureRMFrontDoorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "friendly_name", "tafd"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendPool1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", fmt.Sprintf("tafdsa%s.blob.core.windows.net", rs)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.name", fmt.Sprintf("testAccBackendPool2-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.address", fmt.Sprintf("tafdsatwo%s.blob.core.windows.net", rs)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.name", fmt.Sprintf("testAccBackendGoogle-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.address", "www.google.com"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.http_port", "80"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.priority", "1"),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_configuration.0.certificate_source", "FrontDoor"),
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRulerule1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
 			},
 		},
@@ -224,7 +172,7 @@ resource "azurerm_frontdoor" "test" {
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "testAccRoutingRulerule1-%[1]d"
+      name                    = "testAccRoutingRule1-%[1]d"
       accepted_protocols      = ["Http", "Https"]
       patterns_to_match       = ["/*"]
       frontend_endpoints      = ["testAccFrontendEndpoint1-%[1]d"]
@@ -280,7 +228,7 @@ resource "azurerm_frontdoor" "test" {
   enforce_backend_pools_certificate_name_check = true
 
   routing_rule {
-      name                              = "testAccRoutingRulerule1-%[1]d"
+      name                              = "testAccRoutingRule1-%[1]d"
       enabled                           = true
       accepted_protocols                = ["Http", "Https"]
       patterns_to_match                 = ["/*"]
@@ -288,7 +236,7 @@ resource "azurerm_frontdoor" "test" {
       forwarding_configuration {
           forwarding_protocol           = "MatchRequest"
           cache_use_dynamic_compression = true
-          backend_pool_name             = "testAccBackendPool1-%[1]d"
+          backend_pool_name             = "testAccBackendBing-%[1]d"
       }
   }
 
@@ -343,7 +291,7 @@ resource "azurerm_frontdoor" "test" {
     host_name                                    = "testAccFrontDoor-%[1]d.azurefd.net"
     session_affinity_enabled                     = true
     session_affinity_ttl_seconds                 = 0
-    enforce_backend_pools_certificate_name_check = true
+    custom_https_provisioning_enabled            = false
   }
 }
 `, rInt, rString, location)
