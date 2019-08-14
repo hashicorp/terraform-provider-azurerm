@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -58,14 +57,23 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 			},
 
 			"unique_key_policy": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"path": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+						"unique_keys": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"paths": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -108,9 +116,7 @@ func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta in
 					Paths: &[]string{partitionkeypaths},
 					Kind:  "Hash",
 				},
-				UniqueKeyPolicy: &documentdb.UniqueKeyPolicy{
-					UniqueKeys: expandSQLContainerUniqueKeyPolicy(d.Get("unique_key_policy")),
-				},
+				UniqueKeyPolicy: expandSQLContainerUniqueKeyPolicy(d),
 			},
 			Options: map[string]*string{},
 		},
@@ -162,10 +168,11 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.Account)
-	d.Set("name", name)
 	d.Set("database_name", id.Database)
 	if props := resp.SQLContainerProperties; props != nil {
 		d.Set("name", props.ID)
+		d.Set("unique_key_policy", props.UniqueKeyPolicy)
+		d.Set("partition_key_paths", props.PartitionKey)
 	}
 
 	return nil
@@ -196,16 +203,32 @@ func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandSQLContainerUniqueKeyPolicy(input interface{}) *[]documentdb.UniqueKey {
-	outputs := make([]documentdb.UniqueKey, 0)
+func expandSQLContainerUniqueKeyPolicy(d *schema.ResourceData) *documentdb.UniqueKeyPolicy {
+	i := d.Get("unique_key_policy").([]interface{})
 	var paths []string
-
-	for _, i := range input.(*schema.Set).List() {
-		b := i.(map[string]interface{})
-		paths = append(paths, strings.Join(*(&[]string{b["path"].(string)}), ""))
+	if len(i) <= 0 || i[0] == nil {
+		return nil
 	}
-	outputs = append(outputs, documentdb.UniqueKey{
+
+	uniquekeypolicyRaw := i[0].(map[string]interface{})
+	uniquekeysRaw := uniquekeypolicyRaw["unique_keys"].(*schema.Set).List()
+	uniquekeyRaw := uniquekeysRaw[0].(map[string]interface{})
+	pathsRaw := uniquekeyRaw["paths"].(*schema.Set).List()
+
+	for _, path := range pathsRaw {
+		paths = append(paths, path.(string))
+	}
+
+	uniquekey := documentdb.UniqueKey{
 		Paths: &paths,
-	})
-	return &outputs
+	}
+
+	uniquekeys := make([]documentdb.UniqueKey, 0)
+	uniquekeys = append(uniquekeys, uniquekey)
+
+	output := documentdb.UniqueKeyPolicy{
+		UniqueKeys: &uniquekeys,
+	}
+
+	return &output
 }

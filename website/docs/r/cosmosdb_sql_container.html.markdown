@@ -53,10 +53,9 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   database_name       = "${azurerm_cosmosdb_sql_database.example.name}"
   partition_key_paths = "/definition/id"
   unique_key_policy {
-    path = "/definition/idyard"
-  }
-  unique_key_policy {
-    path = "/definition/idlong"
+   unique_keys {
+     paths = ["/definition/idlong", "/definition/idshort"]
+    }
   }
 }
 ```
@@ -78,8 +77,13 @@ The following arguments are supported:
 * `unique_key_policy` - (Optional) Define Unique Keys for data integrity. A unique_key_policy block as defined below.
 
 ---
-
 A `unique_key_policy` block supports the following:
+
+* `unique_keys` - (Required) A unique_keys block as defined below.
+
+---
+
+A `unique_keys` block supports the following:
 
 * `path` - (Required) The path of the unique key in the path format /example/id.
 
