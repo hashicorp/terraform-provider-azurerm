@@ -3,14 +3,16 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_front_door"
 sidebar_current: "docs-azurerm-resource-front-door"
 description: |-
-  Manage an Azure FrontDoor instance.
+  Manage an Azure Front Door instance.
 ---
 
 # azurerm_front_door
 
-Manage an Azure FrontDoor instance.
+Manage an Azure Front Door instance.
 
-```
+## Example Usage
+
+```hcl
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
   location                                     = "${azurerm_resource_group.example.location}"
@@ -67,182 +69,145 @@ The following arguments are supported:
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
-* `backend_pool` - (Required) One `backend_pool` block defined below.
+* `backend_pool` - (Required) A `backend_pool` block as defined below.
 
-* `backend_pools_settings` - (Required) One `backend_pools_setting` block defined below.
+* `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
-* `enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are 'true' or 'false' Defaults to `true`.
+* `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
 
-* `friendly_name` - (Optional) A friendly name for the frontDoor
+* `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
 
-* `frontend_endpoints` - (Required) One `frontend_endpoint` block defined below.
+* `friendly_name` - (Optional) A friendly name for the Front Door service.
 
-* `health_probe_settings` - (Required) One `health_probe_setting` block defined below.
+* `frontend_endpoint` - (Required) A `frontend_endpoint` block as defined below.
 
-* `load_balancing_settings` - (Required) One `load_balancing_setting` block defined below.
+* `routing_rule` - (Required) A `routing_rule` block as defined below.
 
-* `resource_state` - (Optional) Resource status of the Front Door. Defaults to `Creating`.
-
-* `routing_rules` - (Required) One `routing_rule` block defined below.
-
-* `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
+* `tags` - (Optional) Resource tags.
 
 ---
 
 The `backend_pool` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - The Resource ID of the Azure Front Door Backend Pool.
 
-* `backends` - (Optional) One `backend` block defined below.
+* `name` - (Required) The name of the `Backend Pool`.
 
-* `load_balancing_settings` - (Optional) One `load_balancing_setting` block defined below.
+* `backend` - (Required) A `backend` block as defined below.
 
-* `health_probe_settings` - (Optional) One `health_probe_setting` block defined below.
+* `load_balancing_name` - (Required) The name of the `backend_pool_load_balancing` to use for the `Backend Pool`.
 
-* `resource_state` - (Optional) Resource status. Defaults to `Creating`.
-
-* `name` - (Optional) Resource name.
-
+* `health_probe_name` - (Required) The name of the `backend_pool_health_probe` to use for the `Backend Pool`.
 
 ---
 
 The `backend` block supports the following:
 
-* `address` - (Optional) Location of the backend (IP address or FQDN)
+* `id` - The Resource ID of the Azure Front Door Backend.
 
-* `http_port` - (Optional) The HTTP TCP port number. Must be between 1 and 65535.
+* `address` - (Required) Location of the backend (IP address or FQDN)
 
-* `https_port` - (Optional) The HTTPS TCP port number. Must be between 1 and 65535.
+* `host_header` - (Required) The value to use as the host header sent to the backend.
 
-* `enabled_state` - (Optional) Whether to enable use of this backend. Permitted values are 'Enabled' or 'Disabled' Defaults to `Enabled`.
+* `http_port` - (Required) The HTTP TCP port number. Possible values are between `1` - `65535`.
 
-* `priority` - (Optional) Priority to use for load balancing. Higher priorities will not be used for load balancing if any lower priority backend is healthy.
+* `https_port` - (Required) The HTTPS TCP port number. Possible values are between `1` - `65535`.
 
-* `weight` - (Optional) Weight of this endpoint for load balancing purposes.
+* `priority` - (Optional) Priority to use for load balancing. Higher priorities will not be used for load balancing if any lower priority backend is healthy. Defaults to `1`.
 
-* `backend_host_header` - (Optional) The value to use as the host header sent to the backend. If blank or unspecified, this defaults to the incoming host.
-
----
-
-The `load_balancing_setting` block supports the following:
-
-* `id` - (Optional) Resource ID.
-
----
-
-The `health_probe_setting` block supports the following:
-
-* `id` - (Optional) Resource ID.
-
----
-
-The `backend_pools_setting` block supports the following:
-
-* `enforce_certificate_name_check` - (Optional) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Defaults to `Enabled`.
+* `weight` - (Optional) Weight of this endpoint for load balancing purposes. Defaults to `50`.
 
 ---
 
 The `frontend_endpoint` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
 
-* `host_name` - (Optional) The host name of the frontendEndpoint. Must be a domain name.
+* `name` - (Required) The name of the Frontend Endpoint.
 
-* `session_affinity_enabled_state` - (Optional) Whether to allow session affinity on this host. Valid options are 'Enabled' or 'Disabled' Defaults to `Enabled`.
+* `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
 
-* `session_affinity_ttl_seconds` - (Optional) UNUSED. This field will be ignored. The TTL to use in seconds for session affinity, if applicable.
+* `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
-* `web_application_firewall_policy_link` - (Optional) One `web_application_firewall_policy_link` block defined below.
+* `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
 
-* `resource_state` - (Optional) Resource status. Defaults to `Creating`.
-
-* `name` - (Optional) Resource name.
-
+[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 
-The `web_application_firewall_policy_link` block supports the following:
+The `backend_pool_health_probe` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
 
----
+* `name` - (Required) The name of the Azure Front Door Backend Health Probe.
 
-The `health_probe_setting` block supports the following:
+* `path` - (Optional) The path to use for the Backend Health Probe. Default is `/`.
 
-* `id` - (Optional) Resource ID.
+* `protocol` - (Optional) Protocol scheme to use for the Backend Health Probe. Defaults to `Http`.
 
-* `path` - (Optional) The path to use for the health probe. Default is /
-
-* `protocol` - (Optional) Protocol scheme to use for this probe Defaults to `Http`.
-
-* `interval_in_seconds` - (Optional) The number of seconds between health probes.
-
-* `resource_state` - (Optional) Resource status. Defaults to `Creating`.
-
-* `name` - (Optional) Resource name.
+* `interval_in_seconds` - (Optional) The number of seconds between health probes. Defaults to `120`.
 
 ---
 
-The `load_balancing_setting` block supports the following:
+The `backend_pool_load_balancing` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
 
-* `sample_size` - (Optional) The number of samples to consider for load balancing decisions
+* `name` - (Required) The name of the Azure Front Door Backend Load Balancer.
 
-* `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed
+* `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
-* `additional_latency_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket
+* `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed. Defaults to `2`.
 
-* `resource_state` - (Optional) Resource status. Defaults to `Creating`.
-
-* `name` - (Optional) Resource name.
+* `additional_latency_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket. Defaults to `0`.
 
 ---
 
 The `routing_rule` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
 
-* `frontend_endpoints` - (Optional) One `frontend_endpoint` block defined below.
+* `name` - (Required) The name of the Front Door Backend Routing Rule.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for this rule Defaults to `Http`.
+* `frontend_endpoints` - (Required) A `frontend_endpoint` block as defined below.
 
-* `patterns_to_match` - (Optional) The route patterns of the rule.
+* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
-* `enabled_state` - (Optional) Whether to enable use of this rule. Permitted values are 'Enabled' or 'Disabled' Defaults to `Enabled`.
+* `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
-* `resource_state` - (Optional) Resource status. Defaults to `Creating`.
-
-* `name` - (Optional) Resource name.
-
+* `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
 
 ---
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) Name of the Frontend endpoint.
+* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
 
-* `host_name` - (Required) Name of the Frontend endpoint.
+* `name` - (Required) The Name of the Azure Front Door Frontend Endpoint.
 
-* `session_affinity_enabled` - (Required) Name of the Frontend endpoint.
+* `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
 
-* `session_affinity_ttl_seconds` - (Required) Name of the Frontend endpoint.
+* `session_affinity_enabled` - (Optional) Allow session affinity on the Frontend Endpoint. Valid options are `true` or `false`. Defaults to `false`.
 
-* `enable_custom_https_provisioning` - (Required) Name of the Frontend endpoint.
+* `session_affinity_ttl_seconds` - (Optional) The TTL to use, in seconds, for session affinity, if applicable. Defaults to `0`.
+
+* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 ---
 
 The `custom_https_configuration` block supports the following:
 
-* `certificate_source` - (Optional) Certificate source to encrypted HTTPS traffic with. Permitted values are `FrontDoor` or `AzureKeyVault` Defaults to `FrontDoor`.
+* `certificate_source` - (Optional) Certificate source to encrypted `HTTPS` traffic with. Allowed values are `FrontDoor` or `AzureKeyVault`. Defaults to `FrontDoor`.
 
-* `azure_key_vault_certificate_vault_id` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
 
-* `azure_key_vault_certificate_secret_name` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+* `azure_key_vault_certificate_vault_id` - (Required) The `id` of the Key Vault containing the SSL certificate.
 
-* `azure_key_vault_certificate_secret_version` - (Required) Name of the Frontend endpoint. (Only if `certificate_source` is set to `AzureKeyVault`)
+* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
 
-~> **Note:** In order to enable the use of your own custom HTTPS certificate you must grant Azure Front Door Service access to your key vault. For instuctions on how to configure your Key Vault correctly please refer to the product [documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate). 
+* `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
+
+~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate). 
 
 ---
 
@@ -257,8 +222,6 @@ The following attributes are exported:
 * `cname` - The host that each frontendEndpoint must CNAME to.
 
 * `id` - Resource ID.
-
-* `type` - Resource type.
 
 ## Import
 

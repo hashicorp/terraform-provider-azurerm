@@ -47,7 +47,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRulerule1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRule1-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
@@ -232,7 +232,7 @@ resource "azurerm_frontdoor" "test" {
       enabled                           = true
       accepted_protocols                = ["Http", "Https"]
       patterns_to_match                 = ["/*"]
-      frontend_endpoints                = ["testAccFrontendBing-%[1]d", "testAccBackendGoogle-%[1]d"]
+      frontend_endpoints                = ["testAccFrontendBing-%[1]d"]
       forwarding_configuration {
           forwarding_protocol           = "MatchRequest"
           cache_use_dynamic_compression = true

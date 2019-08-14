@@ -32,6 +32,11 @@ func resourceArmFrontDoor() *schema.Resource {
 				ValidateFunc: azure.ValidateFrontDoorName,
 			},
 
+			"cname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"friendly_name": {
 				Type:     schema.TypeString,
 				Optional: true,
