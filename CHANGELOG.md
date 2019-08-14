@@ -9,6 +9,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* all resources: increasing the maximum number of tags from `15` to `50` [GH-4071]
 * dependencies: upgrading the `authorization` SDK to `2018-09-01` [GH-4063]
 * dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
