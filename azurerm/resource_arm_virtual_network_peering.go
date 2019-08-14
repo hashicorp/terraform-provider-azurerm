@@ -78,7 +78,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network peering creation.")
@@ -126,7 +126,7 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -162,7 +162,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetPeeringsClient
+	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -208,7 +208,7 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 
 func retryVnetPeeringsClientCreateUpdate(resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		vnetPeeringsClient := meta.(*ArmClient).vnetPeeringsClient
+		vnetPeeringsClient := meta.(*ArmClient).network.VnetPeeringsClient
 		ctx := meta.(*ArmClient).StopContext
 
 		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)

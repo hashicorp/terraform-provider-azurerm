@@ -113,7 +113,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 }
 
 func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActionGroupsClient
+	client := meta.(*ArmClient).monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -172,7 +172,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActionGroupsClient
+	client := meta.(*ArmClient).monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -217,7 +217,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActionGroupsClient
+	client := meta.(*ArmClient).monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

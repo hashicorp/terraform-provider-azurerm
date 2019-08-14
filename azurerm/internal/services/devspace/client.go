@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	ControllersClient devspaces.ControllersClient
+	ControllersClient *devspaces.ControllersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ControllersClient = devspaces.NewControllersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ControllersClient.Client, o.ResourceManagerAuthorizer)
+	ControllersClient := devspaces.NewControllersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ControllersClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ControllersClient: &ControllersClient,
+	}
 }

@@ -40,7 +40,7 @@ func dataSourceArmSharedImageGallery() *schema.Resource {
 }
 
 func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleriesClient
+	client := meta.(*ArmClient).compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

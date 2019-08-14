@@ -320,7 +320,7 @@ func parseManagementGroupIdFromPolicySetId(id string) string {
 	return ""
 }
 
-func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
+func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicySetDefinition(ctx, client, name, managementGroupId)
 		if err != nil {
@@ -331,7 +331,7 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefini
 	}
 }
 
-func getPolicySetDefinition(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
+func getPolicySetDefinition(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

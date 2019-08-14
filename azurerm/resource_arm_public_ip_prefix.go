@@ -65,7 +65,7 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 }
 
 func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
@@ -114,7 +114,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -156,7 +156,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

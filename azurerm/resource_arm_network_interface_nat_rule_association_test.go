@@ -100,7 +100,7 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName strin
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -150,7 +150,7 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName s
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

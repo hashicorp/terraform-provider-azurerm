@@ -4,10 +4,14 @@ FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+* **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
+* **New resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
 
+* all resources: increasing the maximum number of tags from `15` to `50` [GH-4071]
+* dependencies: upgrading the `authorization` SDK to `2018-09-01` [GH-4063]
 * dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
@@ -15,8 +19,10 @@ IMPROVEMENTS:
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_function_app` - support for the `virtual_network_name` property [GH-4078]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
+* `azurerm_role_assignment` - now supports management groups [GH-4063]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 
 BUG FIXES: 
@@ -27,6 +33,7 @@ BUG FIXES:
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
 * `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
 * `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
+* `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
 
 ## 1.32.1 (July 31, 2019)
 

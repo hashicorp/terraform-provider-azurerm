@@ -24,7 +24,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 
 	client.StopContext = testAccProvider.StopContext()
 
-	filesClient := client.dataLakeStoreFilesClient
+	filesClient := client.datalake.StoreFilesClient
 
 	cases := map[string]struct {
 		StateVersion       int

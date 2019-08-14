@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	AccountsClient cognitiveservices.AccountsClient
+	AccountsClient *cognitiveservices.AccountsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.AccountsClient = cognitiveservices.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AccountsClient.Client, o.ResourceManagerAuthorizer)
+	AccountsClient := cognitiveservices.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AccountsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		AccountsClient: &AccountsClient,
+	}
 }

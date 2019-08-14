@@ -105,7 +105,7 @@ func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMSharedImageVersionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).galleryImageVersionsClient
+	client := testAccProvider.Meta().(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -149,7 +149,7 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image Version: %s", imageName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).galleryImageVersionsClient
+		client := testAccProvider.Meta().(*ArmClient).compute.GalleryImageVersionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")

@@ -52,7 +52,7 @@ func resourceArmSqlAdministrator() *schema.Resource {
 }
 
 func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
+	client := meta.(*ArmClient).sql.ServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	serverName := d.Get("server_name").(string)
@@ -103,7 +103,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
+	client := meta.(*ArmClient).sql.ServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -135,7 +135,7 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 }
 
 func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
+	client := meta.(*ArmClient).sql.ServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

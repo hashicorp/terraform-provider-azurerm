@@ -171,7 +171,7 @@ func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).secRuleClient
+		client := testAccProvider.Meta().(*ArmClient).network.SecurityRuleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
@@ -201,7 +201,7 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).secRuleClient
+		client := testAccProvider.Meta().(*ArmClient).network.SecurityRuleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
@@ -215,7 +215,7 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 }
 
 func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).secRuleClient
+	client := testAccProvider.Meta().(*ArmClient).network.SecurityRuleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

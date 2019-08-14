@@ -288,7 +288,7 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).diskClient
+		client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName)
@@ -310,7 +310,7 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 }
 
 func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -348,7 +348,7 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
