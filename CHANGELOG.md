@@ -29,8 +29,9 @@ BUG FIXES:
 
 * `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
 * `azurerm_batch_certificate` - the `thumbprint_algorithm` property is now case insensitive [GH-3977]
-* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_notification_hub_authorization_rule - fixing an issue when creating multiple authorization rules at the same time [GH-4087]
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
 * `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
 * `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
 * `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
