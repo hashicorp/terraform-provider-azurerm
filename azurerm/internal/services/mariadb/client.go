@@ -14,7 +14,7 @@ type Client struct {
 
 func BuildClient(o *common.ClientOptions) *Client {
 
-	configurationsClient = mariadb.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationsClient := mariadb.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	DatabasesClient := mariadb.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
