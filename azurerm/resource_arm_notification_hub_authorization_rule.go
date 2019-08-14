@@ -11,8 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var notificationHubAuthorizationRuleResourceName = "azurerm_notification_hub_authorization_rule"
-
 func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNotificationHubAuthorizationRuleCreateUpdate,
