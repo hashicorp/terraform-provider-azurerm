@@ -995,7 +995,8 @@ func TestAccAzureRMAppService_httpFileSystemLogs(t *testing.T) {
 func TestAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(ri, testLocation())
+	rs := acctest.RandString(5)
+	config := testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(ri, rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -3270,23 +3271,10 @@ resource "azurerm_app_service" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(rInt int, location string) string {
+func testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(rInt int, rString string, location string) string {
+	template := testAccAzureRMAppService_backupTemplate(rInt, rString, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
@@ -3298,7 +3286,7 @@ resource "azurerm_app_service" "test" {
     application_logs {
       azure_blob_storage {
         level             = "Information"
-        sas_url           = "http://x.com/"
+        sas_url           = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
         retention_in_days = 3
       }
     }
@@ -3310,7 +3298,7 @@ resource "azurerm_app_service" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMAppService_managedPipelineMode(rInt int, location string) string {
