@@ -257,7 +257,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
 	client.monitor = monitor.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
+	client.mssql = mssql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
 	client.mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
