@@ -32,9 +32,10 @@ const (
 	mimeTypeOctetStream = "application/octet-stream"
 	mimeTypeFormPost    = "application/x-www-form-urlencoded"
 
-	headerAuthorization = "Authorization"
-	headerContentType   = "Content-Type"
-	headerUserAgent     = "User-Agent"
+	headerAuthorization    = "Authorization"
+	headerAuxAuthorization = "x-ms-authorization-auxiliary"
+	headerContentType      = "Content-Type"
+	headerUserAgent        = "User-Agent"
 )
 
 // Preparer is the interface that wraps the Prepare method.
