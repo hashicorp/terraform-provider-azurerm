@@ -111,9 +111,6 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 		ID: &pipID,
 	}
 
-	// TODO: other ideas include creation some expansion function to return a usable list of bastion host properties
-	// pTest := expandBastionHostProperties(p)
-
 	bastionHostIPConfigurationPropertiesFormat := network.BastionHostIPConfigurationPropertiesFormat{
 		Subnet:          &subnetID,
 		PublicIPAddress: &publicIPAddressID,
