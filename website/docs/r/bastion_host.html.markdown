@@ -17,7 +17,7 @@ This example deploys an Azure Bastion Host Instance to a target virtual network.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "example-resources-2"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -74,16 +74,16 @@ The following arguments are supported:
 
 A `ip_configuration` block supports the following:
 
-* `name` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
+* `name` - (Required) The name of the IP configuration.
 
-* `subnet_id` - (Required) The Client Secret of this relying party application. If no secret is provided, implicit flow will be used.
+* `subnet_id` - (Required) The subnet ID for the IP configuration.
 
-* `public_ip_address_id` (Required) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+* `public_ip_address_id` (Required) The public IP address ID for the IP configuration.
 
 ## Import
 
-App Services can be imported using the `resource id`, e.g.
+Bastion Hosts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_bastion_host.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1
+terraform import azurerm_bastion_host.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/bastionHosts/instance1
 ```
