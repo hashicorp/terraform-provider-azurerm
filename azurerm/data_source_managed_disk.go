@@ -52,6 +52,16 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"disk_iops_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"disk_mbps_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -81,6 +91,12 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	if props := resp.DiskProperties; props != nil {
 		if diskSize := props.DiskSizeGB; diskSize != nil {
 			d.Set("disk_size_gb", *diskSize)
+		}
+		if diskIOPS := props.DiskIOPSReadWrite; diskIOPS != nil {
+			d.Set("disk_iops_read_write", *diskIOPS)
+		}
+		if diskMBps := props.DiskMBpsReadWrite; diskMBps != nil {
+			d.Set("disk_mbps_read_write", *diskMBps)
 		}
 		if osType := props.OsType; osType != "" {
 			d.Set("os_type", string(osType))

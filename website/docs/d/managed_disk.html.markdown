@@ -110,5 +110,7 @@ resource "azurerm_virtual_machine" "test" {
 * `source_resource_id` - ID of an existing managed disk that the current resource was created from.
 * `os_type` - The operating system for managed disk. Valid values are `Linux` or `Windows`
 * `disk_size_gb` - The size of the managed disk in gigabytes.
+* `disk_iops_read_write` - The number of IOPS allowed for this disk; only settable for UltraSSD disks.
+* `disk_mbps_read_write` - The bandwidth allowed for this disk; only settable for UltraSSD disks.
 * `tags` - A mapping of tags assigned to the resource.
 * `zones` - A collection containing the availability zone the managed disk is allocated in.

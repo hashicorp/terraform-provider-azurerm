@@ -99,6 +99,18 @@ func resourceArmManagedDisk() *schema.Resource {
 				ValidateFunc: validateDiskSizeGB,
 			},
 
+			"disk_iops_read_write": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
+			"disk_mbps_read_write": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
 			"encryption_settings": encryptionSettingsSchema(),
 
 			"tags": tagsSchema(),
@@ -171,6 +183,24 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
 		createDisk.DiskProperties.DiskSizeGB = &diskSize
+	}
+
+	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+		if d.HasChange("disk_iops_read_write") {
+			v := d.Get("disk_iops_read_write")
+			diskIOPS := int64(v.(int))
+			createDisk.DiskProperties.DiskIOPSReadWrite = &diskIOPS
+		}
+
+		if d.HasChange("disk_mbps_read_write") {
+			v := d.Get("disk_mbps_read_write")
+			diskMBps := int32(v.(int))
+			createDisk.DiskProperties.DiskMBpsReadWrite = &diskMBps
+		}
+	} else {
+		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+		}
 	}
 
 	createOption := d.Get("create_option").(string)
@@ -266,6 +296,12 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		if osType := props.OsType; osType != "" {
 			d.Set("os_type", string(osType))
+		}
+		if diskIOPS := props.DiskIOPSReadWrite; diskIOPS != nil {
+			d.Set("disk_iops_read_write", *diskIOPS)
+		}
+		if diskMBps := props.DiskMBpsReadWrite; diskMBps != nil {
+			d.Set("disk_mbps_read_write", *diskMBps)
 		}
 	}
 
