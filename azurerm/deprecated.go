@@ -70,6 +70,7 @@ func validateRFC3339Date(v interface{}, k string) (warnings []string, errors []e
 	return validate.RFC3339Time(v, k)
 }
 
+// migrated
 func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	return validate.UUID(v, k)
 }

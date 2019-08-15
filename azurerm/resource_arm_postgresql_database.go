@@ -7,6 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -49,7 +50,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCollation(),
+				ValidateFunc: validate.DatabaseCollation,
 			},
 		},
 	}

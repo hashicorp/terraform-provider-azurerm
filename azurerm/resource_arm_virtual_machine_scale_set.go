@@ -171,7 +171,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "PT0S",
-							ValidateFunc: validateIso8601Duration(),
+							ValidateFunc: validate.ISO8601Duration,
 						},
 					},
 				},

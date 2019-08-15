@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
@@ -413,7 +414,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
+							ValidateFunc:     validate.VirtualMachineTimeZone(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,

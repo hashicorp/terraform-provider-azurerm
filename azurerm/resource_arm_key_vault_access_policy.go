@@ -78,21 +78,21 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"application_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),

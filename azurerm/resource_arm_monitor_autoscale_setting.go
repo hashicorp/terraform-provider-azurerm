@@ -112,7 +112,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 												"time_grain": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 												"statistic": {
 													Type:     schema.TypeString,
@@ -128,7 +128,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 												"time_window": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
 													Type:     schema.TypeString,
@@ -195,7 +195,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 												"cooldown": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 											},
 										},
@@ -218,12 +218,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateRFC3339Date,
+										ValidateFunc: validate.RFC3339Time,
 									},
 									"end": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateRFC3339Date,
+										ValidateFunc: validate.RFC3339Time,
 									},
 								},
 							},

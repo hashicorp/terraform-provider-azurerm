@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,21 +58,21 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"default_message_ttl": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"duplicate_detection_history_time_window": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"enable_batched_operations": {

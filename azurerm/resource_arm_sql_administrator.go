@@ -9,6 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,13 +40,13 @@ func resourceArmSqlAdministrator() *schema.Resource {
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 		},
 	}

@@ -138,7 +138,7 @@ func resourceArmDataFactory() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 					},
 				},

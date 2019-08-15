@@ -129,7 +129,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 			"time_zone_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureVirtualMachineTimeZone(),
+				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
 			"notification_settings": {

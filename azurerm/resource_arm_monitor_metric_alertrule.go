@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -76,7 +77,7 @@ func resourceArmMonitorMetricAlertRule() *schema.Resource {
 			"period": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"aggregation": {
