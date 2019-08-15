@@ -17,7 +17,7 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringLenBetween(1, 24),
+				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

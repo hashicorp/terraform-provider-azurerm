@@ -27,7 +27,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 24),
+				ValidateFunc: validation.StringLenBetween(3, 128da),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
