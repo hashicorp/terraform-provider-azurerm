@@ -76,9 +76,9 @@ A `ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the IP configuration.
 
-* `subnet_id` - (Required) The subnet ID for the IP configuration.
+* `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created. 
 
-* `public_ip_address_id` (Required) The public IP address ID for the IP configuration.
+* `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
 
 ## Import
 
