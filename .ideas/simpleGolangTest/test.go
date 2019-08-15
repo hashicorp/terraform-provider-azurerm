@@ -2,22 +2,21 @@ package main
 
 import (
 	// "fmt"
-	"log"
 	"context"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
+	"log"
 	// "encoding/json"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 )
 
 func main() {
-	// create()	
+	// create()
 	delete()
 }
 
 func create() {
 	// client := network.NewBastionHostsClient("4b89b857-a820-4f5e-b02a-da6d5e180752")
-	
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
@@ -25,7 +24,7 @@ func create() {
 	// name := "test"
 	location := "westeurope"
 	dnsName := "testasfqwf"
-					subID := "subid"
+	subID := "subid"
 	pipID := "pip"
 
 	subnetID := network.SubResource{
@@ -85,7 +84,7 @@ func delete() {
 	if err == nil {
 		client.Authorizer = authorizer
 	}
-	
+
 	s, err := client.Delete(ctx, "example-resources-2", "testbastion")
 	if err != nil {
 		log.Println(err)

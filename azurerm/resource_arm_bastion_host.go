@@ -82,16 +82,16 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	name          := d.Get("name").(string)
-	location      := azure.NormalizeLocation(d.Get("location").(string))
-	dnsName       := d.Get("dns_name").(string)
-	tags          := d.Get("tags").(map[string]interface{})
+	name := d.Get("name").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	dnsName := d.Get("dns_name").(string)
+	tags := d.Get("tags").(map[string]interface{})
 
-	properties    := d.Get("ip_configuration").([]interface{})
+	properties := d.Get("ip_configuration").([]interface{})
 	firstProperty := properties[0].(map[string]interface{})
-	ipConfName    := firstProperty["name"].(string)
-	subID         := firstProperty["subnet_id"].(string)
-	pipID         := firstProperty["public_ip_address_id"].(string)
+	ipConfName := firstProperty["name"].(string)
+	subID := firstProperty["subnet_id"].(string)
+	pipID := firstProperty["public_ip_address_id"].(string)
 
 	// subnet and public ip resources
 	subnetID := network.SubResource{
@@ -143,7 +143,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("Error retrieving Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	
+
 	d.SetId(*read.ID)
 
 	return resourceArmBastionHostRead(d, meta)
@@ -194,9 +194,9 @@ func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-	 	if !response.WasNotFound(future.Response()) {
-	 		return fmt.Errorf("Error waiting for deletion of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
-	 	}
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deletion of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	return nil

@@ -196,31 +196,31 @@ type ArmClient struct {
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
 	azureFirewallsClient            network.AzureFirewallsClient
 
-	// Bastion 
-	bastionHostsClient 		   		network201906.BastionHostsClient
+	// Bastion
+	bastionHostsClient network201906.BastionHostsClient
 
-	connectionMonitorsClient        network.ConnectionMonitorsClient
-	ddosProtectionPlanClient        network.DdosProtectionPlansClient
-	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
-	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
-	expressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
-	ifaceClient                     network.InterfacesClient
-	loadBalancerClient              network.LoadBalancersClient
-	localNetConnClient              network.LocalNetworkGatewaysClient
-	netProfileClient                network.ProfilesClient
-	packetCapturesClient            network.PacketCapturesClient
-	publicIPClient                  network.PublicIPAddressesClient
-	publicIPPrefixClient            network.PublicIPPrefixesClient
-	routesClient                    network.RoutesClient
-	routeTablesClient               network.RouteTablesClient
-	secGroupClient                  network.SecurityGroupsClient
-	secRuleClient                   network.SecurityRulesClient
-	subnetClient                    network.SubnetsClient
-	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
-	vnetGatewayClient               network.VirtualNetworkGatewaysClient
-	vnetClient                      network.VirtualNetworksClient
-	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
-	watcherClient                   network.WatchersClient
+	connectionMonitorsClient     network.ConnectionMonitorsClient
+	ddosProtectionPlanClient     network.DdosProtectionPlansClient
+	expressRouteAuthsClient      network.ExpressRouteCircuitAuthorizationsClient
+	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
+	expressRoutePeeringsClient   network.ExpressRouteCircuitPeeringsClient
+	ifaceClient                  network.InterfacesClient
+	loadBalancerClient           network.LoadBalancersClient
+	localNetConnClient           network.LocalNetworkGatewaysClient
+	netProfileClient             network.ProfilesClient
+	packetCapturesClient         network.PacketCapturesClient
+	publicIPClient               network.PublicIPAddressesClient
+	publicIPPrefixClient         network.PublicIPPrefixesClient
+	routesClient                 network.RoutesClient
+	routeTablesClient            network.RouteTablesClient
+	secGroupClient               network.SecurityGroupsClient
+	secRuleClient                network.SecurityRulesClient
+	subnetClient                 network.SubnetsClient
+	vnetGatewayConnectionsClient network.VirtualNetworkGatewayConnectionsClient
+	vnetGatewayClient            network.VirtualNetworkGatewaysClient
+	vnetClient                   network.VirtualNetworksClient
+	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
+	watcherClient                network.WatchersClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient

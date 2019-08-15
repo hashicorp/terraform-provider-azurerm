@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
 func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	resourceName := "azurerm_bastion_host.test"
 	ri := tf.AccRandTimeInt()
@@ -26,8 +27,8 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
+					//resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
+					//resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
 			{
