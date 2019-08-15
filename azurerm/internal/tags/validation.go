@@ -5,8 +5,8 @@ import "fmt"
 func Validate(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 
-	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to each ARM resource"))
+	if len(tagsMap) > 50 {
+		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to each ARM resource"))
 	}
 
 	for k, v := range tagsMap {

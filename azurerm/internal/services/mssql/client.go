@@ -6,13 +6,14 @@ import (
 )
 
 type Client struct {
-	ElasticPoolsClient sql.ElasticPoolsClient
+	ElasticPoolsClient *sql.ElasticPoolsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ElasticPoolsClient = sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
-	return &c
+	ElasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+	return &Client{
+		ElasticPoolsClient: &ElasticPoolsClient,
+	}
 }

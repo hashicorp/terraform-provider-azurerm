@@ -6,22 +6,25 @@ import (
 )
 
 type Client struct {
-	APIKeyClient     insights.APIKeysClient
-	ComponentsClient insights.ComponentsClient
-	WebTestsClient   insights.WebTestsClient
+	APIKeyClient     *insights.APIKeysClient
+	ComponentsClient *insights.ComponentsClient
+	WebTestsClient   *insights.WebTestsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.APIKeyClient = insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.APIKeyClient.Client, o.ResourceManagerAuthorizer)
+	APIKeyClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&APIKeyClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ComponentsClient = insights.NewComponentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ComponentsClient.Client, o.ResourceManagerAuthorizer)
+	ComponentsClient := insights.NewComponentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ComponentsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.WebTestsClient = insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.WebTestsClient.Client, o.ResourceManagerAuthorizer)
+	WebTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WebTestsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		APIKeyClient:     &APIKeyClient,
+		ComponentsClient: &ComponentsClient,
+		WebTestsClient:   &WebTestsClient,
+	}
 }
