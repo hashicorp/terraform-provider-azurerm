@@ -631,7 +631,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		networkProfileClient := meta.(*ArmClient).netProfileClient
+		networkProfileClient := meta.(*ArmClient).network.ProfileClient
 		networkProfileResourceGroup := parsedProfileId.ResourceGroup
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
@@ -654,7 +654,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Context,
-	client network.ProfilesClient,
+	client *network.ProfilesClient,
 	networkProfileResourceGroup, networkProfileName,
 	containerResourceGroupName, containerName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {

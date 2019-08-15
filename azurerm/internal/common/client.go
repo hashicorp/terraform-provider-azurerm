@@ -15,14 +15,17 @@ import (
 )
 
 type ClientOptions struct {
-	GraphAuthorizer             autorest.Authorizer
-	GraphEndpoint               string
-	KeyVaultAuthorizer          autorest.Authorizer
-	ResourceManagerAuthorizer   autorest.Authorizer
-	ResourceManagerEndpoint     string
-	StorageAuthorizer           autorest.Authorizer
-	SubscriptionId              string
-	PartnerId                   string
+	SubscriptionId string
+	TenantID       string
+	PartnerId      string
+
+	GraphAuthorizer           autorest.Authorizer
+	GraphEndpoint             string
+	KeyVaultAuthorizer        autorest.Authorizer
+	ResourceManagerAuthorizer autorest.Authorizer
+	ResourceManagerEndpoint   string
+	StorageAuthorizer         autorest.Authorizer
+
 	PollingDuration             time.Duration
 	SkipProviderReg             bool
 	DisableCorrelationRequestID bool

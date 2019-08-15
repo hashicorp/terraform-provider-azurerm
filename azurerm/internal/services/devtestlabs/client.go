@@ -6,30 +6,35 @@ import (
 )
 
 type Client struct {
-	LabsClient            dtl.LabsClient
-	LabSchedulesClient    dtl.SchedulesClient
-	PoliciesClient        dtl.PoliciesClient
-	VirtualMachinesClient dtl.VirtualMachinesClient
-	VirtualNetworksClient dtl.VirtualNetworksClient
+	LabsClient            *dtl.LabsClient
+	LabSchedulesClient    *dtl.SchedulesClient
+	PoliciesClient        *dtl.PoliciesClient
+	VirtualMachinesClient *dtl.VirtualMachinesClient
+	VirtualNetworksClient *dtl.VirtualNetworksClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.LabsClient = dtl.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LabsClient.Client, o.ResourceManagerAuthorizer)
+	LabsClient := dtl.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LabsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PoliciesClient = dtl.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PoliciesClient.Client, o.ResourceManagerAuthorizer)
+	PoliciesClient := dtl.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VirtualMachinesClient = dtl.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
+	VirtualMachinesClient := dtl.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VirtualNetworksClient = dtl.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
+	VirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LabSchedulesClient = dtl.NewSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LabSchedulesClient.Client, o.ResourceManagerAuthorizer)
+	LabSchedulesClient := dtl.NewSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LabSchedulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		LabsClient:            &LabsClient,
+		LabSchedulesClient:    &LabSchedulesClient,
+		PoliciesClient:        &PoliciesClient,
+		VirtualMachinesClient: &VirtualMachinesClient,
+		VirtualNetworksClient: &VirtualNetworksClient,
+	}
 }

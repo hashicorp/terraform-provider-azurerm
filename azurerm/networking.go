@@ -52,7 +52,7 @@ func parseRouteTableName(routeTableId string) (string, error) {
 }
 
 func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.ExpressRouteCircuit, resourceGroup string, e error) {
-	ercClient := meta.(*ArmClient).expressRouteCircuitClient
+	ercClient := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := extractResourceGroupAndErcName(resourceId)

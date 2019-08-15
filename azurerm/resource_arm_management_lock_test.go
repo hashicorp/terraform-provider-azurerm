@@ -296,7 +296,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 		scope := rs.Primary.Attributes["scope"]
 
-		client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+		client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.GetByScope(ctx, scope, name)
@@ -313,7 +313,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+	client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

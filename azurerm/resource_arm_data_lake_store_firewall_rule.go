@@ -56,7 +56,7 @@ func resourceArmDataLakeStoreFirewallRule() *schema.Resource {
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFirewallRulesClient
+	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -106,7 +106,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFirewallRulesClient
+	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFirewallRulesClient
+	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

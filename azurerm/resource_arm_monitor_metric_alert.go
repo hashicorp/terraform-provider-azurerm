@@ -209,7 +209,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 }
 
 func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorMetricAlertsClient
+	client := meta.(*ArmClient).monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -274,7 +274,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorMetricAlertsClient
+	client := meta.(*ArmClient).monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -319,7 +319,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorMetricAlertsClient
+	client := meta.(*ArmClient).monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

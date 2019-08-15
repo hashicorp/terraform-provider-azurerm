@@ -7,22 +7,25 @@ import (
 )
 
 type Client struct {
-	LinkedServicesClient operationalinsights.LinkedServicesClient
-	SolutionsClient      operationsmanagement.SolutionsClient
-	WorkspacesClient     operationalinsights.WorkspacesClient
+	LinkedServicesClient *operationalinsights.LinkedServicesClient
+	SolutionsClient      *operationsmanagement.SolutionsClient
+	WorkspacesClient     *operationalinsights.WorkspacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.WorkspacesClient = operationalinsights.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	WorkspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SolutionsClient = operationsmanagement.NewSolutionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
-	o.ConfigureClient(&c.SolutionsClient.Client, o.ResourceManagerAuthorizer)
+	SolutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
+	o.ConfigureClient(&SolutionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LinkedServicesClient = operationalinsights.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
+	LinkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		LinkedServicesClient: &LinkedServicesClient,
+		SolutionsClient:      &SolutionsClient,
+		WorkspacesClient:     &WorkspacesClient,
+	}
 }

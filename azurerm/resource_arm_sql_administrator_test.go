@@ -101,7 +101,7 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
@@ -119,7 +119,7 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
@@ -139,7 +139,7 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
