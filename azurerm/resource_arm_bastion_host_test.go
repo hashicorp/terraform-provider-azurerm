@@ -16,7 +16,7 @@ import (
 func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	resourceName := "azurerm_bastion_host.test"
 	ri := tf.AccRandTimeInt()
-	// rs := acctest.RandString(4)
+	
 	config := testAccAzureRMBastionHost_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,11 +29,6 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(resourceName),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
