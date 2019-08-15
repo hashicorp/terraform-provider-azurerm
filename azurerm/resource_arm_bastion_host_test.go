@@ -2,11 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
-	"os"
+	// "net/http"
+	// "os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	// "github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -16,19 +16,18 @@ import (
 func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	resourceName := "azurerm_bastion_host.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
+	// rs := acctest.RandString(4)
+	config := testAccAzureRMBastionHost_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(resourceName),
-					//resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
-					//resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
+					testCheckAzureRMBastionHostExists(resourceName),
 				),
 			},
 			{
@@ -39,7 +38,8 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 		},
 	})
 }
-func testAccAzureRMAvailabilitySet_basic(rInt int, location string) string {
+
+func testAccAzureRMBastionHost_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -80,4 +80,55 @@ resource "azurerm_bastion_host" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %q", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Azure Bastion Host %q does not exist", rs.Primary.ID)
+			}
+			return fmt.Errorf("Bad: Get on Azure Bastion Host Client: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMBastionHostDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_bastion_host" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return nil
 }

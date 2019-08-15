@@ -13,7 +13,7 @@ import (
 	// "github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	// "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -92,6 +92,20 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	ipConfName := firstProperty["name"].(string)
 	subID := firstProperty["subnet_id"].(string)
 	pipID := firstProperty["public_ip_address_id"].(string)
+
+	// Check if resources are to be imported
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Bastion Host %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_bastion_host", *existing.ID)
+		}
+	}
 
 	// subnet and public ip resources
 	subnetID := network.SubResource{
@@ -184,7 +198,6 @@ func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	// name := "testbastion"
 	name := id.Path["bastionHosts"]
 	resourceGroup := id.ResourceGroup
 

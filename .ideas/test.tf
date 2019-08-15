@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "test" {
-  name     = "example-resources-2"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -34,10 +34,5 @@ resource "azurerm_bastion_host" "test" {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-
-  tags = {
-    environment = "dev"
-    location    = "${azurerm_resource_group.test.location}"
   }
 }
