@@ -25,6 +25,8 @@ IMPROVEMENTS:
 * `azurerm_role_assignment` - now supports management groups [GH-4063]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 * `azurerm_user_assigned_identity` - the `name` field can now be up to 128 characters [GH-4094]
+* `azurerm_app_service` - `filesystem` logging can now be set. #4025
+
 
 BUG FIXES: 
 
