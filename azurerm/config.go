@@ -16,6 +16,7 @@ import (
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	network201906 "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -194,6 +195,10 @@ type ArmClient struct {
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
 	azureFirewallsClient            network.AzureFirewallsClient
+
+	// Bastion 
+	bastionHostsClient 		   		network201906.BastionHostsClient
+
 	connectionMonitorsClient        network.ConnectionMonitorsClient
 	ddosProtectionPlanClient        network.DdosProtectionPlansClient
 	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
@@ -565,6 +570,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&azureFirewallsClient.Client, auth)
 	c.azureFirewallsClient = azureFirewallsClient
+
+	bastionHostsClient := network201906.NewBastionHostsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&bastionHostsClient.Client, auth)
+	c.bastionHostsClient = bastionHostsClient
 
 	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&connectionMonitorsClient.Client, auth)
