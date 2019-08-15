@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -124,8 +125,8 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -253,8 +254,8 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	iothubName := parsedIothubSAPId.Path["IotHubs"]
 	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {

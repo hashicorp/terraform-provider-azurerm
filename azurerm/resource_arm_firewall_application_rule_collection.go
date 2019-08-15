@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -131,8 +132,8 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 		return fmt.Errorf("Error expanding Firewall Application Rules: %+v", err)
 	}
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
@@ -316,8 +317,8 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	firewallName := id.Path["azureFirewalls"]
 	name := id.Path["applicationRuleCollections"]
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {

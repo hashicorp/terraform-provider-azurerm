@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,15 +58,15 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+	locks.ByName(routeTableName, routeTableResourceName)
+	defer locks.UnlockByName(routeTableName, routeTableResourceName)
 
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -190,14 +191,14 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		return err
 	}
 
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+	locks.ByName(routeTableName, routeTableResourceName)
+	defer locks.UnlockByName(routeTableName, routeTableResourceName)
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

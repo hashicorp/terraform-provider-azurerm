@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -262,8 +263,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	azureRMLockByName(name, keyVaultResourceName)
-	defer azureRMUnlockByName(name, keyVaultResourceName)
+	locks.ByName(name, keyVaultResourceName)
+	defer locks.UnlockByName(name, keyVaultResourceName)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -279,8 +280,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -392,8 +393,8 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	azureRMLockByName(name, keyVaultResourceName)
-	defer azureRMUnlockByName(name, keyVaultResourceName)
+	locks.ByName(name, keyVaultResourceName)
+	defer locks.UnlockByName(name, keyVaultResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -428,8 +429,8 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

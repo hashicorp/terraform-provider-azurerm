@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -137,8 +138,8 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -235,8 +236,8 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

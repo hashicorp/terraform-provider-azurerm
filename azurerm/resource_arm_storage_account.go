@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -1128,8 +1129,8 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

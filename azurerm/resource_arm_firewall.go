@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -111,14 +112,14 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
 	}
 
-	azureRMLockByName(name, azureFirewallResourceName)
-	defer azureRMUnlockByName(name, azureFirewallResourceName)
+	locks.ByName(name, azureFirewallResourceName)
+	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	azureRMLockMultipleByName(subnetToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(subnetToLock, subnetResourceName)
+	locks.MultipleByName(subnetToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(vnetToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
 
 	parameters := network.AzureFirewall{
 		Location: &location,
@@ -257,14 +258,14 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	azureRMLockByName(name, azureFirewallResourceName)
-	defer azureRMUnlockByName(name, azureFirewallResourceName)
+	locks.ByName(name, azureFirewallResourceName)
+	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	azureRMLockMultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

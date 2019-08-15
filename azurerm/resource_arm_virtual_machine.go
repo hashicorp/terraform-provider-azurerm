@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
@@ -671,8 +672,8 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		vm.Plan = plan
 	}
 
-	azureRMLockByName(name, virtualMachineResourceName)
-	defer azureRMUnlockByName(name, virtualMachineResourceName)
+	locks.ByName(name, virtualMachineResourceName)
+	defer locks.UnlockByName(name, virtualMachineResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
 	if err != nil {
@@ -847,8 +848,8 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	azureRMLockByName(name, virtualMachineResourceName)
-	defer azureRMUnlockByName(name, virtualMachineResourceName)
+	locks.ByName(name, virtualMachineResourceName)
+	defer locks.UnlockByName(name, virtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {

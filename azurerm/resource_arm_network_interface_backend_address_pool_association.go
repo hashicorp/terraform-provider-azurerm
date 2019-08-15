@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -65,8 +66,8 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 	networkInterfaceName := id.Path["networkInterfaces"]
 	resourceGroup := id.ResourceGroup
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
@@ -236,8 +237,8 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.Re
 	resourceGroup := nicID.ResourceGroup
 	backendAddressPoolId := splitId[1]
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {

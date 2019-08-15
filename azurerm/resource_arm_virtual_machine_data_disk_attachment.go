@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -90,8 +91,8 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	resourceGroup := parsedVirtualMachineId.ResourceGroup
 	virtualMachineName := parsedVirtualMachineId.Path["virtualMachines"]
 
-	azureRMLockByName(virtualMachineName, virtualMachineResourceName)
-	defer azureRMUnlockByName(virtualMachineName, virtualMachineResourceName)
+	locks.ByName(virtualMachineName, virtualMachineResourceName)
+	defer locks.UnlockByName(virtualMachineName, virtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
@@ -248,8 +249,8 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	virtualMachineName := id.Path["virtualMachines"]
 	name := id.Path["dataDisks"]
 
-	azureRMLockByName(virtualMachineName, virtualMachineResourceName)
-	defer azureRMUnlockByName(virtualMachineName, virtualMachineResourceName)
+	locks.ByName(virtualMachineName, virtualMachineResourceName)
+	defer locks.UnlockByName(virtualMachineName, virtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -114,8 +115,8 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -257,8 +258,8 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

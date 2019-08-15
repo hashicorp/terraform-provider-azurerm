@@ -13,22 +13,6 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-func azureRMLockByName(name string, resourceType string) {
-	locks.ByName(name, resourceType)
-}
-
-func azureRMLockMultipleByName(names *[]string, resourceType string) {
-	locks.MultipleByName(names, resourceType)
-}
-
-func azureRMUnlockByName(name string, resourceType string) {
-	locks.UnlockByName(name, resourceType)
-}
-
-func azureRMUnlockMultipleByName(names *[]string, resourceType string) {
-	locks.UnlockMultipleByName(names, resourceType)
-}
-
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
 }
@@ -66,11 +50,33 @@ func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 	_ = tags.FlattenAndSet(d, tagMap)
 }
 
+// migrated
+
+// nolint: deadcode unused
+func azureRMLockByName(name string, resourceType string) {
+	locks.ByName(name, resourceType)
+}
+
+// nolint: deadcode unused
+func azureRMLockMultipleByName(names *[]string, resourceType string) {
+	locks.MultipleByName(names, resourceType)
+}
+
+// nolint: deadcode unused
+func azureRMUnlockByName(name string, resourceType string) {
+	locks.UnlockByName(name, resourceType)
+}
+
+// nolint: deadcode unused
+func azureRMUnlockMultipleByName(names *[]string, resourceType string) {
+	locks.UnlockMultipleByName(names, resourceType)
+}
+
 func validateRFC3339Date(v interface{}, k string) (warnings []string, errors []error) {
 	return validate.RFC3339Time(v, k)
 }
 
-// migrated
+// nolint: deadcode unused
 func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	return validate.UUID(v, k)
 }

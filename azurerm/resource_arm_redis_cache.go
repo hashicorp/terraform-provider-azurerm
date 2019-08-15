@@ -11,6 +11,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -321,10 +322,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -574,10 +575,10 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
