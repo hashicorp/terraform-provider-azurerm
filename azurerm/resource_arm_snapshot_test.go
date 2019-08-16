@@ -234,7 +234,7 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).snapshotsClient
+		client := testAccProvider.Meta().(*ArmClient).compute.SnapshotsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -264,7 +264,7 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).snapshotsClient
+		client := testAccProvider.Meta().(*ArmClient).compute.SnapshotsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)

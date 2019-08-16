@@ -6,18 +6,20 @@ import (
 )
 
 type Client struct {
-	HubsClient       notificationhubs.Client
-	NamespacesClient notificationhubs.NamespacesClient
+	HubsClient       *notificationhubs.Client
+	NamespacesClient *notificationhubs.NamespacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.NamespacesClient = notificationhubs.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.NamespacesClient.Client, o.ResourceManagerAuthorizer)
+	NamespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.HubsClient = notificationhubs.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.HubsClient.Client, o.ResourceManagerAuthorizer)
+	HubsClient := notificationhubs.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		HubsClient:       &HubsClient,
+		NamespacesClient: &NamespacesClient,
+	}
 }

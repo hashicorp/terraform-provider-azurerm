@@ -40,15 +40,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
@@ -58,8 +61,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
@@ -67,14 +73,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -103,16 +112,19 @@ type ArmClient struct {
 	batch            *batch.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
+	compute          *compute.Client
 	containers       *containers.Client
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
 	dataFactory      *datafactory.Client
+	datalake         *datalake.Client
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	keyvault         *keyvault.Client
@@ -122,14 +134,18 @@ type ArmClient struct {
 	maps             *maps.Client
 	mariadb          *mariadb.Client
 	media            *media.Client
+	monitor          *monitor.Client
 	mysql            *mysql.Client
 	msi              *msi.Client
+	mssql            *mssql.Client
+	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	postgres         *postgres.Client
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
 	relay            *relay.Client
+	resource         *resource.Client
 	scheduler        *scheduler.Client
 	search           *search.Client
 	securityCenter   *securitycenter.Client
@@ -138,6 +154,8 @@ type ArmClient struct {
 	signalr          *signalr.Client
 	storage          *intStor.Client
 	streamanalytics  *streamanalytics.Client
+	subscription     *subscription.Client
+	sql              *sql.Client
 	trafficManager   *trafficmanager.Client
 	web              *web.Client
 
@@ -234,35 +252,6 @@ type ArmClient struct {
 	storageUsageClient   storage.UsagesClient
 }
 
-func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
-	setUserAgent(client, c.partnerId)
-	client.Authorizer = auth
-	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
-	client.Sender = sender.BuildSender("AzureRM")
-	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 180 * time.Minute
-}
-
-func setUserAgent(client *autorest.Client, partnerID string) {
-	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
-	tfUserAgent := httpclient.UserAgentString()
-
-	pv := version.ProviderVersion
-	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
-	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
-
-	// append the CloudShell version to the user agent if it exists
-	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
-	}
-
-	if partnerID != "" {
-		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
-	}
-
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
-}
-
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
 func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
@@ -326,14 +315,15 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	})
 
 	o := &common.ClientOptions{
+		SubscriptionId:              c.SubscriptionID,
+		TenantID:                    c.TenantID,
+		PartnerId:                   partnerId,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		SubscriptionId:              c.SubscriptionID,
-		PartnerId:                   partnerId,
 		PollingDuration:             60 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
@@ -348,15 +338,18 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.batch = batch.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
+	client.compute = compute.BuildClient(o)
 	client.containers = containers.BuildClient(o)
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)
 	client.dataFactory = datafactory.BuildClient(o)
+	client.datalake = datalake.BuildClient(o)
 	client.devSpace = devspace.BuildClient(o)
 	client.devTestLabs = devtestlabs.BuildClient(o)
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
 	client.keyvault = keyvault.BuildClient(o)
@@ -365,9 +358,12 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.maps = maps.BuildClient(o)
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
+	client.monitor = monitor.BuildClient(o)
+	client.mssql = mssql.BuildClient(o)
 	client.msi = msi.BuildClient(o)
+	client.mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
+	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
@@ -375,6 +371,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.recoveryServices = recoveryservices.BuildClient(o)
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
+	client.resource = resource.BuildClient(o)
 	client.search = search.BuildClient(o)
 	client.securityCenter = securitycenter.BuildClient(o)
 	client.servicebus = servicebus.BuildClient(o)
@@ -382,20 +379,16 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.scheduler = scheduler.BuildClient(o)
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
+	client.subscription = subscription.BuildClient(o)
+	client.sql = sql.BuildClient(o)
 	client.trafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
-	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
-	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
-	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
-	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
-	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 
 	return &client, nil
 }
+
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
 
@@ -662,32 +655,34 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.configureClient(&watchersClient.Client, auth)
 	c.watcherClient = watchersClient
 }
+  
+func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
+	setUserAgent(client, c.partnerId)
+	client.Authorizer = auth
+	client.RequestInspector = common.WithCorrelationRequestID(common.CorrelationRequestID())
+	client.Sender = sender.BuildSender("AzureRM")
+	client.SkipResourceProviderRegistration = c.skipProviderRegistration
+	client.PollingDuration = 180 * time.Minute
+}
 
-func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&locksClient.Client, auth)
-	c.managementLocksClient = locksClient
+func setUserAgent(client *autorest.Client, partnerID string) {
+	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+	tfUserAgent := httpclient.UserAgentString()
 
-	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&deploymentsClient.Client, auth)
-	c.deploymentsClient = deploymentsClient
+	pv := version.ProviderVersion
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
-	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourcesClient.Client, auth)
-	c.resourcesClient = resourcesClient
+	// append the CloudShell version to the user agent if it exists
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
+	}
 
-	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourceGroupsClient.Client, auth)
-	c.resourceGroupsClient = resourceGroupsClient
+	if partnerID != "" {
+		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+	}
 
-	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
-	c.configureClient(&subscriptionsClient.Client, auth)
-	c.subscriptionsClient = subscriptionsClient
-
-	// this has to come from the Profile since this is shared with Stack
-	providersClient := resourcesprofile.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&providersClient.Client, auth)
-	c.providersClient = providersClient
+	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {

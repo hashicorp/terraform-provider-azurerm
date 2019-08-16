@@ -152,7 +152,7 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

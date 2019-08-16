@@ -174,7 +174,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

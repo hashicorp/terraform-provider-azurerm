@@ -103,7 +103,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

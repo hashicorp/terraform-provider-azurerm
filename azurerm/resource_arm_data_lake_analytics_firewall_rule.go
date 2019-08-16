@@ -59,7 +59,7 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -109,10 +109,10 @@ func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,10 +143,10 @@ func resourceArmDateLakeAnalyticsFirewallRuleRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

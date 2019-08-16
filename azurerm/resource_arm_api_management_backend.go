@@ -303,7 +303,7 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).apiManagement.BackendClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).apiManagement.BackendClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

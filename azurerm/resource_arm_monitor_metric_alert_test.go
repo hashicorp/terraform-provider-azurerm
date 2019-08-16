@@ -356,7 +356,7 @@ resource "azurerm_monitor_metric_alert" "test" {
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitorMetricAlertsClient
+	conn := testAccProvider.Meta().(*ArmClient).monitor.MetricAlertsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_metric_alert" {
@@ -391,7 +391,7 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitorMetricAlertsClient
+		conn := testAccProvider.Meta().(*ArmClient).monitor.MetricAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

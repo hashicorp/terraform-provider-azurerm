@@ -27,7 +27,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 24),
+				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -101,7 +101,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

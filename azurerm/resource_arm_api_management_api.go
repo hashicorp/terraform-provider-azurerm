@@ -287,7 +287,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).apiManagement.ApiClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -346,7 +346,7 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).apiManagement.ApiClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

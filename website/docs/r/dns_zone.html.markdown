@@ -38,13 +38,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `zone_type` - (Required) Specifies the type of this DNS zone. Possible values are `Public` or `Private` (Defaults to `Public`).
-
 * `registration_virtual_network_ids` - (Optional) A list of Virtual Network ID's that register hostnames in this DNS zone. This field can only be set when `zone_type` is set to `Private`.
 
 * `resolution_virtual_network_ids` - (Optional) A list of Virtual Network ID's that resolve records in this DNS zone. This field can only be set when `zone_type` is set to `Private`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zone_type` - (Optional / **Deprecated**) Specifies the type of this DNS zone. Possible values are `Public` or `Private` (Defaults to `Public`).
+
+~> **NOTE:** This field was part of the initial Preview for Private DNS Zones - which has been [replaced by the separate resource `azurerm_private_dns_zone`](private_dns_zone.html) and will be removed in v2.0 of the Azure Provider. 
 
 ## Attributes Reference
 

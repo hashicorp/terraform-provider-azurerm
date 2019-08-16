@@ -318,7 +318,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -366,7 +366,7 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

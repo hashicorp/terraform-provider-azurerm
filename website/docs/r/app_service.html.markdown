@@ -135,6 +135,8 @@ A `logs` block supports the following:
 
 * `application_logs` - (Optional) An `application_logs` block as defined below.
 
+* `http_logs` - (Optional) An `http_logs` block as defined below.
+
 ---
 
 An `application_logs` block supports the following:
@@ -150,6 +152,14 @@ An `azure_blob_storage` block supports the following:
 * `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
+
+---
+
+An `http_logs` block supports the following: 
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
 
 ---
 

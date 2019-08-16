@@ -143,7 +143,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
