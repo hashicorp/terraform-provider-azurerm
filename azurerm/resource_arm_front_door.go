@@ -943,7 +943,7 @@ func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Proto
 	for _, ap := range input {
 		result := frontdoor.HTTPS
 
-		if ap.(string) == fmt.Sprintf("%s", frontdoor.HTTP) {
+		if ap.(string) == string(frontdoor.HTTP) {
 			result = frontdoor.HTTP
 		}
 
@@ -1100,7 +1100,7 @@ func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettin
 
 	result := false
 
-	if enforceCertificateNameCheck := frontdoor.EnforceCertificateNameCheckEnabledState(input.EnforceCertificateNameCheck); enforceCertificateNameCheck != "" {
+	if enforceCertificateNameCheck := input.EnforceCertificateNameCheck; enforceCertificateNameCheck != "" {
 		if enforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
 			result = true
 		}
@@ -1164,7 +1164,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 	for _, v := range *input {
 		result := make(map[string]interface{})
 		customHttpsConfiguration := make([]interface{}, 0)
-		chc := make(map[string]interface{}, 0)
+		chc := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
