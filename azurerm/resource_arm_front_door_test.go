@@ -120,7 +120,7 @@ func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).frontDoorsClient
+		client := testAccProvider.Meta().(*ArmClient).FrontDoorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
