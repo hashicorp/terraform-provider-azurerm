@@ -135,7 +135,7 @@ func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).frontDoorsClient
+	client := testAccProvider.Meta().(*ArmClient).FrontDoorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
