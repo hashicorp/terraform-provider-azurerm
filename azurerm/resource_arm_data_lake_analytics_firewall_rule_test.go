@@ -144,7 +144,7 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName string) re
 			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.AnalyticsFirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
@@ -161,7 +161,7 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName string) re
 }
 
 func testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

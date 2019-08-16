@@ -422,7 +422,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 	return resourceArmKeyVaultCertificateRead(d, meta)
 }
 
-func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
+func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {

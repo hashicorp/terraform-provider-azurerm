@@ -165,7 +165,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).signalr.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

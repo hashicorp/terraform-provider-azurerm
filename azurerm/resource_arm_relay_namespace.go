@@ -188,7 +188,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,7 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func relayNamespaceDeleteRefreshFunc(ctx context.Context, client relay.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *relay.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

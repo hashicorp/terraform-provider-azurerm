@@ -70,7 +70,7 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 }
 
 func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
+	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -133,7 +133,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
+	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -167,10 +167,10 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
+	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,10 +205,10 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
+	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

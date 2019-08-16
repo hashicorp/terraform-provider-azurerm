@@ -185,7 +185,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).eventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).eventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

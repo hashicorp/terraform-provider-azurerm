@@ -71,7 +71,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 }
 
 func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

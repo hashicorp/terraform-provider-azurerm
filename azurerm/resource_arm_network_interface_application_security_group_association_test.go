@@ -90,7 +90,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}
@@ -100,7 +100,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -140,7 +140,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

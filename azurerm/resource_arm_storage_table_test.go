@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -15,7 +14,6 @@ import (
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
-	var table storage.Table
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -29,7 +27,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -48,7 +46,6 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_storage_table.test"
-	var table storage.Table
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -62,7 +59,7 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageTable_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -74,8 +71,6 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
-	var table storage.Table
-
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
@@ -88,8 +83,8 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists("azurerm_storage_table.test", &table),
-					testAccARMStorageTableDisappears("azurerm_storage_table.test", &table),
+					testCheckAzureRMStorageTableExists("azurerm_storage_table.test"),
+					testAccARMStorageTableDisappears("azurerm_storage_table.test"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -98,8 +93,6 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_acl(t *testing.T) {
-	var table storage.Table
-
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
@@ -113,7 +106,7 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageTable_acl(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -124,7 +117,7 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageTable_aclUpdated(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -136,7 +129,7 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
+func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -176,7 +169,7 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 	}
 }
 
-func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) resource.TestCheckFunc {
+func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

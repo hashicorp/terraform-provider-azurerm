@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -150,7 +151,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName str
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
@@ -162,7 +163,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 		pools := append(currentPools[:i], currentPools[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &pools
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

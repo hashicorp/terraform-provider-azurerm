@@ -159,7 +159,7 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) 
 		connectionName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).vnetGatewayConnectionsClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayConnectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, connectionName)
@@ -176,7 +176,7 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) 
 }
 
 func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).vnetGatewayConnectionsClient
+	client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayConnectionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

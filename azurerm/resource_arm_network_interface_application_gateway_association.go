@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,7 +49,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation(
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Gateway Backend Address Pool Association creation.")
@@ -57,7 +58,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 	ipConfigurationName := d.Get("ip_configuration_name").(string)
 	backendAddressPoolId := d.Get("backend_address_pool_id").(string)
 
-	id, err := parseAzureResourceID(networkInterfaceId)
+	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return err
 	}
@@ -65,8 +66,8 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 	networkInterfaceName := id.Path["networkInterfaces"]
 	resourceGroup := id.ResourceGroup
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
@@ -141,7 +142,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -149,7 +150,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationR
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationR
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -226,7 +227,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationD
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -236,8 +237,8 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationD
 	resourceGroup := nicID.ResourceGroup
 	backendAddressPoolId := splitId[1]
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {

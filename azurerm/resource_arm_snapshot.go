@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,7 +43,7 @@ func resourceArmSnapshot() *schema.Resource {
 					string(compute.Copy),
 					string(compute.Import),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_uri": {
@@ -77,7 +78,7 @@ func resourceArmSnapshot() *schema.Resource {
 }
 
 func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -152,10 +153,10 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,10 +206,10 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

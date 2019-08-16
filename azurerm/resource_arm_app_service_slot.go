@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -107,7 +108,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 								string(web.SQLAzure),
 								string(web.SQLServer),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -216,7 +217,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -323,7 +324,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -384,7 +385,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return fmt.Errorf("Error waiting for publishing credentials for Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error reading publishing credentials for Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
 	}
@@ -439,7 +440,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

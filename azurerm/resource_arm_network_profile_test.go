@@ -137,7 +137,7 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).netProfileClient
+		client := testAccProvider.Meta().(*ArmClient).network.ProfileClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -166,7 +166,7 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).netProfileClient
+		client := testAccProvider.Meta().(*ArmClient).network.ProfileClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
@@ -177,7 +177,7 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMNetworkProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).netProfileClient
+	client := testAccProvider.Meta().(*ArmClient).network.ProfileClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

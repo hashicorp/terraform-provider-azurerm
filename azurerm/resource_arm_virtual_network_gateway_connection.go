@@ -232,7 +232,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayConnectionsClient
+	client := meta.(*ArmClient).network.VnetGatewayConnectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
@@ -291,7 +291,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayConnectionsClient
+	client := meta.(*ArmClient).network.VnetGatewayConnectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
@@ -374,7 +374,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 }
 
 func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayConnectionsClient
+	client := meta.(*ArmClient).network.VnetGatewayConnectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
@@ -504,7 +504,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 }
 
 func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGatewayConnectionId string) (string, string, error) {
-	id, err := parseAzureResourceID(virtualNetworkGatewayConnectionId)
+	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayConnectionId)
 	if err != nil {
 		return "", "", err
 	}

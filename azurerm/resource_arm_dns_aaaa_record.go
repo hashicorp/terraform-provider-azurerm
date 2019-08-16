@@ -109,7 +109,7 @@ func resourceArmDnsAaaaRecordRead(d *schema.ResourceData, meta interface{}) erro
 	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

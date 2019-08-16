@@ -4,20 +4,41 @@ FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+* **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
+* **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
+* **New resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
 
+* all resources: increasing the maximum number of tags from `15` to `50` [GH-4071]
+* dependencies: upgrading the `authorization` SDK to `2018-09-01` [GH-4063]
+* dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
+* internal: removing a duplicate Date/Time from the debug logs [GH-4024]
+* Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
+* `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
+* `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
+* `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
+* `azurerm_function_app` - support for the `virtual_network_name` property [GH-4078]
 * `azurerm_iot_dps` - add support for the `linked_hub` property [GH-3922]
-* `azurerm_traffic_manager_profile`  - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
+* `azurerm_kubernetes_cluster` - support for the `enable_pod_security_policy` property [GH-4098]
+* `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
+* `azurerm_role_assignment` - now supports management groups [GH-4063]
+* `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
+* `azurerm_user_assigned_identity` - the `name` field can now be up to 128 characters [GH-4094]
+* `azurerm_app_service` - `filesystem` logging can now be set. #4025
 
 
 BUG FIXES: 
 
 * `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
 * `azurerm_batch_certificate` - the `thumbprint_algorithm` property is now case insensitive [GH-3977]
-* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_notification_hub_authorization_rule - fixing an issue when creating multiple authorization rules at the same time [GH-4087]
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
+* `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
+* `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
 
 ## 1.32.1 (July 31, 2019)
 

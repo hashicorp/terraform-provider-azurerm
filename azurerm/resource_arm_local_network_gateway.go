@@ -76,7 +76,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 }
 
 func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).localNetConnClient
+	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -143,7 +143,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).localNetConnClient
+	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())
@@ -187,7 +187,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).localNetConnClient
+	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())
@@ -216,7 +216,7 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 }
 
 func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (string, string, error) {
-	id, err := parseAzureResourceID(localNetworkGatewayId)
+	id, err := azure.ParseAzureResourceID(localNetworkGatewayId)
 	if err != nil {
 		return "", "", err
 	}

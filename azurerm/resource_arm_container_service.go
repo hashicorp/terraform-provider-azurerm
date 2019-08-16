@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -139,7 +140,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 						"vm_size": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -279,7 +280,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
 	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -333,7 +334,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient)
 	containerServiceClient := client.containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -146,7 +146,7 @@ func resourceArmStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func resourceArmStreamAnalyticsOutputEventHubDelete(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

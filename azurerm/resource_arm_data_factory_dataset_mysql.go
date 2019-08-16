@@ -223,7 +223,7 @@ func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func resourceArmDataFactoryDatasetMySQLDelete(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

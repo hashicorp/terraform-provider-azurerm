@@ -101,7 +101,7 @@ func resourceArmRouteTable() *schema.Resource {
 }
 
 func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routeTablesClient
+	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
@@ -157,10 +157,10 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routeTablesClient
+	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -199,10 +199,10 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routeTablesClient
+	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -6,30 +6,35 @@ import (
 )
 
 type Client struct {
-	ConfigurationsClient      mysql.ConfigurationsClient
-	DatabasesClient           mysql.DatabasesClient
-	FirewallRulesClient       mysql.FirewallRulesClient
-	ServersClient             mysql.ServersClient
-	VirtualNetworkRulesClient mysql.VirtualNetworkRulesClient
+	ConfigurationsClient      *mysql.ConfigurationsClient
+	DatabasesClient           *mysql.DatabasesClient
+	FirewallRulesClient       *mysql.FirewallRulesClient
+	ServersClient             *mysql.ServersClient
+	VirtualNetworkRulesClient *mysql.VirtualNetworkRulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ConfigurationsClient = mysql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	ConfigurationsClient := mysql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DatabasesClient = mysql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatabasesClient.Client, o.ResourceManagerAuthorizer)
+	DatabasesClient := mysql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.FirewallRulesClient = mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	FirewallRulesClient := mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServersClient = mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServersClient.Client, o.ResourceManagerAuthorizer)
+	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VirtualNetworkRulesClient = mysql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+	VirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ConfigurationsClient:      &ConfigurationsClient,
+		DatabasesClient:           &DatabasesClient,
+		FirewallRulesClient:       &FirewallRulesClient,
+		ServersClient:             &ServersClient,
+		VirtualNetworkRulesClient: &VirtualNetworkRulesClient,
+	}
 }

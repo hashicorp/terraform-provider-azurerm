@@ -49,9 +49,10 @@ func resourceArmDnsZone() *schema.Resource {
 			},
 
 			"zone_type": {
-				Type:     schema.TypeString,
-				Default:  string(dns.Public),
-				Optional: true,
+				Type:       schema.TypeString,
+				Default:    string(dns.Public),
+				Optional:   true,
+				Deprecated: "Use the `azurerm_private_dns_zone` resource instead.",
 				ValidateFunc: validation.StringInSlice([]string{
 					string(dns.Private),
 					string(dns.Public),
@@ -137,7 +138,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	zonesClient := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,7 +188,7 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

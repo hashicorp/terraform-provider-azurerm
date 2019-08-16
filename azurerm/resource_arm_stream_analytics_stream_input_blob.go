@@ -169,7 +169,7 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func resourceArmStreamAnalyticsStreamInputBlobDelete(d *schema.ResourceData, met
 	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

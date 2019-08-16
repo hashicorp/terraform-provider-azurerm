@@ -163,7 +163,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).analysisservices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).analysisservices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

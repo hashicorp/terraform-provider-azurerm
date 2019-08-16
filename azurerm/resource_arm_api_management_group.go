@@ -116,7 +116,7 @@ func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func resourceArmApiManagementGroupDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

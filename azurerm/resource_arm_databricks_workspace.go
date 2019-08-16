@@ -142,7 +142,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := parseAzureResourceID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := azure.ParseAzureResourceID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
@@ -190,7 +190,7 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

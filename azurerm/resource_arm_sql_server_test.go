@@ -133,7 +133,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
@@ -148,7 +148,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+	conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -187,7 +187,7 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
