@@ -501,6 +501,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
+				Sensitive: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
