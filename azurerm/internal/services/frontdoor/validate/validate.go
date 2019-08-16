@@ -1,16 +1,16 @@
-package azure
+package validate
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
 )
 
 //Frontdoor name must begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.
-func ValidateFrontDoorName(i interface{}, k string) (_ []string, errors []error) {
+func FrontDoorName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[\da-zA-Z])([-\da-zA-Z]{3,61})([\da-zA-Z]$)`); !m {
 		errors = append(regexErrs, fmt.Errorf(`%q must be between 5 and 63 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.`, k))
 	}
@@ -18,7 +18,7 @@ func ValidateFrontDoorName(i interface{}, k string) (_ []string, errors []error)
 	return nil, errors
 }
 
-func ValidateBackendPoolRoutingRuleName(i interface{}, k string) (_ []string, errors []error) {
+func BackendPoolRoutingRuleName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[\da-zA-Z])([-\da-zA-Z]{1,88})([\da-zA-Z]$)`); !m {
 		errors = append(regexErrs, fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.`, k))
 	}
@@ -26,7 +26,7 @@ func ValidateBackendPoolRoutingRuleName(i interface{}, k string) (_ []string, er
 	return nil, errors
 }
 
-func ValidateFrontdoor(d *schema.ResourceDiff) error {
+func FrontdoorSettings(d *schema.ResourceDiff) error {
 	routingRules := d.Get("routing_rule").([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})
@@ -60,7 +60,7 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 			// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 			if len(forwardConfig) > 0 {
 				fc := forwardConfig[0].(map[string]interface{})
-				if err := backendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
+				if err := helper.DoesBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 					return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
 				}
 			}
@@ -161,11 +161,11 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 				customHttpsConfiguration := chc[0].(map[string]interface{})
 				certificateSource := customHttpsConfiguration["certificate_source"]
 				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
-					if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
+					if !helper.AzureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
 						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
 					}
 				} else {
-					if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
+					if helper.AzureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
 						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
 					}
 				}
@@ -176,81 +176,4 @@ func ValidateFrontdoor(d *schema.ResourceDiff) error {
 	}
 
 	return nil
-}
-
-func backendPoolExists(backendPoolName string, backendPools []interface{}) error {
-	if backendPoolName == "" {
-		return fmt.Errorf(`"backend_pool_name" cannot be empty`)
-	}
-
-	for _, bps := range backendPools {
-		backendPool := bps.(map[string]interface{})
-		if backendPool["name"].(string) == backendPoolName {
-			return nil
-		}
-	}
-
-	return fmt.Errorf(`unable to locate "backend_pool_name":%q in configuration file`, backendPoolName)
-}
-
-func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, MatchAllKeys bool) bool {
-	certificateSecretName := customHttpsConfiguration["azure_key_vault_certificate_secret_name"]
-	certificateSecretVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"]
-	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
-
-	if MatchAllKeys {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != "" && strings.TrimSpace(certificateVaultId.(string)) != "" {
-			return true
-		}
-	} else {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != "" || strings.TrimSpace(certificateVaultId.(string)) != "" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func IsFrontDoorFrontendEndpointConfigurable(currentState frontdoor.CustomHTTPSProvisioningState, customHttpsProvisioningEnabled bool, frontendEndpointName string, resourceGroup string) error {
-	action := "disable"
-	if customHttpsProvisioningEnabled {
-		action = "enable"
-	}
-
-	switch currentState {
-	case frontdoor.CustomHTTPSProvisioningStateDisabling, frontdoor.CustomHTTPSProvisioningStateEnabling, frontdoor.CustomHTTPSProvisioningStateFailed:
-		return fmt.Errorf("Unable to %s the Front Door Frontend Endpoint %q (Resource Group %q) Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", action, frontendEndpointName, resourceGroup, currentState)
-	default:
-		return nil
-	}
-}
-
-func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoor.CustomHTTPSProvisioningState) bool {
-	isEnabled := false
-	if provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
-		isEnabled = true
-	}
-
-	return isEnabled
-}
-
-func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
-	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
-		return ""
-	}
-
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)
-}
-
-func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
-	_, ok := i.(frontdoor.ForwardingConfiguration)
-	if !ok {
-		_, ok := i.(frontdoor.RedirectConfiguration)
-		if !ok {
-			return ""
-		}
-		return "RedirectConfiguration"
-	} else {
-		return "ForwardingConfiguration"
-	}
 }

@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,7 +31,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateFrontDoorName,
+				ValidateFunc: validate.FrontDoorName,
 			},
 
 			"cname": {
@@ -70,7 +72,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -158,7 +160,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"backend_pool_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+										ValidateFunc: validate.BackendPoolRoutingRuleName,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -208,7 +210,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     schema.TypeInt,
@@ -242,7 +244,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -324,7 +326,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     schema.TypeString,
@@ -351,7 +353,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     schema.TypeString,
@@ -419,7 +421,7 @@ func resourceArmFrontDoor() *schema.Resource {
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := azure.ValidateFrontdoor(d); err != nil {
+			if err := validate.FrontdoorSettings(d); err != nil {
 				return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 			}
 
@@ -429,7 +431,7 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontDoorsClient
+	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -499,7 +501,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		frontendEndpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		client := meta.(*ArmClient).frontDoorsFrontendClient
+		client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
 		ctx := meta.(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
@@ -514,8 +516,8 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 				// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
 				// see if its current state is configurable, if not return an error...
-				if customHttpsProvisioningEnabled != azure.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
-					if err := azure.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
+				if customHttpsProvisioningEnabled != helper.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
+					if err := helper.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
 						return err
 					}
 				}
@@ -545,7 +547,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
-	client := meta.(*ArmClient).frontDoorsFrontendClient
+	client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
 	ctx := meta.(*ArmClient).StopContext
 
 	if enableCustomHttpsProvisioning {
@@ -572,7 +574,7 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHtt
 }
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontDoorsClient
+	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -640,7 +642,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontDoorsClient
+	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -684,7 +686,7 @@ func expandArmFrontDoorBackendPools(input []interface{}, subscriptionId string, 
 		backends := backendPool["backend"].([]interface{})
 
 		result := frontdoor.BackendPool{
-			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
+			ID:   utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
 			Name: utils.String(backendPoolName),
 			BackendPoolProperties: &frontdoor.BackendPoolProperties{
 				// ResourceState
@@ -771,7 +773,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		name := frontendEndpoint["name"].(string)
-		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "FrontendEndpoints", name))
+		id := utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "FrontendEndpoints", name))
 
 		sessionAffinityEnabled := frontdoor.SessionAffinityEnabledStateDisabled
 
@@ -834,7 +836,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptio
 		name := v["name"].(string)
 
 		result := frontdoor.HealthProbeSettingsModel{
-			ID:   utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "HealthProbeSettings", name)),
+			ID:   utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "HealthProbeSettings", name)),
 			Name: utils.String(name),
 			HealthProbeSettingsProperties: &frontdoor.HealthProbeSettingsProperties{
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
@@ -863,7 +865,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 		sampleSize := int32(loadBalanceSetting["sample_size"].(int))
 		successfulSamplesRequired := int32(loadBalanceSetting["successful_samples_required"].(int))
 		additionalLatencyMilliseconds := int32(loadBalanceSetting["additional_latency_milliseconds"].(int))
-		id := utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "LoadBalancingSettings", name))
+		id := utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "LoadBalancingSettings", name))
 
 		result := frontdoor.LoadBalancingSettingsModel{
 			ID:   id,
@@ -953,7 +955,7 @@ func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Proto
 
 func expandArmFrontDoorSubResource(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) *frontdoor.SubResource {
 	result := frontdoor.SubResource{
-		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)),
+		ID: utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)),
 	}
 
 	return &result
@@ -1044,7 +1046,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	}
 
 	backend := &frontdoor.SubResource{
-		ID: utils.String(azure.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
+		ID: utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
 	}
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
@@ -1169,7 +1171,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 			// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			client := meta.(*ArmClient).frontDoorsFrontendClient
+			client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
 			ctx := meta.(*ArmClient).StopContext
 
 			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
@@ -1327,7 +1329,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 			}
 
 			brc := properties.RouteConfiguration
-			if routeConfigType := azure.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
+			if routeConfigType := helper.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
 				rc := make([]interface{}, 0)
 				c := make(map[string]interface{})
 

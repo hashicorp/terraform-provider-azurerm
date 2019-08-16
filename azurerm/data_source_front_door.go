@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,7 +20,7 @@ func dataSourceArmFrontDoor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateFrontDoorName,
+				ValidateFunc: validate.FrontDoorName,
 			},
 
 			"load_balancer_enabled": {
@@ -345,7 +346,7 @@ func dataSourceArmFrontDoor() *schema.Resource {
 }
 
 func dataSourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontDoorsClient
+	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
