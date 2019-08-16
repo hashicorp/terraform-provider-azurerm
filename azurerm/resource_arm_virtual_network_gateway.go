@@ -710,7 +710,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 }
 
 func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string) (string, string, error) {
-	id, err := parseAzureResourceID(virtualNetworkGatewayId)
+	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayId)
 	if err != nil {
 		return "", "", err
 	}
@@ -727,7 +727,7 @@ func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (warnings
 		return
 	}
 
-	id, err := parseAzureResourceID(value)
+	id, err := azure.ParseAzureResourceID(value)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("expected %s to be an Azure resource id", k))
 		return

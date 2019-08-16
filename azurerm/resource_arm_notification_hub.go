@@ -224,7 +224,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -274,7 +274,7 @@ func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -175,7 +175,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

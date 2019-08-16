@@ -191,7 +191,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

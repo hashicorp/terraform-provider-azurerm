@@ -160,7 +160,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

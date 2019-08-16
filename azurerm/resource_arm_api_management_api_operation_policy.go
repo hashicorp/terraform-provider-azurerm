@@ -113,7 +113,7 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func resourceArmApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, me
 	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

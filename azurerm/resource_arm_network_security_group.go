@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +64,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleProtocolTCP),
 								string(network.SecurityRuleProtocolUDP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"source_port_range": {
@@ -134,7 +136,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"priority": {
@@ -150,7 +152,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -189,8 +191,8 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error Building list of Network Security Group Rules: %+v", sgErr)
 	}
 
-	azureRMLockByName(name, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(name, networkSecurityGroupResourceName)
+	locks.ByName(name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(name, networkSecurityGroupResourceName)
 
 	sg := network.SecurityGroup{
 		Name:     &name,
@@ -227,7 +229,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -265,7 +267,7 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

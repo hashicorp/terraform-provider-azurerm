@@ -136,7 +136,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

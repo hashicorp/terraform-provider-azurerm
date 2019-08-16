@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,7 +43,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 					string(trafficmanager.ProfileStatusEnabled),
 					string(trafficmanager.ProfileStatusDisabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"traffic_routing_method": {
@@ -97,7 +98,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 								string(trafficmanager.HTTPS),
 								string(trafficmanager.TCP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -195,7 +196,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -236,7 +237,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

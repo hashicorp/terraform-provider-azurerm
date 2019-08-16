@@ -279,13 +279,13 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A3"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_DS3_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -354,13 +354,13 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A3"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
@@ -406,13 +406,13 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A3"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
@@ -476,7 +476,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A3"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -484,7 +484,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -548,7 +548,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A3"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -556,7 +556,7 @@ resource "azurerm_hdinsight_storm_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3

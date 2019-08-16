@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
@@ -99,7 +102,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
@@ -127,7 +130,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -137,7 +140,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"vm_size": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_image_reference": {
@@ -197,7 +200,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 								string(compute.Linux),
 								string(compute.Windows),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"name": {
@@ -249,7 +252,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"disk_size_gb": {
@@ -294,7 +297,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"managed_disk_type": {
@@ -311,7 +314,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"caching": {
@@ -421,8 +424,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validate.VirtualMachineTimeZone(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -436,7 +439,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 											"HTTP",
 											"HTTPS",
 										}, true),
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 									"certificate_url": {
 										Type:     schema.TypeString,
@@ -688,8 +691,8 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		vm.Plan = plan
 	}
 
-	azureRMLockByName(name, virtualMachineResourceName)
-	defer azureRMUnlockByName(name, virtualMachineResourceName)
+	locks.ByName(name, virtualMachineResourceName)
+	defer locks.UnlockByName(name, virtualMachineResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
 	if err != nil {
@@ -735,7 +738,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	vmclient := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -864,15 +867,15 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	azureRMLockByName(name, virtualMachineResourceName)
-	defer azureRMUnlockByName(name, virtualMachineResourceName)
+	locks.ByName(name, virtualMachineResourceName)
+	defer locks.UnlockByName(name, virtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
@@ -1004,7 +1007,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParamet
 	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(managedDiskID)
+	id, err := azure.ParseAzureResourceID(managedDiskID)
 	if err != nil {
 		return err
 	}
@@ -1858,7 +1861,7 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	}
 
 	diskId := *disk.ID
-	id, err := parseAzureResourceID(diskId)
+	id, err := azure.ParseAzureResourceID(diskId)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing Disk ID %q: %+v", diskId, err)
 	}
@@ -1892,7 +1895,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 					}
 				}
 
-				id, err := parseAzureResourceID(*nicReference.ID)
+				id, err := azure.ParseAzureResourceID(*nicReference.ID)
 				if err != nil {
 					return "", err
 				}
@@ -1920,7 +1923,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 			for _, config := range *configs {
 
 				if config.PublicIPAddress != nil {
-					id, err := parseAzureResourceID(*config.PublicIPAddress.ID)
+					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
 					if err != nil {
 						return "", err
 					}

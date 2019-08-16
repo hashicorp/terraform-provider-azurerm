@@ -199,7 +199,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if properties.FrontendIPConfiguration != nil {
-			fipID, err := parseAzureResourceID(*properties.FrontendIPConfiguration.ID)
+			fipID, err := azure.ParseAzureResourceID(*properties.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}

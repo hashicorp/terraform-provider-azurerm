@@ -223,7 +223,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta 
 	client := meta.(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

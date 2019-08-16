@@ -144,7 +144,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
