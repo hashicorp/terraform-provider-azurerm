@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -54,7 +55,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			"offer_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.Standard),
 				}, true),
@@ -65,7 +66,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(documentdb.GlobalDocumentDB),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
@@ -96,7 +97,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"consistency_level": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.BoundedStaleness),
 								string(documentdb.ConsistentPrefix),
@@ -197,7 +198,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"EnableTable",
 								"EnableGremlin",

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -92,7 +93,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
@@ -120,7 +121,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -130,7 +131,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"vm_size": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_image_reference": {
@@ -190,7 +191,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 								string(compute.Linux),
 								string(compute.Windows),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"name": {
@@ -242,7 +243,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"disk_size_gb": {
@@ -287,7 +288,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"managed_disk_type": {
@@ -304,7 +305,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"caching": {
@@ -414,7 +415,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.VirtualMachineTimeZone(),
 						},
 						"winrm": {
@@ -429,7 +430,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 											"HTTP",
 											"HTTPS",
 										}, true),
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 									"certificate_url": {
 										Type:     schema.TypeString,

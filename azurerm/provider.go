@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 )
@@ -594,11 +593,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		return client, nil
 	}
-}
-
-// Deprecated: use `suppress.CaseDifference` instead
-func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return suppress.CaseDifference(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the

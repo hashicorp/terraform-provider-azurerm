@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -28,7 +29,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
@@ -54,7 +55,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"create_option": {
@@ -66,7 +67,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"write_accelerator_enabled": {

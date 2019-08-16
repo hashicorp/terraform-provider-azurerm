@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -63,7 +64,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleProtocolTCP),
 								string(network.SecurityRuleProtocolUDP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"source_port_range": {
@@ -135,7 +136,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"priority": {
@@ -151,7 +152,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},

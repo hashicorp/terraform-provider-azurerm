@@ -68,7 +68,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_tier": {
@@ -79,7 +79,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"Standard",
 					"Premium",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_replication_type": {
@@ -91,7 +91,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"GRS",
 					"RAGRS",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -113,7 +113,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"custom_domain": {

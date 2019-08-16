@@ -125,7 +125,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Manual),
 					string(compute.Rolling),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"health_probe_id": {

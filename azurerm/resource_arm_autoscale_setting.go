@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -130,7 +131,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.MetricStatisticTypeMin),
 														string(insights.MetricStatisticTypeSum),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"time_window": {
 													Type:         schema.TypeString,
@@ -147,7 +148,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"operator": {
 													Type:     schema.TypeString,
@@ -160,7 +161,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.LessThanOrEqual),
 														string(insights.NotEquals),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"threshold": {
 													Type:     schema.TypeFloat,
@@ -182,7 +183,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -192,7 +193,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.ExactCount),
 														string(insights.PercentChangeCount),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"value": {
 													Type:         schema.TypeInt,
@@ -261,7 +262,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 												"Saturday",
 												"Sunday",
 											}, true),
-											DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+											DiffSuppressFunc: suppress.CaseDifference,
 										},
 									},
 									"hours": {

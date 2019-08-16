@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -42,7 +43,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			"charset": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
 			},
 

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/flags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -51,6 +52,11 @@ func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 }
 
 // migrated
+
+// nolint: deadcode unused
+func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	return suppress.CaseDifference(k, old, new, d)
+}
 
 // nolint: deadcode unused
 func azureRMLockByName(name string, resourceType string) {
