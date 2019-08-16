@@ -25,8 +25,8 @@ resource "azurerm_frontdoor" "example" {
       patterns_to_match       = ["/*"]
       frontend_endpoints      = ["exampleFrontendEndpoint1"]
       forwarding_configuration {
-          forwarding_protocol = "MatchRequest"
-          backend_pool_name   = "exampleBackendBing"
+        forwarding_protocol   = "MatchRequest"
+        backend_pool_name     = "exampleBackendBing"
       }
   }
 

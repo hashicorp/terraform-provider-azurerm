@@ -379,11 +379,7 @@ func dataSourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error setting `enforce_backend_pools_certificate_name_check`: %+v", err)
 		}
 		d.Set("cname", properties.Cname)
-		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("load_balancer_enabled", true)
-		} else {
-			d.Set("load_balancer_enabled", false)
-		}
+		d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", properties.FriendlyName)
 
 		frontDoorFrontendEndpoint, flattenErr := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta)
