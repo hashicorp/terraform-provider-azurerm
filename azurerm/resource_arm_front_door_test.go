@@ -21,7 +21,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -77,7 +77,7 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
