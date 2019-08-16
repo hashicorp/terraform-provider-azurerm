@@ -498,9 +498,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			// Computed
 			"kube_admin_config": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
+				Type:      schema.TypeList,
+				Computed:  true,
+				MaxItems:  1,
 				Sensitive: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
