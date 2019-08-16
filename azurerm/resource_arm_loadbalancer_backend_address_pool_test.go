@@ -162,7 +162,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 		pools := append(currentPools[:i], currentPools[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &pools
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

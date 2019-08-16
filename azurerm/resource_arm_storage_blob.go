@@ -751,7 +751,7 @@ func determineResourceGroupForStorageAccount(accountName string, client *ArmClie
 	if groups := groupsResp.Value; groups != nil {
 		for _, group := range *groups {
 			if group.Name != nil && *group.Name == accountName {
-				groupId, err := parseAzureResourceID(*group.ID)
+				groupId, err := azure.ParseAzureResourceID(*group.ID)
 				if err != nil {
 					return nil, err
 				}

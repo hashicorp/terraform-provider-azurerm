@@ -88,7 +88,7 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

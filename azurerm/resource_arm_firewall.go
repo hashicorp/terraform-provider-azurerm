@@ -173,7 +173,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetId, err2 := parseAzureResourceID(*config.Subnet.ID)
+				parsedSubnetId, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
@@ -299,7 +299,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.0.internal_public_ip_address_id` or `ip_configuration.0.public_ip_address_id` must be set")
 		}
 
-		subnetID, err := parseAzureResourceID(subnetId)
+		subnetID, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -383,7 +383,7 @@ func validateAzureFirewallName(v interface{}, k string) (warnings []string, erro
 }
 
 func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	parsed, err := parseAzureResourceID(v.(string))
+	parsed, err := azure.ParseAzureResourceID(v.(string))
 	if err != nil {
 		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
 		return warnings, errors

@@ -204,7 +204,7 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 		pools := append(currentPools[:i], currentPools[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.InboundNatPools = &pools
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

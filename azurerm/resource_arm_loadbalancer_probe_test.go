@@ -235,7 +235,7 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 		probes := append(currentProbes[:i], currentProbes[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.Probes = &probes
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

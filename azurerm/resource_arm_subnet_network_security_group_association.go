@@ -48,7 +48,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	subnetId := d.Get("subnet_id").(string)
 	networkSecurityGroupId := d.Get("network_security_group_id").(string)
 
-	parsedSubnetId, err := parseAzureResourceID(subnetId)
+	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

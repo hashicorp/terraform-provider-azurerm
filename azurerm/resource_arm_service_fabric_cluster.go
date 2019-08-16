@@ -455,7 +455,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -543,7 +543,7 @@ func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

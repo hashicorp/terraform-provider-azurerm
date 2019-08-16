@@ -431,7 +431,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -520,7 +520,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

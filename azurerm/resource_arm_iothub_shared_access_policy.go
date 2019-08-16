@@ -192,7 +192,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -244,7 +244,7 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err

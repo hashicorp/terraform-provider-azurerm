@@ -162,7 +162,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).devSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

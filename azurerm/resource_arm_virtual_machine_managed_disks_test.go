@@ -571,7 +571,7 @@ func TestAccAzureRMVirtualMachine_importBasic_withZone(t *testing.T) {
 
 func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		vmID, err := parseAzureResourceID(*vm.ID)
+		vmID, err := azure.ParseAzureResourceID(*vm.ID)
 		if err != nil {
 			return fmt.Errorf("Unable to parse virtual machine ID %s, %+v", *vm.ID, err)
 		}
@@ -2171,14 +2171,14 @@ func testLookupAzureRMVirtualMachineManagedDiskID(vm *compute.VirtualMachine, di
 }
 
 func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (string, error) {
-	if _, err := parseAzureResourceID(*md.ID); err != nil {
+	if _, err := azure.ParseAzureResourceID(*md.ID); err != nil {
 		return "", err
 	}
 	return *md.ID, nil
 }
 
 func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
-	armID, err := parseAzureResourceID(*managedDiskID)
+	armID, err := azure.ParseAzureResourceID(*managedDiskID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}

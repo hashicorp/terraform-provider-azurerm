@@ -211,7 +211,7 @@ func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -312,7 +312,7 @@ func resourceArmMonitorMetricAlertRuleDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

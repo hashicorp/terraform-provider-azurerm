@@ -58,7 +58,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 	ipConfigurationName := d.Get("ip_configuration_name").(string)
 	backendAddressPoolId := d.Get("backend_address_pool_id").(string)
 
-	id, err := parseAzureResourceID(networkInterfaceId)
+	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationR
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationD
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}

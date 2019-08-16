@@ -237,7 +237,7 @@ func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *net
 		rules := append(currentRules[:i], currentRules[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.OutboundRules = &rules
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

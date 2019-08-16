@@ -191,7 +191,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 		}
 
 		name := rs.Primary.Attributes["name"]
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
@@ -220,7 +220,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}

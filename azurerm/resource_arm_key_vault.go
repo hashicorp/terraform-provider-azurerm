@@ -269,7 +269,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err2 := parseAzureResourceID(v)
+		id, err2 := azure.ParseAzureResourceID(v)
 		if err2 != nil {
 			return err2
 		}
@@ -325,7 +325,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -386,7 +386,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -415,7 +415,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					id, err2 := parseAzureResourceID(*v.ID)
+					id, err2 := azure.ParseAzureResourceID(*v.ID)
 					if err2 != nil {
 						return err2
 					}

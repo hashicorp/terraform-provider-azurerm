@@ -720,7 +720,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	vmclient := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -842,7 +842,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -982,7 +982,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParamet
 	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(managedDiskID)
+	id, err := azure.ParseAzureResourceID(managedDiskID)
 	if err != nil {
 		return err
 	}
@@ -1836,7 +1836,7 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	}
 
 	diskId := *disk.ID
-	id, err := parseAzureResourceID(diskId)
+	id, err := azure.ParseAzureResourceID(diskId)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing Disk ID %q: %+v", diskId, err)
 	}
@@ -1870,7 +1870,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 					}
 				}
 
-				id, err := parseAzureResourceID(*nicReference.ID)
+				id, err := azure.ParseAzureResourceID(*nicReference.ID)
 				if err != nil {
 					return "", err
 				}
@@ -1898,7 +1898,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 			for _, config := range *configs {
 
 				if config.PublicIPAddress != nil {
-					id, err := parseAzureResourceID(*config.PublicIPAddress.ID)
+					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
 					if err != nil {
 						return "", err
 					}

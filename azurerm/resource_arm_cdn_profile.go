@@ -142,7 +142,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

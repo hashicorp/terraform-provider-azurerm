@@ -118,7 +118,7 @@ func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface
 	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interfa
 	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

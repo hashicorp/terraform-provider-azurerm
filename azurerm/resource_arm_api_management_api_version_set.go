@@ -156,7 +156,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).apiManagement.ApiVersionSetClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).apiManagement.ApiVersionSetClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

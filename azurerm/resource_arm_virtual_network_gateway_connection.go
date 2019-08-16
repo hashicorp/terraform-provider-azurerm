@@ -504,7 +504,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 }
 
 func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGatewayConnectionId string) (string, string, error) {
-	id, err := parseAzureResourceID(virtualNetworkGatewayConnectionId)
+	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayConnectionId)
 	if err != nil {
 		return "", "", err
 	}

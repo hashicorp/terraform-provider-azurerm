@@ -224,7 +224,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -284,7 +284,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -101,7 +101,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

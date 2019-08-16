@@ -449,7 +449,7 @@ func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, er
 }
 
 func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
+	id, err := azure.ParseAzureResourceID(alertRuleId)
 	if err != nil {
 		return "", "", err
 	}

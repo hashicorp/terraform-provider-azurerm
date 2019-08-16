@@ -98,7 +98,7 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -181,7 +181,7 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}

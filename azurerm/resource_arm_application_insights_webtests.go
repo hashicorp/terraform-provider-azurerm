@@ -126,7 +126,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	resGroup := d.Get("resource_group_name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := parseAzureResourceID(appInsightsID)
+	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).appInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).appInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

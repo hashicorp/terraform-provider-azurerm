@@ -236,7 +236,7 @@ func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, me
 	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

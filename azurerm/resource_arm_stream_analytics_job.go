@@ -210,7 +210,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,7 +277,7 @@ func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).streamanalytics.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

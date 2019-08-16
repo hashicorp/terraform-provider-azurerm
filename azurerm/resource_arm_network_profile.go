@@ -157,7 +157,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -294,7 +294,7 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]s
 			ipData := ipConfig.(map[string]interface{})
 			subnetID := ipData["subnet_id"].(string)
 
-			subnetResourceID, err := parseAzureResourceID(subnetID)
+			subnetResourceID, err := azure.ParseAzureResourceID(subnetID)
 			if err != nil {
 				return nil, nil, err
 			}

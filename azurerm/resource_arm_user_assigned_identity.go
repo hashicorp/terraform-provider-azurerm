@@ -101,7 +101,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

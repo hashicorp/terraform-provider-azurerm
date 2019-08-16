@@ -196,7 +196,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

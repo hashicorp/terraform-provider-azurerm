@@ -84,7 +84,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	ctx := meta.(*ArmClient).StopContext
 
 	virtualMachineId := d.Get("virtual_machine_id").(string)
-	parsedVirtualMachineId, err := parseAzureResourceID(virtualMachineId)
+	parsedVirtualMachineId, err := azure.ParseAzureResourceID(virtualMachineId)
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
@@ -184,7 +184,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func retrieveDataDiskAttachmentManagedDisk(meta interface{}, id string) (*comput
 	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedId, err := parseAzureResourceID(id)
+	parsedId, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing Managed Disk ID %q: %+v", id, err)
 	}

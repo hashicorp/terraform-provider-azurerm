@@ -123,7 +123,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parseAzureResourceID(vnetID.(string))
+		vnetResourceID, err := azure.ParseAzureResourceID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}

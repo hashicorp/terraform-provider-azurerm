@@ -58,7 +58,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	ipConfigurationName := d.Get("ip_configuration_name").(string)
 	applicationSecurityGroupId := d.Get("application_security_group_id").(string)
 
-	id, err := parseAzureResourceID(networkInterfaceId)
+	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}

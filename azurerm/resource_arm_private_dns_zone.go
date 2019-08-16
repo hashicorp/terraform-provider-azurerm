@@ -130,7 +130,7 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).privateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).privateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

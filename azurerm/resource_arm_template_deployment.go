@@ -164,7 +164,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

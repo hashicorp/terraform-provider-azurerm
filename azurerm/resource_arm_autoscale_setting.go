@@ -416,7 +416,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -467,7 +467,7 @@ func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

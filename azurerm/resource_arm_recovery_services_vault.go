@@ -106,7 +106,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -126,7 +126,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).mariadb.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
@@ -161,7 +161,7 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).mariadb.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}

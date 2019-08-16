@@ -203,7 +203,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -262,7 +262,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

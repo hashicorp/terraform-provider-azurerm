@@ -515,7 +515,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -606,7 +606,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

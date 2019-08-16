@@ -299,7 +299,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -471,7 +471,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -632,7 +632,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -205,7 +205,7 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.ID)
+		id, err := azure.ParseAzureResourceID(rs.Primary.ID)
 
 		if err != nil {
 			return err

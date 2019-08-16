@@ -129,7 +129,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).network.VnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

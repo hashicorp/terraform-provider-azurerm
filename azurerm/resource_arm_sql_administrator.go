@@ -107,7 +107,7 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).sql.ServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, me
 	client := meta.(*ArmClient).sql.ServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

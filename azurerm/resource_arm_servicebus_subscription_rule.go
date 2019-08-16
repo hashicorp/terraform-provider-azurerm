@@ -195,7 +195,7 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -99,7 +99,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -182,7 +182,7 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}

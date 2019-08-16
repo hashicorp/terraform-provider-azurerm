@@ -280,7 +280,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
 	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -334,7 +334,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient)
 	containerServiceClient := client.containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

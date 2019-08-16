@@ -184,7 +184,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

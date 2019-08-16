@@ -343,7 +343,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -450,7 +450,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -571,7 +571,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -631,7 +631,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := parseAzureResourceID(appServicePlanId)
+	id, err := azure.ParseAzureResourceID(appServicePlanId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}

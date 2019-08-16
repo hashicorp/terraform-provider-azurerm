@@ -316,7 +316,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := parseAzureResourceID(v.(string))
+		parsed, parseErr := azure.ParseAzureResourceID(v.(string))
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
 		}
@@ -471,7 +471,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -553,7 +553,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -569,7 +569,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	}
 	props := *read.Properties
 	if subnetID := props.SubnetID; subnetID != nil {
-		parsed, parseErr := parseAzureResourceID(*subnetID)
+		parsed, parseErr := azure.ParseAzureResourceID(*subnetID)
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
 		}

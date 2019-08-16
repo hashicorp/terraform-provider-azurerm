@@ -86,7 +86,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

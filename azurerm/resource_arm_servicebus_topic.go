@@ -195,7 +195,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

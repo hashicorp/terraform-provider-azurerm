@@ -365,7 +365,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -455,7 +455,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -485,7 +485,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 		subnet_id := data["subnet_id"].(string)
 		if subnet_id != "" {
-			subnetId, err2 := parseAzureResourceID(subnet_id)
+			subnetId, err2 := azure.ParseAzureResourceID(subnet_id)
 			if err2 != nil {
 				return err2
 			}
@@ -615,7 +615,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 				ID: &subnet_id,
 			}
 
-			subnetId, err := parseAzureResourceID(subnet_id)
+			subnetId, err := azure.ParseAzureResourceID(subnet_id)
 			if err != nil {
 				return []network.InterfaceIPConfiguration{}, nil, nil, err
 			}
