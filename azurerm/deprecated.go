@@ -14,10 +14,6 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-func parseAzureResourceID(id string) (*azure.ResourceID, error) {
-	return azure.ParseAzureResourceID(id)
-}
-
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
 }
@@ -52,6 +48,11 @@ func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 }
 
 // migrated
+
+// nolint: deadcode unused
+func parseAzureResourceID(id string) (*azure.ResourceID, error) {
+	return azure.ParseAzureResourceID(id)
+}
 
 // nolint: deadcode unused
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
