@@ -108,6 +108,8 @@ The following arguments are supported:
 
 * `disk_mbps_read_write` - (Optional) The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.
 
+~> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not opted-in to the `Azure ultra disks` private preview. For more information see the `Azure ultra disks` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd).
+
 * `encryption_settings` - (Optional) an `encryption_settings` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
