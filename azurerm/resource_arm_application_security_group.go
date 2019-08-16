@@ -91,7 +91,7 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -129,7 +129,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 			"time_zone_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureVirtualMachineTimeZone(),
+				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
 			"notification_settings": {
@@ -256,7 +256,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

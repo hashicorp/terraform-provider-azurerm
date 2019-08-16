@@ -171,7 +171,7 @@ func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).streamanalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func resourceArmStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).streamanalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

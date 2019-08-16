@@ -112,7 +112,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).eventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

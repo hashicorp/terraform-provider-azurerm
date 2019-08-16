@@ -7,7 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -50,7 +52,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_port_range": {
@@ -132,7 +134,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleAccessAllow),
 					string(network.SecurityRuleAccessDeny),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"priority": {
@@ -148,7 +150,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleDirectionInbound),
 					string(network.SecurityRuleDirectionOutbound),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
@@ -184,8 +186,8 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
+	locks.ByName(nsgName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	rule := network.SecurityRule{
 		Name: &name,
@@ -294,7 +296,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -346,7 +348,7 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -354,8 +356,8 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
+	locks.ByName(nsgName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
 	if err != nil {

@@ -344,7 +344,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -424,7 +424,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData,
 	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

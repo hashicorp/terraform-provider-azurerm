@@ -174,7 +174,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

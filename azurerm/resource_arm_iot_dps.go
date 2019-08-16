@@ -191,7 +191,7 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -233,7 +233,7 @@ func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

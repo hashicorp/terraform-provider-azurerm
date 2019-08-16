@@ -169,7 +169,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	registrationClient := meta.(*ArmClient).automation.AgentRegistrationInfoClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

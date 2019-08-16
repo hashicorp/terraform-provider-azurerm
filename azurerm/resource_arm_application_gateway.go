@@ -1464,7 +1464,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1605,7 +1605,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1945,7 +1945,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := parseAzureResourceID(*cert.ID)
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -1962,7 +1962,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
-					id, err := parseAzureResourceID(*probe.ID)
+					id, err := azure.ParseAzureResourceID(*probe.ID)
 					if err != nil {
 						return results, err
 					}
@@ -2184,7 +2184,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
 			if port := props.FrontendPort; port != nil {
 				if port.ID != nil {
-					portId, err := parseAzureResourceID(*port.ID)
+					portId, err := azure.ParseAzureResourceID(*port.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2196,7 +2196,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
 				if feConfig.ID != nil {
-					feConfigId, err := parseAzureResourceID(*feConfig.ID)
+					feConfigId, err := azure.ParseAzureResourceID(*feConfig.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2214,7 +2214,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if cert := props.SslCertificate; cert != nil {
 				if cert.ID != nil {
-					certId, err := parseAzureResourceID(*cert.ID)
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2675,7 +2675,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
-					poolId, err := parseAzureResourceID(*pool.ID)
+					poolId, err := azure.ParseAzureResourceID(*pool.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2687,7 +2687,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if settings := props.BackendHTTPSettings; settings != nil {
 				if settings.ID != nil {
-					settingsId, err := parseAzureResourceID(*settings.ID)
+					settingsId, err := azure.ParseAzureResourceID(*settings.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2699,7 +2699,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if listener := props.HTTPListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parseAzureResourceID(*listener.ID)
+					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2711,7 +2711,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pathMap := props.URLPathMap; pathMap != nil {
 				if pathMap.ID != nil {
-					pathMapId, err := parseAzureResourceID(*pathMap.ID)
+					pathMapId, err := azure.ParseAzureResourceID(*pathMap.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2723,7 +2723,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if redirect := props.RedirectConfiguration; redirect != nil {
 				if redirect.ID != nil {
-					redirectId, err := parseAzureResourceID(*redirect.ID)
+					redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2735,7 +2735,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if rewrite := props.RewriteRuleSet; rewrite != nil {
 				if rewrite.ID != nil {
-					rewriteId, err := parseAzureResourceID(*rewrite.ID)
+					rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3009,7 +3009,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 			if listener := props.TargetListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parseAzureResourceID(*listener.ID)
+					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3327,7 +3327,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
 			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
-				poolId, err := parseAzureResourceID(*backendPool.ID)
+				poolId, err := azure.ParseAzureResourceID(*backendPool.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3337,7 +3337,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
-				settingsId, err := parseAzureResourceID(*settings.ID)
+				settingsId, err := azure.ParseAzureResourceID(*settings.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3347,7 +3347,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.ID != nil {
-				settingsId, err := parseAzureResourceID(*redirect.ID)
+				settingsId, err := azure.ParseAzureResourceID(*redirect.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3357,7 +3357,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-				settingsId, err := parseAzureResourceID(*rewrite.ID)
+				settingsId, err := azure.ParseAzureResourceID(*rewrite.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3381,7 +3381,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
-							poolId, err := parseAzureResourceID(*pool.ID)
+							poolId, err := azure.ParseAzureResourceID(*pool.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3391,7 +3391,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
-							backendId, err := parseAzureResourceID(*backend.ID)
+							backendId, err := azure.ParseAzureResourceID(*backend.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3401,7 +3401,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.ID != nil {
-							redirectId, err := parseAzureResourceID(*redirect.ID)
+							redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3411,7 +3411,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-							rewriteId, err := parseAzureResourceID(*rewrite.ID)
+							rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
 							if err != nil {
 								return nil, err
 							}

@@ -6,11 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
-	id, err := parseAzureResourceID(resourceId)
+	id, err := azure.ParseAzureResourceID(resourceId)
 	if err != nil {
 		return "", "", err
 	}
@@ -34,7 +35,7 @@ func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.Sch
 }
 
 func parseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error) {
-	id, err := parseAzureResourceID(networkSecurityGroupId)
+	id, err := azure.ParseAzureResourceID(networkSecurityGroupId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to Parse Network Security Group ID '%s': %+v", networkSecurityGroupId, err)
 	}
@@ -43,7 +44,7 @@ func parseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error
 }
 
 func parseRouteTableName(routeTableId string) (string, error) {
-	id, err := parseAzureResourceID(routeTableId)
+	id, err := azure.ParseAzureResourceID(routeTableId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse Route Table ID '%s': %+v", routeTableId, err)
 	}

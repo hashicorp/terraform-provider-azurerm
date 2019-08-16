@@ -153,7 +153,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

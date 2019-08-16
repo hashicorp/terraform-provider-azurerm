@@ -8,7 +8,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,14 +41,14 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"peering_location": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"bandwidth_in_mbps": {
@@ -67,7 +69,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 								string(network.ExpressRouteCircuitSkuTierStandard),
 								string(network.ExpressRouteCircuitSkuTierPremium),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -77,7 +79,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 								string(network.MeteredData),
 								string(network.UnlimitedData),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -114,8 +116,8 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -257,8 +259,8 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

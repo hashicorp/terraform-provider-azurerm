@@ -109,7 +109,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

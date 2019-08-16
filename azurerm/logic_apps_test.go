@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestCheckFunc {
@@ -17,7 +18,7 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]
-		id, err := parseAzureResourceID(logicAppId)
+		id, err := azure.ParseAzureResourceID(logicAppId)
 		if err != nil {
 			return err
 		}
@@ -65,7 +66,7 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]
-		id, err := parseAzureResourceID(logicAppId)
+		id, err := azure.ParseAzureResourceID(logicAppId)
 		if err != nil {
 			return err
 		}

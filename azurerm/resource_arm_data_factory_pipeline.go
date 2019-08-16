@@ -135,7 +135,7 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).dataFactory.PipelinesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).dataFactory.PipelinesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

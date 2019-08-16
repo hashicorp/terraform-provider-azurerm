@@ -470,7 +470,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -558,7 +558,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -620,7 +620,7 @@ func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

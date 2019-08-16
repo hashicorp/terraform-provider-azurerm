@@ -216,7 +216,7 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 }
 
 func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (string, string, error) {
-	id, err := parseAzureResourceID(localNetworkGatewayId)
+	id, err := azure.ParseAzureResourceID(localNetworkGatewayId)
 	if err != nil {
 		return "", "", err
 	}
