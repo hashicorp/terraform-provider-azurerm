@@ -7,18 +7,20 @@ import (
 
 // TODO: remove in 2.0
 type Client struct {
-	JobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
-	JobsClient           scheduler.JobsClient           //nolint: megacheck
+	JobCollectionsClient *scheduler.JobCollectionsClient //nolint: megacheck
+	JobsClient           *scheduler.JobsClient           //nolint: megacheck
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.JobCollectionsClient = scheduler.NewJobCollectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId) //nolint: megacheck
-	o.ConfigureClient(&c.JobCollectionsClient.Client, o.ResourceManagerAuthorizer)
+	JobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId) //nolint: megacheck
+	o.ConfigureClient(&JobCollectionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.JobsClient = scheduler.NewJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId) //nolint: megacheck
-	o.ConfigureClient(&c.JobsClient.Client, o.ResourceManagerAuthorizer)
+	JobsClient := scheduler.NewJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId) //nolint: megacheck
+	o.ConfigureClient(&JobsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		JobCollectionsClient: &JobCollectionsClient,
+		JobsClient:           &JobsClient,
+	}
 }

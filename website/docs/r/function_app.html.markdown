@@ -99,6 +99,10 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
+
+~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
@@ -138,7 +142,19 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
+* `cors` - (Optional) A `cors` block as defined below.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+* `support_credentials` - (Optional) Are credentials supported?
 
 ---
 
@@ -148,7 +164,7 @@ The following arguments are supported:
 
 ---
 
-A `auth_settings` block supports the following:
+An `auth_settings` block supports the following:
 
 * `enabled` - (Required) Is Authentication enabled?
 
@@ -182,7 +198,7 @@ A `auth_settings` block supports the following:
 
 ---
 
-A `active_directory` block supports the following:
+An `active_directory` block supports the following:
 
 * `client_id` - (Required) The Client ID of this relying party application. Enables OpenIDConnection authentication with Azure Active Directory.
 

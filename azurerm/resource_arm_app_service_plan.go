@@ -164,7 +164,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
@@ -255,7 +255,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -277,6 +277,14 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
+	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
+	if utils.ResponseWasNotFound(resp.Response) {
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("name", name)
@@ -318,7 +326,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

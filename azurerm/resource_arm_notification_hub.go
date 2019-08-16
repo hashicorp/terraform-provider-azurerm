@@ -16,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var notificationHubResourceName = "azurerm_notification_hub"
+
 const apnsProductionName = "Production"
 const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
 const apnsSandboxName = "Sandbox"
@@ -203,7 +205,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceArmNotificationHubRead(d, meta)
 }
 
-func notificationHubStateRefreshFunc(ctx context.Context, client notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
+func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {

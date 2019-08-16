@@ -85,13 +85,45 @@ resource "azurerm_role_assignment" "test" {
 }
 ```
 
+## Example Usage (Custom Role & Management Group)
+
+```hcl
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_management_group" "test" {}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "00000000-0000-0000-0000-000000000000"
+  name               = "my-custom-role-definition"
+  scope              = "${data.azurerm_subscription.primary.id}"
+
+  permissions {
+    actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+
+resource "azurerm_role_assignment" "test" {
+  name               = "00000000-0000-0000-0000-000000000000"
+  scope              = "${data.azurerm_management_group.primary.id}"
+  role_definition_id = "${azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.client_id}"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Optional) A unique UUID/GUID for this Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope at which the Role Assignment applies too, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope at which the Role Assignment applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`, or `/providers/Microsoft.Management/managementGroups/myMG`. Changing this forces a new resource to be created.
 
 * `role_definition_id` - (Optional) The Scoped-ID of the Role Definition. Changing this forces a new resource to be created. Conflicts with `role_definition_name`.
 

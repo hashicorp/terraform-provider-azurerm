@@ -199,6 +199,12 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"virtual_network_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: false,
+						},
+						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
 			},
@@ -228,7 +234,7 @@ func resourceArmFunctionApp() *schema.Resource {
 }
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
@@ -333,7 +339,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -359,6 +365,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig := expandFunctionAppSiteConfig(d)
+
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -439,7 +446,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -483,7 +490,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
@@ -561,7 +568,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -630,7 +637,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 
 	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
 
-	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
+	appServicePlansClient := meta.(*ArmClient).web.AppServicePlansClient
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
@@ -681,6 +688,16 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := azure.ExpandWebCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
+	if v, ok := config["virtual_network_name"]; ok {
+		siteConfig.VnetName = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -708,6 +725,12 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
+
+	if input.VnetName != nil {
+		result["virtual_network_name"] = *input.VnetName
+	}
+
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
 	results = append(results, result)
 	return results

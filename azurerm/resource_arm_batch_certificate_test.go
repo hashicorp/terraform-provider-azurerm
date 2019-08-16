@@ -20,7 +20,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	location := testLocation()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA", subscriptionID, ri, rs)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
 
 	config := testAccAzureRMBatchCertificatePfx(ri, rs, location)
 
@@ -34,9 +34,15 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Pfx"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "SHA1"),
+					resource.TestCheckResourceAttr(resourceName, "thumbprint", "42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
+					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate", "password"},
 			},
 		},
 	})
@@ -69,7 +75,7 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	location := testLocation()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/SHA1-312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34", subscriptionID, ri, rs)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, ri, rs)
 
 	config := testAccAzureRMBatchCertificateCer(ri, rs, location)
 
@@ -84,9 +90,15 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(resourceName, "format", "Cer"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "SHA1"),
+					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
+					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate"},
 			},
 		},
 	})
@@ -132,7 +144,7 @@ resource "azurerm_batch_certificate" "test" {
   certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
   format               = "Pfx"
   password             = "terraform"
-  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
 `, rInt, location, batchAccountSuffix)
@@ -157,7 +169,7 @@ resource "azurerm_batch_certificate" "test" {
   account_name         = "${azurerm_batch_account.test.name}"
   certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
   format               = "Pfx"
-  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
 `, rInt, location, batchAccountSuffix)
@@ -181,7 +193,7 @@ resource "azurerm_batch_certificate" "test" {
   account_name         = "${azurerm_batch_account.test.name}"
   certificate          = "${filebase64("testdata/batch_certificate.cer")}"
   format               = "Cer"
-  thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
 }
 `, rInt, location, batchAccountSuffix)
@@ -206,14 +218,14 @@ resource "azurerm_batch_certificate" "test" {
   certificate          = "${filebase64("testdata/batch_certificate.cer")}"
   format               = "Cer"
   password             = "should not have a password for Cer"
-  thumbprint           = "312D31A79FA0CEF49C00F769AFC2B73E9F4EDF34"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
 }
 `, rInt, location, batchAccountSuffix)
 }
 
 func testCheckAzureRMBatchCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batchCertificateClient
+	conn := testAccProvider.Meta().(*ArmClient).batch.CertificateClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

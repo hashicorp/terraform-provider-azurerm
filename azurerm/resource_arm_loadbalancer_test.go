@@ -256,7 +256,7 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadBalancerName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
@@ -275,7 +275,7 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 }
 
 func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+	client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -55,7 +55,7 @@ func resourceArmMySqlDatabase() *schema.Resource {
 }
 
 func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlDatabasesClient
+	client := meta.(*ArmClient).mysql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Database creation.")
@@ -110,7 +110,7 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlDatabasesClient
+	client := meta.(*ArmClient).mysql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -141,7 +141,7 @@ func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlDatabasesClient
+	client := meta.(*ArmClient).mysql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

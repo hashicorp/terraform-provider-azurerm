@@ -118,7 +118,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).postgres.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -134,7 +134,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).postgres.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

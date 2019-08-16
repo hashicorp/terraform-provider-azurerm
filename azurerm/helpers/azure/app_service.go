@@ -468,26 +468,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
-				"cors": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"allowed_origins": {
-								Type:     schema.TypeSet,
-								Required: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
-							},
-							"support_credentials": {
-								Type:     schema.TypeBool,
-								Optional: true,
-								Default:  false,
-							},
-						},
-					},
-				},
+				"cors": SchemaWebCorsSettings(),
 			},
 		},
 	}
@@ -504,6 +485,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 				"application_logs": {
 					Type:     schema.TypeList,
 					Optional: true,
+					Computed: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -532,6 +514,35 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 										"retention_in_days": {
 											Type:     schema.TypeInt,
 											Required: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"http_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"file_system": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"retention_in_mb": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntBetween(25, 100),
+										},
+										"retention_in_days": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntAtLeast(0),
 										},
 									},
 								},
@@ -749,57 +760,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 			},
 		},
 	}
-}
-
-func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
-	settings := input.([]interface{})
-	corsSettings := web.CorsSettings{}
-
-	if len(settings) == 0 {
-		return corsSettings
-	}
-
-	setting := settings[0].(map[string]interface{})
-
-	if v, ok := setting["allowed_origins"]; ok {
-		input := v.(*schema.Set).List()
-
-		allowedOrigins := make([]string, 0)
-		for _, param := range input {
-			allowedOrigins = append(allowedOrigins, param.(string))
-		}
-
-		corsSettings.AllowedOrigins = &allowedOrigins
-	}
-
-	if v, ok := setting["support_credentials"]; ok {
-		corsSettings.SupportCredentials = utils.Bool(v.(bool))
-	}
-
-	return corsSettings
-}
-
-func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	result := make(map[string]interface{})
-
-	allowedOrigins := make([]interface{}, 0)
-	if s := input.AllowedOrigins; s != nil {
-		for _, v := range *s {
-			allowedOrigins = append(allowedOrigins, v)
-		}
-	}
-	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
-
-	if input.SupportCredentials != nil {
-		result["support_credentials"] = *input.SupportCredentials
-	}
-
-	return append(results, result)
 }
 
 func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsProperties {
@@ -1164,14 +1124,13 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	result := make(map[string]interface{})
 
+	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-		appLogs := make([]interface{}, 0)
 
 		appLogsItem := make(map[string]interface{})
 
+		blobStorage := make([]interface{}, 0)
 		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
-			blobStorage := make([]interface{}, 0)
-
 			blobStorageItem := make(map[string]interface{})
 
 			blobStorageItem["level"] = string(blobStorageInput.Level)
@@ -1184,15 +1143,42 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
 			}
 
-			blobStorage = append(blobStorage, blobStorageItem)
-
-			appLogsItem["azure_blob_storage"] = blobStorage
+			// The API returns a non nil application logs object when other logs are specified so we'll check that this structure is empty before adding it to the statefile.
+			if blobStorageInput.SasURL != nil && *blobStorageInput.SasURL != "" {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
 		}
-
+		appLogsItem["azure_blob_storage"] = blobStorage
 		appLogs = append(appLogs, appLogsItem)
-
-		result["application_logs"] = appLogs
 	}
+	result["application_logs"] = appLogs
+
+	httpLogs := make([]interface{}, 0)
+	if input.HTTPLogs != nil {
+		httpLogsItem := make(map[string]interface{})
+
+		fileSystem := make([]interface{}, 0)
+		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
+
+			fileSystemItem := make(map[string]interface{})
+
+			if fileSystemInput.RetentionInDays != nil {
+				fileSystemItem["retention_in_days"] = *fileSystemInput.RetentionInDays
+			}
+
+			if fileSystemInput.RetentionInMb != nil {
+				fileSystemItem["retention_in_mb"] = *fileSystemInput.RetentionInMb
+			}
+
+			// The API returns a non nil filesystem logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if fileSystemInput.Enabled != nil && *fileSystemInput.Enabled {
+				fileSystem = append(fileSystem, fileSystemItem)
+			}
+		}
+		httpLogsItem["file_system"] = fileSystem
+		httpLogs = append(httpLogs, httpLogsItem)
+	}
+	result["http_logs"] = httpLogs
 
 	return append(results, result)
 }
@@ -1225,6 +1211,30 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 						Level:           web.LogLevel(storageConfig["level"].(string)),
 						SasURL:          utils.String(storageConfig["sas_url"].(string)),
 						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	if v, ok := config["http_logs"]; ok {
+		httpLogsConfigs := v.([]interface{})
+
+		for _, config := range httpLogsConfigs {
+			httpLogsConfig := config.(map[string]interface{})
+
+			logs.HTTPLogs = &web.HTTPLogsConfig{}
+
+			if v, ok := httpLogsConfig["file_system"]; ok {
+				fileSystemConfigs := v.([]interface{})
+
+				for _, config := range fileSystemConfigs {
+					fileSystemConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
+						RetentionInMb:   utils.Int32(int32(fileSystemConfig["retention_in_mb"].(int))),
+						RetentionInDays: utils.Int32(int32(fileSystemConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
 					}
 				}
 			}
@@ -1418,7 +1428,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
-		expand := ExpandAppServiceCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
 	}
 
@@ -1537,7 +1547,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
-	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
+	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
 	return append(results, result)
 }

@@ -74,7 +74,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 
 func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
+	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
 	name := d.Get("name").(string)
@@ -160,7 +160,7 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
+	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -226,7 +226,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
+	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -277,7 +277,7 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -293,7 +293,7 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.
 	return nil
 }
 
-func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
+func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 

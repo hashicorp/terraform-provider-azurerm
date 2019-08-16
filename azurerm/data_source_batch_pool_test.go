@@ -93,7 +93,7 @@ resource "azurerm_batch_certificate" "test" {
   certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
   format               = "Pfx"
   password             = "terraform"
-  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
 

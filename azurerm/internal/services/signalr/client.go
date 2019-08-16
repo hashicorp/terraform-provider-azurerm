@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	Client signalr.Client
+	Client *signalr.Client
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.Client = signalr.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.Client.Client, o.ResourceManagerAuthorizer)
+	client := signalr.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		Client: &client,
+	}
 }

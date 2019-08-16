@@ -335,7 +335,7 @@ func resourceArmBatchPool() *schema.Resource {
 }
 
 func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
@@ -468,7 +468,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -556,7 +556,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -618,7 +618,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -692,7 +692,7 @@ func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings,
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false

@@ -154,7 +154,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 }
 
 func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -211,7 +211,7 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -252,7 +252,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

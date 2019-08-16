@@ -51,7 +51,7 @@ func resourceArmSharedImageGallery() *schema.Resource {
 }
 
 func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleriesClient
+	client := meta.(*ArmClient).compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Image Gallery creation.")
@@ -108,7 +108,7 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleriesClient
+	client := meta.(*ArmClient).compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmSharedImageGalleryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleriesClient
+	client := meta.(*ArmClient).compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

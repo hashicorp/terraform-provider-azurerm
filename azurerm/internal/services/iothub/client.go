@@ -7,22 +7,25 @@ import (
 )
 
 type Client struct {
-	ResourceClient       devices.IotHubResourceClient
-	DPSResourceClient    iothub.IotDpsResourceClient
-	DPSCertificateClient iothub.DpsCertificateClient
+	ResourceClient       *devices.IotHubResourceClient
+	DPSResourceClient    *iothub.IotDpsResourceClient
+	DPSCertificateClient *iothub.DpsCertificateClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.ResourceClient = devices.NewIotHubResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ResourceClient.Client, o.ResourceManagerAuthorizer)
+	ResourceClient := devices.NewIotHubResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ResourceClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DPSResourceClient = iothub.NewIotDpsResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DPSResourceClient.Client, o.ResourceManagerAuthorizer)
+	DPSResourceClient := iothub.NewIotDpsResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DPSResourceClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DPSCertificateClient = iothub.NewDpsCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DPSCertificateClient.Client, o.ResourceManagerAuthorizer)
+	DPSCertificateClient := iothub.NewDpsCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DPSCertificateClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ResourceClient:       &ResourceClient,
+		DPSResourceClient:    &DPSResourceClient,
+		DPSCertificateClient: &DPSCertificateClient,
+	}
 }

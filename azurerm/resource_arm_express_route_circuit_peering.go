@@ -106,7 +106,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Express Route Peering create/update.")
@@ -180,7 +180,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -223,7 +223,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRoutePeeringsClient
+	client := meta.(*ArmClient).network.ExpressRoutePeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

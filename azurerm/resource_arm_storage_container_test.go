@@ -249,7 +249,10 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
 		}
 
 		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -285,7 +288,10 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
 		}
 
 		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -315,7 +321,7 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
 		}
 
 		if resourceGroup == nil {

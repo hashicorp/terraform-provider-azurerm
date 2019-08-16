@@ -174,7 +174,7 @@ func resourceArmAppService() *schema.Resource {
 }
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
@@ -295,7 +295,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -468,7 +468,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -549,7 +549,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
@@ -629,7 +629,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

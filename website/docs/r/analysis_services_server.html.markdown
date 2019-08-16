@@ -80,5 +80,5 @@ In addition to all arguments above, the following attributes are exported:
 Analysis Services Server can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_analysis_services_server.server /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AnalysisServices/server/server1
+terraform import azurerm_analysis_services_server.server /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AnalysisServices/servers/server1
 ```

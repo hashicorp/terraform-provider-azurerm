@@ -260,7 +260,7 @@ func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyAssignmentRefreshFunc(ctx context.Context, client policy.AssignmentsClient, scope string, name string) resource.StateRefreshFunc {
+func policyAssignmentRefreshFunc(ctx context.Context, client *policy.AssignmentsClient, scope string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, scope, name)
 		if err != nil {

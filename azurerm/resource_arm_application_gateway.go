@@ -1293,7 +1293,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	client := armClient.applicationGatewayClient
+	client := armClient.network.ApplicationGatewaysClient
 	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1461,7 +1461,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1602,7 +1602,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1714,7 +1714,7 @@ func flattenApplicationGatewayAuthenticationCertificates(input *[]network.Applic
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
 			existingVals := existing.([]interface{})
-			if len(existingVals) >= i {
+			if len(existingVals) > i {
 				existingCerts := existingVals[i].(map[string]interface{})
 				if data := existingCerts["data"]; data != nil {
 					output["data"] = data.(string)
@@ -2267,7 +2267,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
-			return &results, stopApplicationGateway
+			return &results, false
 		}
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
