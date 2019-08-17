@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -67,7 +68,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_tier": {
@@ -78,7 +79,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"Standard",
 					"Premium",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_replication_type": {
@@ -90,7 +91,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"GRS",
 					"RAGRS",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -112,7 +113,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"custom_domain": {
@@ -579,7 +580,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to each ARM resource"))
+		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
@@ -755,7 +756,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).storageServiceClient
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -947,7 +948,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1090,7 +1091,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1116,7 +1117,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					id, err2 := azure.ParseAzureResourceID(*v.VirtualNetworkResourceID)
 					if err2 != nil {
 						return err2
 					}
@@ -1128,8 +1129,8 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

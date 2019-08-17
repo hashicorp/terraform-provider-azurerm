@@ -30,7 +30,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 
 	availableResourceProviders := providerList.Values()
 	requiredResourceProviders := requiredResourceProviders()
-	err = ensureResourceProvidersAreRegistered(ctx, client, availableResourceProviders, requiredResourceProviders)
+	err = ensureResourceProvidersAreRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}

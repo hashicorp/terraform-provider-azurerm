@@ -90,7 +90,7 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourc
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(res
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}

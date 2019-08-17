@@ -211,7 +211,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

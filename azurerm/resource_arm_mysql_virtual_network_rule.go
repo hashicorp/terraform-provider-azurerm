@@ -78,7 +78,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
 	subnetsClient := meta.(*ArmClient).network.SubnetsClient
-	subnetParsedId, err := parseAzureResourceID(subnetId)
+	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).mysql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).mysql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client mysql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 

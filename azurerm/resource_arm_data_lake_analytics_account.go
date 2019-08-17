@@ -170,7 +170,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -104,7 +104,7 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func resourceArmServiceBusTopicAuthorizationRuleDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).servicebus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

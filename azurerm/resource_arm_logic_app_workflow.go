@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -128,7 +129,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -137,8 +138,8 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -178,7 +179,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -235,8 +236,8 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

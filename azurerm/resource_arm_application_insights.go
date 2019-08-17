@@ -135,7 +135,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

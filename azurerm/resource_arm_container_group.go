@@ -526,7 +526,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).containers.GroupsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -589,7 +589,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).containers.GroupsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -626,7 +626,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if networkProfileId != "" {
-		parsedProfileId, err := parseAzureResourceID(networkProfileId)
+		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
 		if err != nil {
 			return err
 		}
@@ -654,7 +654,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Context,
-	client network.ProfilesClient,
+	client *network.ProfilesClient,
 	networkProfileResourceGroup, networkProfileName,
 	containerResourceGroupName, containerName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
@@ -672,7 +672,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 						continue
 					}
 
-					parsedId, err := parseAzureResourceID(*nicProps.Container.ID)
+					parsedId, err := azure.ParseAzureResourceID(*nicProps.Container.ID)
 					if err != nil {
 						return nil, "", err
 					}

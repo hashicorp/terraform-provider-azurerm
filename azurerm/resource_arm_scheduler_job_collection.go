@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
@@ -51,7 +52,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 			"sku": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(scheduler.Free),
 					string(scheduler.Standard),
@@ -65,7 +66,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(scheduler.Enabled),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(scheduler.Enabled),
 					string(scheduler.Suspended),
@@ -91,7 +92,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 						"max_recurrence_frequency": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(scheduler.Minute),
 								string(scheduler.Hour),
@@ -183,7 +184,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -230,7 +231,7 @@ func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

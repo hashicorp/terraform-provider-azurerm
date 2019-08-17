@@ -98,7 +98,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceDat
 	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

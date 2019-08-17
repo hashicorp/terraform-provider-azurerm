@@ -99,7 +99,7 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -6,18 +6,20 @@ import (
 )
 
 type Client struct {
-	RecordSetsClient dns.RecordSetsClient
-	ZonesClient      dns.ZonesClient
+	RecordSetsClient *dns.RecordSetsClient
+	ZonesClient      *dns.ZonesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.RecordSetsClient = dns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RecordSetsClient.Client, o.ResourceManagerAuthorizer)
+	RecordSetsClient := dns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ZonesClient = dns.NewZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ZonesClient.Client, o.ResourceManagerAuthorizer)
+	ZonesClient := dns.NewZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ZonesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		RecordSetsClient: &RecordSetsClient,
+		ZonesClient:      &ZonesClient,
+	}
 }

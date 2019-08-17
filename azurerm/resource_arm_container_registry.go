@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +46,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(containerregistry.Classic),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.Classic),
 					string(containerregistry.Basic),
@@ -430,7 +431,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -519,7 +520,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

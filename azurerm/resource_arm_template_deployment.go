@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -61,7 +62,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 					string(resources.Complete),
 					string(resources.Incremental),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"outputs": {
@@ -163,7 +164,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +230,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,7 +278,7 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -293,7 +294,7 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.
 	return nil
 }
 
-func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
+func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 

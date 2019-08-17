@@ -122,7 +122,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []stri
 	* Ready
 	* ResponseNotFound (Custom state in case of 404)
 */
-func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 

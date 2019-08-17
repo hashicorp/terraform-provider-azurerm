@@ -7,44 +7,52 @@ import (
 
 type Client struct {
 	// Autoscale Settings
-	AutoscaleSettingsClient insights.AutoscaleSettingsClient
+	AutoscaleSettingsClient *insights.AutoscaleSettingsClient
 
 	// Monitor
-	ActionGroupsClient               insights.ActionGroupsClient
-	ActivityLogAlertsClient          insights.ActivityLogAlertsClient
-	AlertRulesClient                 insights.AlertRulesClient
-	DiagnosticSettingsClient         insights.DiagnosticSettingsClient
-	DiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
-	LogProfilesClient                insights.LogProfilesClient
-	MetricAlertsClient               insights.MetricAlertsClient
+	ActionGroupsClient               *insights.ActionGroupsClient
+	ActivityLogAlertsClient          *insights.ActivityLogAlertsClient
+	AlertRulesClient                 *insights.AlertRulesClient
+	DiagnosticSettingsClient         *insights.DiagnosticSettingsClient
+	DiagnosticSettingsCategoryClient *insights.DiagnosticSettingsCategoryClient
+	LogProfilesClient                *insights.LogProfilesClient
+	MetricAlertsClient               *insights.MetricAlertsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.AutoscaleSettingsClient = insights.NewAutoscaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
+	AutoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ActionGroupsClient = insights.NewActionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
+	ActionGroupsClient := insights.NewActionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ActivityLogAlertsClient = insights.NewActivityLogAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
+	ActivityLogAlertsClient := insights.NewActivityLogAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AlertRulesClient = insights.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AlertRulesClient.Client, o.ResourceManagerAuthorizer)
+	AlertRulesClient := insights.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DiagnosticSettingsClient = insights.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
+	DiagnosticSettingsClient := insights.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DiagnosticSettingsCategoryClient = insights.NewDiagnosticSettingsCategoryClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
+	DiagnosticSettingsCategoryClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LogProfilesClient = insights.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LogProfilesClient.Client, o.ResourceManagerAuthorizer)
+	LogProfilesClient := insights.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LogProfilesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.MetricAlertsClient = insights.NewMetricAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.MetricAlertsClient.Client, o.ResourceManagerAuthorizer)
+	MetricAlertsClient := insights.NewMetricAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&MetricAlertsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
+		ActionGroupsClient:               &ActionGroupsClient,
+		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
+		AlertRulesClient:                 &AlertRulesClient,
+		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
+		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
+		LogProfilesClient:                &LogProfilesClient,
+		MetricAlertsClient:               &MetricAlertsClient,
+	}
 }

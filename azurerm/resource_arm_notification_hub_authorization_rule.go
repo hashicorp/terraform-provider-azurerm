@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -100,6 +101,12 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		}
 	}
 
+	locks.ByName(notificationHubName, notificationHubResourceName)
+	defer locks.UnlockByName(notificationHubName, notificationHubResourceName)
+
+	locks.ByName(namespaceName, notificationHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, notificationHubNamespaceResourceName)
+
 	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
 		Properties: &notificationhubs.SharedAccessAuthorizationRuleProperties{
 			Rights: expandNotificationHubAuthorizationRuleRights(manage, send, listen),
@@ -121,13 +128,14 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	d.SetId(*read.ID)
 
 	return resourceArmNotificationHubAuthorizationRuleRead(d, meta)
+
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -174,7 +182,7 @@ func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -182,6 +190,12 @@ func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, m
 	namespaceName := id.Path["namespaces"]
 	notificationHubName := id.Path["notificationHubs"]
 	name := id.Path["AuthorizationRules"]
+
+	locks.ByName(notificationHubName, notificationHubResourceName)
+	defer locks.UnlockByName(notificationHubName, notificationHubResourceName)
+
+	locks.ByName(namespaceName, notificationHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, notificationHubNamespaceResourceName)
 
 	resp, err := client.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
 	if err != nil {

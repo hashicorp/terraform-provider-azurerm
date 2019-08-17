@@ -112,7 +112,7 @@ func resourceArmDateLakeAnalyticsFirewallRuleRead(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func resourceArmDateLakeAnalyticsFirewallRuleDelete(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

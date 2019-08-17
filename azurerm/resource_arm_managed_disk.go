@@ -232,7 +232,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -289,7 +289,7 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

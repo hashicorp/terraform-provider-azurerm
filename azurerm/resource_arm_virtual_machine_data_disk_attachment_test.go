@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -211,7 +212,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 
 		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
 
-		id, err := parseAzureResourceID(virtualMachineId)
+		id, err := azure.ParseAzureResourceID(virtualMachineId)
 		if err != nil {
 			return err
 		}
@@ -231,7 +232,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 			return fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", virtualMachineName, resourceGroup)
 		}
 
-		diskId, err := parseAzureResourceID(rs.Primary.ID)
+		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -257,7 +258,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 
 		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
 
-		id, err := parseAzureResourceID(virtualMachineId)
+		id, err := azure.ParseAzureResourceID(virtualMachineId)
 		if err != nil {
 			return err
 		}
@@ -277,7 +278,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
 
-		diskId, err := parseAzureResourceID(rs.Primary.ID)
+		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

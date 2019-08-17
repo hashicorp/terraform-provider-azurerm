@@ -183,7 +183,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 				continue
 			}
 
-			feConfigId, err := parseAzureResourceID(*feConfig.ID)
+			feConfigId, err := azure.ParseAzureResourceID(*feConfig.ID)
 			if err != nil {
 				return nil
 			}

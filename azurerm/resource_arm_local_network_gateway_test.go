@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -254,7 +255,7 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 		}
 
 		// then, extract the name and the resource group:
-		id, err := parseAzureResourceID(res.Primary.ID)
+		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -287,7 +288,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		}
 
 		// then, extract the name and the resource group:
-		id, err := parseAzureResourceID(res.Primary.ID)
+		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -320,7 +321,7 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parseAzureResourceID(res.Primary.ID)
+		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}

@@ -338,7 +338,7 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 }
 
 func parseArmMsSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
-	id, err := parseAzureResourceID(sqlElasticPoolId)
+	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
 	if err != nil {
 		return "", "", "", fmt.Errorf("[ERROR] Unable to parse MsSQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
 	}
