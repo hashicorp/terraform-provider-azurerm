@@ -29,7 +29,7 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
 					resource.TestCheckResourceAttr(resourceName, "criteria.0.metric_name", "UsedCapacity"),
@@ -242,10 +242,18 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_account" "test_2" {
+	name                     = "acctestsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+  }
+
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_storage_account.test.id}"]
+  scopes              = ["${azurerm_storage_account.test.id}", "${azurerm_storage_account.test_2.id}"]
 
   criteria {
     metric_namespace = "Microsoft.Storage/storageAccounts"
@@ -255,7 +263,7 @@ resource "azurerm_monitor_metric_alert" "test" {
     threshold        = 55.5
   }
 }
-`, rInt, location, rString, rInt)
+`, rInt, location, location, rString, rInt)
 }
 
 func testAccAzureRMMonitorMetricAlert_requiresImport(rInt int, rString, location string) string {

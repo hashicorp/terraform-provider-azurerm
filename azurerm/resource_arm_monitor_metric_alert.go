@@ -37,16 +37,25 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"target_resource_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"target_resource_region": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
-			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
-			// But to prevent potential state migration in the future, let's stick to use Set now
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
@@ -217,16 +226,27 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", *existing.ID)
+		}
+	}
+
+	var singleResourceTypePresent *bool
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		_, ok := existing.Criteria.AsMetricAlertSingleResourceMultipleMetricCriteria()
+		if ok {
+			singleResourceTypePresent = utils.Bool(true)
+		} else {
+			singleResourceTypePresent = utils.Bool(false)
 		}
 	}
 
@@ -239,6 +259,8 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	windowSize := d.Get("window_size").(string)
 	criteriaRaw := d.Get("criteria").([]interface{})
 	actionRaw := d.Get("action").(*schema.Set).List()
+	targetResourceType := d.Get("target_resource_type").(string)
+	targetResourceRegion := d.Get("target_resource_region").(string)
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -246,15 +268,17 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	parameters := insights.MetricAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
-			Enabled:             utils.Bool(enabled),
-			AutoMitigate:        utils.Bool(autoMitigate),
-			Description:         utils.String(description),
-			Severity:            utils.Int32(int32(severity)),
-			EvaluationFrequency: utils.String(frequency),
-			WindowSize:          utils.String(windowSize),
-			Scopes:              utils.ExpandStringSlice(scopesRaw),
-			Criteria:            expandMonitorMetricAlertCriteria(criteriaRaw),
-			Actions:             expandMonitorMetricAlertAction(actionRaw),
+			Enabled:              utils.Bool(enabled),
+			AutoMitigate:         utils.Bool(autoMitigate),
+			Description:          utils.String(description),
+			Severity:             utils.Int32(int32(severity)),
+			EvaluationFrequency:  utils.String(frequency),
+			WindowSize:           utils.String(windowSize),
+			Scopes:               utils.ExpandStringSlice(scopesRaw),
+			Criteria:             expandMonitorMetricAlertCriteria(criteriaRaw, singleResourceTypePresent),
+			Actions:              expandMonitorMetricAlertAction(actionRaw),
+			TargetResourceType:   utils.String(targetResourceType),
+			TargetResourceRegion: utils.String(targetResourceRegion),
 		},
 		Tags: expandedTags,
 	}
@@ -338,7 +362,7 @@ func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlertSingleResourceMultipleMetricCriteria {
+func expandMonitorMetricAlertCriteria(input []interface{}, singleResourceTypePresent *bool) insights.BasicMetricAlertCriteria {
 	criteria := make([]insights.MetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
@@ -363,9 +387,21 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			Dimensions:      &dimensions,
 		})
 	}
-	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
-		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
+
+	if len(criteria) == 1 && singleResourceTypePresent != nil && *singleResourceTypePresent {
+		return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
+			AllOf: &criteria,
+		}
+	}
+
+	basicMultiMetricCriteria := make([]insights.BasicMultiMetricCriteria, len(criteria))
+
+	for i, val := range criteria {
+		basicMultiMetricCriteria[i] = val
+	}
+
+	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
+		AllOf: &basicMultiMetricCriteria,
 	}
 }
 
@@ -395,11 +431,28 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 	if input == nil {
 		return
 	}
+
+	var metricData []insights.MetricCriteria
+
 	criteria, ok := input.AsMetricAlertSingleResourceMultipleMetricCriteria()
 	if !ok || criteria == nil || criteria.AllOf == nil {
-		return
+
+		criteria, ok := input.AsMetricAlertMultipleResourceMultipleMetricCriteria()
+		if !ok || criteria == nil || criteria.AllOf == nil {
+			return
+		}
+
+		for _, val := range *criteria.AllOf {
+			metricCriteria, ok := val.AsMetricCriteria()
+			if !ok {
+				continue
+			}
+			metricData = append(metricData, *metricCriteria)
+		}
+	} else {
+		metricData = *criteria.AllOf
 	}
-	for _, metric := range *criteria.AllOf {
+	for _, metric := range metricData {
 		v := make(map[string]interface{})
 
 		if metric.MetricNamespace != nil {
@@ -435,7 +488,6 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 
 		result = append(result, v)
 	}
-
 	return result
 }
 

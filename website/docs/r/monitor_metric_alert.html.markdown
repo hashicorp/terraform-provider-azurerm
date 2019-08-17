@@ -70,6 +70,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
 * `scopes` - (Required) The resource ID at which the metric criteria should be applied.
+* `target_resource_type` - (Optional) The resource type of the target resource(s) on which the alert is created/updated. Mandatory when using multiple scopes.
+* `target_resource_region` - (Optional) The region of the target resource(s) on which the alert is created/updated. Mandatory when using multiple scopes.
 * `criteria` - (Required) One or more `criteria` blocks as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.
