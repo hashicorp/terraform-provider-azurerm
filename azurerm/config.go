@@ -73,6 +73,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/webapplicationfirewallpolicies"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
