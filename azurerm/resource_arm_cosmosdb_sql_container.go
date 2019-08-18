@@ -15,9 +15,8 @@ import (
 
 func resourceArmCosmosDbSQLContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbSQLContainerCreateUpdate,
+		Create: resourceArmCosmosDbSQLContainerCreate,
 		Read:   resourceArmCosmosDbSQLContainerRead,
-		Update: resourceArmCosmosDbSQLContainerCreateUpdate,
 		Delete: resourceArmCosmosDbSQLContainerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -34,13 +33,6 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"database_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
-			},
-
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -48,31 +40,32 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
-			"partition_key_paths": {
+			"database_name": {
 				Type:         schema.TypeString,
-				Required:     false,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CosmosEntityName,
+			},
+
+			"partition_key_path": {
+				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     false,
+				ForceNew:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"unique_key_policy": {
-				Type:     schema.TypeList,
+			"unique_key": {
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"unique_keys": {
+						"paths": {
 							Type:     schema.TypeSet,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"paths": {
-										Type:     schema.TypeSet,
-										Required: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-								},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
 					},
@@ -82,7 +75,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -90,7 +83,7 @@ func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta in
 	resourceGroup := d.Get("resource_group_name").(string)
 	database := d.Get("database_name").(string)
 	account := d.Get("account_name").(string)
-	partitionkeypaths := d.Get("partition_key_paths").(string)
+	partitionkeypaths := d.Get("partition_key_path").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
@@ -112,14 +105,22 @@ func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta in
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
 				ID: &name,
-				PartitionKey: &documentdb.ContainerPartitionKey{
-					Paths: &[]string{partitionkeypaths},
-					Kind:  "Hash",
-				},
-				UniqueKeyPolicy: expandSQLContainerUniqueKeyPolicy(d),
 			},
 			Options: map[string]*string{},
 		},
+	}
+
+	if partitionkeypaths != "" {
+		db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
+			Paths: &[]string{partitionkeypaths},
+			Kind:  documentdb.PartitionKindHash,
+		}
+	}
+
+	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
+		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
+			UniqueKeys: keys,
+		}
 	}
 
 	future, err := client.CreateUpdateSQLContainer(ctx, resourceGroup, account, database, name, db)
@@ -148,31 +149,44 @@ func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta in
 func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
-	name := d.Get("name").(string)
 
-	id, err := azure.ParseCosmosDatabaseID(d.Id())
+	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, name)
+	resp, err := client.GetSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Container)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos SQL Container %s (Account %s) - removing from state", id.Database, name)
+			log.Printf("[INFO] Error reading Cosmos SQL Container %s (Account %s) - removing from state", id.Database, id.Container)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos SQL Container %s (Account %s): %+v", id.Database, name, err)
+		return fmt.Errorf("Error reading Cosmos SQL Container %s (Account %s): %+v", id.Database, id.Container, err)
 	}
 
+	d.Set("name", id.Container)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.Account)
 	d.Set("database_name", id.Database)
+
 	if props := resp.SQLContainerProperties; props != nil {
-		d.Set("name", props.ID)
-		d.Set("unique_key_policy", props.UniqueKeyPolicy)
-		d.Set("partition_key_paths", props.PartitionKey)
+		if pk := props.PartitionKey; pk != nil {
+			if paths := pk.Paths; paths != nil {
+				if len(*paths) > 1 {
+					return fmt.Errorf("Error reading PartitionKey Paths, more then 1 returned")
+				} else if len(*paths) == 1 {
+					d.Set("partition_key_path", (*paths)[0])
+				}
+			}
+		}
+
+		if ukp := props.UniqueKeyPolicy; ukp != nil {
+			if err := d.Set("unique_key", flattenCosmosSQLContainerUniqueKeys(ukp.UniqueKeys)); err != nil {
+				return fmt.Errorf("Error setting `unique_key`: %+v", err)
+			}
+		}
 	}
 
 	return nil
@@ -181,17 +195,16 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
-	name := d.Get("name").(string)
 
-	id, err := azure.ParseCosmosDatabaseID(d.Id())
+	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, name)
+	future, err := client.DeleteSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Container)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos SQL Container %s (Account %s): %+v", id.Database, name, err)
+			return fmt.Errorf("Error deleting Cosmos SQL Container %s (Account %s): %+v", id.Database, id.Container, err)
 		}
 	}
 
@@ -203,32 +216,45 @@ func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandSQLContainerUniqueKeyPolicy(d *schema.ResourceData) *documentdb.UniqueKeyPolicy {
-	i := d.Get("unique_key_policy").([]interface{})
-	var paths []string
+func expandCosmosSQLContainerUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
+	i := s.List()
 	if len(i) <= 0 || i[0] == nil {
 		return nil
 	}
 
-	uniquekeypolicyRaw := i[0].(map[string]interface{})
-	uniquekeysRaw := uniquekeypolicyRaw["unique_keys"].(*schema.Set).List()
-	uniquekeyRaw := uniquekeysRaw[0].(map[string]interface{})
-	pathsRaw := uniquekeyRaw["paths"].(*schema.Set).List()
+	keys := make([]documentdb.UniqueKey, 0)
+	for _, k := range i {
+		key := k.(map[string]interface{})
 
-	for _, path := range pathsRaw {
-		paths = append(paths, path.(string))
+		paths := key["paths"].(*schema.Set).List()
+		if len(paths) == 0 {
+			continue
+		}
+
+		keys = append(keys, documentdb.UniqueKey{
+			Paths: utils.ExpandStringSlice(paths),
+		})
 	}
 
-	uniquekey := documentdb.UniqueKey{
-		Paths: &paths,
+	return &keys
+}
+
+func flattenCosmosSQLContainerUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[string]interface{} {
+	if keys == nil {
+		return nil
 	}
 
-	uniquekeys := make([]documentdb.UniqueKey, 0)
-	uniquekeys = append(uniquekeys, uniquekey)
+	slice := make([]map[string]interface{}, 0)
+	for _, k := range *keys {
 
-	output := documentdb.UniqueKeyPolicy{
-		UniqueKeys: &uniquekeys,
+		if k.Paths == nil {
+			continue
+		}
+
+		slice = append(slice, map[string]interface{}{
+			"paths": *k.Paths,
+		})
 	}
 
-	return &output
+	return &slice
 }
