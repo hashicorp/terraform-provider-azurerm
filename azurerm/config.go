@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"log"
 	"os"
 	"strings"
@@ -114,6 +115,7 @@ type ArmClient struct {
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
 	keyvault         *keyvault.Client
+	kusto            *kusto.Client
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
@@ -254,6 +256,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
 	client.keyvault = keyvault.BuildClient(o)
+	client.kusto = kusto.BuildClient(o)
 	client.logic = logic.BuildClient(o)
 	client.logAnalytics = loganalytics.BuildClient(o)
 	client.maps = maps.BuildClient(o)
