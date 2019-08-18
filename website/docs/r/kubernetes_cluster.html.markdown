@@ -162,7 +162,7 @@ A `agent_pool_profile` block supports the following:
 
 * `max_count` - (Optional) Maximum number of nodes for auto-scaling
 
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent.
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
