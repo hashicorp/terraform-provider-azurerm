@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -71,7 +72,7 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default: string(network.OfficeTrafficCategoryNone),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

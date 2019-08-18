@@ -337,7 +337,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

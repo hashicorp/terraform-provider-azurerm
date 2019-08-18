@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,7 +189,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

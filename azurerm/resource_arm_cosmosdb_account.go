@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -49,7 +50,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			//resource fields
 			"offer_type": {

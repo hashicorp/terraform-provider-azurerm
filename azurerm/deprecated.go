@@ -14,10 +14,6 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-func tagsSchema() *schema.Schema {
-	return tags.Schema()
-}
-
 func tagsForDataSourceSchema() *schema.Schema {
 	return tags.SchemaDataSource()
 }
@@ -38,6 +34,11 @@ func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 // migrated
 
 // nolint: deadcode unused
+func tagsSchema() *schema.Schema {
+	return tags.Schema()
+}
+
+// nolint: deadcode unused
 func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
 	return tags.Filter(tagsMap, tagNames...)
 }
@@ -52,7 +53,6 @@ func tagsForceNewSchema() *schema.Schema {
 	return tags.ForceNewSchema()
 }
 
-// nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
 }

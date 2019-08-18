@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,7 +75,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"dsc_server_endpoint": {
 				Type:     schema.TypeString,

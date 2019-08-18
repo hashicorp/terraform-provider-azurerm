@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -106,7 +107,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				DiffSuppressFunc: suppress.XmlDiff,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"synthetic_monitor_id": {
 				Type:     schema.TypeString,

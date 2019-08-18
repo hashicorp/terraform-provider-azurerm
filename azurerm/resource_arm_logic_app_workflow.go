@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Default:  "1.0.0.0",
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"access_endpoint": {
 				Type:     schema.TypeString,

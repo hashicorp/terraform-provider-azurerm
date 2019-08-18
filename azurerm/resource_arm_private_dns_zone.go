@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,7 +54,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

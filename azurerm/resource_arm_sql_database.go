@@ -9,6 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -308,7 +309,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,7 +35,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"principal_id": {
 				Type:     schema.TypeString,

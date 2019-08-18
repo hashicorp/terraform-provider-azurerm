@@ -7,6 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -183,7 +184,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {

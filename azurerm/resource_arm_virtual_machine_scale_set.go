@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -745,7 +746,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetExtensionHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,

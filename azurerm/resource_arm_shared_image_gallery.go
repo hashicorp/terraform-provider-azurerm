@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func resourceArmSharedImageGallery() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"unique_name": {
 				Type:     schema.TypeString,

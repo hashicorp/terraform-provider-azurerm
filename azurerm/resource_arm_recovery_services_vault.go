@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 
@@ -42,7 +43,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"sku": {
 				Type:             schema.TypeString,

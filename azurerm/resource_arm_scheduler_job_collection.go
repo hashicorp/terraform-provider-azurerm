@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
@@ -47,7 +48,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"sku": {
 				Type:             schema.TypeString,

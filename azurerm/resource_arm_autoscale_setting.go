@@ -344,7 +344,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

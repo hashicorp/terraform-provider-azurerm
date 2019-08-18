@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -53,7 +54,7 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

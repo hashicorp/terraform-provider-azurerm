@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"golang.org/x/net/context"
@@ -556,7 +557,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

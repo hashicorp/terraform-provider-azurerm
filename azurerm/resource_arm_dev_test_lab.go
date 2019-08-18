@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +48,7 @@ func resourceArmDevTestLab() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"artifacts_storage_account_id": {
 				Type:     schema.TypeString,

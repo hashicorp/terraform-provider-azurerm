@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,7 +85,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 				ValidateFunc: validate.Base64String(),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"data_plane_fqdn": {
 				Type:     schema.TypeString,

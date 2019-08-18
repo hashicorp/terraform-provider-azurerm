@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -87,7 +88,7 @@ func resourceArmBatchAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

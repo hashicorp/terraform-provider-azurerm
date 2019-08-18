@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,7 +44,7 @@ func resourceArmMapsAccount() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"x_ms_client_id": {
 				Type:     schema.TypeString,
