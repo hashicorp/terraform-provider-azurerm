@@ -66,6 +66,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			"scope": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "",
 			},
 
 			"actions": {
@@ -310,10 +311,13 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 
 	actions := expandWebhookActions(d)
 
+	scope := d.Get("scope").(string)
+
 	webhookProperties := containerregistry.WebhookPropertiesCreateParameters{
 		ServiceURI:    &serviceUri,
 		CustomHeaders: customHeaders,
 		Actions:       actions,
+		Scope:         &scope,
 	}
 
 	if s, ok := d.GetOk("status"); ok {
@@ -322,10 +326,6 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 		} else {
 			webhookProperties.Status = containerregistry.WebhookStatusEnabled
 		}
-	}
-
-	if s, ok := d.GetOk("scope"); ok {
-		webhookProperties.Scope = utils.String(s.(string))
 	}
 
 	return &webhookProperties
@@ -341,10 +341,13 @@ func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerr
 
 	actions := expandWebhookActions(d)
 
+	scope := d.Get("scope").(string)
+
 	webhookProperties := containerregistry.WebhookPropertiesUpdateParameters{
 		ServiceURI:    &serviceUri,
 		CustomHeaders: customHeaders,
 		Actions:       actions,
+		Scope:         &scope,
 	}
 
 	if s, ok := d.GetOk("status"); ok {
@@ -353,10 +356,6 @@ func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerr
 		} else {
 			webhookProperties.Status = containerregistry.WebhookStatusEnabled
 		}
-	}
-
-	if s, ok := d.GetOk("scope"); ok {
-		webhookProperties.Scope = utils.String(s.(string))
 	}
 
 	return &webhookProperties
