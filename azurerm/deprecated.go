@@ -18,16 +18,8 @@ func tagsSchema() *schema.Schema {
 	return tags.Schema()
 }
 
-func tagsForceNewSchema() *schema.Schema {
-	return tags.ForceNewSchema()
-}
-
 func tagsForDataSourceSchema() *schema.Schema {
-	return tags.DataSourceSchema()
-}
-
-func tagValueToString(v interface{}) (string, error) {
-	return tags.TagValueToString(v)
+	return tags.SchemaDataSource()
 }
 
 func validateAzureRMTags(v interface{}, k string) (warnings []string, errors []error) {
@@ -38,16 +30,27 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return tags.Expand(tagsMap)
 }
 
-func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
-	return tags.Filter(tagsMap, tagNames...)
-}
-
 func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 	// we intentionally ignore the error here, since this method doesn't expose it
 	_ = tags.FlattenAndSet(d, tagMap)
 }
 
 // migrated
+
+// nolint: deadcode unused
+func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
+	return tags.Filter(tagsMap, tagNames...)
+}
+
+// nolint: deadcode unused
+func tagValueToString(v interface{}) (string, error) {
+	return tags.TagValueToString(v)
+}
+
+// nolint: deadcode unused
+func tagsForceNewSchema() *schema.Schema {
+	return tags.ForceNewSchema()
+}
 
 // nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {

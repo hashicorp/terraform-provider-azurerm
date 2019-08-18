@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -144,7 +145,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForceNewSchema(),
+			"tags": tags.ForceNewSchema(),
 
 			"restart_policy": {
 				Type:             schema.TypeString,

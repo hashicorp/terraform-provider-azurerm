@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -450,7 +451,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
+	tagMap := tags.Filter(resp.Tags, "$type")
 	flattenAndSetTags(d, tagMap)
 
 	return nil

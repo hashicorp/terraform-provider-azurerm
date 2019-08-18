@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 func TestValidateMaximumNumberOfARMTags(t *testing.T) {
@@ -103,7 +105,7 @@ func TestFilterARMTags(t *testing.T) {
 	testData["key2"] = &valueData[1]
 	testData["key3"] = &valueData[2]
 
-	filtered := filterTags(testData, "key1", "key3", "")
+	filtered := tags.Filter(testData, "key1", "key3", "")
 
 	if len(filtered) != 1 {
 		t.Fatalf("Expected 1 result in filtered tag map, got %d", len(filtered))

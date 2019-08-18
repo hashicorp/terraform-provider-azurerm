@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -588,7 +589,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
 		}
 
-		value, err := tagValueToString(v)
+		value, err := tags.TagValueToString(v)
 		if err != nil {
 			errors = append(errors, err)
 		} else if len(value) > 256 {

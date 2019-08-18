@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -306,7 +307,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
+	tagMap := tags.Filter(resp.Tags, "$type")
 
 	flattenAndSetTags(d, tagMap)
 
@@ -435,7 +436,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
-	warnings, errors = validateAzureRMTags(v, f)
+	warnings, errors = tags.Validate(v, f)
 
 	tagsMap := v.(map[string]interface{})
 
