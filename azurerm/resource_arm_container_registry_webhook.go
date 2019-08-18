@@ -324,7 +324,7 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 		if s.(string) == "enabled" {
 			webhookProperties.Status = containerregistry.WebhookStatusEnabled
 		} else {
-			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+			webhookProperties.Status = containerregistry.WebhookStatusDisabled
 		}
 	}
 
@@ -354,7 +354,7 @@ func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerr
 		if s.(string) == "enabled" {
 			webhookProperties.Status = containerregistry.WebhookStatusEnabled
 		} else {
-			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+			webhookProperties.Status = containerregistry.WebhookStatusDisabled
 		}
 	}
 
