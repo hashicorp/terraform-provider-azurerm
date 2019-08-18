@@ -66,6 +66,38 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistryWebhook_Actions(t *testing.T) {
+	resourceName := "azurerm_container_registry_webhook.test"
+	ri := tf.AccRandTimeInt()
+	preConfig := testAccAzureRMContainerRegistryWebhook_actions(ri, testLocation())
+	postConfig := testAccAzureRMContainerRegistryWebhook_actionsUpdate(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0", "push"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "actions.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0", "push"),
+					resource.TestCheckResourceAttr(resourceName, "actions.1", "delete"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMContainerRegistryWebhook_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
@@ -158,6 +190,65 @@ resource "azurerm_container_registry_webhook" "test" {
 	label = "test1"
 	ENV   = "prod"
   }
+}
+`, rInt, location, rInt, location, rInt, location)
+}
+
+func testAccAzureRMContainerRegistryWebhook_actions(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                     = "acrwebhooktest%d"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = "%s"
+  sku                      = "Standard"
+}
+
+resource "azurerm_container_registry_webhook" "test" {
+  name                = "testwebhook%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = "%s"
+  
+  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  actions = [
+      "push"
+  ]
+}
+`, rInt, location, rInt, location, rInt, location)
+}
+
+func testAccAzureRMContainerRegistryWebhook_actionsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                     = "acrwebhooktest%d"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = "%s"
+  sku                      = "Standard"
+}
+
+resource "azurerm_container_registry_webhook" "test" {
+  name                = "testwebhook%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = "%s"
+  
+  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  actions = [
+      "push",
+      "delete"
+  ]
 }
 `, rInt, location, rInt, location, rInt, location)
 }
