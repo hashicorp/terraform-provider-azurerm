@@ -320,12 +320,10 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 		Scope:         &scope,
 	}
 
-	if s, ok := d.GetOk("status"); ok {
-		if s.(string) == "enabled" {
-			webhookProperties.Status = containerregistry.WebhookStatusEnabled
-		} else {
-			webhookProperties.Status = containerregistry.WebhookStatusDisabled
-		}
+	if d.Get("status").(string) == string(containerregistry.WebhookStatusEnabled) {
+		webhookProperties.Status = containerregistry.WebhookStatusEnabled
+	} else {
+		webhookProperties.Status = containerregistry.WebhookStatusDisabled
 	}
 
 	return &webhookProperties
@@ -350,12 +348,10 @@ func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerr
 		Scope:         &scope,
 	}
 
-	if s, ok := d.GetOk("status"); ok {
-		if s.(string) == "enabled" {
-			webhookProperties.Status = containerregistry.WebhookStatusEnabled
-		} else {
-			webhookProperties.Status = containerregistry.WebhookStatusDisabled
-		}
+	if d.Get("status").(string) == string(containerregistry.WebhookStatusEnabled) {
+		webhookProperties.Status = containerregistry.WebhookStatusEnabled
+	} else {
+		webhookProperties.Status = containerregistry.WebhookStatusDisabled
 	}
 
 	return &webhookProperties
