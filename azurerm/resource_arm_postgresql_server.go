@@ -216,7 +216,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	createMode := "Default"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -245,7 +245,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			CreateMode:                 postgresql.CreateMode(createMode),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -285,7 +285,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	version := d.Get("version").(string)
 	sku := expandAzureRmPostgreSQLServerSku(d)
 	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
@@ -295,7 +295,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)

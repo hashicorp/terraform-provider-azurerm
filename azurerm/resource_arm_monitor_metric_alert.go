@@ -239,8 +239,8 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	criteriaRaw := d.Get("criteria").([]interface{})
 	actionRaw := d.Get("action").(*schema.Set).List()
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.MetricAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),

@@ -60,11 +60,11 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	securityGroup := network.ApplicationSecurityGroup{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, securityGroup)
 	if err != nil {

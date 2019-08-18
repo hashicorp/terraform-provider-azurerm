@@ -76,7 +76,7 @@ func TestExpandARMTags(t *testing.T) {
 	testData["key2"] = 21
 	testData["key3"] = "value3"
 
-	expanded := expandTags(testData)
+	expanded := tags.Expand(testData)
 
 	if len(expanded) != 3 {
 		t.Fatalf("Expected 3 results in expanded tag map, got %d", len(expanded))

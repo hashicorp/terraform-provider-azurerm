@@ -118,10 +118,10 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	evaluatorType := d.Get("evaluator_type").(string)
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Policy{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		PolicyProperties: &dtl.PolicyProperties{
 			FactName:      dtl.PolicyFactName(name),
 			FactData:      utils.String(factData),

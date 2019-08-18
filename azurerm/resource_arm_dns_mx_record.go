@@ -91,12 +91,12 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata:  expandTags(tags),
+			Metadata:  tags.Expand(t),
 			TTL:       &ttl,
 			MxRecords: expandAzureRmDnsMxRecords(d),
 		},

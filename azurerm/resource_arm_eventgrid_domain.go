@@ -145,7 +145,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
 		InputSchemaMapping: expandAzureRmEventgridDomainInputMapping(d),
@@ -155,7 +155,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	domain := eventgrid.Domain{
 		Location:         &location,
 		DomainProperties: domainProperties,
-		Tags:             expandTags(tags),
+		Tags:             tags.Expand(t),
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Domain creation with Properties: %+v", domain)

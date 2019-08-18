@@ -41,7 +41,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -58,7 +58,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 
 	parameters := resources.Group{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {

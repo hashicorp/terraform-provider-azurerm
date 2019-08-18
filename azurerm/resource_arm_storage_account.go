@@ -623,7 +623,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
@@ -639,7 +639,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			Encryption: &storage.Encryption{
@@ -810,10 +810,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		tags := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]interface{})
 
 		opts := storage.AccountUpdateParameters{
-			Tags: expandTags(tags),
+			Tags: tags.Expand(t),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {

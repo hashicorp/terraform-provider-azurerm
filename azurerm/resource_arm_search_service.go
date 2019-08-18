@@ -85,7 +85,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
@@ -106,7 +106,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 			Name: search.SkuName(skuName),
 		},
 		ServiceProperties: &search.ServiceProperties{},
-		Tags:              expandTags(tags),
+		Tags:              tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {

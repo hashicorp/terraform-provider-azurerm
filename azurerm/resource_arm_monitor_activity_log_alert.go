@@ -180,8 +180,8 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	criteriaRaw := d.Get("criteria").([]interface{})
 	actionRaw := d.Get("action").(*schema.Set).List()
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActivityLogAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),

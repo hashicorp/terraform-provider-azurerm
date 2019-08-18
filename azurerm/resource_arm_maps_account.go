@@ -74,7 +74,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := d.Get("sku_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
@@ -95,7 +95,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		Sku: &maps.Sku{
 			Name: &sku,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {

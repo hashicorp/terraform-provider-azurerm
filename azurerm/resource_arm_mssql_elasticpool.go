@@ -219,13 +219,13 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
 		Name:     &elasticPoolName,
 		Location: &location,
 		Sku:      sku,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
 		},

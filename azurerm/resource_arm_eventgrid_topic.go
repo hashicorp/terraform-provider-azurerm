@@ -77,12 +77,12 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := eventgrid.Topic{
 		Location:        &location,
 		TopicProperties: &eventgrid.TopicProperties{},
-		Tags:            expandTags(tags),
+		Tags:            tags.Expand(t),
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)

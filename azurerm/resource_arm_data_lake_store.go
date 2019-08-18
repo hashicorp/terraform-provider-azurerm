@@ -136,13 +136,13 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	encryptionType := account.EncryptionConfigType(d.Get("encryption_type").(string))
 	firewallState := account.FirewallState(d.Get("firewall_state").(string))
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier:               account.TierType(tier),
 			FirewallState:         firewallState,
@@ -185,7 +185,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	tier := d.Get("tier").(string)
 	firewallState := account.FirewallState(d.Get("firewall_state").(string))
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	props := account.UpdateDataLakeStoreAccountParameters{
 		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
@@ -193,7 +193,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 			FirewallState:         firewallState,
 			FirewallAllowAzureIps: firewallAllowAzureIPs,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)

@@ -107,11 +107,11 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageType := d.Get("storage_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Lab{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		LabProperties: &dtl.LabProperties{
 			LabStorageType: dtl.StorageType(storageType),
 		},

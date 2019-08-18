@@ -93,7 +93,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 
 	workflowSchema := d.Get("workflow_schema").(string)
 	workflowVersion := d.Get("workflow_version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := logic.Workflow{
 		Location: utils.String(location),
@@ -106,7 +106,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			},
 			Parameters: parameters,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
@@ -158,7 +158,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := logic.Workflow{
 		Location: utils.String(location),
@@ -166,7 +166,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 			Definition: read.WorkflowProperties.Definition,
 			Parameters: parameters,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {

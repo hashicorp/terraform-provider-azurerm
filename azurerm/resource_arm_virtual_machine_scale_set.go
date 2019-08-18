@@ -776,7 +776,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
@@ -859,7 +859,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 	properties := compute.VirtualMachineScaleSet{
 		Name:                             &name,
 		Location:                         &location,
-		Tags:                             expandTags(tags),
+		Tags:                             tags.Expand(t),
 		Sku:                              sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
 		Zones:                            zones,

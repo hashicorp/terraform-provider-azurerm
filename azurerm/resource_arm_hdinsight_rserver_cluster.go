@@ -134,7 +134,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	tier := hdinsight.Tier(d.Get("tier").(string))
 
 	gatewayRaw := d.Get("gateway").([]interface{})
@@ -189,7 +189,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 				Roles: roles,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {

@@ -79,8 +79,8 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	metadata := tags.Expand(t)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)

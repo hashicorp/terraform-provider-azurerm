@@ -93,13 +93,13 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeAnalyticsAccount := account.CreateDataLakeAnalyticsAccountParameters{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		CreateDataLakeAnalyticsAccountProperties: &account.CreateDataLakeAnalyticsAccountProperties{
 			NewTier:                     account.TierType(tier),
 			DefaultDataLakeStoreAccount: &storeAccountName,
@@ -144,7 +144,7 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := &account.UpdateDataLakeAnalyticsAccountParameters{
-		Tags: expandTags(newTags),
+		Tags: tags.Expand(newTags),
 		UpdateDataLakeAnalyticsAccountProperties: &account.UpdateDataLakeAnalyticsAccountProperties{
 			NewTier: account.TierType(newTier),
 			DataLakeStoreAccounts: &[]account.UpdateDataLakeStoreWithAccountParameters{

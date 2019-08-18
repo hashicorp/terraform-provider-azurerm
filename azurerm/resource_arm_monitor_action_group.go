@@ -140,8 +140,8 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 	smsReceiversRaw := d.Get("sms_receiver").([]interface{})
 	webhookReceiversRaw := d.Get("webhook_receiver").([]interface{})
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActionGroupResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),

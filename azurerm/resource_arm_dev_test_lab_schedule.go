@@ -189,12 +189,12 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	schedule := dtl.Schedule{
 		Location:           &location,
 		ScheduleProperties: &dtl.ScheduleProperties{},
-		Tags:               expandTags(tags),
+		Tags:               tags.Expand(t),
 	}
 
 	switch status := d.Get("status"); status {

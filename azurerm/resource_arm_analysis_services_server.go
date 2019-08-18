@@ -127,14 +127,14 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
 		Name:             &name,
 		Location:         &location,
 		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
-		Tags:             expandTags(tags),
+		Tags:             tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
@@ -230,11 +230,11 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
 		Sku:                     &analysisservices.ResourceSku{Name: &sku},
-		Tags:                    expandTags(tags),
+		Tags:                    tags.Expand(t),
 		ServerMutableProperties: serverProperties,
 	}
 

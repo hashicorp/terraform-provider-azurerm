@@ -113,14 +113,14 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	}
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description:     utils.String(description),
 			SubnetOverrides: subnets,
@@ -205,14 +205,14 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description:     utils.String(description),
 			SubnetOverrides: subnets,

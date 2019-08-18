@@ -147,7 +147,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	allowClaim := d.Get("allow_claim").(bool)
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
@@ -194,7 +194,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 			StorageType:                utils.String(storageType),
 			UserName:                   utils.String(username),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)

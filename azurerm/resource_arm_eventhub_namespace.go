@@ -134,7 +134,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	kafkaEnabled := d.Get("kafka_enabled").(bool)
 
@@ -149,7 +149,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			KafkaEnabled:         utils.Bool(kafkaEnabled),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {

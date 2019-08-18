@@ -375,7 +375,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	policy := expandKeyVaultCertificatePolicy(d)
 
 	if v, ok := d.GetOk("certificate"); ok {
@@ -385,7 +385,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			Base64EncodedCertificate: utils.String(certificate.CertificateData),
 			Password:                 utils.String(certificate.CertificatePassword),
 			CertificatePolicy:        &policy,
-			Tags:                     expandTags(tags),
+			Tags:                     tags.Expand(t),
 		}
 		if _, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters); err != nil {
 			return err
@@ -394,7 +394,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		// Generate new
 		parameters := keyvault.CertificateCreateParameters{
 			CertificatePolicy: &policy,
-			Tags:              expandTags(tags),
+			Tags:              tags.Expand(t),
 		}
 		if _, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 			return err

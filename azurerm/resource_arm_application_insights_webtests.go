@@ -158,9 +158,9 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
 	testConf := d.Get("configuration").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
-	tags[tagKey] = "Resource"
+	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
 		Name:     &name,
@@ -180,7 +180,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 				WebTest: &testConf,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)

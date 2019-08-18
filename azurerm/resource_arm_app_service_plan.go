@@ -188,7 +188,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
@@ -204,7 +204,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Location:                 &location,
 		Kind:                     &kind,
 		Sku:                      &sku,
-		Tags:                     expandTags(tags),
+		Tags:                     tags.Expand(t),
 		AppServicePlanProperties: properties,
 	}
 

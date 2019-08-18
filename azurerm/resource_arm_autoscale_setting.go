@@ -382,8 +382,8 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error expanding `profile`: %+v", err)
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.AutoscaleSettingResource{
 		Location: utils.String(location),

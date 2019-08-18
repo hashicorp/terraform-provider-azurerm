@@ -104,7 +104,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
 	poolAllocationMode := d.Get("pool_allocation_mode").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -124,7 +124,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
@@ -237,7 +237,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	resourceGroup := id.ResourceGroup
 
 	storageAccountId := d.Get("storage_account_id").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
@@ -245,7 +245,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 				StorageAccountID: &storageAccountId,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.Update(ctx, resourceGroup, name, parameters); err != nil {

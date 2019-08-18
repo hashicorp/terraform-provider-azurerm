@@ -139,8 +139,8 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
 	sku := expandExpressRouteCircuitSku(d)
 	allowRdfeOps := d.Get("allow_classic_operations").(bool)
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
 	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh

@@ -76,7 +76,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	prefix_length := d.Get("prefix_length").(int)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	publicIpPrefix := network.PublicIPPrefix{
@@ -88,7 +88,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
 			PrefixLength: utils.Int32(int32(prefix_length)),
 		},
-		Tags:  expandTags(tags),
+		Tags:  tags.Expand(t),
 		Zones: zones,
 	}
 

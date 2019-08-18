@@ -79,11 +79,11 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	cdnProfile := cdn.Profile{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Sku: &cdn.Sku{
 			Name: cdn.SkuName(sku),
 		},
@@ -124,7 +124,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := cdn.ProfileUpdateParameters{
-		Tags: expandTags(newTags),
+		Tags: tags.Expand(newTags),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)

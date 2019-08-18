@@ -99,14 +99,14 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	location := "global"
 	zoneType := d.Get("zone_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	registrationVirtualNetworkIds := expandDnsZoneRegistrationVirtualNetworkIds(d)
 	resolutionVirtualNetworkIds := expandDnsZoneResolutionVirtualNetworkIds(d)
 
 	parameters := dns.Zone{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ZoneProperties: &dns.ZoneProperties{
 			ZoneType:                    dns.ZoneType(zoneType),
 			RegistrationVirtualNetworks: registrationVirtualNetworkIds,

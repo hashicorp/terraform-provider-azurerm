@@ -153,11 +153,11 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := network.ConnectionMonitor{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
 			Source:                      source,
 			Destination:                 dest,

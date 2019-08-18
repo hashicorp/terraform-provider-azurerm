@@ -201,7 +201,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
@@ -269,7 +269,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 			CreateMode:                 mariadb.CreateModeDefault,
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)

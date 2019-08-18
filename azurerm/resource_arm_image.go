@@ -191,7 +191,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	properties := compute.ImageProperties{}
 

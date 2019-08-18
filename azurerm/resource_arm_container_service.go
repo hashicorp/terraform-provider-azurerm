@@ -226,7 +226,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	agentProfiles := expandAzureRmContainerServiceAgentProfiles(d)
 	diagnosticsProfile := expandAzureRmContainerServiceDiagnostics(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := containerservice.ContainerService{
 		Name:     &name,
@@ -240,7 +240,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	servicePrincipalProfile := expandAzureRmContainerServiceServicePrincipal(d)

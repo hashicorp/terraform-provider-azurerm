@@ -397,7 +397,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmApiManagementSku(d)
 
@@ -418,7 +418,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 			Certificates:           certificates,
 			HostnameConfigurations: hostnameConfigurations,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Sku:  sku,
 	}
 

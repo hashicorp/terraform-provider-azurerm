@@ -117,12 +117,12 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
 		Value:       utils.String(value),
 		ContentType: utils.String(contentType),
-		Tags:        expandTags(tags),
+		Tags:        tags.Expand(t),
 	}
 
 	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
@@ -174,14 +174,14 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
 			Value:       utils.String(value),
 			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			Tags:        tags.Expand(t),
 		}
 
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
@@ -203,7 +203,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
 			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			Tags:        tags.Expand(t),
 		}
 
 		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {

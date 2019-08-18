@@ -151,7 +151,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
@@ -201,7 +201,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
 		},
-		Tags:  expandTags(tags),
+		Tags:  tags.Expand(t),
 		Zones: zones,
 	}
 

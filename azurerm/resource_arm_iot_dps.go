@@ -162,7 +162,7 @@ func resourceArmIotDPSCreateOrUpdate(d *schema.ResourceData, meta interface{}) e
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs: expandIoTDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iotdps)

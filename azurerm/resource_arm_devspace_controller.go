@@ -118,7 +118,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandDevSpaceControllerSku(d)
 
@@ -128,7 +128,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 
 	controller := devspaces.Controller{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Sku:      sku,
 		ControllerProperties: &devspaces.ControllerProperties{
 			HostSuffix:                           &hostSuffix,
@@ -210,10 +210,10 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	resGroupName := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	params := devspaces.ControllerUpdateParameters{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	result, err := client.Update(ctx, resGroupName, name, params)
