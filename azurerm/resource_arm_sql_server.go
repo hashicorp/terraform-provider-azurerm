@@ -167,9 +167,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {

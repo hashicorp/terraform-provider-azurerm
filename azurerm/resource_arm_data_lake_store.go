@@ -250,9 +250,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("endpoint", properties.Endpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {

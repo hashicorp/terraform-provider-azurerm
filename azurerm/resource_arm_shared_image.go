@@ -215,9 +215,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {

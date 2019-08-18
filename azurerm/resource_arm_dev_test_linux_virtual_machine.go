@@ -279,9 +279,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {

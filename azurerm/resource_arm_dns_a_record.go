@@ -136,9 +136,7 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {

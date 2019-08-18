@@ -586,13 +586,11 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting `sign_up`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("Error setting `policy`: %+v", err)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {

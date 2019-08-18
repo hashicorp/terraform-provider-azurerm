@@ -263,9 +263,7 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func expandHDInsightInteractiveQueryComponentVersion(input []interface{}) map[string]*string {

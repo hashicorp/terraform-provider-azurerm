@@ -503,9 +503,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 		d.Set("thumbprint", strings.ToUpper(hex.EncodeToString(x509Thumbprint)))
 	}
 
-	flattenAndSetTags(d, cert.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, cert.Tags)
 }
 
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {

@@ -160,9 +160,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("record", flattenAzureRmDnsSrvRecords(resp.SrvRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {

@@ -433,9 +433,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `site_config`: %s", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {

@@ -211,7 +211,6 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	if location := collection.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, collection.Tags)
 
 	//resource specific
 	if properties := collection.Properties; properties != nil {
@@ -225,7 +224,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, collection.Tags)
 }
 
 func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interface{}) error {

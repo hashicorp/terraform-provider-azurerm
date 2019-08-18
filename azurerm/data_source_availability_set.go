@@ -80,7 +80,5 @@ func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
 		}
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

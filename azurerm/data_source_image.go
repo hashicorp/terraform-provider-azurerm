@@ -202,7 +202,5 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("zone_resilient", profile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, img.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, img.Tags)
 }

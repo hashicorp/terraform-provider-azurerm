@@ -625,9 +625,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {

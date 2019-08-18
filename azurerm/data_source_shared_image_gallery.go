@@ -70,7 +70,5 @@ func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

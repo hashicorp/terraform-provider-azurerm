@@ -169,9 +169,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {

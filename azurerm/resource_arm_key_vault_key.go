@@ -343,9 +343,7 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 	// Computed
 	d.Set("version", id.Version)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {

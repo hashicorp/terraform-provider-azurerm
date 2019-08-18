@@ -109,9 +109,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {

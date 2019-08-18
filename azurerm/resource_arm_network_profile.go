@@ -194,9 +194,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, profile.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, profile.Tags)
 }
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {

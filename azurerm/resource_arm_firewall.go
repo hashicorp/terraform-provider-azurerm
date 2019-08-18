@@ -205,9 +205,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {

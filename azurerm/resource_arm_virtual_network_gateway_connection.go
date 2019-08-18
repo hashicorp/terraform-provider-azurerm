@@ -369,9 +369,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {

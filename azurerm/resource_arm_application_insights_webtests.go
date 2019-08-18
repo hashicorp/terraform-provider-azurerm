@@ -218,8 +218,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	appInsightsId := ""
-	tags := resp.Tags
-	for i := range tags {
+	for i := range resp.Tags {
 		if strings.HasPrefix(i, "hidden-link") {
 			appInsightsId = strings.Split(i, ":")[1]
 		}
@@ -250,9 +249,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {

@@ -137,9 +137,7 @@ func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) 
 	if err := d.Set("records", flattenAzureRmPrivateDnsARecords(resp.ARecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {

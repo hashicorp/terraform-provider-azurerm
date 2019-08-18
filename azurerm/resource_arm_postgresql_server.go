@@ -362,12 +362,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {

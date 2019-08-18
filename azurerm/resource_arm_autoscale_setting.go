@@ -459,9 +459,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 
 	// Return a new tag map filtered by the specified tag names.
 	tagMap := tags.Filter(resp.Tags, "$type")
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {

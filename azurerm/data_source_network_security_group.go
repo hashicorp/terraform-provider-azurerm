@@ -157,7 +157,5 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -168,9 +168,7 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta interface{}) error {

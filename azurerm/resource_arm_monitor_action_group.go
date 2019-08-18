@@ -212,9 +212,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {

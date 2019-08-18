@@ -314,9 +314,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `action`: %+v", err)
 		}
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {

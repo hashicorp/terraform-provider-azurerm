@@ -296,7 +296,5 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

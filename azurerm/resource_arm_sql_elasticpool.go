@@ -175,9 +175,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {

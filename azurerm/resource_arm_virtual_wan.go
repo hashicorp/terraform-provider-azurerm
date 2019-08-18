@@ -178,9 +178,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {

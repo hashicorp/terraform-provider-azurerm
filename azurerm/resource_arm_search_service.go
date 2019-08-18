@@ -182,9 +182,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {

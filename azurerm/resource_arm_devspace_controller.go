@@ -197,9 +197,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 	}
 
-	flattenAndSetTags(d, result.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, result.Tags)
 }
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {

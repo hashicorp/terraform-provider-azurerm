@@ -119,6 +119,5 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

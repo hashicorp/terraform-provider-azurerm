@@ -163,9 +163,7 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("record", flattenAzureRmDnsCaaRecords(resp.CaaRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {

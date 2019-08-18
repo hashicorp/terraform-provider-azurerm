@@ -123,6 +123,5 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

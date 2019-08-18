@@ -224,8 +224,8 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dsc_secondary_access_key", keys.Secondary)
 	}
 
-	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, tags)
+	if t := resp.Tags; t != nil {
+		return tags.FlattenAndSet(d, t)
 	}
 
 	return nil

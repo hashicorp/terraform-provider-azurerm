@@ -62,6 +62,5 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, vault.Tags)
-	return nil
+	return tags.FlattenAndSet(d, vault.Tags)
 }

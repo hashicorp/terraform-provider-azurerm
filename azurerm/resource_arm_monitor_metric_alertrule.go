@@ -304,9 +304,7 @@ func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interfac
 	// Return a new tag map filtered by the specified tag names.
 	tagMap := tags.Filter(resp.Tags, "$type")
 
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmMonitorMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {

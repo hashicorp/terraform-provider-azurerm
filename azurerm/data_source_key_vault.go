@@ -207,9 +207,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 // Remove in 2.0

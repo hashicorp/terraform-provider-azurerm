@@ -200,9 +200,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 		d.Set("default_store_account_name", properties.DefaultDataLakeStoreAccount)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta interface{}) error {

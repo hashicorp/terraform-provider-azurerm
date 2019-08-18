@@ -224,9 +224,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {

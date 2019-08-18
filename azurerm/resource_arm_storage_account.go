@@ -1071,8 +1071,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	queueClient := meta.(*ArmClient).storage.QueuesClient
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
@@ -1085,7 +1083,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {

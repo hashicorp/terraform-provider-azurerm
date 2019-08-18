@@ -210,9 +210,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("secondary_access_key", keys.SecondaryKey)
 	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {

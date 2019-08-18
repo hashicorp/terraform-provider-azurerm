@@ -148,9 +148,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {

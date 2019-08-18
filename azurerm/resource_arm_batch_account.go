@@ -218,9 +218,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("secondary_access_key", keys.Secondary)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {

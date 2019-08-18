@@ -76,7 +76,5 @@ func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("administrator_login", props.AdministratorLogin)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

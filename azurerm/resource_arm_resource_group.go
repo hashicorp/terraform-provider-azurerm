@@ -101,9 +101,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {

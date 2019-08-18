@@ -94,7 +94,5 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("zones", resp.Zones)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

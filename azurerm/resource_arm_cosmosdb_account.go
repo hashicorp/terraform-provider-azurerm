@@ -591,7 +591,6 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("resource_group_name", resourceGroup)
-	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
@@ -709,7 +708,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 	d.Set("connection_strings", connStrings)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {

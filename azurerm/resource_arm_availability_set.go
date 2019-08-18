@@ -152,9 +152,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {

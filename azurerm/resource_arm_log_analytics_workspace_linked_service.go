@@ -183,8 +183,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 		return fmt.Errorf("Error setting `linked_service_properties`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {

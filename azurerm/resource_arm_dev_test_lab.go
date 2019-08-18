@@ -180,9 +180,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {

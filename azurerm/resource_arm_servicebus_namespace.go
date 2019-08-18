@@ -208,9 +208,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {

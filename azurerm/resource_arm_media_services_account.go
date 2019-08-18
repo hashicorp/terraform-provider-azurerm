@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -135,9 +136,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	//flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {

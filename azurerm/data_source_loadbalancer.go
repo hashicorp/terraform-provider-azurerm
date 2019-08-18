@@ -136,9 +136,7 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {

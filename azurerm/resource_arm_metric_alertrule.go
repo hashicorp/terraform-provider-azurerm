@@ -309,9 +309,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	// Return a new tag map filtered by the specified tag names.
 	tagMap := tags.Filter(resp.Tags, "$type")
 
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {

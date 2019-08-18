@@ -137,9 +137,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("records", flattenAzureRmDnsPtrRecords(resp.PtrRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {

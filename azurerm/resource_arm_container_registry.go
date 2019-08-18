@@ -489,8 +489,6 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("admin_password", "")
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
@@ -514,7 +512,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("georeplication_locations", georeplication_locations)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {

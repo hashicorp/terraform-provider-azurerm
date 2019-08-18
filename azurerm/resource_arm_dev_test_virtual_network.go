@@ -189,9 +189,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {

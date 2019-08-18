@@ -268,9 +268,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {

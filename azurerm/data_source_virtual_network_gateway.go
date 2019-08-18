@@ -240,9 +240,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenArmVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {

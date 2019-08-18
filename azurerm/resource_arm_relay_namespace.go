@@ -239,9 +239,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {

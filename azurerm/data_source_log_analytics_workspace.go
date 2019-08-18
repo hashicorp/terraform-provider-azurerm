@@ -99,6 +99,5 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

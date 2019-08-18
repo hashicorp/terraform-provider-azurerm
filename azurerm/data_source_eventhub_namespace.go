@@ -121,7 +121,5 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

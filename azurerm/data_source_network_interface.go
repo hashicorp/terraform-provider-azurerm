@@ -257,7 +257,5 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
 	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

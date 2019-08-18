@@ -182,9 +182,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {

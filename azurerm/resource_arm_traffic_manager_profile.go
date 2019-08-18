@@ -230,9 +230,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	monitorFlat := flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig)
 	d.Set("monitor_config", schema.NewSet(resourceAzureRMTrafficManagerMonitorConfigHash, monitorFlat))
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {

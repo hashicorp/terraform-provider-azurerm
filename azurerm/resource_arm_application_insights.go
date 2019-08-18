@@ -167,9 +167,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("instrumentation_key", props.InstrumentationKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {

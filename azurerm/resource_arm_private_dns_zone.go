@@ -155,9 +155,7 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("max_number_of_virtual_network_links", resp.MaxNumberOfVirtualNetworkLinks)
 	d.Set("max_number_of_virtual_network_links_with_registration", resp.MaxNumberOfVirtualNetworkLinksWithRegistration)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {

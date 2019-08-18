@@ -203,9 +203,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration) []interface{} {

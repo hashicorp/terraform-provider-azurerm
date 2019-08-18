@@ -185,9 +185,7 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("threshold", props.Threshold)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) error {

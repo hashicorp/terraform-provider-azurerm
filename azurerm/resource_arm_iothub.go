@@ -601,9 +601,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
-	flattenAndSetTags(d, hub.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, hub.Tags)
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {

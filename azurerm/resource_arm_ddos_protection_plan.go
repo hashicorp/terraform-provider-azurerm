@@ -155,9 +155,7 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, plan.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, plan.Tags)
 }
 
 func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {

@@ -265,9 +265,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func expandHDInsightHadoopComponentVersion(input []interface{}) map[string]*string {

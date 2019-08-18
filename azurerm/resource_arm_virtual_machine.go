@@ -834,9 +834,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {

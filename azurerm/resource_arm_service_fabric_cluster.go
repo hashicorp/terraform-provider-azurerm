@@ -535,9 +535,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {

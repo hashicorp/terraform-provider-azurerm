@@ -239,9 +239,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {

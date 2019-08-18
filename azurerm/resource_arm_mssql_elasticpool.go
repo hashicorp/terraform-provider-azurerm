@@ -320,9 +320,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {

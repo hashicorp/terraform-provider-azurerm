@@ -180,9 +180,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {

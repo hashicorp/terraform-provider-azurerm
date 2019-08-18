@@ -151,9 +151,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_prefix", props.IPPrefix)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {

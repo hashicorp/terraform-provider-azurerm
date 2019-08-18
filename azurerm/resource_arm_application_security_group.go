@@ -114,9 +114,7 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {

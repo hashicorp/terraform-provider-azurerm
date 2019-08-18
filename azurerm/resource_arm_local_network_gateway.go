@@ -182,9 +182,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {

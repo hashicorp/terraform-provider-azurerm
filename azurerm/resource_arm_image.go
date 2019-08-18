@@ -309,9 +309,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {

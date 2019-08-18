@@ -1597,9 +1597,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, applicationGateway.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, applicationGateway.Tags)
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {

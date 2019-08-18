@@ -209,9 +209,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
 	}
 
-	flattenAndSetTags(d, server.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, server.Tags)
 }
 
 func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {

@@ -269,9 +269,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, loadBalancer.Tags)
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {

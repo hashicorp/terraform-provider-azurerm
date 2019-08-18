@@ -153,9 +153,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {

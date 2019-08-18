@@ -194,9 +194,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {

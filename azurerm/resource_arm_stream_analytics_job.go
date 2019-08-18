@@ -270,8 +270,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 		d.Set("transformation_query", props.Query)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {

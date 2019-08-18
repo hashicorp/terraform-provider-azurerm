@@ -204,9 +204,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta interface{}) error {

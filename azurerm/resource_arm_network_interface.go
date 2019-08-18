@@ -447,9 +447,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {

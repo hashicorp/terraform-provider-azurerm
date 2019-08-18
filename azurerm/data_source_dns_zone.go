@@ -137,9 +137,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func findZone(client *dns.ZonesClient, rgClient *resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {

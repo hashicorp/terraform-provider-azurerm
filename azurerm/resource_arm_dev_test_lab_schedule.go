@@ -306,9 +306,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {

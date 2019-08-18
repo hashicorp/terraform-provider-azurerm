@@ -236,10 +236,6 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, tags)
-	}
-
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -254,6 +250,10 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 			content := buf.String()
 			d.Set("content", content)
 		}
+	}
+
+	if t := resp.Tags; t != nil {
+		return tags.FlattenAndSet(d, t)
 	}
 
 	return nil

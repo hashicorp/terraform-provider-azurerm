@@ -326,9 +326,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_profile", diagnosticProfile)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {

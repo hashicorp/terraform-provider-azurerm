@@ -220,9 +220,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {

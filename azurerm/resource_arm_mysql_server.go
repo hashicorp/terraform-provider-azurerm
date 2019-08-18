@@ -355,12 +355,10 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {

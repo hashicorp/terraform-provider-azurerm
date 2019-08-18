@@ -149,9 +149,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {

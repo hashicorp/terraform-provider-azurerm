@@ -202,7 +202,6 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", string(resp.Kind))
-	flattenAndSetTags(d, resp.Tags)
 
 	if props := resp.DatabaseAccountProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -283,7 +282,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {

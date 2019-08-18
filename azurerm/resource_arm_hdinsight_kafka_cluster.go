@@ -264,9 +264,7 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func expandHDInsightKafkaComponentVersion(input []interface{}) map[string]*string {

@@ -1054,9 +1054,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {

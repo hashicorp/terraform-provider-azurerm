@@ -99,8 +99,6 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	flattenAndSetTags(d, collection.Tags)
-
 	//resource specific
 	if properties := collection.Properties; properties != nil {
 		if sku := properties.Sku; sku != nil {
@@ -113,5 +111,5 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, collection.Tags)
 }

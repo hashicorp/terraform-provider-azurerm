@@ -232,9 +232,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {

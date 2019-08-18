@@ -246,9 +246,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	d.Set("service_key", resp.ServiceKey)
 	d.Set("allow_classic_operations", resp.AllowClassicOperations)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {

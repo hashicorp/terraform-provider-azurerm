@@ -141,9 +141,7 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("version", parsedId.Version)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenKeyVaultKeyDataSourceOptions(input *[]string) []interface{} {

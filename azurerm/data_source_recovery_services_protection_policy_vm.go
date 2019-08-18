@@ -57,6 +57,5 @@ func dataSourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData,
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	flattenAndSetTags(d, protectionPolicy.Tags)
-	return nil
+	return tags.FlattenAndSet(d, protectionPolicy.Tags)
 }

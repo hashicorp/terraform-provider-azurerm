@@ -14,14 +14,13 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-
+// nolint: deadcode unused
 func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 	// we intentionally ignore the error here, since this method doesn't expose it
 	_ = tags.FlattenAndSet(d, tagMap)
 }
 
-// migrated
-
+// nolint: deadcode unused
 func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return tags.Expand(tagsMap)
 }

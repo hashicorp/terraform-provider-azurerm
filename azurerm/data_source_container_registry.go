@@ -109,7 +109,5 @@ func dataSourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}
 		d.Set("admin_password", "")
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

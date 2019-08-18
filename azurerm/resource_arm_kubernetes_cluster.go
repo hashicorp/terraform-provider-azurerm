@@ -804,9 +804,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {

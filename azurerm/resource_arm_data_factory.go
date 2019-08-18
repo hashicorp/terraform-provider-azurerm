@@ -261,9 +261,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {

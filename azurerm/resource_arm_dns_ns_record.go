@@ -160,9 +160,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error settings `record`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) error {

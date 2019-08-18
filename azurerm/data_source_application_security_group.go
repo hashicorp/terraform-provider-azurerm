@@ -52,7 +52,5 @@ func dataSourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta inte
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

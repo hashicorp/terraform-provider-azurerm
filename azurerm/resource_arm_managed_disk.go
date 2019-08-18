@@ -281,9 +281,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {

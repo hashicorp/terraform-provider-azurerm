@@ -416,9 +416,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData, meta interface{}) error {

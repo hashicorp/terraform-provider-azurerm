@@ -121,9 +121,7 @@ func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenGalleryImageDataSourceIdentifier(input *compute.GalleryImageIdentifier) []interface{} {

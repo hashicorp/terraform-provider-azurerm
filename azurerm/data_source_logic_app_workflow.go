@@ -88,9 +88,7 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenLogicAppDataSourceWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {

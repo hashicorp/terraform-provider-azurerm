@@ -224,9 +224,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
