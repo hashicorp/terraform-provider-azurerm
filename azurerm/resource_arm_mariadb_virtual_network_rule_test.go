@@ -261,7 +261,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name          = "${azurerm_resource_group.test.name}"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 
   sku {
@@ -336,7 +336,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name          = "${azurerm_resource_group.test.name}"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 
   sku {
@@ -398,7 +398,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name          = "${azurerm_resource_group.test.name}"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 
   sku {
@@ -475,7 +475,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name          = "${azurerm_resource_group.test.name}"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 
   sku {
