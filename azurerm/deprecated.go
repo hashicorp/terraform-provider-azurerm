@@ -14,13 +14,6 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-func tagsForDataSourceSchema() *schema.Schema {
-	return tags.SchemaDataSource()
-}
-
-func validateAzureRMTags(v interface{}, k string) (warnings []string, errors []error) {
-	return tags.Validate(v, k)
-}
 
 func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return tags.Expand(tagsMap)
@@ -32,6 +25,15 @@ func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
 }
 
 // migrated
+
+func validateAzureRMTags(v interface{}, k string) (warnings []string, errors []error) {
+	return tags.Validate(v, k)
+}
+
+// nolint: deadcode unused
+func tagsForDataSourceSchema() *schema.Schema {
+	return tags.SchemaDataSource()
+}
 
 // nolint: deadcode unused
 func tagsSchema() *schema.Schema {
