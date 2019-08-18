@@ -210,7 +210,7 @@ func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "custom_headers.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "custom_headers.Content-Type", "application/xml"),
-					resource.TestCheckResourceAttr(resourceName, "custom_headers.Last-Modified", "Tue, 15 Nov 1994 12:45:26 GMT"),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.Accept-Charset", "utf-8"),
 				),
 			},
 		},
@@ -613,7 +613,7 @@ resource "azurerm_container_registry_webhook" "test" {
 
   custom_headers = {
     "Content-Type"  = "application/xml"
-    "Last-Modified" = "Tue, 15 Nov 1994 12:45:26 GMT" 
+    "Accept-Charset" = "utf-8" 
   }
 
   actions = [
