@@ -56,6 +56,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			"status": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "enabled",
 				ValidateFunc: validation.StringInSlice([]string{
 					"enabled",
 					"disabled",
@@ -230,7 +231,9 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 	}
 
 	if webhookProps := resp.WebhookProperties; webhookProps != nil {
-		d.Set("status", string(webhookProps.Status))
+		if webhookProps.Status != "" {
+			d.Set("status", string(webhookProps.Status))
+		}
 
 		if webhookProps.Scope != nil {
 			d.Set("scope", *webhookProps.Scope)
@@ -242,6 +245,8 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("actions", webhookActions)
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -303,21 +308,24 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 		customHeaders[k] = utils.String(v.(string))
 	}
 
-	status := containerregistry.WebhookStatusEnabled
-	if s, ok := d.GetOk("status"); ok && s.(string) == "disabled" {
-		status = containerregistry.WebhookStatusDisabled
-	}
-
-	scope := d.Get("scope").(string)
-
 	actions := expandWebhookActions(d)
 
 	webhookProperties := containerregistry.WebhookPropertiesCreateParameters{
 		ServiceURI:    &serviceUri,
 		CustomHeaders: customHeaders,
-		Status:        status,
-		Scope:         &scope,
 		Actions:       actions,
+	}
+
+	if s, ok := d.GetOk("status"); ok {
+		if s.(string) == "enabled" {
+			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+		} else {
+			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+		}
+	}
+
+	if s, ok := d.GetOk("scope"); ok {
+		webhookProperties.Scope = utils.String(s.(string))
 	}
 
 	return &webhookProperties
@@ -325,26 +333,30 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 
 func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerregistry.WebhookPropertiesUpdateParameters {
 	serviceUri := d.Get("service_uri").(string)
+
 	customHeaders := make(map[string]*string)
 	for k, v := range d.Get("custom_headers").(map[string]interface{}) {
 		customHeaders[k] = utils.String(v.(string))
 	}
-
-	status := containerregistry.WebhookStatusEnabled
-	if s, ok := d.GetOk("status"); ok && s.(string) == "disabled" {
-		status = containerregistry.WebhookStatusDisabled
-	}
-
-	scope := d.Get("scope").(string)
 
 	actions := expandWebhookActions(d)
 
 	webhookProperties := containerregistry.WebhookPropertiesUpdateParameters{
 		ServiceURI:    &serviceUri,
 		CustomHeaders: customHeaders,
-		Status:        status,
-		Scope:         &scope,
 		Actions:       actions,
+	}
+
+	if s, ok := d.GetOk("status"); ok {
+		if s.(string) == "enabled" {
+			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+		} else {
+			webhookProperties.Status = containerregistry.WebhookStatusEnabled
+		}
+	}
+
+	if s, ok := d.GetOk("scope"); ok {
+		webhookProperties.Scope = utils.String(s.(string))
 	}
 
 	return &webhookProperties
