@@ -185,6 +185,38 @@ func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
+	resourceName := "azurerm_container_registry_webhook.test"
+	ri := tf.AccRandTimeInt()
+	preConfig := testAccAzureRMContainerRegistryWebhook_customHeaders(ri, testLocation())
+	postConfig := testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.Content-Type", "application/json"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.Content-Type", "application/xml"),
+					resource.TestCheckResourceAttr(resourceName, "custom_headers.Last-Modified", "Tue, 15 Nov 1994 12:45:26 GMT"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMContainerRegistryWebhook_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
@@ -516,6 +548,73 @@ resource "azurerm_container_registry_webhook" "test" {
   service_uri    = "https://mywebhookreceiver.example/mytag"
 
   scope = "mytag:4"
+
+  actions = [
+      "push"
+  ]
+}
+`, rInt, location, rInt, location, rInt, location)
+}
+
+func testAccAzureRMContainerRegistryWebhook_customHeaders(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                     = "acrwebhooktest%d"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = "%s"
+  sku                      = "Standard"
+}
+
+resource "azurerm_container_registry_webhook" "test" {
+  name                = "testwebhook%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = "%s"
+  
+  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  custom_headers = {
+    "Content-Type" = "application/json"
+  }
+
+  actions = [
+      "push"
+  ]
+}
+`, rInt, location, rInt, location, rInt, location)
+}
+
+func testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                     = "acrwebhooktest%d"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = "%s"
+  sku                      = "Standard"
+}
+
+resource "azurerm_container_registry_webhook" "test" {
+  name                = "testwebhook%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = "%s"
+  
+  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  custom_headers = {
+    "Content-Type"  = "application/xml"
+    "Last-Modified" = "Tue, 15 Nov 1994 12:45:26 GMT" 
+  }
 
   actions = [
       "push"
