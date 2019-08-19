@@ -309,7 +309,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration)); err != nil {
+				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
 					return fmt.Errorf("error setting `container_configuration`: %v", err)
 				}
 

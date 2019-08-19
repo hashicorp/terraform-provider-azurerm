@@ -193,8 +193,7 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 }
 
 // FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
-
+func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -204,25 +203,25 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 	if armContainerConfiguration.Type != nil {
 		result["type"] = *armContainerConfiguration.Type
 	}
-	result["container_registries"] = flattenBatchPoolContainerRegistries(armContainerConfiguration.ContainerRegistries)
+	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
 }
 
-func flattenBatchPoolContainerRegistries(armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+func flattenBatchPoolContainerRegistries(d *schema.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
 	results := make([]interface{}, 0)
 
 	if armContainerRegistries == nil {
 		return results
 	}
 	for _, armContainerRegistry := range *armContainerRegistries {
-		result := flattenBatchPoolContainerRegistry(&armContainerRegistry)
+		result := flattenBatchPoolContainerRegistry(d, &armContainerRegistry)
 		results = append(results, result)
 	}
 	return results
 }
 
-func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+func flattenBatchPoolContainerRegistry(d *schema.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerRegistry == nil {
@@ -234,12 +233,36 @@ func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegi
 	if userName := armContainerRegistry.UserName; userName != nil {
 		result["user_name"] = *userName
 	}
-	// We won't usually get the password back, but we include it here anyways
-	if password := armContainerRegistry.Password; password != nil {
-		result["password"] = *password
+
+	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
+	if len(result) != 2 {
+		return result
 	}
 
+	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
+
 	return result
+}
+
+func findBatchPoolContainerRegistryPassword(d *schema.ResourceData, armServer string, armUsername string) interface{} {
+	numContainerRegistries := 0
+	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
+		numContainerRegistries = n.(int)
+	} else {
+		return ""
+	}
+
+	for i := 0; i < numContainerRegistries; i++ {
+		if server, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.registry_server", i)); !ok || server != armServer {
+			continue
+		}
+		if username, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.user_name", i)); !ok || username != armUsername {
+			continue
+		}
+		return d.Get(fmt.Sprintf("container_configuration.0.container_registries.%d.password", i))
+	}
+
+	return ""
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference

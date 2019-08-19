@@ -314,8 +314,8 @@ func TestAccAzureRMBatchPool_container(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
 					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.password", "myPassword"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

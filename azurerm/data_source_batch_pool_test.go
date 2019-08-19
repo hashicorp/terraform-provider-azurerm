@@ -58,7 +58,6 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
 					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

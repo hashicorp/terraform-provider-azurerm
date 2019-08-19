@@ -80,8 +80,8 @@ EOF
     container_registries = [
       {
         registry_server = "docker.io"
-        user_name = "login"
-        password = "apassword"
+        user_name       = "login"
+        password        = "apassword"
       },
     ]
   }
@@ -260,13 +260,11 @@ A `resource_file` block supports the following:
 
 A `container_registries` block supports the following:
 
-* `registry_server` - (Optional) The container registry URL. The default is "docker.io".
+* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
-* `user_name` - (Optional) The user name to log into the registry server.
+* `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
-* `password` - (Optional) The password to log into the registry server.
-
-~> **NOTE:** Changes to the password field will not trigger a recreation of the pool, which is necessary to change container registry settings. In order to change the password for a container registry, either taint the Batch Pool and trigger an update, or manually destroy and re-create the pool.
+* `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
