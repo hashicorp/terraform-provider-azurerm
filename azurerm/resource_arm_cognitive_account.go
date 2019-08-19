@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -97,7 +98,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -141,7 +142,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountCreateParameters{
@@ -149,7 +150,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		Location:   utils.String(location),
 		Sku:        sku,
 		Properties: &cognitiveServicesPropertiesStruct{},
-		Tags:       expandTags(tags),
+		Tags:       tags.Expand(t),
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, properties); err != nil {
@@ -178,12 +179,12 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["accounts"]
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountUpdateParameters{
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	_, err = client.Update(ctx, resourceGroup, name, properties)
@@ -248,9 +249,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("secondary_access_key", keys.Key2)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {

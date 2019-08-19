@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
+* **New Resource:**  `azurerm_cosmosdb_sql_container` [GH-3871]
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+* **New Resource:** `azurerm_mariadb_virtual_network_rule` [GH-4048]
 * **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
 * **New resource:** `azurerm_virtual_wan` [GH-4089]
@@ -24,6 +26,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `enable_pod_security_policy` property [GH-4098]
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
 * `azurerm_role_assignment` - now supports management groups [GH-4063]
+* `azurerm_storage_account` - requesting an access token using the ARM Authorizer [GH-4099]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 * `azurerm_user_assigned_identity` - the `name` field can now be up to 128 characters [GH-4094]
 * `azurerm_app_service` - `filesystem` logging can now be set. #4025

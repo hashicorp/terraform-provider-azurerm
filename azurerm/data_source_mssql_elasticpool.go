@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +48,7 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"zone_redundant": {
 				Type:     schema.TypeBool,
@@ -84,7 +85,6 @@ func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{})
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, resp.Tags)
 
 	if props := resp.ElasticPoolProperties; props != nil {
 		d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
@@ -98,7 +98,5 @@ func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
