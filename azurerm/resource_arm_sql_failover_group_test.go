@@ -154,10 +154,15 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 		client := testAccProvider.Meta().(*ArmClient).sqlFailoverGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		if _, err := client.Delete(ctx, resourceGroup, serverName, name); err != nil {
+		future, err := client.Delete(ctx, resourceGroup, serverName, name)
+		if err != nil {
 			return fmt.Errorf("Bad: Delete on sqlFailoverGroupsClient: %+v", err)
 		}
 
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error deleting SQL Failover Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	
 		return nil
 	}
 }

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_sql_failover_group
 
-Create a failover group of databases on a collection of Azure SQL servers
+Create a failover group of databases on a collection of Azure SQL servers.
 
 ## Example Usage
 
@@ -72,6 +72,8 @@ The following arguments are supported:
 * `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created.
 
 * `databases` - A list of database ids to add to the failover group
+
+-> **NOTE:** The failover group will create a secondary database for each database listed in `databases`. If the secondary databases need to be managed through Terraform, they should be defined as resources and a dependency added to the failover group to ensure the secondary databases are created first.
 
 * `partner_servers` - (Required) A list of secondary servers as documented below
 
