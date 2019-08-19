@@ -54,10 +54,13 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			},
 
 			"status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "enabled",
-				ValidateFunc: validateAzureRMContainerRegistryWebhookStatus(),
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  containerregistry.WebhookStatusEnabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerregistry.WebhookStatusDisabled),
+					string(containerregistry.WebhookStatusEnabled),
+				}, false),
 			},
 
 			"scope": {
@@ -71,8 +74,14 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validateAzureRMContainerRegistryWebhookAction(),
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerregistry.ChartDelete),
+						string(containerregistry.ChartPush),
+						string(containerregistry.Delete),
+						string(containerregistry.Push),
+						string(containerregistry.Quarantine),
+					}, false),
 				},
 			},
 
@@ -106,14 +115,11 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	webhookProperties := expandWebhookPropertiesCreateParameters(d)
-
 	tags := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookCreateParameters{
 		Location:                          &location,
-		WebhookPropertiesCreateParameters: webhookProperties,
+		WebhookPropertiesCreateParameters: expandWebhookPropertiesCreateParameters(d),
 		Tags:                              expandTags(tags),
 	}
 
@@ -155,12 +161,10 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 	registryName := id.Path["registries"]
 	name := id.Path["webhooks"]
 
-	webhookProperties := expandWebhookPropertiesUpdateParameters(d)
-
 	tags := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookUpdateParameters{
-		WebhookPropertiesUpdateParameters: webhookProperties,
+		WebhookPropertiesUpdateParameters: expandWebhookPropertiesUpdateParameters(d),
 		Tags:                              expandTags(tags),
 	}
 
@@ -283,24 +287,6 @@ func validateAzureRMContainerRegistryWebhookName(v interface{}, k string) (warni
 	return warnings, errors
 }
 
-func validateAzureRMContainerRegistryWebhookStatus() schema.SchemaValidateFunc {
-	statuses := make([]string, len(containerregistry.PossibleWebhookStatusValues()))
-	for i, v := range containerregistry.PossibleWebhookStatusValues() {
-		statuses[i] = string(v)
-	}
-
-	return validation.StringInSlice(statuses, false)
-}
-
-func validateAzureRMContainerRegistryWebhookAction() schema.SchemaValidateFunc {
-	actions := make([]string, len(containerregistry.PossibleWebhookActionValues()))
-	for i, v := range containerregistry.PossibleWebhookActionValues() {
-		actions[i] = string(v)
-	}
-
-	return validation.StringInSlice(actions, false)
-}
-
 func validateAzureRMContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(value) {
@@ -313,14 +299,14 @@ func validateAzureRMContainerRegistryWebhookServiceUri(v interface{}, k string) 
 
 func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerregistry.WebhookPropertiesCreateParameters {
 	serviceUri := d.Get("service_uri").(string)
+	scope := d.Get("scope").(string)
+
 	customHeaders := make(map[string]*string)
 	for k, v := range d.Get("custom_headers").(map[string]interface{}) {
 		customHeaders[k] = utils.String(v.(string))
 	}
 
 	actions := expandWebhookActions(d)
-
-	scope := d.Get("scope").(string)
 
 	webhookProperties := containerregistry.WebhookPropertiesCreateParameters{
 		ServiceURI:    &serviceUri,
@@ -329,38 +315,26 @@ func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerr
 		Scope:         &scope,
 	}
 
-	if d.Get("status").(string) == string(containerregistry.WebhookStatusEnabled) {
-		webhookProperties.Status = containerregistry.WebhookStatusEnabled
-	} else {
-		webhookProperties.Status = containerregistry.WebhookStatusDisabled
-	}
+	webhookProperties.Status = containerregistry.WebhookStatus(d.Get("status").(string))
 
 	return &webhookProperties
 }
 
 func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerregistry.WebhookPropertiesUpdateParameters {
 	serviceUri := d.Get("service_uri").(string)
+	scope := d.Get("scope").(string)
 
 	customHeaders := make(map[string]*string)
 	for k, v := range d.Get("custom_headers").(map[string]interface{}) {
 		customHeaders[k] = utils.String(v.(string))
 	}
 
-	actions := expandWebhookActions(d)
-
-	scope := d.Get("scope").(string)
-
 	webhookProperties := containerregistry.WebhookPropertiesUpdateParameters{
 		ServiceURI:    &serviceUri,
 		CustomHeaders: customHeaders,
-		Actions:       actions,
+		Actions:       expandWebhookActions(d),
 		Scope:         &scope,
-	}
-
-	if d.Get("status").(string) == string(containerregistry.WebhookStatusEnabled) {
-		webhookProperties.Status = containerregistry.WebhookStatusEnabled
-	} else {
-		webhookProperties.Status = containerregistry.WebhookStatusDisabled
+		Status:        containerregistry.WebhookStatus(d.Get("status").(string)),
 	}
 
 	return &webhookProperties
@@ -369,18 +343,7 @@ func expandWebhookPropertiesUpdateParameters(d *schema.ResourceData) *containerr
 func expandWebhookActions(d *schema.ResourceData) *[]containerregistry.WebhookAction {
 	actions := make([]containerregistry.WebhookAction, 0)
 	for _, action := range d.Get("actions").(*schema.Set).List() {
-		switch action.(string) {
-		case "chart_delete":
-			actions = append(actions, containerregistry.ChartDelete)
-		case "chart_push":
-			actions = append(actions, containerregistry.ChartPush)
-		case "delete":
-			actions = append(actions, containerregistry.Delete)
-		case "push":
-			actions = append(actions, containerregistry.Push)
-		case "quarantine":
-			actions = append(actions, containerregistry.Quarantine)
-		}
+		actions = append(actions, containerregistry.WebhookAction(action.(string)))
 	}
 
 	return &actions
