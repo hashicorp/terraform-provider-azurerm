@@ -54,13 +54,10 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			},
 
 			"status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "enabled",
-				ValidateFunc: validation.StringInSlice([]string{
-					"enabled",
-					"disabled",
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "enabled",
+				ValidateFunc: validateAzureRMContainerRegistryWebhookStatus(),
 			},
 
 			"scope": {
@@ -74,14 +71,8 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"push",
-						"delete",
-						"quarantine",
-						"chart_push",
-						"chart_delete",
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validateAzureRMContainerRegistryWebhookAction(),
 				},
 			},
 
@@ -237,7 +228,7 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 		}
 
 		if webhookProps.Scope != nil {
-			d.Set("scope", *webhookProps.Scope)
+			d.Set("scope", webhookProps.Scope)
 		}
 
 		webhookActions := make([]string, len(*webhookProps.Actions))
@@ -290,6 +281,24 @@ func validateAzureRMContainerRegistryWebhookName(v interface{}, k string) (warni
 	}
 
 	return warnings, errors
+}
+
+func validateAzureRMContainerRegistryWebhookStatus() schema.SchemaValidateFunc {
+	statuses := make([]string, len(containerregistry.PossibleWebhookStatusValues()))
+	for i, v := range containerregistry.PossibleWebhookStatusValues() {
+		statuses[i] = string(v)
+	}
+
+	return validation.StringInSlice(statuses, false)
+}
+
+func validateAzureRMContainerRegistryWebhookAction() schema.SchemaValidateFunc {
+	actions := make([]string, len(containerregistry.PossibleActionValues()))
+	for i, v := range containerregistry.PossibleActionValues() {
+		actions[i] = string(v)
+	}
+
+	return validation.StringInSlice(actions, false)
 }
 
 func validateAzureRMContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
