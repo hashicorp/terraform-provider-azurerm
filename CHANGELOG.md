@@ -8,6 +8,12 @@ FEATURES:
 * **New Resource:** `azurerm_mariadb_virtual_network_rule` [GH-4048]
 * **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
+* **New Resource:** `azurerm_recovery_services_fabric` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_protection_container` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_replication_policy` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_protection_container_mapping` [GH-4003]
+* **New Resource:** `azurerm_recovery_network_mapping` [GH-4003]
+* **New Resource:** `azurerm_recovery_replicated_vm`  [GH-4003]
 * **New resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
