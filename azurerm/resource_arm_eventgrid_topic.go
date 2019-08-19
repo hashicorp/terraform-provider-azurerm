@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,7 +34,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -76,12 +77,12 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := eventgrid.Topic{
 		Location:        &location,
 		TopicProperties: &eventgrid.TopicProperties{},
-		Tags:            expandTags(tags),
+		Tags:            tags.Expand(t),
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
@@ -148,9 +149,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {

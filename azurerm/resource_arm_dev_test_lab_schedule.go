@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -160,7 +161,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -188,12 +189,12 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	schedule := dtl.Schedule{
 		Location:           &location,
 		ScheduleProperties: &dtl.ScheduleProperties{},
-		Tags:               expandTags(tags),
+		Tags:               tags.Expand(t),
 	}
 
 	switch status := d.Get("status"); status {
@@ -305,9 +306,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {

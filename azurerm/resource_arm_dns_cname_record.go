@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,7 +54,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -81,12 +82,12 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata: expandTags(tags),
+			Metadata: tags.Expand(t),
 			TTL:      &ttl,
 			CnameRecord: &dns.CnameRecord{
 				Cname: &record,
@@ -147,9 +148,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {

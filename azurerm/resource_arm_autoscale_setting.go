@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -343,7 +344,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -381,8 +382,8 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error expanding `profile`: %+v", err)
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.AutoscaleSettingResource{
 		Location: utils.String(location),
@@ -457,10 +458,8 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	tagMap := tags.Filter(resp.Tags, "$type")
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
