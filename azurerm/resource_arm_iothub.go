@@ -491,8 +491,8 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Location: utils.String(location),
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
-			IPFilterRules: ipFilterRules,
-			Routing:       &routingProperties,
+			IPFilterRules:                 ipFilterRules,
+			Routing:                       &routingProperties,
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
