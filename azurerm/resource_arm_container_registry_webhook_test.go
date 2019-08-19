@@ -66,7 +66,7 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_Actions(t *testing.T) {
+func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 	resourceName := "azurerm_container_registry_webhook.test"
 	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMContainerRegistryWebhook_actions(ri, testLocation())

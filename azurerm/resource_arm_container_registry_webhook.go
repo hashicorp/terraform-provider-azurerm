@@ -293,8 +293,8 @@ func validateAzureRMContainerRegistryWebhookStatus() schema.SchemaValidateFunc {
 }
 
 func validateAzureRMContainerRegistryWebhookAction() schema.SchemaValidateFunc {
-	actions := make([]string, len(containerregistry.PossibleActionValues()))
-	for i, v := range containerregistry.PossibleActionValues() {
+	actions := make([]string, len(containerregistry.PossibleWebhookActionValues()))
+	for i, v := range containerregistry.PossibleWebhookActionValues() {
 		actions[i] = string(v)
 	}
 
