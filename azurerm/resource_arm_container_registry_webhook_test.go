@@ -79,20 +79,19 @@ func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "push"),
-				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: postConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "push"),
-					resource.TestCheckResourceAttr(resourceName, "actions.1", "delete"),
-				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
