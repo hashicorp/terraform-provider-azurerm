@@ -114,7 +114,6 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
 	d.Set("recovery_vault_name", vaultName)
 	d.Set("recovery_fabric_name", fabricName)

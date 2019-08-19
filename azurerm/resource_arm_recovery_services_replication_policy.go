@@ -168,7 +168,6 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("recovery_vault_name", vaultName)
-	d.Set("location", resp.Location)
 	if a2APolicyDetails, isA2A := resp.Properties.ProviderSpecificDetails.AsA2APolicyDetails(); isA2A {
 		d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
 		d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
