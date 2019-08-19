@@ -177,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cognitive_account":                                  resourceArmCognitiveAccount(),
 		"azurerm_connection_monitor":                                 resourceArmConnectionMonitor(),
 		"azurerm_container_group":                                    resourceArmContainerGroup(),
+		"azurerm_container_registry_webhook":                         resourceArmContainerRegistryWebhook(),
 		"azurerm_container_registry":                                 resourceArmContainerRegistry(),
 		"azurerm_container_service":                                  resourceArmContainerService(),
 		"azurerm_cosmosdb_account":                                   resourceArmCosmosDbAccount(),
