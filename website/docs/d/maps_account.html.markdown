@@ -37,7 +37,7 @@ output "maps_account_id" {
 
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 
-* `secondary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs. The second key is given to provide seemless key regeneration.
+* `secondary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs. The second key is given to provide seamless key regeneration.
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
 
