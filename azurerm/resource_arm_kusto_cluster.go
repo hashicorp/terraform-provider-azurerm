@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +46,7 @@ func resourceArmKustoCluster() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateAzureRMKustoClusterSkuName,
+							ValidateFunc: validateAzureRMKustoClusterSkuName(),
 						},
 
 						"capacity": {
@@ -60,6 +61,16 @@ func resourceArmKustoCluster() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"data_ingestion_uri": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tagsSchema(),
@@ -138,7 +149,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Path["Clusters"]
 
 	clusterResponse, err := client.Get(ctx, resourceGroup, name)
 
@@ -157,18 +168,20 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if sku := clusterResponse.Sku; sku != nil {
-		d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
+	d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
+
+	clusterProperties := clusterResponse.ClusterProperties
+
+	if clusterProperties.TrustedExternalTenants != nil {
+		trustedTenantIds := make([]string, len(*clusterProperties.TrustedExternalTenants))
+		for i, tenant := range *clusterProperties.TrustedExternalTenants {
+			trustedTenantIds[i] = *tenant.Value
+		}
+		d.Set("trusted_external_tenants", trustedTenantIds)
 	}
 
-	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
-		if clusterProperties.TrustedExternalTenants != nil {
-			trustedTenantIds := make([]string, len(*clusterProperties.TrustedExternalTenants))
-			for i, tenant := range *clusterProperties.TrustedExternalTenants {
-				trustedTenantIds[i] = *tenant.Value
-			}
-		}
-	}
+	d.Set("uri", clusterProperties.URI)
+	d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 
 	flattenAndSetTags(d, clusterResponse.Tags)
 
@@ -213,35 +226,24 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func validateAzureRMKustoClusterSkuName(v interface{}, k string) (warnings []string, errors []error) {
-	skuName := v.(string)
-	skuParts := strings.Split(skuName, "_")
-
-	if len(skuParts) != 2 {
-		errors = append(errors, fmt.Errorf("%q must be in this format: TIER_NAMEs but is: %q", k, skuName))
-		return warnings, errors
+func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
+	// using hard coded values because they're not like this in the sdk as constants
+	// found them here: https://docs.microsoft.com/en-us/rest/api/azurerekusto/clusters/createorupdate#azureskuname
+	possibleSkuNames := []string{
+		"Standard_D11_v2",
+		"Standard_D12_v2",
+		"Standard_D13_v2",
+		"Standard_D14_v2",
+		"Standard_DS13_v2+1TB_PS",
+		"Standard_DS13_v2+2TB_PS",
+		"Standard_DS14_v2+3TB_PS",
+		"Standard_DS14_v2+4TB_PS",
+		"Standard_L16s",
+		"Standard_L4s",
+		"Standard_L8s",
 	}
 
-	if skuParts[0] != "Standard" {
-		errors = append(errors, fmt.Errorf("possible tiers in %q is \"Standard\" but is: %q", k, skuParts[0]))
-	}
-
-	skuIsValid := false
-	for _, sku := range kusto.PossibleAzureSkuNameValues() {
-		if string(sku)+"s" == skuParts[1] {
-			skuIsValid = true
-		}
-	}
-
-	if !skuIsValid {
-		possibleSkuNames := make([]string, len(kusto.PossibleAzureSkuNameValues()))
-		for i, sku := range kusto.PossibleAzureSkuNameValues() {
-			possibleSkuNames[i] = string(sku)
-		}
-		errors = append(errors, fmt.Errorf("possible name in %q is one of \"%q\" but is: %q", k, strings.Join(possibleSkuNames, "\", \""), skuParts[1]))
-	}
-
-	return warnings, errors
+	return validation.StringInSlice(possibleSkuNames, false)
 }
 
 func expandKustoClusterSku(d *schema.ResourceData) *kusto.AzureSku {
