@@ -83,11 +83,11 @@ The following arguments are supported:
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `custom_rules` - (Optional) One or more `custom_rule` block defined below.
+* `custom_rules` - (Optional) One or more `custom_rule` blocks as defined below.
 
-* `policy_settings` - (Optional) One `policy_setting` block defined below.
+* `policy_settings` - (Optional) A `policy_setting` block as defined below.
 
-* `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
 ---
 
@@ -97,7 +97,7 @@ The `custom_rule` block supports the following:
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value
 
-* `rule_type` - (Required) Describes type of rule
+* `rule_type` - (Required) Describes the type of rule
 
 * `match_conditions` - (Required) One or more `match_condition` block defined below.
 
@@ -121,7 +121,7 @@ The `match_condition` block supports the following:
 
 The `match_variable` block supports the following:
 
-* `variable_name` - (Required) Match Variable
+* `variable_name` - (Required) The name of the Match Variable
 
 * `selector` - (Optional) Describes field of the matchVariable collection
 
@@ -131,7 +131,7 @@ The `policy_setting` block supports the following:
 
 * `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
 
-* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at policy level Defaults to `Prevention`.
+* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level Defaults to `Prevention`.
 
 ## Attributes Reference
 
