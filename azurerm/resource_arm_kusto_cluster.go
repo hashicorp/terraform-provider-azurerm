@@ -2,14 +2,14 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,15 +45,7 @@ func resourceArmKustoCluster() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateAzureRMKustoClusterSkuName(),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Standard",
-							}, true),
+							ValidateFunc: validateAzureRMKustoClusterSkuName,
 						},
 
 						"capacity": {
@@ -165,7 +157,9 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
+	if sku := clusterResponse.Sku; sku != nil {
+		d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
+	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
 		if clusterProperties.TrustedExternalTenants != nil {
@@ -208,7 +202,7 @@ func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) err
 func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
-	if regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
+	if !regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
 		errors = append(errors, fmt.Errorf("%q must begin with a letter and may only contain alphanumeric characters: %q", k, name))
 	}
 
@@ -219,13 +213,35 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
-	skuNames := make([]string, len(kusto.PossibleAzureSkuNameValues()))
-	for i, skuName := range kusto.PossibleAzureSkuNameValues() {
-		skuNames[i] = string(skuName)
+func validateAzureRMKustoClusterSkuName(v interface{}, k string) (warnings []string, errors []error) {
+	skuName := v.(string)
+	skuParts := strings.Split(skuName, "_")
+
+	if len(skuParts) != 2 {
+		errors = append(errors, fmt.Errorf("%q must be in this format: TIER_NAMEs but is: %q", k, skuName))
+		return warnings, errors
 	}
 
-	return validation.StringInSlice(skuNames, false)
+	if skuParts[0] != "Standard" {
+		errors = append(errors, fmt.Errorf("possible tiers in %q is \"Standard\" but is: %q", k, skuParts[0]))
+	}
+
+	skuIsValid := false
+	for _, sku := range kusto.PossibleAzureSkuNameValues() {
+		if string(sku)+"s" == skuParts[1] {
+			skuIsValid = true
+		}
+	}
+
+	if !skuIsValid {
+		possibleSkuNames := make([]string, len(kusto.PossibleAzureSkuNameValues()))
+		for i, sku := range kusto.PossibleAzureSkuNameValues() {
+			possibleSkuNames[i] = string(sku)
+		}
+		errors = append(errors, fmt.Errorf("possible name in %q is one of \"%q\" but is: %q", k, strings.Join(possibleSkuNames, "\", \""), skuParts[1]))
+	}
+
+	return warnings, errors
 }
 
 func expandKustoClusterSku(d *schema.ResourceData) *kusto.AzureSku {
@@ -233,7 +249,7 @@ func expandKustoClusterSku(d *schema.ResourceData) *kusto.AzureSku {
 
 	sku := skuList[0].(map[string]interface{})
 	name := sku["name"].(string)
-	tier := sku["tier"].(string)
+	tier := strings.Split(sku["name"].(string), "_")[0]
 
 	azureSku := &kusto.AzureSku{
 		Name: kusto.AzureSkuName(name),
@@ -241,7 +257,7 @@ func expandKustoClusterSku(d *schema.ResourceData) *kusto.AzureSku {
 	}
 
 	if capacity, ok := sku["capacity"]; ok {
-		azureSku.Capacity = utils.Int32(capacity.(int32))
+		azureSku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
 
 	return azureSku
@@ -269,7 +285,7 @@ func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 		map[string]interface{}{
 			"name":     string((*sku).Name),
 			"tier":     *(*sku).Tier,
-			"capacity": (*sku).Capacity,
+			"capacity": utils.Int(int(*(*sku).Capacity)),
 		},
 	}
 }
