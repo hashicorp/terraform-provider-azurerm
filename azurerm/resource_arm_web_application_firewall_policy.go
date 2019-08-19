@@ -105,7 +105,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 											string(network.WebApplicationFirewallOperatorRegex),
 										}, false),
 									},
-									"negation_conditon": {
+									"negation_condition": {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
@@ -325,13 +325,13 @@ func expandArmWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[
 		v := item.(map[string]interface{})
 		matchVariables := v["match_variables"].([]interface{})
 		operator := v["operator"].(string)
-		negationConditon := v["negation_conditon"].(bool)
+		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
 
 		result := network.MatchCondition{
 			MatchValues:      utils.ExpandStringSlice(matchValues),
 			MatchVariables:   expandArmWebApplicationFirewallPolicyMatchVariable(matchVariables),
-			NegationConditon: utils.Bool(negationConditon),
+			NegationConditon: utils.Bool(negationCondition),
 			Operator:         network.WebApplicationFirewallOperator(operator),
 		}
 
@@ -406,8 +406,8 @@ func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.Match
 
 		v["match_values"] = utils.FlattenStringSlice(item.MatchValues)
 		v["match_variables"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
-		if negationConditon := item.NegationConditon; negationConditon != nil {
-			v["negation_conditon"] = *negationConditon
+		if negationCondition := item.NegationConditon; negationCondition != nil {
+			v["negation_condition"] = *negationCondition
 		}
 		v["operator"] = string(item.Operator)
 

@@ -57,7 +57,7 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.1", "10.0.0.0/24"),
@@ -69,14 +69,14 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_values.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.0.variable_name", "RequestHeaders"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.0.selector", "UserAgent"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.action", "Block"),
@@ -119,7 +119,7 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.0.match_conditions.0.match_values.1", "10.0.0.0/24"),
@@ -131,14 +131,14 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.0.match_values.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.0.variable_name", "RequestHeaders"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_variables.0.selector", "UserAgent"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
-					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.negation_conditon", "false"),
+					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.action", "Block"),
@@ -233,9 +233,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
         variable_name = "RemoteAddr"
       }
 
-      operator          = "IPMatch"
-      negation_conditon = false
-      match_values      = ["192.168.1.0/24", "10.0.0.0/24"]
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
 
     action = "Block"
@@ -251,9 +251,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
         variable_name = "RemoteAddr"
       }
 
-      operator          = "IPMatch"
-      negation_conditon = false
-      match_values      = ["192.168.1.0/24"]
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
     }
 
     match_conditions {
@@ -262,9 +262,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
         selector      = "UserAgent"
       }
 
-      operator          = "Contains"
-      negation_conditon = false
-      match_values      = ["Windows"]
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["Windows"]
     }
 
     action = "Block"

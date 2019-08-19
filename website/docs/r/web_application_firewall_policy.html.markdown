@@ -34,9 +34,9 @@ resource "azurerm_web_application_firewall_policy" "example" {
         variable_name = "RemoteAddr"
       }
 
-      operator          = "IPMatch"
-      negation_conditon = false
-      match_values      = ["192.168.1.0/24", "10.0.0.0/24"]
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
 
     action = "Block"
@@ -52,9 +52,9 @@ resource "azurerm_web_application_firewall_policy" "example" {
         variable_name = "RemoteAddr"
       }
 
-      operator          = "IPMatch"
-      negation_conditon = false
-      match_values      = ["192.168.1.0/24"]
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
     }
 
     match_conditions {
@@ -63,9 +63,9 @@ resource "azurerm_web_application_firewall_policy" "example" {
         selector      = "UserAgent"
       }
 
-      operator          = "Contains"
-      negation_conditon = false
-      match_values      = ["Windows"]
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["Windows"]
     }
 
     action = "Block"
@@ -112,7 +112,7 @@ The `match_condition` block supports the following:
 
 * `operator` - (Required) Describes operator to be matched
 
-* `negation_conditon` - (Optional) Describes if this is negate condition or not
+* `negation_condition` - (Optional) Describes if this is negate condition or not
 
 * `match_values` - (Required) Match value
 
