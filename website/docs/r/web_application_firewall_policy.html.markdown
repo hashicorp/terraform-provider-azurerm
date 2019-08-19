@@ -3,13 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_application_firewall_policy"
 sidebar_current: "docs-azurerm-resource-web-application-firewall-policy"
 description: |-
-  Manage a Azure WebApplicationFirewallPolicy instance.
+  Manage a Azure Web Application Firewall Policy instance.
 ---
 
 # azurerm_web_application_firewall_policy
 
-Manage a Azure WebApplicationFirewallPolicy instance.
-
+Manage a Azure Web Application Firewall Policy instance.
 
 ## Example Usage
 
@@ -103,7 +102,6 @@ The `custom_rule` block supports the following:
 
 * `action` - (Required) Type of Actions
 
-
 ---
 
 The `match_condition` block supports the following:
@@ -115,7 +113,6 @@ The `match_condition` block supports the following:
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
 * `match_values` - (Required) Match value
-
 
 ---
 
@@ -138,7 +135,6 @@ The `policy_setting` block supports the following:
 The following attributes are exported:
 
 * `id` - Resource ID.
-
 
 ## Import
 
