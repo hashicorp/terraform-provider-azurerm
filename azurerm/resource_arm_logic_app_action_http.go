@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 func resourceArmLogicAppActionHTTP() *schema.Resource {
@@ -183,7 +184,7 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 	headers := make(map[string]string)
 
 	for i, v := range headersRaw {
-		value, err := tagValueToString(v)
+		value, err := tags.TagValueToString(v)
 		if err != nil {
 			return nil, err
 		}

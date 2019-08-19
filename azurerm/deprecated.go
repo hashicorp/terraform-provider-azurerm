@@ -14,42 +14,46 @@ import (
 
 var requireResourcesToBeImported = flags.RequireResourcesToBeImported
 
-func tagsSchema() *schema.Schema {
-	return tags.Schema()
+// nolint: deadcode unused
+func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
+	// we intentionally ignore the error here, since this method doesn't expose it
+	_ = tags.FlattenAndSet(d, tagMap)
 }
 
-func tagsForceNewSchema() *schema.Schema {
-	return tags.ForceNewSchema()
-}
-
-func tagsForDataSourceSchema() *schema.Schema {
-	return tags.DataSourceSchema()
-}
-
-func tagValueToString(v interface{}) (string, error) {
-	return tags.TagValueToString(v)
+// nolint: deadcode unused
+func expandTags(tagsMap map[string]interface{}) map[string]*string {
+	return tags.Expand(tagsMap)
 }
 
 func validateAzureRMTags(v interface{}, k string) (warnings []string, errors []error) {
 	return tags.Validate(v, k)
 }
 
-func expandTags(tagsMap map[string]interface{}) map[string]*string {
-	return tags.Expand(tagsMap)
+// nolint: deadcode unused
+func tagsForDataSourceSchema() *schema.Schema {
+	return tags.SchemaDataSource()
 }
 
+// nolint: deadcode unused
+func tagsSchema() *schema.Schema {
+	return tags.Schema()
+}
+
+// nolint: deadcode unused
 func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
 	return tags.Filter(tagsMap, tagNames...)
 }
 
-func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
-	// we intentionally ignore the error here, since this method doesn't expose it
-	_ = tags.FlattenAndSet(d, tagMap)
+// nolint: deadcode unused
+func tagValueToString(v interface{}) (string, error) {
+	return tags.TagValueToString(v)
 }
 
-// migrated
-
 // nolint: deadcode unused
+func tagsForceNewSchema() *schema.Schema {
+	return tags.ForceNewSchema()
+}
+
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
 }

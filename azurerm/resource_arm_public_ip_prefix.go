@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,7 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 
 			"zones": azure.SchemaSingleZone(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -75,7 +76,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	prefix_length := d.Get("prefix_length").(int)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	publicIpPrefix := network.PublicIPPrefix{
@@ -87,7 +88,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
 			PrefixLength: utils.Int32(int32(prefix_length)),
 		},
-		Tags:  expandTags(tags),
+		Tags:  tags.Expand(t),
 		Zones: zones,
 	}
 
@@ -150,9 +151,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_prefix", props.IPPrefix)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {

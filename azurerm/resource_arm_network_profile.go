@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -78,7 +79,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -106,7 +107,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
 	if err != nil {
@@ -129,7 +130,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 
 	parameters := network.Profile{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ProfilePropertiesFormat: &network.ProfilePropertiesFormat{
 			ContainerNetworkInterfaceConfigurations: cniConfigs,
 		},
@@ -193,9 +194,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, profile.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, profile.Tags)
 }
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
