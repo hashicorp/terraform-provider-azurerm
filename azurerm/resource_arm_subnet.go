@@ -94,7 +94,7 @@ func resourceArmSubnet() *schema.Resource {
 											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
-											"Microsoft.Databricks/workspaces"
+											"Microsoft.Databricks/workspaces",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.Netapp/volumes",
