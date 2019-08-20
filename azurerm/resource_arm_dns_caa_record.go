@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,7 +75,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -101,12 +102,12 @@ func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata:   expandTags(tags),
+			Metadata:   tags.Expand(t),
 			TTL:        &ttl,
 			CaaRecords: expandAzureRmDnsCaaRecords(d),
 		},
@@ -162,9 +163,7 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("record", flattenAzureRmDnsCaaRecords(resp.CaaRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {

@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
@@ -47,7 +48,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"sku": {
 				Type:             schema.TypeString,
@@ -131,7 +132,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
 
@@ -150,7 +151,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 
 	collection := scheduler.JobCollectionDefinition{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Properties: &scheduler.JobCollectionProperties{
 			Sku: &scheduler.Sku{
 				Name: scheduler.SkuDefinition(d.Get("sku").(string)),
@@ -210,7 +211,6 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	if location := collection.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, collection.Tags)
 
 	//resource specific
 	if properties := collection.Properties; properties != nil {
@@ -224,7 +224,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, collection.Tags)
 }
 
 func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interface{}) error {

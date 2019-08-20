@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,7 +82,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -112,7 +113,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	targetRegions := expandSharedImageVersionTargetRegions(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	version := compute.GalleryImageVersion{
 		Location: utils.String(location),
@@ -127,7 +128,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 				},
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
@@ -201,9 +202,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {

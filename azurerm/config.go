@@ -298,11 +298,14 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	}
 
 	// Storage Endpoints
-	storageEndpoint := env.ResourceIdentifiers.Storage
-	storageAuth, err := c.GetAuthorizationToken(sender, oauthConfig, storageEndpoint)
-	if err != nil {
-		return nil, err
-	}
+	storageAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
+		storageSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
+		if err != nil {
+			return nil, err
+		}
+
+		return storageSpt, nil
+	})
 
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {

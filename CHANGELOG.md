@@ -3,10 +3,19 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_virtual_network` [GH-3746]
+* **New Resource:** `azurerm_cosmosdb_sql_container` [GH-3871]
+* **New Resource:** `azurerm_container_registry_webhook` [GH-4112]
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
+* **New Resource:** `azurerm_mariadb_virtual_network_rule` [GH-4048]
 * **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
-* **New resource:** `azurerm_virtual_wan` [GH-4089]
+* **New Resource:** `azurerm_recovery_services_fabric` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_protection_container` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_replication_policy` [GH-4003]
+* **New Resource:** `azurerm_recovery_services_protection_container_mapping` [GH-4003]
+* **New Resource:** `azurerm_recovery_network_mapping` [GH-4003]
+* **New Resource:** `azurerm_recovery_replicated_vm`  [GH-4003]
+* **New Resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
 
@@ -15,6 +24,7 @@ IMPROVEMENTS:
 * dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
+* `azurerm_app_service` - `filesystem` logging can now be set. [GH-4025]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
@@ -24,10 +34,9 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `enable_pod_security_policy` property [GH-4098]
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
 * `azurerm_role_assignment` - now supports management groups [GH-4063]
+* `azurerm_storage_account` - requesting an access token using the ARM Authorizer [GH-4099]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 * `azurerm_user_assigned_identity` - the `name` field can now be up to 128 characters [GH-4094]
-* `azurerm_app_service` - `filesystem` logging can now be set. #4025
-
 
 BUG FIXES: 
 
@@ -48,7 +57,7 @@ BUG FIXES:
 * `azurerm_api_management_backend` - ensuring a nil `certificates` object is sent to the API instead of an empty one ([#3931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3931))
 * `azurerm_api_managment_product` - additional validation for `approval_required` ([#3945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3945))
 * `azurerm_network_ddos_protection_plan` - correctly decodes the resource ID on read/delete ([#3975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3975))
-* `aurerm_dev_test_virtual_network` - generate subnet IDs in the correct format ([#3717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3717))
+* `azurerm_dev_test_virtual_network` - generate subnet IDs in the correct format ([#3717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3717))
 * `azurerm_iot_dps` fixed deletion issue when using a service principal ([#3973](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3973))
 * `azurerm_kubernetes_cluster` - the `load_balancer_sku` property is now case insensitive ([#3958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3958))
 * `azurerm_postgresql_server` - add missing support for version `11.0` ([#3970](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3970))

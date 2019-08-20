@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -248,7 +249,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 
@@ -349,7 +350,5 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -1,7 +1,7 @@
-// Package authorization implements the Azure ARM Authorization service API version .
+// Package siterecovery implements the Azure ARM Siterecovery service API version 2016-08-10.
 //
 //
-package authorization
+package siterecovery
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,27 +25,31 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Authorization
+	// DefaultBaseURI is the default URI used for the service Siterecovery
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Authorization.
+// BaseClient is the base client for Siterecovery.
 type BaseClient struct {
 	autorest.Client
-	BaseURI        string
-	SubscriptionID string
+	BaseURI           string
+	SubscriptionID    string
+	ResourceGroupName string
+	ResourceName      string
 }
 
 // New creates an instance of the BaseClient client.
-func New(subscriptionID string) BaseClient {
-	return NewWithBaseURI(DefaultBaseURI, subscriptionID)
+func New(subscriptionID string, resourceGroupName string, resourceName string) BaseClient {
+	return NewWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
 // NewWithBaseURI creates an instance of the BaseClient client.
-func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
+func NewWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) BaseClient {
 	return BaseClient{
-		Client:         autorest.NewClientWithUserAgent(UserAgent()),
-		BaseURI:        baseURI,
-		SubscriptionID: subscriptionID,
+		Client:            autorest.NewClientWithUserAgent(UserAgent()),
+		BaseURI:           baseURI,
+		SubscriptionID:    subscriptionID,
+		ResourceGroupName: resourceGroupName,
+		ResourceName:      resourceName,
 	}
 }
