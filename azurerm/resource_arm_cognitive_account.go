@@ -59,6 +59,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"Emotion",
 					"Face",
 					"LUIS",
+					"QnAMaker",
 					"Recommendations",
 					"SpeakerRecognition",
 					"Speech",
