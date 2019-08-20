@@ -50,17 +50,12 @@ func resourceArmKustoCluster() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 					},
 				},
-			},
-
-			"trusted_external_tenants": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"uri": {
@@ -102,9 +97,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	sku := expandKustoClusterSku(d)
+	err, sku := expandKustoClusterSku(d)
+	if err != nil {
+		return err
+	}
 
-	clusterProperties := expandKustoClusterProperties(d)
+	clusterProperties := kusto.ClusterProperties{}
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -112,17 +110,17 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		Name:              &name,
 		Location:          &location,
 		Sku:               sku,
-		ClusterProperties: clusterProperties,
+		ClusterProperties: &clusterProperties,
 		Tags:              expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for completion of Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, getDetailsErr := client.Get(ctx, resourceGroup, name)
@@ -171,14 +169,6 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
 
 	clusterProperties := clusterResponse.ClusterProperties
-
-	if clusterProperties.TrustedExternalTenants != nil {
-		trustedTenantIds := make([]string, len(*clusterProperties.TrustedExternalTenants))
-		for i, tenant := range *clusterProperties.TrustedExternalTenants {
-			trustedTenantIds[i] = *tenant.Value
-		}
-		d.Set("trusted_external_tenants", trustedTenantIds)
-	}
 
 	d.Set("uri", clusterProperties.URI)
 	d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
@@ -230,6 +220,7 @@ func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
 	// using hard coded values because they're not like this in the sdk as constants
 	// found them here: https://docs.microsoft.com/en-us/rest/api/azurerekusto/clusters/createorupdate#azureskuname
 	possibleSkuNames := []string{
+		"Dev(No SLA)_Standard_D11_v2",
 		"Standard_D11_v2",
 		"Standard_D12_v2",
 		"Standard_D13_v2",
@@ -246,48 +237,42 @@ func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
 	return validation.StringInSlice(possibleSkuNames, false)
 }
 
-func expandKustoClusterSku(d *schema.ResourceData) *kusto.AzureSku {
+func expandKustoClusterSku(d *schema.ResourceData) (error, *kusto.AzureSku) {
 	skuList := d.Get("sku").([]interface{})
 
 	sku := skuList[0].(map[string]interface{})
 	name := sku["name"].(string)
-	tier := strings.Split(sku["name"].(string), "_")[0]
+
+	skuNamePrefixToTier := map[string]string{
+		"Dev(No SLA)": "Basic",
+		"Standard":    "Standard",
+	}
+
+	skuNamePrefix := strings.Split(sku["name"].(string), "_")[0]
+	tier, ok := skuNamePrefixToTier[skuNamePrefix]
+	if !ok {
+		return fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix), nil
+	}
+	capacity := sku["capacity"].(int)
 
 	azureSku := &kusto.AzureSku{
-		Name: kusto.AzureSkuName(name),
-		Tier: &tier,
+		Name:     kusto.AzureSkuName(name),
+		Tier:     &tier,
+		Capacity: utils.Int32(int32(capacity)),
 	}
 
-	if capacity, ok := sku["capacity"]; ok {
-		azureSku.Capacity = utils.Int32(int32(capacity.(int)))
-	}
-
-	return azureSku
-}
-
-func expandKustoClusterProperties(d *schema.ResourceData) *kusto.ClusterProperties {
-	clusterProperties := kusto.ClusterProperties{}
-
-	tenantIds := d.Get("trusted_external_tenants").(*schema.Set)
-	if len(tenantIds.List()) > 0 {
-		trustedTenants := make([]kusto.TrustedExternalTenant, 0)
-
-		for _, tenantId := range tenantIds.List() {
-			trustedTenants = append(trustedTenants, kusto.TrustedExternalTenant{Value: utils.String(tenantId.(string))})
-		}
-
-		clusterProperties.TrustedExternalTenants = &trustedTenants
-	}
-
-	return &clusterProperties
+	return nil, azureSku
 }
 
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"name":     string((*sku).Name),
-			"tier":     *(*sku).Tier,
-			"capacity": utils.Int(int(*(*sku).Capacity)),
-		},
+	flattenedSku := map[string]interface{}{
+		"name": string((*sku).Name),
+		"tier": *(*sku).Tier,
 	}
+
+	if sku.Capacity != nil {
+		flattenedSku["capacity"] = utils.Int(int(*(*sku).Capacity))
+	}
+
+	return []interface{}{flattenedSku}
 }
