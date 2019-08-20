@@ -15,6 +15,7 @@ FEATURES:
 * **New Resource:** `azurerm_recovery_services_protection_container_mapping` [GH-4003]
 * **New Resource:** `azurerm_recovery_network_mapping` [GH-4003]
 * **New Resource:** `azurerm_recovery_replicated_vm`  [GH-4003]
+* **New Resource:** `azurerm_sql_failover_group` [GH-3901]
 * **New Resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
