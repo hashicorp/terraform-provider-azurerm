@@ -172,7 +172,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

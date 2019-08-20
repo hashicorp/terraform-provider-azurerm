@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -139,7 +141,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 						"vm_size": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -187,7 +189,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -224,7 +226,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	agentProfiles := expandAzureRmContainerServiceAgentProfiles(d)
 	diagnosticsProfile := expandAzureRmContainerServiceDiagnostics(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := containerservice.ContainerService{
 		Name:     &name,
@@ -238,7 +240,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	servicePrincipalProfile := expandAzureRmContainerServiceServicePrincipal(d)
@@ -279,7 +281,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
 	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -324,16 +326,14 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_profile", diagnosticProfile)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	containerServiceClient := client.containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

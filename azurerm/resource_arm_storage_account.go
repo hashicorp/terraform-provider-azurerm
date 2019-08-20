@@ -16,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -67,7 +69,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_tier": {
@@ -78,7 +80,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"Standard",
 					"Premium",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_replication_type": {
@@ -90,7 +92,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"GRS",
 					"RAGRS",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -112,7 +114,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"custom_domain": {
@@ -587,7 +589,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
 		}
 
-		value, err := tagValueToString(v)
+		value, err := tags.TagValueToString(v)
 		if err != nil {
 			errors = append(errors, err)
 		} else if len(value) > 256 {
@@ -621,7 +623,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
@@ -637,7 +639,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			Encryption: &storage.Encryption{
@@ -755,7 +757,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).storageServiceClient
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -808,10 +810,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		tags := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]interface{})
 
 		opts := storage.AccountUpdateParameters{
-			Tags: expandTags(tags),
+			Tags: tags.Expand(t),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -947,7 +949,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1069,8 +1071,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	queueClient := meta.(*ArmClient).storage.QueuesClient
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
@@ -1083,14 +1083,14 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1116,7 +1116,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					id, err2 := azure.ParseAzureResourceID(*v.VirtualNetworkResourceID)
 					if err2 != nil {
 						return err2
 					}
@@ -1128,8 +1128,8 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

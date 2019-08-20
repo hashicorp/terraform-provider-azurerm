@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -158,7 +159,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -187,7 +188,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
@@ -203,7 +204,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Location:                 &location,
 		Kind:                     &kind,
 		Sku:                      &sku,
-		Tags:                     expandTags(tags),
+		Tags:                     tags.Expand(t),
 		AppServicePlanProperties: properties,
 	}
 
@@ -257,7 +258,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicePlansClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -320,16 +321,14 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

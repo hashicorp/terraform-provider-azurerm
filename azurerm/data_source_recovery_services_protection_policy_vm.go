@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,14 +23,15 @@ func dataSourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 			},
 
 			"recovery_vault_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -56,6 +58,5 @@ func dataSourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData,
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	flattenAndSetTags(d, protectionPolicy.Tags)
-	return nil
+	return tags.FlattenAndSet(d, protectionPolicy.Tags)
 }

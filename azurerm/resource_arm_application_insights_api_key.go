@@ -77,7 +77,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := parseAzureResourceID(appInsightsID)
+	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

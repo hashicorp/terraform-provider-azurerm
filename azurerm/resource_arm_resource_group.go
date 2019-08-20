@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -29,7 +30,7 @@ func resourceArmResourceGroup() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -40,7 +41,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -57,7 +58,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 
 	parameters := resources.Group{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
@@ -78,7 +79,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
@@ -100,16 +101,14 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return false, fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
@@ -132,7 +131,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}

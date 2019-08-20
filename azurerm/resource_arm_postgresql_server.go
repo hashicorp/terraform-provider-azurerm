@@ -7,6 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -183,7 +184,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -215,7 +216,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	createMode := "Default"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -244,7 +245,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			CreateMode:                 postgresql.CreateMode(createMode),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -284,7 +285,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	version := d.Get("version").(string)
 	sku := expandAzureRmPostgreSQLServerSku(d)
 	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
@@ -294,7 +295,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -324,7 +325,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -361,19 +362,17 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

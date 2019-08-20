@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 )
@@ -178,12 +177,14 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cognitive_account":                                  resourceArmCognitiveAccount(),
 		"azurerm_connection_monitor":                                 resourceArmConnectionMonitor(),
 		"azurerm_container_group":                                    resourceArmContainerGroup(),
+		"azurerm_container_registry_webhook":                         resourceArmContainerRegistryWebhook(),
 		"azurerm_container_registry":                                 resourceArmContainerRegistry(),
 		"azurerm_container_service":                                  resourceArmContainerService(),
 		"azurerm_cosmosdb_account":                                   resourceArmCosmosDbAccount(),
 		"azurerm_cosmosdb_cassandra_keyspace":                        resourceArmCosmosDbCassandraKeyspace(),
 		"azurerm_cosmosdb_mongo_collection":                          resourceArmCosmosDbMongoCollection(),
 		"azurerm_cosmosdb_mongo_database":                            resourceArmCosmosDbMongoDatabase(),
+		"azurerm_cosmosdb_sql_container":                             resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":                              resourceArmCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_table":                                     resourceArmCosmosDbTable(),
 		"azurerm_data_factory":                                       resourceArmDataFactory(),
@@ -281,6 +282,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mariadb_database":                                   resourceArmMariaDbDatabase(),
 		"azurerm_mariadb_firewall_rule":                              resourceArmMariaDBFirewallRule(),
 		"azurerm_mariadb_server":                                     resourceArmMariaDbServer(),
+		"azurerm_mariadb_virtual_network_rule":                       resourceArmMariaDbVirtualNetworkRule(),
 		"azurerm_media_services_account":                             resourceArmMediaServicesAccount(),
 		"azurerm_metric_alertrule":                                   resourceArmMetricAlertRule(),
 		"azurerm_monitor_autoscale_setting":                          resourceArmMonitorAutoScaleSetting(),
@@ -395,6 +397,12 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
+		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
+		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
+		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
+		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
+		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
+		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
 	}
 
 	for _, service := range supportedServices {
@@ -594,11 +602,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		return client, nil
 	}
-}
-
-// Deprecated: use `suppress.CaseDifference` instead
-func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return suppress.CaseDifference(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the

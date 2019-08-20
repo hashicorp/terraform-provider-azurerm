@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -129,7 +130,7 @@ func resourceArmIotDPS() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -161,7 +162,7 @@ func resourceArmIotDPSCreateOrUpdate(d *schema.ResourceData, meta interface{}) e
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs: expandIoTDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iotdps)
@@ -191,7 +192,7 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -224,16 +225,14 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

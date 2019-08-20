@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,7 +84,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -117,10 +118,10 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	evaluatorType := d.Get("evaluator_type").(string)
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Policy{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		PolicyProperties: &dtl.PolicyProperties{
 			FactName:      dtl.PolicyFactName(name),
 			FactData:      utils.String(factData),
@@ -152,7 +153,7 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -184,16 +185,14 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("threshold", props.Threshold)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -195,12 +195,13 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			d.Set("shard_key", k)
 		}
 
-		indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
-		d.Set("default_ttl_seconds", ttl)
-		if err := d.Set("indexes", indexes); err != nil {
-			return fmt.Errorf("Error setting `indexes`: %+v", err)
+		if props.Indexes != nil {
+			indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
+			d.Set("default_ttl_seconds", ttl)
+			if err := d.Set("indexes", indexes); err != nil {
+				return fmt.Errorf("Error setting `indexes`: %+v", err)
+			}
 		}
-
 	}
 
 	return nil

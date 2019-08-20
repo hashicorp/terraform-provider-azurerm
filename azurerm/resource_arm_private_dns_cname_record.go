@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -53,7 +54,7 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -81,12 +82,12 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &privatedns.RecordSetProperties{
-			Metadata: expandTags(tags),
+			Metadata: tags.Expand(t),
 			TTL:      &ttl,
 			CnameRecord: &privatedns.CnameRecord{
 				Cname: &record,
@@ -118,7 +119,7 @@ func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface
 	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -147,16 +148,14 @@ func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

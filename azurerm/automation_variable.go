@@ -192,7 +192,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, 
 	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

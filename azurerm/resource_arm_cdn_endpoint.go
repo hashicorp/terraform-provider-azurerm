@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -149,7 +151,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 								string(cdn.Allow),
 								string(cdn.Block),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"country_codes": {
 							Type:     schema.TypeList,
@@ -172,7 +174,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 					string(cdn.LargeFileDownload),
 					string(cdn.VideoOnDemandMediaStreaming),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"host_name": {
@@ -180,7 +182,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -218,7 +220,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
@@ -236,7 +238,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if optimizationType != "" {
@@ -292,7 +294,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
@@ -309,7 +311,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if optimizationType != "" {
@@ -338,7 +340,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -394,16 +396,14 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

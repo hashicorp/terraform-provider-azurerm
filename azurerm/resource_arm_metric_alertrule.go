@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +69,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 			"operator": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(insights.ConditionOperatorGreaterThan),
 					string(insights.ConditionOperatorGreaterThanOrEqual),
@@ -83,13 +86,13 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 			"period": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"aggregation": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(insights.TimeAggregationOperatorAverage),
 					string(insights.TimeAggregationOperatorLast),
@@ -181,7 +184,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
 	if err != nil {
@@ -191,7 +194,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	alertRuleResource := insights.AlertRuleResource{
 		Name:      &name,
 		Location:  &location,
-		Tags:      expandTags(tags),
+		Tags:      tags.Expand(t),
 		AlertRule: alertRule,
 	}
 
@@ -304,11 +307,9 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
+	tagMap := tags.Filter(resp.Tags, "$type")
 
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
@@ -433,7 +434,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
-	warnings, errors = validateAzureRMTags(v, f)
+	warnings, errors = tags.Validate(v, f)
 
 	tagsMap := v.(map[string]interface{})
 
@@ -447,7 +448,7 @@ func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, er
 }
 
 func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
+	id, err := azure.ParseAzureResourceID(alertRuleId)
 	if err != nil {
 		return "", "", err
 	}

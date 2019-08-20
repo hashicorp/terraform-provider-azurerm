@@ -173,7 +173,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("enable_floating_ip", props.EnableFloatingIP)
 
 		if ipconfiguration := props.FrontendIPConfiguration; ipconfiguration != nil {
-			fipID, err := parseAzureResourceID(*ipconfiguration.ID)
+			fipID, err := azure.ParseAzureResourceID(*ipconfiguration.ID)
 			if err != nil {
 				return err
 			}

@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,13 +34,10 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{1,49}$"),
-					"Recovery Service Vault name must be 2 - 50 characters long, start with a letter, contain only letters, numbers and hyphens.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 
 			"source_vm_id": {
@@ -57,7 +53,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -67,7 +63,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	vaultName := d.Get("recovery_vault_name").(string)
 	vmId := d.Get("source_vm_id").(string)
@@ -102,7 +98,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	}
 
 	item := backup.ProtectedItemResource{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:          &policyId,
 			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
@@ -122,7 +118,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		return err
 	}
 
-	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
+	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
 	d.SetId(id)
 
 	return resourceArmRecoveryServicesProtectedVmRead(d, meta)
@@ -132,7 +128,7 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -167,16 +163,14 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

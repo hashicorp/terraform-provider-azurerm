@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -168,7 +169,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -200,7 +201,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
@@ -268,7 +269,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 			CreateMode:                 mariadb.CreateModeDefault,
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -298,7 +299,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -339,16 +340,14 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

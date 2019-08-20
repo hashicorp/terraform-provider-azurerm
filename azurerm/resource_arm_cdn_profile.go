@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,10 +47,10 @@ func resourceArmCdnProfile() *schema.Resource {
 					string(cdn.StandardMicrosoft),
 					string(cdn.PremiumVerizon),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -77,11 +79,11 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	cdnProfile := cdn.Profile{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Sku: &cdn.Sku{
 			Name: cdn.SkuName(sku),
 		},
@@ -122,7 +124,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := cdn.ProfileUpdateParameters{
-		Tags: expandTags(newTags),
+		Tags: tags.Expand(newTags),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
@@ -141,7 +143,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -167,16 +169,14 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cdn.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

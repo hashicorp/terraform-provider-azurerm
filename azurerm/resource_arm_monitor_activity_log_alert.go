@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -148,7 +149,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				Default:  true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -179,8 +180,8 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	criteriaRaw := d.Get("criteria").([]interface{})
 	actionRaw := d.Get("action").(*schema.Set).List()
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActivityLogAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
@@ -214,7 +215,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -246,16 +247,14 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error setting `action`: %+v", err)
 		}
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +48,7 @@ func resourceArmDevTestLab() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"artifacts_storage_account_id": {
 				Type:     schema.TypeString,
@@ -106,11 +107,11 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageType := d.Get("storage_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Lab{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		LabProperties: &dtl.LabProperties{
 			LabStorageType: dtl.StorageType(storageType),
 		},
@@ -143,7 +144,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -179,16 +180,14 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

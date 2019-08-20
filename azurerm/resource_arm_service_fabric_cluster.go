@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -341,7 +342,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"cluster_endpoint": {
 				Type:     schema.TypeString,
@@ -365,7 +366,7 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 	upgradeMode := d.Get("upgrade_mode").(string)
 	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -403,7 +404,7 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 
 	cluster := servicefabric.Cluster{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ClusterProperties: &servicefabric.ClusterProperties{
 			AddOnFeatures:                   addOnFeatures,
 			AzureActiveDirectory:            azureActiveDirectory,
@@ -455,7 +456,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -534,16 +535,14 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

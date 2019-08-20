@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,7 +54,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -79,11 +80,11 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	location := "global"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.PrivateZone{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	etag := ""
@@ -130,7 +131,7 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).privateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -154,16 +155,14 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("max_number_of_virtual_network_links", resp.MaxNumberOfVirtualNetworkLinks)
 	d.Set("max_number_of_virtual_network_links_with_registration", resp.MaxNumberOfVirtualNetworkLinksWithRegistration)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).privateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

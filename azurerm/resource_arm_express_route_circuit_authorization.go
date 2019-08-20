@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,8 +58,8 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 	resourceGroup := d.Get("resource_group_name").(string)
 	circuitName := d.Get("express_route_circuit_name").(string)
 
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+	locks.ByName(circuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, name)
@@ -100,7 +101,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -134,7 +135,7 @@ func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).network.ExpressRouteAuthsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,8 +144,8 @@ func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, m
 	circuitName := id.Path["expressRouteCircuits"]
 	name := id.Path["authorizations"]
 
-	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+	locks.ByName(circuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, circuitName, name)
 	if err != nil {

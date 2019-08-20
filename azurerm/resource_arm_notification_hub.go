@@ -126,7 +126,7 @@ func resourceArmNotificationHub() *schema.Resource {
 
 			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
 			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsSchema(),
+			//"tags": tags.Schema(),
 		},
 	}
 }
@@ -224,7 +224,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -274,7 +274,7 @@ func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -109,7 +109,7 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

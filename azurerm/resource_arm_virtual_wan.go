@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -71,7 +72,7 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default: string(network.OfficeTrafficCategoryNone),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -90,7 +91,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
 	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)
 	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -107,7 +108,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	wan := network.VirtualWAN{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		VirtualWanProperties: &network.VirtualWanProperties{
 			DisableVpnEncryption:           utils.Bool(disableVpnEncryption),
 			SecurityProviderName:           utils.String(securityProviderName),
@@ -144,7 +145,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,16 +178,14 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

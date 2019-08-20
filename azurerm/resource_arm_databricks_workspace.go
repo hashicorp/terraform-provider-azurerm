@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +48,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"managed_resource_group_name": {
 				Type:         schema.TypeString,
@@ -93,8 +94,8 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	var managedResourceGroupID string
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	if managedResourceGroupName == "" {
 		//no managed resource group name was provided, we use the default pattern
@@ -142,7 +143,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := parseAzureResourceID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := azure.ParseAzureResourceID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
@@ -181,16 +182,14 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

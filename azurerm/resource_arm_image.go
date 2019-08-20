@@ -5,7 +5,9 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -58,7 +60,7 @@ func resourceArmImage() *schema.Resource {
 						"os_type": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Linux),
 								string(compute.Windows),
@@ -68,7 +70,7 @@ func resourceArmImage() *schema.Resource {
 						"os_state": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Generalized),
 								string(compute.Specialized),
@@ -79,7 +81,7 @@ func resourceArmImage() *schema.Resource {
 							Type:             schema.TypeString,
 							Computed:         true,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     azure.ValidateResourceID,
 						},
 
@@ -95,7 +97,7 @@ func resourceArmImage() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          string(compute.None),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
@@ -147,7 +149,7 @@ func resourceArmImage() *schema.Resource {
 								string(compute.CachingTypesReadOnly),
 								string(compute.CachingTypesReadWrite),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"size_gb": {
@@ -160,7 +162,7 @@ func resourceArmImage() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -189,7 +191,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	properties := compute.ImageProperties{}
 
@@ -267,7 +269,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -307,16 +309,14 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

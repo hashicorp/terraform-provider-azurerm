@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -177,7 +178,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -209,7 +210,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	createMode := "Default"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -238,7 +239,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 			CreateMode:                 mysql.CreateMode(createMode),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -278,7 +279,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 	sku := expandMySQLServerSku(d)
 	storageProfile := expandMySQLStorageProfile(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
@@ -288,7 +289,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -318,7 +319,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -354,19 +355,17 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

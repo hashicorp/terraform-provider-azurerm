@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -103,7 +104,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -135,13 +136,13 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	encryptionType := account.EncryptionConfigType(d.Get("encryption_type").(string))
 	firewallState := account.FirewallState(d.Get("firewall_state").(string))
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier:               account.TierType(tier),
 			FirewallState:         firewallState,
@@ -184,7 +185,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	tier := d.Get("tier").(string)
 	firewallState := account.FirewallState(d.Get("firewall_state").(string))
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	props := account.UpdateDataLakeStoreAccountParameters{
 		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
@@ -192,7 +193,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 			FirewallState:         firewallState,
 			FirewallAllowAzureIps: firewallAllowAzureIPs,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
@@ -211,7 +212,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,16 +250,14 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("endpoint", properties.Endpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
