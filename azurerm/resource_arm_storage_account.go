@@ -734,7 +734,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(val.([]interface{}))
 		if err != nil {
@@ -925,7 +928,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("queue_properties") {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
@@ -1071,7 +1077,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient := meta.(*ArmClient).storage.QueuesClient
+	queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
 		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {

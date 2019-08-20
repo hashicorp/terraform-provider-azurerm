@@ -156,8 +156,21 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", name, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed", name, accountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
@@ -181,8 +194,21 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", name, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed", name, accountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
