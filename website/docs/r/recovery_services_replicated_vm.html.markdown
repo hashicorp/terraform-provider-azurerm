@@ -160,8 +160,8 @@ resource "azurerm_recovery_replicated_vm" "vm-replication" {
     disk_id                    = "${azurerm_virtual_machine.vm.storage_os_disk.0.managed_disk_id}"
     staging_storage_account_id = "${azurerm_storage_account.primary.id}"
     target_resource_group_id   = "${azurerm_resource_group.secondary.id}"
-    targert_disk_type          = "Premium_LRS"
-    targert_replica_disk_type  = "Premium_LRS"
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
   }
 }
 ```
@@ -202,9 +202,9 @@ A `managed_disk` block supports the following:
 
 * `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done.
 
-* `targert_disk_type` - (Required) What type should the disk be when a failover is done.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done.
 
-* `targert_replica_disk_type` - (Required) What type should the disk be that holds the replication data.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data.
 
 
 ## Attributes Reference
