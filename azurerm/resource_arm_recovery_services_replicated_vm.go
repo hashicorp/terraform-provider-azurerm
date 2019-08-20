@@ -198,7 +198,6 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		diskId := diskInput["disk_id"].(string)
 		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
 		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
-
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
 

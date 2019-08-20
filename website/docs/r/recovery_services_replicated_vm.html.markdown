@@ -206,7 +206,6 @@ A `managed_disk` block supports the following:
 
 * `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data.
 
-
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
