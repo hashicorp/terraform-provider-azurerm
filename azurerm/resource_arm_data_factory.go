@@ -138,7 +138,7 @@ func resourceArmDataFactory() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 					},
 				},
@@ -215,7 +215,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

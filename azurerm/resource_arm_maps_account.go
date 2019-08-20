@@ -119,7 +119,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

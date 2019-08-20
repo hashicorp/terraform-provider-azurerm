@@ -74,7 +74,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
+	client := meta.(*ArmClient).graph.ApplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	var application graphrbac.Application

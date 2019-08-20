@@ -24,7 +24,7 @@ func resourceArmPublicIp() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				id, err := parseAzureResourceID(d.Id())
+				id, err := azure.ParseAzureResourceID(d.Id())
 				if err != nil {
 					return nil, err
 				}
@@ -141,7 +141,7 @@ func resourceArmPublicIp() *schema.Resource {
 }
 
 func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
@@ -252,10 +252,10 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -304,10 +304,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

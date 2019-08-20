@@ -7,22 +7,25 @@ import (
 )
 
 type Client struct {
-	ProtectedItemsClient     backup.ProtectedItemsGroupClient
-	ProtectionPoliciesClient backup.ProtectionPoliciesClient
-	VaultsClient             recoveryservices.VaultsClient
+	ProtectedItemsClient     *backup.ProtectedItemsGroupClient
+	ProtectionPoliciesClient *backup.ProtectionPoliciesClient
+	VaultsClient             *recoveryservices.VaultsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.VaultsClient = recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.VaultsClient.Client, o.ResourceManagerAuthorizer)
+	VaultsClient := recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VaultsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProtectedItemsClient = backup.NewProtectedItemsGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ProtectedItemsClient.Client, o.ResourceManagerAuthorizer)
+	ProtectedItemsClient := backup.NewProtectedItemsGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProtectedItemsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProtectionPoliciesClient = backup.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ProtectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	ProtectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProtectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ProtectedItemsClient:     &ProtectedItemsClient,
+		ProtectionPoliciesClient: &ProtectionPoliciesClient,
+		VaultsClient:             &VaultsClient,
+	}
 }

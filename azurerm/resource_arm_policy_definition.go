@@ -295,7 +295,7 @@ func parseManagementGroupIdFromPolicyId(id string) string {
 	return ""
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
@@ -322,7 +322,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 	return schema.ImportStatePassthrough(d, meta)
 }
 
-func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
+func getPolicyDefinition(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

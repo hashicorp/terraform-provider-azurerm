@@ -221,7 +221,7 @@ func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestChec
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, "")
@@ -252,7 +252,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, virtualNetworkName)
@@ -269,7 +269,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).vnetClient
+	client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

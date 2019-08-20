@@ -35,7 +35,7 @@ func resourceArmResourceGroup() *schema.Resource {
 }
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupsClient
+	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -75,10 +75,10 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupsClient
+	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
@@ -106,10 +106,10 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ArmClient).resourceGroupsClient
+	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return false, fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
@@ -129,10 +129,10 @@ func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (b
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupsClient
+	client := meta.(*ArmClient).resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}

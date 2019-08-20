@@ -114,7 +114,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

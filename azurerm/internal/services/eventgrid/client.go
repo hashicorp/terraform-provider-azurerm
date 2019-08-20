@@ -6,22 +6,25 @@ import (
 )
 
 type Client struct {
-	DomainsClient            eventgrid.DomainsClient
-	EventSubscriptionsClient eventgrid.EventSubscriptionsClient
-	TopicsClient             eventgrid.TopicsClient
+	DomainsClient            *eventgrid.DomainsClient
+	EventSubscriptionsClient *eventgrid.EventSubscriptionsClient
+	TopicsClient             *eventgrid.TopicsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.DomainsClient = eventgrid.NewDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DomainsClient.Client, o.ResourceManagerAuthorizer)
+	DomainsClient := eventgrid.NewDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.EventSubscriptionsClient = eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.EventSubscriptionsClient.Client, o.ResourceManagerAuthorizer)
+	EventSubscriptionsClient := eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&EventSubscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.TopicsClient = eventgrid.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.TopicsClient.Client, o.ResourceManagerAuthorizer)
+	TopicsClient := eventgrid.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&TopicsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		DomainsClient:            &DomainsClient,
+		EventSubscriptionsClient: &EventSubscriptionsClient,
+		TopicsClient:             &TopicsClient,
+	}
 }

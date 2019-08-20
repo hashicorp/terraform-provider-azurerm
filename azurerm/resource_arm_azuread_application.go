@@ -81,7 +81,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
+	client := meta.(*ArmClient).graph.ApplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// NOTE: name isn't the Resource ID here, so we don't check it exists
@@ -111,7 +111,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 }
 
 func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
+	client := meta.(*ArmClient).graph.ApplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -152,7 +152,7 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
+	client := meta.(*ArmClient).graph.ApplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, d.Id())
@@ -192,7 +192,7 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
+	client := meta.(*ArmClient).graph.ApplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// in order to delete an application which is available to other tenants, we first have to disable this setting

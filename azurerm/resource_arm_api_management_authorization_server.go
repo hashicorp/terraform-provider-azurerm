@@ -271,7 +271,7 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -336,7 +336,7 @@ func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

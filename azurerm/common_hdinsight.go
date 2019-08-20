@@ -15,7 +15,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}

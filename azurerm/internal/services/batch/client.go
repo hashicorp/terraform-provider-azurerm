@@ -6,26 +6,30 @@ import (
 )
 
 type Client struct {
-	AccountClient     batch.AccountClient
-	ApplicationClient batch.ApplicationClient
-	CertificateClient batch.CertificateClient
-	PoolClient        batch.PoolClient
+	AccountClient     *batch.AccountClient
+	ApplicationClient *batch.ApplicationClient
+	CertificateClient *batch.CertificateClient
+	PoolClient        *batch.PoolClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.AccountClient = batch.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AccountClient.Client, o.ResourceManagerAuthorizer)
+	AccountClient := batch.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AccountClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApplicationClient = batch.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ApplicationClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationClient := batch.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApplicationClient.Client, o.ResourceManagerAuthorizer)
 
-	c.CertificateClient = batch.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.CertificateClient.Client, o.ResourceManagerAuthorizer)
+	CertificateClient := batch.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CertificateClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PoolClient = batch.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PoolClient.Client, o.ResourceManagerAuthorizer)
+	PoolClient := batch.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PoolClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		AccountClient:     &AccountClient,
+		ApplicationClient: &ApplicationClient,
+		CertificateClient: &CertificateClient,
+		PoolClient:        &PoolClient,
+	}
 }

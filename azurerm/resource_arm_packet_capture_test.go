@@ -157,7 +157,7 @@ func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheck
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		packetCaptureName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+		client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, packetCaptureName)
@@ -174,7 +174,7 @@ func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+	client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

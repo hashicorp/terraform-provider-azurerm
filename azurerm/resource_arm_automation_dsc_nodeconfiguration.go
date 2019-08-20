@@ -118,7 +118,7 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 	client := meta.(*ArmClient).automation.DscNodeConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func resourceArmAutomationDscNodeConfigurationDelete(d *schema.ResourceData, met
 	client := meta.(*ArmClient).automation.DscNodeConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
