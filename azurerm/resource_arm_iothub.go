@@ -299,8 +299,10 @@ func resourceArmIotHub() *schema.Resource {
 			},
 
 			"route": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Use the `azurerm_iothub_route` resource instead.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -463,12 +465,12 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	skuInfo := expandIoTHubSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	fallbackRoute := expandIoTHubFallbackRoute(d)
-	routes := expandIoTHubRoutes(d)
-
 	routingProperties := devices.RoutingProperties{
-		Routes:        routes,
-		FallbackRoute: fallbackRoute,
+		FallbackRoute: expandIoTHubFallbackRoute(d),
+	}
+
+	if _, ok := d.GetOk("route"); ok {
+		routingProperties.Routes = expandIoTHubRoutes(d)
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {
