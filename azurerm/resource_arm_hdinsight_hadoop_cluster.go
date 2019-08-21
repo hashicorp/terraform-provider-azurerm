@@ -2,13 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform/helper/resource"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,6 +51,37 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 		Delete: hdinsightClusterDelete("Hadoop"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			// An edge node can be added but can't be update or removed without forcing a new resource to be created
+			oldEdgeNodeCount, newEdgeNodeCount := diff.GetChange("roles.0.edge_node.#")
+			oldEdgeNodeInt := oldEdgeNodeCount.(int)
+			newEdgeNodeInt := newEdgeNodeCount.(int)
+
+			// ForceNew if attempting to remove an edge node
+			if newEdgeNodeInt < oldEdgeNodeInt {
+				diff.ForceNew("roles.0.edge_node")
+			}
+
+			// ForceNew if attempting to update an edge node
+			if newEdgeNodeInt == 1 && oldEdgeNodeInt == 1 {
+				// DiffSuppressFunc comes after this check so we need to check if the strings aren't the same sans casing here.
+				oVMSize, newVMSize := diff.GetChange("roles.0.edge_node.0.vm_size")
+				if !strings.EqualFold(oVMSize.(string), newVMSize.(string)) {
+					diff.ForceNew("roles.0.edge_node")
+				}
+
+				// ForceNew if attempting to update install scripts
+				oldInstallScriptCount, newInstallScriptCount := diff.GetChange("roles.0.edge_node.0.install_script_action.#")
+				oldInstallScriptInt := oldInstallScriptCount.(int)
+				newInstallScriptInt := newInstallScriptCount.(int)
+				if newInstallScriptInt == oldInstallScriptInt {
+					diff.ForceNew("roles.0.edge_node.0.install_script_action")
+				}
+			}
+
+			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -97,40 +132,28 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"vm_size": azure.SchemaHDInsightNodeDefinitionVMSize(),
+									"vm_size": {
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.CaseDifference,
+										ValidateFunc:     azure.ValidateSchemaHDInsightNodeDefinitionVMSize(),
+									},
 
 									"install_script_action": {
 										Type:     schema.TypeList,
 										Required: true,
-										ForceNew: true,
 										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
-													ForceNew: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"uri": {
-													Type:     schema.TypeString,
-													Required: true,
-													ForceNew: true,
-												},
-												// TODO test multiple roles
-												"roles": {
-													Type:     schema.TypeSet,
-													Optional: true,
-													ForceNew: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-														ValidateFunc: validation.StringInSlice([]string{
-															"edgenode",
-															"headnode",
-															"workernode",
-															"zookeepernode",
-														}, false),
-													},
-													Set: schema.HashString,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 											},
 										},
@@ -244,37 +267,28 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	// Add edge node after creation
+	// We can only add an edge node after creation
 	if v, ok := d.GetOk("roles.0.edge_node"); ok {
 		edgeNodeRaw := v.([]interface{})
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
-
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
-		installScriptActions := expandHDInsightApplicationScriptActions(edgeNodeConfig["install_script_action"].([]interface{}))
 
-		application := hdinsight.Application{
-			Properties: &hdinsight.ApplicationProperties{
-				ComputeProfile: &hdinsight.ComputeProfile{
-					Roles: &[]hdinsight.Role{{
-						Name: utils.String("edgenode"),
-						HardwareProfile: &hdinsight.HardwareProfile{
-							VMSize: utils.String(edgeNodeConfig["vm_size"].(string)),
-						},
-						TargetInstanceCount: utils.Int32(1),
-					}},
-				},
-				InstallScriptActions: installScriptActions,
-				ApplicationType:      utils.String("CustomApplication"),
-			},
-		}
-		return fmt.Errorf("Application: %+v\nInstallScriptAddress: %+v\nInstallScript: %+v", application, application.Properties.InstallScriptActions, *application.Properties.InstallScriptActions)
-		future, err := applicationsClient.Create(ctx, resourceGroup, name, name, application)
+		err := createHDInsightEdgeNode(applicationsClient, ctx, resourceGroup, name, edgeNodeConfig)
 		if err != nil {
-			return fmt.Errorf("Error creating edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return err
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
+		log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
+			Target:     []string{"Running"},
+			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
+			Timeout:    60 * time.Minute,
+			MinTimeout: 15 * time.Second,
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
 	}
 
@@ -337,6 +351,19 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 			ZookeeperNodeDef: hdInsightHadoopClusterZookeeperNodeDefinition,
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, hadoopRoles)
+
+		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+		edgeNode, err := applicationsClient.Get(ctx, resourceGroup, name, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(edgeNode.Response) {
+				return fmt.Errorf("Error reading edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if edgeNodeProps := edgeNode.Properties; edgeNodeProps != nil {
+			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps)
+		}
+
 		if err := d.Set("roles", flattenedRoles); err != nil {
 			return fmt.Errorf("Error flattening `roles`: %+v", err)
 		}
@@ -350,6 +377,39 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
+}
+
+func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties) []interface{} {
+	if len(roles) == 0 || props == nil {
+		return roles
+	}
+
+	role := roles[0].(map[string]interface{})
+
+	edgeNode := make(map[string]interface{})
+	if computeProfile := props.ComputeProfile; computeProfile != nil {
+		if roles := computeProfile.Roles; roles != nil {
+			for _, role := range *roles {
+				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil {
+					edgeNode["vm_size"] = hardwareProfile.VMSize
+				}
+			}
+		}
+	}
+
+	actions := make(map[string]interface{})
+	if installScriptActions := props.InstallScriptActions; installScriptActions != nil {
+		for _, action := range *installScriptActions {
+			actions["name"] = action.Name
+			actions["uri"] = action.URI
+		}
+	}
+
+	edgeNode["install_script_action"] = []interface{}{actions}
+
+	role["edge_node"] = []interface{}{edgeNode}
+
+	return []interface{}{role}
 }
 
 func expandHDInsightHadoopComponentVersion(input []interface{}) map[string]*string {
@@ -373,7 +433,7 @@ func flattenHDInsightHadoopComponentVersion(input map[string]*string) []interfac
 	}
 }
 
-func expandHDInsightApplicationScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
+func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
 	actions := make([]hdinsight.RuntimeScriptAction, 0)
 
 	for _, v := range input {
@@ -382,17 +442,11 @@ func expandHDInsightApplicationScriptActions(input []interface{}) *[]hdinsight.R
 		name := val["name"].(string)
 		uri := val["uri"].(string)
 
-		rolesRaw := val["roles"].(*schema.Set).List()
-		roles := make([]string, 0)
-		for _, v := range rolesRaw {
-			role := v.(string)
-			roles = append(roles, role)
-		}
-
 		action := hdinsight.RuntimeScriptAction{
-			Name:  utils.String(name),
-			URI:   utils.String(uri),
-			Roles: &roles,
+			Name: utils.String(name),
+			URI:  utils.String(uri),
+			// The only role available for edge nodes is edgenode
+			Roles: &[]string{"edgenode"},
 		}
 
 		actions = append(actions, action)

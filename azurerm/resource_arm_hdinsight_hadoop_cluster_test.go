@@ -288,6 +288,67 @@ func TestAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightHadoopCluster_addEdgeNodeBasic(t *testing.T) {
+	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"roles.0.head_node.0.password",
+					"roles.0.head_node.0.vm_size",
+					"roles.0.worker_node.0.password",
+					"roles.0.worker_node.0.vm_size",
+					"roles.0.zookeeper_node.0.password",
+					"roles.0.zookeeper_node.0.vm_size",
+					"storage_account",
+				},
+			},
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"roles.0.head_node.0.password",
+					"roles.0.head_node.0.vm_size",
+					"roles.0.worker_node.0.password",
+					"roles.0.worker_node.0.vm_size",
+					"roles.0.zookeeper_node.0.password",
+					"roles.0.zookeeper_node.0.vm_size",
+					"roles.0.edge_node.0.password",
+					"roles.0.edge_node.0.vm_size",
+					"storage_account",
+				},
+			},
+		},
+	})
+}
+
 func testAccAzureRMHDInsightHadoopCluster_basic(rInt int, rString string, location string) string {
 	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
@@ -670,7 +731,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     edge_node {
       vm_size  = "Standard_D3_V2"
       install_script_action {
-        name = "script_action_1"
+        name = "script1"
         uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
       }
     }
