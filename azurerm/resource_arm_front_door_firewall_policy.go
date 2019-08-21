@@ -28,15 +28,15 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"location": {
 				Type:     schema.TypeString,
 				Computed: true,
-			}
+			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -45,7 +45,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"mode": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(frontdoor.Detection),
@@ -54,17 +54,17 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"custom_block_response_status_code": {
-				Type: schema.Int,
+				Type:     schema.Int,
 				Optional: true,
 			},
 
-			"redirect_url" : {
-				Type: schema.TypeString,
+			"redirect_url": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 
 			"custom_block_response_body": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 
@@ -74,14 +74,14 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name" : {
-							Type: schema.TypeString,
+						"name": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
 						"priority": {
-							Type: schema.Int,
+							Type:     schema.Int,
 							Optional: true,
-							Default: 1,
+							Default:  1,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -89,7 +89,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							Default:  true,
 						},
 						"rule_type": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.MatchRule),
@@ -97,30 +97,29 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							}, false),
 						},
 						"rate_limit_duration_in_minutes": {
-							Type: schema.Int,
+							Type:     schema.Int,
 							Optional: true,
-							Default: 1,
+							Default:  1,
 						},
 						"rate_limit_threshold": {
-							Type: schema.Int,
+							Type:     schema.Int,
 							Optional: true,
-							Default: 10,
+							Default:  10,
 						},
 						"action": {
 							Type: schema.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.Allow),
 								string(frontdoor.Block),
-								string(frontdoor.Trim),
 								string(frontdoor.Log),
 								string(frontdoor.Redirect),
 							}, false),
 						},
 						"custom_block_response_body": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"match_condition" : {
+						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 100,
@@ -177,7 +176,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											"Contains",
 											"Not Contains",
 										}, false),
-										Default: "Is"
+										Default: "Is",
 									},
 									"match_value": {
 										Type:     schema.TypeList,
@@ -216,31 +215,68 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type" : {
-							Type: schema.TypeString,
+						"type": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"version" : {
-							Type: schema.TypeString,
+						"version": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"override" : {
+						"override": {
 							Type:     schema.TypeList,
 							MaxItems: 100,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"rule_group_name" : {
-										Type: schema.TypeString,
+									"rule_group_name": {
+										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"rules" : {
-										Type: schema.TypeString,
+									"rule": {
+										Type:     schema.TypeList,
+										MaxItems: 1000,
 										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"rule_id": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"action": {
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoor.Allow),
+														string(frontdoor.Block),
+														string(frontdoor.Log),
+														string(frontdoor.Redirect),
+													}, false),
+												},
+											},
+										},
 									},
-
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"frontend_endpoints": {
+				Type:     schema.TypeList,
+				MaxItems: 100,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
