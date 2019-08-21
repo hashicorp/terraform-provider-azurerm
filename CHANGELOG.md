@@ -15,6 +15,7 @@ FEATURES:
 * **New Resource:** `azurerm_recovery_services_protection_container_mapping` [GH-4003]
 * **New Resource:** `azurerm_recovery_network_mapping` [GH-4003]
 * **New Resource:** `azurerm_recovery_replicated_vm`  [GH-4003]
+* **New Resource:** `azurerm_sql_failover_group` [GH-3901]
 * **New Resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
@@ -25,8 +26,10 @@ IMPROVEMENTS:
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
 * `azurerm_app_service` - `filesystem` logging can now be set. [GH-4025]
+* `azurerm_batch_pool` - Support for Container Registry configurations [GH-4072]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
+* `azurerm_cognitive_account` - Adding 'QnAMaker' as Kind [GH-4126]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_function_app` - support for the `virtual_network_name` property [GH-4078]
@@ -35,6 +38,7 @@ IMPROVEMENTS:
 * `azurerm_monitor_diagnostic_setting` - support for `log_analytics_destination_type` [GH-3987]
 * `azurerm_role_assignment` - now supports management groups [GH-4063]
 * `azurerm_storage_account` - requesting an access token using the ARM Authorizer [GH-4099]
+* `azurerm_subnet` - support for the Service Endpoints `Microsoft.BareMetal/AzureVMware`, `Microsoft.BareMetal/CrayServers`, `Microsoft.Databricks/workspaces` and `Microsoft.Web/hostingEnvironments` [GH-4115]
 * `azurerm_traffic_manager_profile` - support for the `interval_in_seconds`, `timeout_in_seconds`, and `tolerated_number_of_failures` properties [GH-3473]
 * `azurerm_user_assigned_identity` - the `name` field can now be up to 128 characters [GH-4094]
 
