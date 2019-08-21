@@ -95,7 +95,7 @@ The `backend_pool` block supports the following:
 
 * `backend` - (Required) A `backend` block as defined below.
 
-* `load_balancing_name` - (Required) The name of the `backend_pool_load_balancing` to use for the `Backend Pool`.
+* `load_balancing_name` - (Required) The name property of a `backend_pool_load_balancing` within this resource to use for the Backend Pool.
 
 * `health_probe_name` - (Required) The name of the `backend_pool_health_probe` to use for the `Backend Pool`.
 
