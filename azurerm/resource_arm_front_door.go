@@ -608,7 +608,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("cname", properties.Cname)
 		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("load_balancer_enabled", true)
+			d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		} else {
 			d.Set("load_balancer_enabled", false)
 		}
