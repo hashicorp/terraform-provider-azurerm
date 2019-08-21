@@ -77,6 +77,13 @@ EOF
 
   container_configuration {
     type = "DockerCompatible"
+    container_registries = [
+      {
+        registry_server = "docker.io"
+        user_name       = "login"
+        password        = "apassword"
+      },
+    ]
   }
 
   start_task {
@@ -229,6 +236,8 @@ A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
+* `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs.
+
 ---
 
 A `resource_file` block supports the following:
@@ -246,6 +255,16 @@ A `resource_file` block supports the following:
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
+
+---
+
+A `container_registries` block supports the following:
+
+* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+
+* `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
+
+* `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
