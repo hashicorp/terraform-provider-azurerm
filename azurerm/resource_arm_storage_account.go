@@ -57,6 +57,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.BlockBlobStorage),
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
