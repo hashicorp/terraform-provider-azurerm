@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
 * Data Source `azurerm_dns_zone`: deprecating the `zone_type` field [GH-4033]
 * `azurerm_app_service` - `filesystem` logging can now be set. [GH-4025]
+* `azurerm_batch_pool` - Support for Container Registry configurations [GH-4072]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
