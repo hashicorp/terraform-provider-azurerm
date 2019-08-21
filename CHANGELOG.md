@@ -29,6 +29,7 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - Support for Container Registry configurations [GH-4072]
 * `azurerm_container_group` - support for attaching to a (Private) Virtual Network [GH-3716]
 * `azurerm_container_group` - `log_type` can now be an empty string [GH-4013]
+* `azurerm_cognitive_account` - Adding 'QnAMaker' as Kind [GH-4126]
 * `azurerm_dns_zone` - deprecating the `zone_type` field [GH-4033]
 * `azurerm_function_app` - support for cors [GH-3949]
 * `azurerm_function_app` - support for the `virtual_network_name` property [GH-4078]
