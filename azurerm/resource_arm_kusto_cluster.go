@@ -147,7 +147,14 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["Clusters"]
+	var name string
+	if clusterName := id.Path["clusters"]; clusterName != "" {
+		name = clusterName
+	} else if clusterName := id.Path["Clusters"]; clusterName != "" {
+		name = clusterName
+	} else {
+		return fmt.Errorf("Error reading Kusto Cluster %q (Resource Group %q): unable to parse Kusto Cluster ID", name, resourceGroup)
+	}
 
 	clusterResponse, err := client.Get(ctx, resourceGroup, name)
 
@@ -188,7 +195,14 @@ func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	var name string
+	if clusterName := id.Path["clusters"]; clusterName != "" {
+		name = clusterName
+	} else if clusterName := id.Path["Clusters"]; clusterName != "" {
+		name = clusterName
+	} else {
+		return fmt.Errorf("Error deleting Kusto Cluster %q (Resource Group %q): unable to parse Kusto Cluster ID", name, resGroup)
+	}
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
