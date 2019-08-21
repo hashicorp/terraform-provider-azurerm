@@ -615,7 +615,6 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("friendly_name", properties.FriendlyName)
 
 		if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
-
 			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 			}
