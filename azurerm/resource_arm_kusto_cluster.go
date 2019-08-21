@@ -97,7 +97,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	err, sku := expandKustoClusterSku(d)
+	sku, err := expandKustoClusterSku(d)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
 	return validation.StringInSlice(possibleSkuNames, false)
 }
 
-func expandKustoClusterSku(d *schema.ResourceData) (error, *kusto.AzureSku) {
+func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 	skuList := d.Get("sku").([]interface{})
 
 	sku := skuList[0].(map[string]interface{})
@@ -253,7 +253,7 @@ func expandKustoClusterSku(d *schema.ResourceData) (error, *kusto.AzureSku) {
 	skuNamePrefix := strings.Split(sku["name"].(string), "_")[0]
 	tier, ok := skuNamePrefixToTier[skuNamePrefix]
 	if !ok {
-		return fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix), nil
+		return nil, fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix)
 	}
 	capacity := sku["capacity"].(int)
 
@@ -263,7 +263,7 @@ func expandKustoClusterSku(d *schema.ResourceData) (error, *kusto.AzureSku) {
 		Capacity: utils.Int32(int32(capacity)),
 	}
 
-	return nil, azureSku
+	return azureSku, nil
 }
 
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
