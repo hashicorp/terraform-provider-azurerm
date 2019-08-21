@@ -147,14 +147,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resourceGroup := id.ResourceGroup
-	var name string
-	if clusterName := id.Path["clusters"]; clusterName != "" {
-		name = clusterName
-	} else if clusterName := id.Path["Clusters"]; clusterName != "" {
-		name = clusterName
-	} else {
-		return fmt.Errorf("Error reading Kusto Cluster %q (Resource Group %q): unable to parse Kusto Cluster ID", name, resourceGroup)
-	}
+	name := id.Path["Clusters"]
 
 	clusterResponse, err := client.Get(ctx, resourceGroup, name)
 
@@ -173,7 +166,9 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku))
+	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
 
 	clusterProperties := clusterResponse.ClusterProperties
 
@@ -195,14 +190,7 @@ func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resGroup := id.ResourceGroup
-	var name string
-	if clusterName := id.Path["clusters"]; clusterName != "" {
-		name = clusterName
-	} else if clusterName := id.Path["Clusters"]; clusterName != "" {
-		name = clusterName
-	} else {
-		return fmt.Errorf("Error deleting Kusto Cluster %q (Resource Group %q): unable to parse Kusto Cluster ID", name, resGroup)
-	}
+	name := id.Path["Clusters"]
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -279,14 +267,10 @@ func expandKustoClusterSku(d *schema.ResourceData) (error, *kusto.AzureSku) {
 }
 
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
-	flattenedSku := map[string]interface{}{
-		"name": string((*sku).Name),
-		"tier": *(*sku).Tier,
+	return []interface{}{
+		map[string]interface{}{
+			"name":     string(sku.Name),
+			"capacity": int(*sku.Capacity),
+		},
 	}
-
-	if sku.Capacity != nil {
-		flattenedSku["capacity"] = utils.Int(int(*(*sku).Capacity))
-	}
-
-	return []interface{}{flattenedSku}
 }
