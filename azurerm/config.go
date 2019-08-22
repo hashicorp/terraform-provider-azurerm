@@ -147,7 +147,6 @@ type ArmClient struct {
 
 	// Storage
 	storageServiceClient storage.AccountsClient
-	storageUsageClient   storage.UsagesClient
 }
 
 // getArmClient is a helper method which returns a fully instantiated
@@ -323,10 +322,6 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
-
-	usageClient := storage.NewUsagesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&usageClient.Client, auth)
-	c.storageUsageClient = usageClient
 
 	c.storage = intStor.BuildClient(accountsClient, options)
 }
