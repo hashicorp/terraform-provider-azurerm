@@ -466,6 +466,8 @@ github.com/tombuildsstuff/giovanni v0.3.0 h1:uOaTgr6mp5iba02s+pz+ugBZuygIhA2tN+F
 github.com/tombuildsstuff/giovanni v0.3.0/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
 github.com/tombuildsstuff/giovanni v0.3.1 h1:weKffbA9vYVUACa6u1XXW0alYoTLuphMZ0BMgg63a/A=
 github.com/tombuildsstuff/giovanni v0.3.1/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
+github.com/tombuildsstuff/giovanni v0.3.2 h1:uKt7irq74daF0lvaA0X9bEuFKSDhceVy4DyWVPDRYeU=
+github.com/tombuildsstuff/giovanni v0.3.2/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5 h1:cMjKdf4PxEBN9K5HaD9UMW8gkTbM0kMzkTa9SJe0WNQ=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/ulikunitz/xz v0.5.5 h1:pFrO0lVpTBXLpYw+pnLj6TbvHuyjXMfjGeCwSqCVwok=
