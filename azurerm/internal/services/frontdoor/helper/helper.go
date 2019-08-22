@@ -63,6 +63,22 @@ func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoor.Cus
 	return isEnabled
 }
 
+func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
+	if isEnabled {
+		return frontdoor.PolicyEnabledStateEnabled 
+	}
+
+	return frontdoor.PolicyEnabledStateDisabled 
+}
+
+func ConvertToPolicyModeFromString(policyMode string) frontdoor.PolicyMode {
+	if policyMode == "Detection" {
+		return frontdoor.Detection  
+	}
+
+	return frontdoor.Prevention  
+}
+
 func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
 	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
 		return ""
