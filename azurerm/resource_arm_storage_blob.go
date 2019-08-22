@@ -218,7 +218,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
+	resourceGroup, err := armClient.storage.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
 		return err
 	}
@@ -270,7 +270,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
+	resourceGroup, err := armClient.storage.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
 		return err
 	}
@@ -354,7 +354,7 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q (Disk %q)!", id.AccountName, uri)
+		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q!", id.AccountName)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)

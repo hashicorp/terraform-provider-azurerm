@@ -11,35 +11,8 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func determineResourceGroupForStorageAccount(accountName string, client *ArmClient) (*string, error) {
-	storageClient := client.storage.AccountsClient
-	ctx := client.StopContext
-
-	// first locate which resource group the storage account is in
-	groupsResp, err := storageClient.List(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Error loading the Resource Groups for Storage Account %q: %+v", accountName, err)
-	}
-
-	if groups := groupsResp.Value; groups != nil {
-		for _, group := range *groups {
-			if group.Name != nil && *group.Name == accountName {
-				groupId, err := azure.ParseAzureResourceID(*group.ID)
-				if err != nil {
-					return nil, err
-				}
-
-				return &groupId.ResourceGroup, nil
-			}
-		}
-	}
-
-	return nil, nil
-}
 
 type resourceArmStorageBlobPage struct {
 	offset  int64
