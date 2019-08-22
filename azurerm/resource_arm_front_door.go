@@ -608,14 +608,13 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("cname", properties.Cname)
 		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("load_balancer_enabled", true)
+			d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		} else {
 			d.Set("load_balancer_enabled", false)
 		}
 		d.Set("friendly_name", properties.FriendlyName)
 
 		if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
-
 			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 			}
