@@ -784,14 +784,10 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 			ID:   id,
 			Name: utils.String(name),
 			FrontendEndpointProperties: &frontdoor.FrontendEndpointProperties{
-				// ResourceState:
-				// CustomHTTPSProvisioningState:
-				// CustomHTTPSProvisioningSubstate:
 				CustomHTTPSConfiguration:    expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
 				HostName:                    utils.String(hostName),
 				SessionAffinityEnabledState: sessionAffinityEnabled,
 				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
-				// WebApplicationFirewallPolicyLink:
 			},
 		}
 
@@ -977,13 +973,11 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId str
 }
 
 func expandArmFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
-	result := frontdoor.EnabledStateDisabled
-
 	if enabled {
-		result = frontdoor.EnabledStateEnabled
+		return frontdoor.EnabledStateEnabled
 	}
 
-	return result
+	return frontdoor.EnabledStateDisabled
 }
 
 func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
