@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"log"
@@ -290,6 +291,19 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
+
+		/*
+			edgeNodeStateConf := &resource.StateChangeConf{
+				Pending:    []string{"Empty"},
+				Target:     []string{"Ready"},
+				Refresh:    hdInsightEdgeNodeWaitForReadyRefreshFunc(ctx, applicationsClient, resourceGroup, name),
+				Timeout:    3 * time.Minute,
+				MinTimeout: 15 * time.Second,
+			}
+
+			if _, err := edgeNodeStateConf.WaitForState(); err != nil {
+				return fmt.Errorf("Error waiting for HDInsight Cluster Edge Node %q (Resource Group %q) to be ready: %s", name, resourceGroup, err)
+			} */
 	}
 
 	return resourceArmHDInsightHadoopClusterRead(d, meta)
@@ -353,6 +367,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, hadoopRoles)
 
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+
 		edgeNode, err := applicationsClient.Get(ctx, resourceGroup, name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(edgeNode.Response) {
@@ -453,4 +468,50 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 	}
 
 	return &actions
+}
+
+func retryHDInsightEdgeNodeGet(resGroup string, name string, meta interface{}) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		client := meta.(*ArmClient).hdinsight.ApplicationsClient
+		ctx := meta.(*ArmClient).StopContext
+
+		if _, err := client.Get(ctx, resGroup, name, name); err != nil {
+			return resource.RetryableError(err)
+		}
+
+		return nil
+	}
+}
+
+func hdInsightWaitForReadyRefreshFunc(ctx context.Context, client hdinsight.ClustersClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			return nil, "Error", fmt.Errorf("Error issuing read request in hdInsightWaitForReadyRefreshFunc to Hadoop Cluster %q (Resource Group %q): %s", name, resourceGroupName, err)
+		}
+		if props := res.Properties; props != nil {
+			if state := props.ClusterState; state != nil {
+				return res, *state, nil
+			}
+		}
+
+		return res, "Pending", nil
+	}
+}
+
+func hdInsightEdgeNodeWaitForReadyRefreshFunc(ctx context.Context, client hdinsight.ApplicationsClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name, name)
+		if err != nil {
+			if res.Response.Response != nil {
+				return nil, "Error", fmt.Errorf("Error issuing read request in hdInsightEdgeNodeWaitForReadyRefreshFunc to Hadoop Cluster Edge Node %q (Resource Group %q): %s", name, resourceGroupName, err)
+			}
+			return res, "Empty", nil
+		}
+		if props := res.Properties; props != nil {
+			return nil, "Ready", nil
+		}
+
+		return res, "Empty", nil
+	}
 }

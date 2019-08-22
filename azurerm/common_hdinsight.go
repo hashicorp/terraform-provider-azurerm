@@ -240,19 +240,3 @@ func createHDInsightEdgeNode(client hdinsight.ApplicationsClient, ctx context.Co
 
 	return nil
 }
-
-func hdInsightWaitForReadyRefreshFunc(ctx context.Context, client hdinsight.ClustersClient, resourceGroupName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
-		if err != nil {
-			return nil, "Error", fmt.Errorf("Error issuing read request in relayNamespaceDeleteRefreshFunc to Relay Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
-		}
-		if props := res.Properties; props != nil {
-			if state := props.ClusterState; state != nil {
-				return res, *state, nil
-			}
-		}
-
-		return res, "Pending", nil
-	}
-}
