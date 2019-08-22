@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -133,7 +134,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

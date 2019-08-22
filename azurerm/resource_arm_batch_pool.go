@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
@@ -378,7 +379,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	vmSize := d.Get("vm_size").(string)
 	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

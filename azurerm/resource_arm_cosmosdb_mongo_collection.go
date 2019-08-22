@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -100,7 +101,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 	account := d.Get("account_name").(string)
 	database := d.Get("database_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

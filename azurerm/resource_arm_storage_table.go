@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
 )
@@ -119,7 +120,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	id := client.GetResourceID(accountName, tableName)
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Exists(ctx, *resourceGroup, tableName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing) {

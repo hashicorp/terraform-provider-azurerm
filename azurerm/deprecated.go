@@ -12,7 +12,7 @@ import (
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
-// TODO: move to `features.ShouldResourcesBeImported()`
+// nolint: deadcode unused
 var requireResourcesToBeImported = features.ShouldResourcesBeImported()
 
 // nolint: deadcode unused

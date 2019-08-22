@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -77,7 +78,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	sku := d.Get("sku_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,7 +82,7 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

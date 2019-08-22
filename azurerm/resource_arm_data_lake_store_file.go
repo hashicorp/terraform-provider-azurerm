@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -65,7 +66,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	// example.azuredatalakestore.net/test/example.txt
 	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
