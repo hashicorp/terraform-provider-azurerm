@@ -59,15 +59,7 @@ The following arguments are supported:
 
 * `resource_id` - (Optional) The ID of the Resource that will be linked to the workspace.
 
-* `linked_service_properties` - (Optional **Deprecated**) A `linked_service_properties` block as defined below.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-`linked_service_properties` supports the following:
-
-* `resource_id` - (Optional  **Deprecated**) The resource id of the resource that will be linked to the workspace. This field has been deprecated in favour of the top-level `resource_id` field and will be removed in v2.0 of the AzureRM Provider.
 
 ## Attributes Reference
 
