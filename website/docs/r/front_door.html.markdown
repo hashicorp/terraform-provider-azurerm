@@ -164,7 +164,7 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) The name of the Front Door Backend Routing Rule.
 
-* `frontend_endpoints` - (Required) The name property of the `frontend_endpoint` block whithin this resource to associate with this `routing_rule`.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
