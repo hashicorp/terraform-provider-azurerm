@@ -10,6 +10,13 @@ description: |-
 
 Manage an Azure Front Door instance.
 
+Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(s) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
+
+Below are some of the key scenarios that Azure Front Door Service addresses: 
+* Use Front Door to improve application scale and availability with instant multi-region failover
+* Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
+* Use Front Door for application layer security and DDoS protection for your application.
+
 ## Example Usage
 
 ```hcl
@@ -95,9 +102,9 @@ The `backend_pool` block supports the following:
 
 * `backend` - (Required) A `backend` block as defined below.
 
-* `load_balancing_name` - (Required) The name of the `backend_pool_load_balancing` to use for the `Backend Pool`.
+* `load_balancing_name` - (Required) The name property of the `backend_pool_load_balancing` block whithin this resource to use for the `Backend Pool`.
 
-* `health_probe_name` - (Required) The name of the `backend_pool_health_probe` to use for the `Backend Pool`.
+* `health_probe_name` - (Required) The name property of a `backend_pool_health_probe` block whithin this resource to use for the `Backend Pool`.
 
 ---
 
@@ -130,6 +137,8 @@ The `frontend_endpoint` block supports the following:
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
+
+* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 [//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
@@ -169,29 +178,13 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) The name of the Front Door Backend Routing Rule.
 
-* `frontend_endpoints` - (Required) A `frontend_endpoint` block as defined below.
+* `frontend_endpoints` - (Required) The name property of the `frontend_endpoint` block whithin this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
 * `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
-
----
-
-The `frontend_endpoint` block supports the following:
-
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
-
-* `name` - (Required) The Name of the Azure Front Door Frontend Endpoint.
-
-* `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
-
-* `session_affinity_enabled` - (Optional) Allow session affinity on the Frontend Endpoint. Valid options are `true` or `false`. Defaults to `false`.
-
-* `session_affinity_ttl_seconds` - (Optional) The TTL to use, in seconds, for session affinity, if applicable. Defaults to `0`.
-
-* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 ---
 
