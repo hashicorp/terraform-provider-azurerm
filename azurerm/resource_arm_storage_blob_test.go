@@ -755,7 +755,7 @@ resource "azurerm_storage_blob" "source" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 
@@ -789,7 +789,7 @@ resource "azurerm_storage_blob" "test" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 `, template)
@@ -806,7 +806,7 @@ resource "azurerm_storage_blob" "source" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 
