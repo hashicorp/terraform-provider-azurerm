@@ -57,6 +57,12 @@ func resourceArmFrontDoor() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			// Product Backlog Item #: 4642226 Resource id should not be case sensitive
+			//
+			// Description:
+			// Resource Group currently is case sensitive in AFD RP, but it should not be. 
+			// To make it case insentivie, we need to migrate and normalize the existing values in storage.
+			// Multiple steps are needed to perform this migration. 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"routing_rule": {
