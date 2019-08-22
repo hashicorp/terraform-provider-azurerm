@@ -10,6 +10,8 @@ import (
 //
 // This feature prevents Terraform from 'adopting' resources which already exist, which is the
 // behaviour used by ARM Templates which will update these resources rather than overwriting them
+// Instead existing resources will need to be imported using `terraform import`, as is the case
+// with other Terraform Providers.
 //
 // This feature-toggle defaults to off in 1.x versions of the Azure Provider, however this will
 // become the default behaviour in version 2.0 of the Azure Provider. As outlined in the announcement
