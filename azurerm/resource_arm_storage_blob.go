@@ -213,30 +213,30 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
 	if err != nil {
 		return err
 	}
 
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
+		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.AccountName)
 	}
 
-	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error getting storage account %s: %+v", id.storageAccountName, err)
+		return fmt.Errorf("Error getting storage account %s: %+v", id.AccountName, err)
 	}
 	if !accountExists {
-		return fmt.Errorf("Storage account %s not found in resource group %s", id.storageAccountName, *resourceGroup)
+		return fmt.Errorf("Storage account %s not found in resource group %s", id.AccountName, *resourceGroup)
 	}
 
-	container := blobClient.GetContainerReference(id.containerName)
-	blob := container.GetBlobReference(id.blobName)
+	container := blobClient.GetContainerReference(id.ContainerName)
+	blob := container.GetBlobReference(id.BlobName)
 
 	if d.HasChange("content_type") {
 		blob.Properties.ContentType = d.Get("content_type").(string)
@@ -245,7 +245,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	options := &legacy.SetBlobPropertiesOptions{}
 	err = blob.SetProperties(options)
 	if err != nil {
-		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	if d.HasChange("metadata") {
@@ -265,40 +265,40 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.AccountName, armClient)
 	if err != nil {
 		return err
 	}
 
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
+		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.AccountName)
 	}
 
-	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", id.storageAccountName, d.Id())
+		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", id.AccountName, d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	log.Printf("[INFO] Checking for existence of storage blob %q in container %q.", id.blobName, id.containerName)
-	container := blobClient.GetContainerReference(id.containerName)
-	blob := container.GetBlobReference(id.blobName)
+	log.Printf("[INFO] Checking for existence of storage blob %q in container %q.", id.BlobName, id.ContainerName)
+	container := blobClient.GetContainerReference(id.ContainerName)
+	blob := container.GetBlobReference(id.BlobName)
 	exists, err := blob.Exists()
 	if err != nil {
-		return fmt.Errorf("error checking for existence of storage blob %q: %s", id.blobName, err)
+		return fmt.Errorf("error checking for existence of storage blob %q: %s", id.BlobName, err)
 	}
 
 	if !exists {
-		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", id.blobName)
+		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", id.BlobName)
 		d.SetId("")
 		return nil
 	}
@@ -306,18 +306,18 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	options := &legacy.GetBlobPropertiesOptions{}
 	err = blob.GetProperties(options)
 	if err != nil {
-		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	metadataOptions := &legacy.GetBlobMetadataOptions{}
 	err = blob.GetMetadata(metadataOptions)
 	if err != nil {
-		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
+		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
-	d.Set("name", id.blobName)
-	d.Set("storage_container_name", id.containerName)
-	d.Set("storage_account_name", id.storageAccountName)
+	d.Set("name", id.BlobName)
+	d.Set("storage_container_name", id.ContainerName)
+	d.Set("storage_account_name", id.AccountName)
 	d.Set("resource_group_name", resourceGroup)
 
 	d.Set("content_type", blob.Properties.ContentType)
@@ -329,7 +329,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 
 	u := blob.GetURL()
 	if u == "" {
-		log.Printf("[INFO] URL for %q is empty", id.blobName)
+		log.Printf("[INFO] URL for %q is empty", id.BlobName)
 	}
 	d.Set("url", u)
 

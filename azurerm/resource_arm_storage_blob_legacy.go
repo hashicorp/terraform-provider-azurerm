@@ -8,45 +8,12 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	azauto "github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-type storageBlobId struct {
-	storageAccountName string
-	containerName      string
-	blobName           string
-}
-
-func parseStorageBlobID(input string, environment azauto.Environment) (*storageBlobId, error) {
-	uri, err := url.Parse(input)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
-	}
-
-	// trim the leading `/`
-	segments := strings.Split(strings.TrimPrefix(uri.Path, "/"), "/")
-	if len(segments) < 2 {
-		return nil, fmt.Errorf("Expected number of segments in the path to be < 2 but got %d", len(segments))
-	}
-
-	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".blob.%s", environment.StorageEndpointSuffix), "", 1)
-	containerName := segments[0]
-	blobName := strings.TrimPrefix(uri.Path, fmt.Sprintf("/%s/", containerName))
-
-	id := storageBlobId{
-		storageAccountName: storageAccountName,
-		containerName:      containerName,
-		blobName:           blobName,
-	}
-	return &id, nil
-}
 
 func determineResourceGroupForStorageAccount(accountName string, client *ArmClient) (*string, error) {
 	storageClient := client.storage.AccountsClient
