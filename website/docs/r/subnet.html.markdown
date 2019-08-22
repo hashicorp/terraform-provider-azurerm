@@ -41,7 +41,7 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
     }
   }
 }
@@ -85,7 +85,7 @@ A `service_delegation` block supports the following:
 
 * `name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.BareMetal/AzureVMware`, 
 `Microsoft.BareMetal/CrayServers`, `Microsoft.Batch/batchAccounts`, `Microsoft.ContainerInstance/containerGroups`, `Microsoft.Databricks/workspaces`, `Microsoft.HardwareSecurityModules/dedicatedHSMs`, `Microsoft.Logic/integrationServiceEnvironments`, `Microsoft.Netapp/volumes`, `Microsoft.ServiceFabricMesh/networks`, `Microsoft.Sql/managedInstances`, `Microsoft.Sql/servers`, `Microsoft.Web/hostingEnvironments` or `Microsoft.Web/serverFarms`.
-* `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
+* `actions` - (Required) A list of Actions which should be delegated. Required values are: `Microsoft.Network/virtualNetworks/subnets/join/action ,  Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action`.
 
 ## Attributes Reference
 
