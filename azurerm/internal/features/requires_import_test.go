@@ -49,7 +49,7 @@ func TestRequiresImport(t *testing.T) {
 		os.Setenv("ARM_PROVIDER_STRICT", v.value)
 		actual := ShouldResourcesBeImported()
 		if v.expected != actual {
-			t.Fatalf("Expedted %t but got %t", v.expected, actual)
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
 		}
 	}
 }
