@@ -300,6 +300,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"kube_dashboard": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -908,6 +922,17 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		}
 	}
 
+	kubeDashboard := profile["kube_dashboard"].([]interface{})
+	if len(kubeDashboard) > 0 {
+		value := kubeDashboard[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+
+		addonProfiles["kubeDashboard"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  nil,
+		}
+	}
+
 	return addonProfiles
 }
 
@@ -973,6 +998,20 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		aciConnectors = append(aciConnectors, output)
 	}
 	values["aci_connector_linux"] = aciConnectors
+
+	kubeDashboards := make([]interface{}, 0)
+	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
+		enabled := false
+		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		kubeDashboards = append(kubeDashboards, output)
+	}
+	values["kube_dashboard"] = kubeDashboards
 
 	return []interface{}{values}
 }
