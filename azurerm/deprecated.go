@@ -5,14 +5,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/flags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
-var requireResourcesToBeImported = flags.RequireResourcesToBeImported
+// TODO: move to `features.ShouldResourcesBeImported()`
+var requireResourcesToBeImported = features.ShouldResourcesBeImported()
 
 // nolint: deadcode unused
 func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
